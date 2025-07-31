@@ -1,0 +1,267 @@
+{
+  "metadata": {
+    "source_file": "mes_data_with_kpis.csv",
+    "database_table": "mes_data",
+    "total_records": 36288,
+    "record_types": {
+      "production_records": 33288,
+      "changeover_records": 3000
+    }
+  },
+  "column_mappings": [
+    {
+      "csv_column": "Timestamp",
+      "db_column": "timestamp",
+      "db_type": "DATETIME",
+      "nullable": false,
+      "indexed": true,
+      "transformation": "datetime.strptime(value, '%Y-%m-%d %H:%M:%S')",
+      "example_csv": "2025-06-01 00:00:00",
+      "example_db": "2025-06-01T00:00:00"
+    },
+    {
+      "csv_column": "ProductionOrderID",
+      "db_column": "production_order_id",
+      "db_type": "VARCHAR",
+      "nullable": true,
+      "indexed": true,
+      "transformation": "value if pd.notna(value) else None",
+      "null_condition": "NULL during changeovers (PLN-CO)",
+      "example_csv": "ORD-1000",
+      "example_db": "ORD-1000"
+    },
+    {
+      "csv_column": "LineID",
+      "db_column": "line_id",
+      "db_type": "VARCHAR",
+      "nullable": false,
+      "indexed": true,
+      "transformation": "str(value)",
+      "example_csv": 1,
+      "example_db": "1"
+    },
+    {
+      "csv_column": "EquipmentID",
+      "db_column": "equipment_id",
+      "db_type": "VARCHAR",
+      "nullable": false,
+      "indexed": true,
+      "transformation": "direct",
+      "example_csv": "LINE1-FIL",
+      "example_db": "LINE1-FIL"
+    },
+    {
+      "csv_column": "EquipmentType",
+      "db_column": "equipment_type",
+      "db_type": "VARCHAR",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "direct",
+      "allowed_values": ["Filler", "Packer", "Palletizer"],
+      "example_csv": "Filler",
+      "example_db": "Filler"
+    },
+    {
+      "csv_column": "ProductID",
+      "db_column": "product_id",
+      "db_type": "VARCHAR",
+      "nullable": true,
+      "indexed": true,
+      "transformation": "value if pd.notna(value) else None",
+      "null_condition": "NULL during changeovers (PLN-CO)",
+      "example_csv": "SKU-2002",
+      "example_db": "SKU-2002"
+    },
+    {
+      "csv_column": "ProductName",
+      "db_column": "product_name",
+      "db_type": "VARCHAR",
+      "nullable": true,
+      "indexed": false,
+      "transformation": "value if pd.notna(value) else None",
+      "null_condition": "NULL during changeovers (PLN-CO)",
+      "example_csv": "16oz Energy Drink",
+      "example_db": "16oz Energy Drink"
+    },
+    {
+      "csv_column": "MachineStatus",
+      "db_column": "machine_status",
+      "db_type": "VARCHAR",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "direct",
+      "allowed_values": ["Running", "Stopped"],
+      "example_csv": "Running",
+      "example_db": "Running"
+    },
+    {
+      "csv_column": "DowntimeReason",
+      "db_column": "downtime_reason",
+      "db_type": "VARCHAR",
+      "nullable": true,
+      "indexed": false,
+      "transformation": "value if pd.notna(value) else None",
+      "null_condition": "NULL when machine is running",
+      "allowed_values": ["PLN-CO", "PLN-CLN", "PLN-PM", "UNP-JAM", "UNP-ELEC", "UNP-MAT", "UNP-SENS", "UNP-QC", "UNP-OPR", "UNP-MECH"],
+      "example_csv": "PLN-CO",
+      "example_db": "PLN-CO"
+    },
+    {
+      "csv_column": "GoodUnitsProduced",
+      "db_column": "good_units_produced",
+      "db_type": "INTEGER",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "int(value)",
+      "example_csv": 218,
+      "example_db": 218
+    },
+    {
+      "csv_column": "ScrapUnitsProduced",
+      "db_column": "scrap_units_produced",
+      "db_type": "INTEGER",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "int(value)",
+      "example_csv": 4,
+      "example_db": 4
+    },
+    {
+      "csv_column": "TargetRate_units_per_5min",
+      "db_column": "target_rate_units_per_5min",
+      "db_type": "INTEGER",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "int(value)",
+      "example_csv": 450,
+      "example_db": 450
+    },
+    {
+      "csv_column": "StandardCost_per_unit",
+      "db_column": "standard_cost_per_unit",
+      "db_type": "FLOAT",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "float(value)",
+      "example_csv": 0.55,
+      "example_db": 0.55
+    },
+    {
+      "csv_column": "SalePrice_per_unit",
+      "db_column": "sale_price_per_unit",
+      "db_type": "FLOAT",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "float(value)",
+      "example_csv": 1.75,
+      "example_db": 1.75
+    },
+    {
+      "csv_column": "Availability_Score",
+      "db_column": "availability_score",
+      "db_type": "FLOAT",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "float(value)",
+      "range": [0, 100],
+      "example_csv": 100.0,
+      "example_db": 100.0
+    },
+    {
+      "csv_column": "Performance_Score",
+      "db_column": "performance_score",
+      "db_type": "FLOAT",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "float(value)",
+      "range": [0, 100],
+      "example_csv": 49.3,
+      "example_db": 49.3
+    },
+    {
+      "csv_column": "Quality_Score",
+      "db_column": "quality_score",
+      "db_type": "FLOAT",
+      "nullable": false,
+      "indexed": false,
+      "transformation": "float(value)",
+      "range": [0, 100],
+      "example_csv": 98.2,
+      "example_db": 98.2
+    },
+    {
+      "csv_column": "OEE_Score",
+      "db_column": "oee_score",
+      "db_type": "FLOAT",
+      "nullable": false,
+      "indexed": true,
+      "transformation": "float(value)",
+      "range": [0, 100],
+      "example_csv": 48.4,
+      "example_db": 48.4
+    },
+    {
+      "csv_column": null,
+      "db_column": "id",
+      "db_type": "INTEGER",
+      "nullable": false,
+      "indexed": true,
+      "is_primary_key": true,
+      "transformation": "auto-generated",
+      "description": "Auto-incrementing primary key added by database",
+      "example_csv": null,
+      "example_db": 1
+    }
+  ],
+  "api_endpoints": {
+    "base_url": "http://localhost:8000",
+    "endpoints": [
+      {
+        "path": "/data",
+        "method": "GET",
+        "description": "Get all MES data with pagination and filters",
+        "query_parameters": {
+          "page": "Page number (default: 1)",
+          "page_size": "Items per page (default: 100, max: 1000)",
+          "machine_status": "Filter by machine status (Running, Stopped)",
+          "line_id": "Filter by production line",
+          "equipment_id": "Filter by equipment ID",
+          "production_order_id": "Filter by production order",
+          "product_id": "Filter by product SKU",
+          "downtime_reason": "Filter by downtime reason code"
+        }
+      },
+      {
+        "path": "/data/{id}",
+        "method": "GET",
+        "description": "Get single record by ID"
+      },
+      {
+        "path": "/kpis/summary",
+        "method": "GET",
+        "description": "Get aggregated KPI summary",
+        "query_parameters": {
+          "line_id": "Filter by production line",
+          "equipment_id": "Filter by equipment ID",
+          "production_order_id": "Filter by production order"
+        }
+      }
+    ]
+  },
+  "downtime_codes": {
+    "planned": {
+      "PLN-CO": "Planned Changeover",
+      "PLN-CLN": "Planned Cleaning",
+      "PLN-PM": "Planned Preventive Maintenance"
+    },
+    "unplanned": {
+      "UNP-JAM": "Unplanned Jam",
+      "UNP-ELEC": "Unplanned Electrical Issue",
+      "UNP-MAT": "Unplanned Material Issue",
+      "UNP-SENS": "Unplanned Sensor Issue",
+      "UNP-QC": "Unplanned Quality Control",
+      "UNP-OPR": "Unplanned Operator Issue",
+      "UNP-MECH": "Unplanned Mechanical Issue"
+    }
+  }
+}

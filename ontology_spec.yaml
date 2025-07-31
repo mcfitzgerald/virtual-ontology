@@ -1,0 +1,350 @@
+# MES Ontology Specification
+# This file defines the complete ontology structure for the Manufacturing Execution System
+# It serves as the single source of truth for ontology generation
+
+ontology:
+  name: "MES Manufacturing Ontology"
+  version: "1.0"
+  iri: "http://example.com/mes_ontology#"
+  description: "Manufacturing MES ontology aligned with raw data including inline KPI calculations"
+
+# TBox - Class Hierarchy
+classes:
+  Process:
+    description: "Manufacturing workflow that transforms raw materials into finished products through defined operations"
+    business_context: "Manufacturing workflow that transforms raw materials into finished products through defined operations."
+    subclasses:
+      ProductionOrder:
+        description: "Customer-driven manufacturing request"
+        business_context: "Customer-driven manufacturing request specifying product type, quantity, and schedule. Typical duration: 4-12 hours."
+        
+  Resource:
+    description: "Assets required for production"
+    business_context: "Assets required for production including equipment, production lines, and product specifications."
+    subclasses:
+      Equipment:
+        description: "Physical machines that transform raw materials"
+        business_context: "Physical machines that transform raw materials into finished products. Performance tracked in 5-minute intervals."
+        subclasses:
+          Filler:
+            description: "First stage in bottling line"
+            business_context: "First stage in bottling line. Fills containers with product. Critical for volume accuracy and product quality. Common issues: incorrect fill levels, foaming, contamination."
+            equipment_type: "Filler"
+          Packer:
+            description: "Groups individual containers"
+            business_context: "Groups individual containers into cases/multipacks. Common issues: material jams, label misalignment, case damage."
+            equipment_type: "Packer"
+          Palletizer:
+            description: "Stacks cases onto pallets"
+            business_context: "Stacks cases onto pallets for shipping. End of production line. Common issues: unstable stacks, stretch wrap failures."
+            equipment_type: "Palletizer"
+      ProductionLine:
+        description: "Complete set of equipment working together"
+        business_context: "Complete set of equipment working together. Throughput limited by slowest equipment (bottleneck)."
+      Product:
+        description: "Items manufactured for sale"
+        business_context: "Items manufactured for sale. Each has target rates, costs, and quality specifications."
+        
+  Event:
+    description: "Time-stamped production occurrence"
+    business_context: "Time-stamped production occurrence captured every 5 minutes. Foundation for all KPI calculations."
+    subclasses:
+      ProductionLog:
+        description: "5-minute snapshot when equipment is running"
+        business_context: "5-minute snapshot of production metrics when equipment is running. Core data for OEE calculation."
+        condition: "MachineStatus == 'Running'"
+      DowntimeLog:
+        description: "Equipment stoppage event"
+        business_context: "Equipment stoppage event with reason code. Critical for availability calculation and improvement initiatives."
+        condition: "MachineStatus == 'Stopped'"
+        
+  Reason:
+    description: "Categorized explanation for production events"
+    business_context: "Categorized explanation for production events, especially equipment stoppages. Critical for root cause analysis."
+    subclasses:
+      DowntimeReason:
+        description: "Coded explanation for equipment stoppage"
+        business_context: "Coded explanation for equipment stoppage. Primary driver of availability losses in OEE."
+        subclasses:
+          PlannedDowntime:
+            description: "Scheduled production interruptions"
+            business_context: "Scheduled production interruptions. Predictable but still impacts availability score."
+            subclasses:
+              Changeover:
+                description: "Product switch requiring reconfiguration"
+                business_context: "Product switch requiring equipment reconfiguration. Typical duration: 30-60 minutes. Code: PLN-CO."
+                code: "PLN-CO"
+              Cleaning:
+                description: "Mandatory sanitation cycle"
+                business_context: "Mandatory sanitation cycle every 8 hours for food safety. Duration: 30 minutes. Code: PLN-CLN."
+                code: "PLN-CLN"
+              PreventiveMaintenance:
+                description: "Scheduled equipment service"
+                business_context: "Scheduled equipment service to prevent breakdowns. Weekly/monthly cycles. Code: PLN-PM."
+                code: "PLN-PM"
+          UnplannedDowntime:
+            description: "Unexpected production stoppages"
+            business_context: "Unexpected production stoppages. Major focus area for continuous improvement."
+            subclasses:
+              MechanicalFailure:
+                description: "Equipment breakdown requiring repair"
+                business_context: "Equipment breakdown requiring repair. Major impact on availability. Can exceed 5 hours. Code: UNP-MECH."
+                code: "UNP-MECH"
+              MaterialJam:
+                description: "Product blockage in equipment"
+                business_context: "Product blockage in equipment. Most frequent unplanned stop (35% probability on LINE2-PCK). Duration: 0.5-2 minutes. Code: UNP-JAM."
+                code: "UNP-JAM"
+              MaterialStarvation:
+                description: "Upstream supply shortage"
+                business_context: "Upstream supply shortage. Peak times: 10-12am and 3-5pm. Also caused by cascade failures from upstream equipment after 10-minute delay. Code: UNP-MAT."
+                code: "UNP-MAT"
+              ElectricalFailure:
+                description: "Power or control system malfunction"
+                business_context: "Power or control system malfunction. Can cascade to entire line. Code: UNP-ELEC."
+                code: "UNP-ELEC"
+              QualityCheck:
+                description: "Production halt for quality inspection"
+                business_context: "Production halt for quality inspection. Protects brand reputation. Code: UNP-QC."
+                code: "UNP-QC"
+              OperatorError:
+                description: "Human-caused stoppage"
+                business_context: "Human-caused stoppage. 12% probability on night shift (10pm-6am). Code: UNP-OPR."
+                code: "UNP-OPR"
+              SensorFailure:
+                description: "Misaligned or faulty sensors"
+                business_context: "Misaligned or faulty sensors. Quick fix but 15% probability on LINE1-FIL. Code: UNP-SENS."
+                code: "UNP-SENS"
+
+# RBox - Object Properties
+object_properties:
+  isUpstreamOf:
+    domain: Equipment
+    range: Equipment
+    description: "Defines process flow direction"
+    business_context: "Material flow direction. Upstream equipment problems cascade downstream after 10-minute delay with 80% probability. Critical for root cause analysis."
+    inverse: isDownstreamOf
+    
+  isDownstreamOf:
+    domain: Equipment
+    range: Equipment
+    description: "Inverse of isUpstreamOf"
+    business_context: "Inverse material flow. Downstream blockages can starve upstream equipment."
+    
+  belongsToLine:
+    domain: Equipment
+    range: ProductionLine
+    description: "Connects equipment to its parent line"
+    business_context: "Links equipment to its production line. Lines operate independently but share resources."
+    inverse: hasEquipment
+    
+  hasEquipment:
+    domain: ProductionLine
+    range: Equipment
+    description: "Inverse of belongsToLine"
+    business_context: "Inverse of belongsToLine. Each line has 3 equipment: Filler → Packer → Palletizer."
+    
+  executesOrder:
+    domain: Equipment
+    range: ProductionOrder
+    description: "Links equipment to current order"
+    business_context: "Links equipment to current production order. Equipment can execute multiple orders per day."
+    
+  producesProduct:
+    domain: ProductionOrder
+    range: Product
+    description: "Specifies which product an order produces"
+    business_context: "Links orders to products. Each order produces one product type."
+    
+  logsEvent:
+    domain: Equipment
+    range: Event
+    description: "Connects equipment to log entries"
+    business_context: "Links equipment to its 5-minute event logs. Each equipment generates ~4,000 events over 2 weeks."
+    
+  hasDowntimeReason:
+    domain: DowntimeLog
+    range: DowntimeReason
+    description: "Explains why downtime occurred"
+    business_context: "Links downtime events to specific reason codes. Essential for Pareto analysis."
+
+# RBox - Data Properties
+data_properties:
+  hasTimestamp:
+    domain: Event
+    range: string
+    csv_column: "Timestamp"
+    description: "Event timestamp"
+    data_context: "5-minute interval timestamp for production events"
+    example_value: "2025-06-01 00:00:00"
+    
+  hasOrderID:
+    domain: ProductionOrder
+    range: string
+    csv_column: "ProductionOrderID"
+    description: "Order identifier"
+    data_context: "Unique identifier for production order"
+    
+  hasLineID:
+    domain: ProductionLine
+    range: integer
+    csv_column: "LineID"
+    description: "Line identifier"
+    data_context: "Production line identifier (1-3)"
+    
+  hasEquipmentID:
+    domain: Equipment
+    range: string
+    csv_column: "EquipmentID"
+    description: "Equipment identifier"
+    data_context: "Unique equipment identifier (e.g., LINE1-FIL)"
+    example_value: "LINE1-FIL"
+    
+  hasEquipmentType:
+    domain: Equipment
+    range: string
+    csv_column: "EquipmentType"
+    description: "Type of equipment"
+    data_context: "Type of equipment (Filler, Packer, Palletizer)"
+    
+  hasProductID:
+    domain: Product
+    range: string
+    csv_column: "ProductID"
+    description: "Product SKU"
+    data_context: "Product SKU identifier"
+    example_value: "SKU-1001"
+    
+  hasProductName:
+    domain: Product
+    range: string
+    csv_column: "ProductName"
+    description: "Product name"
+    data_context: "Human-readable product name"
+    
+  hasMachineStatus:
+    domain: Event
+    range: string
+    csv_column: "MachineStatus"
+    description: "Equipment state"
+    data_context: "Current equipment state (Running/Stopped)"
+    
+  hasDowntimeReasonCode:
+    domain: DowntimeLog
+    range: string
+    csv_column: "DowntimeReason"
+    description: "Downtime reason code"
+    data_context: "Reason code for equipment stoppage"
+    
+  hasGoodUnits:
+    domain: ProductionLog
+    range: integer
+    csv_column: "GoodUnitsProduced"
+    description: "Good units produced"
+    data_context: "Count of sellable units produced in 5-min interval"
+    
+  hasScrapUnits:
+    domain: ProductionLog
+    range: integer
+    csv_column: "ScrapUnitsProduced"
+    description: "Scrap units produced"
+    data_context: "Count of defective units in 5-min interval"
+    
+  hasTargetRate:
+    domain: Product
+    range: float
+    csv_column: "TargetRate_units_per_5min"
+    description: "Target production rate"
+    data_context: "Expected production rate per 5-minute interval"
+    
+  hasStandardCost:
+    domain: Product
+    range: float
+    csv_column: "StandardCost_per_unit"
+    description: "Manufacturing cost"
+    data_context: "Manufacturing cost per unit"
+    
+  hasSalePrice:
+    domain: Product
+    range: float
+    csv_column: "SalePrice_per_unit"
+    description: "Selling price"
+    data_context: "Selling price per unit"
+    
+  hasAvailabilityScore:
+    domain: Event
+    range: float
+    csv_column: "Availability_Score"
+    description: "Equipment availability"
+    data_context: "Equipment availability percentage (0-100)"
+    business_context: "% of scheduled time equipment was available. Current average: 69%. Lost to all downtime types including frequent micro-stops."
+    typical_value: "World-class: >90%, Current avg: 69%"
+    
+  hasPerformanceScore:
+    domain: Event
+    range: float
+    csv_column: "Performance_Score"
+    description: "Production speed efficiency"
+    data_context: "Production speed efficiency (0-100)"
+    business_context: "% of ideal cycle time achieved. Current average: 50%. Lost to slow cycles, minor stops, and performance degradation."
+    typical_value: "World-class: >95%, Current avg: 50%"
+    
+  hasQualityScore:
+    domain: Event
+    range: float
+    csv_column: "Quality_Score"
+    description: "Product quality percentage"
+    data_context: "Product quality percentage (0-100)"
+    business_context: "% of total units that are sellable. Current average: 64%. Lost to normal variations (5% probability), startup scrap (first 30 min), and end-of-run degradation (last 2 hours)."
+    typical_value: "World-class: >99%, Current avg: 64%"
+    
+  hasOEEScore:
+    domain: Event
+    range: float
+    csv_column: "OEE_Score"
+    description: "Overall Equipment Effectiveness"
+    data_context: "Overall Equipment Effectiveness (0-100)"
+    business_context: "Overall Equipment Effectiveness (0-100%). Current average: 46%. World-class: >85%, Typical: 60-75%. Impacted by micro-stops, quality variations, and cascade failures."
+    typical_value: "World-class: >85%, Good: 60-75%, Current avg: 46%"
+    calculation_method: "Availability × Performance × Quality"
+
+# Business contexts for specific entities
+entity_contexts:
+  # Products
+  SKU-1001: "12oz Sparkling Water - High volume, low margin product. Simple to produce with minimal issues."
+  SKU-1002: "32oz Premium Juice - High margin product with elevated quality requirements. Shows 6-8% scrap rate due to quality issues."
+  SKU-2001: "12oz Soda - Standard carbonated beverage. Stable production across all lines."
+  SKU-2002: "16oz Energy Drink - Complex formulation. Runs 65-80% speed on LINE1 and LINE3 due to foaming issues."
+  SKU-3001: "8oz Kids Drink - Small format, high speed production. Popular in school channels."
+  
+  # Equipment
+  LINE1-FIL: "Filler with sensor calibration issues (15% micro-stops). Night shift operator issues add 12% stops. Prone to 0.5-1.5 minute jams (10% probability)."
+  LINE2-FIL: "Standard filler with typical 10% micro-stop rate. Duration: 0.5-1.5 minutes per stop."
+  LINE3-FIL: "Older filler prone to failures. Major breakdown on June 8 (2:00-7:30 AM) caused 5.5 hour downtime. Also has 10% micro-stop rate."
+  LINE1-PCK: "Packer with 12% micro-stop probability. Typical duration: 0.5-2 minutes per jam."
+  LINE2-PCK: "Packer with chronic micro-stops. 35% chance of 0.5-2 minute jams each period. Top maintenance priority."
+  LINE3-PCK: "Standard packer with 12% micro-stop rate. Duration: 0.5-2 minutes."
+  LINE1-PAL: "Palletizer with 8% micro-stop rate. Typical duration: 1-2 minutes for stack adjustments."
+  LINE2-PAL: "Standard palletizer. 8% micro-stop probability, 1-2 minute duration."
+  LINE3-PAL: "Palletizer at end of problematic LINE3. 8% micro-stops plus cascade effects from upstream."
+  
+  # Quality patterns
+  QualityVariation: "Normal production experiences 5% probability of minor quality issues per 5-minute interval."
+  ChangeoverQuality: "First 30 minutes after product changeover shows 2x normal scrap rate due to equipment adjustment."
+  EndOfRunQuality: "Last 2 hours before changeover experiences 1.5x scrap rate due to material depletion and operator fatigue."
+  
+  # Cascade patterns
+  CascadeFailure: "Downstream equipment starves 10 minutes after upstream stoppage. 80% probability of propagation. Major cause of line-wide OEE loss."
+  UpstreamDependency: "Filler stoppages cascade to Packer then Palletizer. Each stage adds 10-minute buffer before starvation."
+
+# Downtime reason mappings (for backward compatibility)
+downtime_mappings:
+  PLN-CO: Changeover
+  PLN-CLN: Cleaning
+  PLN-PM: PreventiveMaintenance
+  UNP-MECH: MechanicalFailure
+  UNP-JAM: MaterialJam
+  UNP-MAT: MaterialStarvation
+  UNP-ELEC: ElectricalFailure
+  UNP-QC: QualityCheck
+  UNP-OPR: OperatorError
+  UNP-SENS: SensorFailure

@@ -1,0 +1,143 @@
+metadata:
+  source: mes_data_with_kpis.csv
+  table: mes_data
+  total_records: 36288
+  production_records: 33288
+  changeover_records: 3000
+
+columns:
+  - csv: Timestamp
+    db: timestamp
+    type: DATETIME
+    required: true
+    indexed: true
+    transform: string_to_datetime
+    
+  - csv: ProductionOrderID
+    db: production_order_id
+    type: VARCHAR
+    required: false
+    indexed: true
+    null_when: changeover
+    
+  - csv: LineID
+    db: line_id
+    type: VARCHAR
+    required: true
+    indexed: true
+    transform: to_string
+    
+  - csv: EquipmentID
+    db: equipment_id
+    type: VARCHAR
+    required: true
+    indexed: true
+    
+  - csv: EquipmentType
+    db: equipment_type
+    type: VARCHAR
+    required: true
+    values: [Filler, Packer, Palletizer]
+    
+  - csv: ProductID
+    db: product_id
+    type: VARCHAR
+    required: false
+    indexed: true
+    null_when: changeover
+    
+  - csv: ProductName
+    db: product_name
+    type: VARCHAR
+    required: false
+    null_when: changeover
+    
+  - csv: MachineStatus
+    db: machine_status
+    type: VARCHAR
+    required: true
+    values: [Running, Stopped]
+    
+  - csv: DowntimeReason
+    db: downtime_reason
+    type: VARCHAR
+    required: false
+    null_when: machine_running
+    
+  - csv: GoodUnitsProduced
+    db: good_units_produced
+    type: INTEGER
+    required: true
+    
+  - csv: ScrapUnitsProduced
+    db: scrap_units_produced
+    type: INTEGER
+    required: true
+    
+  - csv: TargetRate_units_per_5min
+    db: target_rate_units_per_5min
+    type: INTEGER
+    required: true
+    
+  - csv: StandardCost_per_unit
+    db: standard_cost_per_unit
+    type: FLOAT
+    required: true
+    
+  - csv: SalePrice_per_unit
+    db: sale_price_per_unit
+    type: FLOAT
+    required: true
+    
+  - csv: Availability_Score
+    db: availability_score
+    type: FLOAT
+    required: true
+    range: [0, 100]
+    
+  - csv: Performance_Score
+    db: performance_score
+    type: FLOAT
+    required: true
+    range: [0, 100]
+    
+  - csv: Quality_Score
+    db: quality_score
+    type: FLOAT
+    required: true
+    range: [0, 100]
+    
+  - csv: OEE_Score
+    db: oee_score
+    type: FLOAT
+    required: true
+    indexed: true
+    range: [0, 100]
+    
+  - csv: null
+    db: id
+    type: INTEGER
+    required: true
+    primary_key: true
+    auto_generated: true
+
+api:
+  base_url: http://localhost:8000
+  main_endpoints:
+    - GET /data (paginated, filterable)
+    - GET /data/{id}
+    - GET /kpis/summary
+    - GET /kpis/by-equipment
+    - GET /kpis/by-product
+
+downtime_codes:
+  PLN-CO: Planned Changeover (no product/order)
+  PLN-CLN: Planned Cleaning
+  PLN-PM: Planned Preventive Maintenance
+  UNP-JAM: Unplanned Jam
+  UNP-ELEC: Unplanned Electrical Issue
+  UNP-MAT: Unplanned Material Issue
+  UNP-SENS: Unplanned Sensor Issue
+  UNP-QC: Unplanned Quality Control
+  UNP-OPR: Unplanned Operator Issue
+  UNP-MECH: Unplanned Mechanical Issue
