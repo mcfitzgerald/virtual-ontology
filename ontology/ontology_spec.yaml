@@ -1,0 +1,283 @@
+# MES Ontology Specification
+# This file defines the complete ontology structure for the Manufacturing Execution System
+# It serves as the single source of truth for ontology generation
+
+ontology:
+  name: "MES Manufacturing Ontology"
+  version: "1.0"
+  iri: "http://example.com/mes_ontology#"
+  description: "Manufacturing MES ontology aligned with raw data including inline KPI calculations"
+
+# TBox - Class Hierarchy
+classes:
+  Process:
+    description: "Manufacturing workflow that transforms raw materials into finished products through defined operations"
+    subclasses:
+      ProductionOrder:
+        description: "Customer-driven manufacturing request specifying product type, quantity, and schedule"
+        
+  Resource:
+    description: "Assets required for production including equipment, production lines, and product specifications"
+    subclasses:
+      Equipment:
+        description: "Physical machines that transform raw materials into finished products"
+        subclasses:
+          Filler:
+            description: "First stage in bottling line that fills containers with product"
+            equipment_type: "Filler"
+          Packer:
+            description: "Groups individual containers into cases or multipacks"
+            equipment_type: "Packer"
+          Palletizer:
+            description: "Stacks cases onto pallets for shipping"
+            equipment_type: "Palletizer"
+      ProductionLine:
+        description: "Complete set of equipment working together in sequence"
+      Product:
+        description: "Items manufactured for sale with defined specifications"
+        
+  Event:
+    description: "Time-stamped production occurrence captured at regular intervals"
+    subclasses:
+      ProductionLog:
+        description: "Snapshot of production metrics when equipment is running"
+        condition: "MachineStatus == 'Running'"
+      DowntimeLog:
+        description: "Equipment stoppage event with associated reason code"
+        condition: "MachineStatus == 'Stopped'"
+        
+  Reason:
+    description: "Categorized explanation for production events"
+    subclasses:
+      DowntimeReason:
+        description: "Coded explanation for equipment stoppage"
+        subclasses:
+          PlannedDowntime:
+            description: "Scheduled production interruptions"
+            subclasses:
+              Changeover:
+                description: "Product switch requiring equipment reconfiguration"
+                code: "PLN-CO"
+              Cleaning:
+                description: "Mandatory sanitation cycle for hygiene and safety"
+                code: "PLN-CLN"
+              PreventiveMaintenance:
+                description: "Scheduled equipment service to prevent breakdowns"
+                code: "PLN-PM"
+          UnplannedDowntime:
+            description: "Unexpected production stoppages"
+            subclasses:
+              MechanicalFailure:
+                description: "Equipment breakdown requiring repair"
+                code: "UNP-MECH"
+              MaterialJam:
+                description: "Product blockage in equipment causing temporary stoppage"
+                code: "UNP-JAM"
+              MaterialStarvation:
+                description: "Upstream supply shortage preventing equipment operation"
+                code: "UNP-MAT"
+              ElectricalFailure:
+                description: "Power or control system malfunction"
+                code: "UNP-ELEC"
+              QualityCheck:
+                description: "Production halt for quality inspection"
+                code: "UNP-QC"
+              OperatorError:
+                description: "Production stoppage caused by human error or intervention"
+                code: "UNP-OPR"
+              SensorFailure:
+                description: "Misaligned or faulty sensors requiring adjustment"
+                code: "UNP-SENS"
+
+# RBox - Object Properties
+object_properties:
+  isUpstreamOf:
+    domain: Equipment
+    range: Equipment
+    description: "Defines material flow direction from upstream to downstream equipment"
+    inverse: isDownstreamOf
+    
+  isDownstreamOf:
+    domain: Equipment
+    range: Equipment
+    description: "Inverse of isUpstreamOf - defines equipment receiving material flow"
+    
+  belongsToLine:
+    domain: Equipment
+    range: ProductionLine
+    description: "Connects equipment to its parent production line"
+    inverse: hasEquipment
+    
+  hasEquipment:
+    domain: ProductionLine
+    range: Equipment
+    description: "Lists equipment belonging to a production line"
+    
+  executesOrder:
+    domain: Equipment
+    range: ProductionOrder
+    description: "Links equipment to the production order it is currently executing"
+    
+  producesProduct:
+    domain: ProductionOrder
+    range: Product
+    description: "Specifies which product type a production order produces"
+    
+  logsEvent:
+    domain: Equipment
+    range: Event
+    description: "Connects equipment to its time-stamped event log entries"
+    
+  hasDowntimeReason:
+    domain: DowntimeLog
+    range: DowntimeReason
+    description: "Links downtime events to their specific reason codes"
+
+# RBox - Data Properties
+data_properties:
+  hasTimestamp:
+    domain: Event
+    range: string
+    csv_column: "Timestamp"
+    description: "Event timestamp"
+    data_context: "5-minute interval timestamp for production events"
+    example_value: "2025-06-01 00:00:00"
+    
+  hasOrderID:
+    domain: ProductionOrder
+    range: string
+    csv_column: "ProductionOrderID"
+    description: "Order identifier"
+    data_context: "Unique identifier for production order"
+    
+  hasLineID:
+    domain: ProductionLine
+    range: string
+    csv_column: "LineID"
+    description: "Line identifier"
+    data_context: "Production line identifier (1-3)"
+    
+  hasEquipmentID:
+    domain: Equipment
+    range: string
+    csv_column: "EquipmentID"
+    description: "Equipment identifier"
+    data_context: "Unique equipment identifier (e.g., LINE1-FIL)"
+    example_value: "LINE1-FIL"
+    
+  hasEquipmentType:
+    domain: Equipment
+    range: string
+    csv_column: "EquipmentType"
+    description: "Type of equipment"
+    data_context: "Type of equipment (Filler, Packer, Palletizer)"
+    
+  hasProductID:
+    domain: Product
+    range: string
+    csv_column: "ProductID"
+    description: "Product SKU"
+    data_context: "Product SKU identifier"
+    example_value: "SKU-1001"
+    
+  hasProductName:
+    domain: Product
+    range: string
+    csv_column: "ProductName"
+    description: "Product name"
+    data_context: "Human-readable product name"
+    
+  hasMachineStatus:
+    domain: Event
+    range: string
+    csv_column: "MachineStatus"
+    description: "Equipment state"
+    data_context: "Current equipment state (Running/Stopped)"
+    
+  hasDowntimeReasonCode:
+    domain: DowntimeLog
+    range: string
+    csv_column: "DowntimeReason"
+    description: "Downtime reason code"
+    data_context: "Reason code for equipment stoppage"
+    
+  hasGoodUnits:
+    domain: ProductionLog
+    range: integer
+    csv_column: "GoodUnitsProduced"
+    description: "Good units produced"
+    data_context: "Count of sellable units produced in 5-min interval"
+    
+  hasScrapUnits:
+    domain: ProductionLog
+    range: integer
+    csv_column: "ScrapUnitsProduced"
+    description: "Scrap units produced"
+    data_context: "Count of defective units in 5-min interval"
+    
+  hasTargetRate:
+    domain: Product
+    range: integer
+    csv_column: "TargetRate_units_per_5min"
+    description: "Target production rate"
+    data_context: "Expected production rate per 5-minute interval"
+    
+  hasStandardCost:
+    domain: Product
+    range: float
+    csv_column: "StandardCost_per_unit"
+    description: "Manufacturing cost"
+    data_context: "Manufacturing cost per unit"
+    
+  hasSalePrice:
+    domain: Product
+    range: float
+    csv_column: "SalePrice_per_unit"
+    description: "Selling price"
+    data_context: "Selling price per unit"
+    
+  hasAvailabilityScore:
+    domain: Event
+    range: float
+    csv_column: "Availability_Score"
+    description: "Percentage of scheduled time equipment was available for production"
+    data_context: "Equipment availability percentage (0-100)"
+    typical_value: "World-class: >90%"
+    
+  hasPerformanceScore:
+    domain: Event
+    range: float
+    csv_column: "Performance_Score"
+    description: "Percentage of ideal cycle time achieved during production"
+    data_context: "Production speed efficiency (0-100)"
+    typical_value: "World-class: >95%"
+    
+  hasQualityScore:
+    domain: Event
+    range: float
+    csv_column: "Quality_Score"
+    description: "Percentage of total units produced that meet quality standards"
+    data_context: "Product quality percentage (0-100)"
+    typical_value: "World-class: >99%"
+    
+  hasOEEScore:
+    domain: Event
+    range: float
+    csv_column: "OEE_Score"
+    description: "Overall Equipment Effectiveness - composite measure of availability, performance, and quality"
+    data_context: "Overall Equipment Effectiveness (0-100)"
+    typical_value: "World-class: >85%, Good: 60-75%"
+    calculation_method: "Availability × Performance × Quality"
+
+# Downtime reason mappings (for backward compatibility)
+downtime_mappings:
+  PLN-CO: Changeover
+  PLN-CLN: Cleaning
+  PLN-PM: PreventiveMaintenance
+  UNP-MECH: MechanicalFailure
+  UNP-JAM: MaterialJam
+  UNP-MAT: MaterialStarvation
+  UNP-ELEC: ElectricalFailure
+  UNP-QC: QualityCheck
+  UNP-OPR: OperatorError
+  UNP-SENS: SensorFailure

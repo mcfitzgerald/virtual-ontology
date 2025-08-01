@@ -1,0 +1,169 @@
+# MES Database Schema
+# This file documents the database schema for the Manufacturing Execution System (MES) data
+# including mappings to the raw CSV data columns
+
+database:
+  name: mes_database.db
+  type: SQLite
+  location: ../data/mes_database.db
+
+tables:
+  - name: mes_data
+    description: Main table storing Manufacturing Execution System data with KPI calculations
+    
+    fields:
+      - name: id
+        csv_column: null  # Auto-generated primary key
+        type: INTEGER
+        nullable: false
+        primary_key: true
+        description: Unique identifier for each record
+        
+      - name: timestamp
+        csv_column: Timestamp
+        type: DATETIME
+        nullable: false
+        indexed: true
+        description: Date and time of the measurement
+        format: "YYYY-MM-DD HH:MM:SS"
+        
+      - name: production_order_id
+        csv_column: ProductionOrderID
+        type: STRING
+        nullable: true
+        indexed: true
+        description: Identifier for the production order (e.g., ORD-1000)
+        
+      - name: line_id
+        csv_column: LineID
+        type: STRING
+        nullable: false
+        indexed: true
+        description: Production line identifier (e.g., 1, 2, 3)
+        
+      - name: equipment_id
+        csv_column: EquipmentID
+        type: STRING
+        nullable: false
+        indexed: true
+        description: Unique identifier for the equipment (e.g., LINE1-FIL, LINE2-PCK)
+        
+      - name: equipment_type
+        csv_column: EquipmentType
+        type: STRING
+        nullable: false
+        indexed: false
+        description: Type of equipment (e.g., Filler, Packer, Palletizer)
+        
+      - name: product_id
+        csv_column: ProductID
+        type: STRING
+        nullable: true
+        indexed: true
+        description: Stock keeping unit identifier (e.g., SKU-2001, SKU-2002)
+        
+      - name: product_name
+        csv_column: ProductName
+        type: STRING
+        nullable: true
+        indexed: false
+        description: Human-readable product name (e.g., "12oz Soda", "16oz Energy Drink")
+        
+      - name: machine_status
+        csv_column: MachineStatus
+        type: STRING
+        nullable: false
+        indexed: false
+        description: Current status of the machine
+        values: ["Running", "Stopped"]
+        
+      - name: downtime_reason
+        csv_column: DowntimeReason
+        type: STRING
+        nullable: true
+        indexed: false
+        description: Reason for machine downtime when status is Stopped
+        example_values: ["PLN-CO", "UNP-JAM", "PLN-CLN", null]
+        
+      - name: good_units_produced
+        csv_column: GoodUnitsProduced
+        type: INTEGER
+        nullable: false
+        indexed: false
+        description: Number of units produced that meet quality standards
+        
+      - name: scrap_units_produced
+        csv_column: ScrapUnitsProduced
+        type: INTEGER
+        nullable: false
+        indexed: false
+        description: Number of units produced that do not meet quality standards
+        
+      - name: target_rate_units_per_5min
+        csv_column: TargetRate_units_per_5min
+        type: INTEGER
+        nullable: false
+        indexed: false
+        description: Target production rate in units per 5-minute interval
+        
+      - name: standard_cost_per_unit
+        csv_column: StandardCost_per_unit
+        type: FLOAT
+        nullable: false
+        indexed: false
+        description: Standard cost per unit in currency
+        
+      - name: sale_price_per_unit
+        csv_column: SalePrice_per_unit
+        type: FLOAT
+        nullable: false
+        indexed: false
+        description: Sale price per unit in currency
+        
+      - name: availability_score
+        csv_column: Availability_Score
+        type: FLOAT
+        nullable: false
+        indexed: false
+        description: Equipment availability percentage (0-100)
+        calculation: "Percentage of time equipment is available for production"
+        
+      - name: performance_score
+        csv_column: Performance_Score
+        type: FLOAT
+        nullable: false
+        indexed: false
+        description: Equipment performance percentage (0-100)
+        calculation: "Actual production rate vs target production rate"
+        
+      - name: quality_score
+        csv_column: Quality_Score
+        type: FLOAT
+        nullable: false
+        indexed: false
+        description: Production quality percentage (0-100)
+        calculation: "Good units / (Good units + Scrap units) * 100"
+        
+      - name: oee_score
+        csv_column: OEE_Score
+        type: FLOAT
+        nullable: false
+        indexed: true
+        description: Overall Equipment Effectiveness score (0-100)
+        calculation: "Availability × Performance × Quality / 10000"
+
+data_import:
+  source_file: ../data/mes_data_with_kpis.csv
+  import_method: import_csv_data()
+  location: api/database.py:27-63
+  
+api_models:
+  sqlmodel: api/models.py:6-27
+  pydantic_schema: api/schemas.py:6-28
+  
+notes:
+  - All timestamps are stored in UTC
+  - Nullable fields handle missing values from the CSV with None/NULL
+  - Indexes are added on fields commonly used for filtering and queries
+  - OEE (Overall Equipment Effectiveness) is a key manufacturing KPI
+  - Cost and price fields support financial analysis

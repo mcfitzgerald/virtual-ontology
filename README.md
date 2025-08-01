@@ -11,10 +11,28 @@ pip install -r requirements.txt
 
 2. Run the application:
 ```bash
+cd api
 python main.py
 ```
 
+**Note:** The `main.py` file is located in the `api/` directory, so you must navigate there first.
+
 The API will be available at `http://localhost:8000`
+
+## Quick Start Script
+
+A convenience script `api.sh` is provided to easily start, check, and stop the API:
+
+```bash
+# Start the API
+./api.sh start
+
+# Check if API is running
+./api.sh status
+
+# Stop the API
+./api.sh stop
+```
 
 ## API Documentation
 
