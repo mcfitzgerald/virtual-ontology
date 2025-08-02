@@ -131,6 +131,89 @@ Beyond traditional text-to-SQL benchmarks, SQLOnt requires evaluation of:
 - Query optimization using ontological constraints
 - Benchmark development for semantic SQL generation
 
+## Demo: Manufacturing Execution System (MES)
+
+This repository includes a demonstration of SQLOnt using Manufacturing Execution System (MES) data from a bottled beverage production facility. The demo showcases how ontological context enables natural language queries against production data.
+
+### Starting the SQL API
+
+The demo includes a FastAPI-based SQL interface for querying the MES database:
+
+```bash
+# Start the API server
+./api.sh start
+
+# Check API status
+./api.sh status
+
+# Stop the API server
+./api.sh stop
+
+# Restart the API
+./api.sh restart
+```
+
+Once started, the API is available at:
+- API endpoint: `http://localhost:8000`
+- Interactive docs: `http://localhost:8000/docs`
+
+### Sample Data
+
+The MES dataset (`data/mes_data_with_kpis.csv`) contains production metrics captured at 5-minute intervals:
+
+| Timestamp | ProductionOrderID | LineID | EquipmentID | EquipmentType | ProductID | ProductName | MachineStatus | DowntimeReason | GoodUnitsProduced | ScrapUnitsProduced | TargetRate_units_per_5min | StandardCost_per_unit | SalePrice_per_unit | Availability_Score | Performance_Score | Quality_Score | OEE_Score |
+|-----------|------------------|--------|-------------|---------------|-----------|-------------|---------------|----------------|-------------------|-------------------|---------------------------|----------------------|-------------------|-------------------|------------------|---------------|-----------|
+| 2025-06-01 00:00:00 | ORD-1000 | 1 | LINE1-FIL | Filler | SKU-2002 | 16oz Energy Drink | Running | | 218 | 4 | 450 | 0.55 | 1.75 | 100.0 | 49.3 | 98.2 | 48.4 |
+| 2025-06-01 00:00:00 | ORD-1000 | 1 | LINE1-PCK | Packer | SKU-2002 | 16oz Energy Drink | Stopped | UNP-JAM | 0 | 0 | 450 | 0.55 | 1.75 | 0.0 | 0.0 | 0.0 | 0.0 |
+| 2025-06-01 00:00:00 | ORD-1000 | 1 | LINE1-PAL | Palletizer | SKU-2002 | 16oz Energy Drink | Running | | 249 | 5 | 450 | 0.55 | 1.75 | 100.0 | 56.4 | 98.0 | 55.3 |
+| 2025-06-01 00:00:00 | ORD-1039 | 2 | LINE2-FIL | Filler | SKU-2001 | 12oz Soda | Running | | 324 | 4 | 475 | 0.2 | 0.65 | 100.0 | 69.1 | 98.8 | 68.2 |
+| 2025-06-01 00:00:00 | ORD-1039 | 2 | LINE2-PCK | Packer | SKU-2001 | 12oz Soda | Stopped | UNP-JAM | 0 | 0 | 475 | 0.2 | 0.65 | 0.0 | 0.0 | 0.0 | 0.0 |
+
+The data includes:
+- **Production metrics**: Units produced (good/scrap), target rates
+- **Equipment status**: Running/Stopped states with downtime reason codes
+- **Financial data**: Standard costs and sale prices per unit
+- **KPI scores**: Availability, Performance, Quality, and OEE (Overall Equipment Effectiveness)
+
+### Ontology Structure
+
+The MES ontology (`ontology/ontology_spec.yaml`) defines the conceptual model:
+
+#### Class Hierarchy (TBox)
+- **Process**: Manufacturing workflows
+  - ProductionOrder: Customer-driven manufacturing requests
+- **Resource**: Production assets
+  - Equipment: Physical machines (Filler, Packer, Palletizer)
+  - ProductionLine: Complete equipment sets
+  - Product: Manufactured items
+- **Event**: Time-stamped occurrences
+  - ProductionLog: Metrics when equipment is running
+  - DowntimeLog: Stoppage events with reasons
+- **Reason**: Categorized explanations
+  - PlannedDowntime: Changeover, Cleaning, Preventive Maintenance
+  - UnplannedDowntime: Mechanical Failure, Material Jam, Quality Check, etc.
+
+#### Relationships (RBox)
+- **Equipment flow**: `isUpstreamOf`/`isDownstreamOf` - Material flow direction
+- **Line membership**: `belongsToLine`/`hasEquipment` - Equipment-line associations
+- **Production tracking**: `executesOrder`, `producesProduct` - Order fulfillment
+- **Event logging**: `logsEvent`, `hasDowntimeReason` - Historical records
+
+### Database Schema
+
+The database schema (`ontology/database_schema.yaml`) maps the ontological concepts to SQL tables, providing the bridge between semantic queries and the underlying data structure.
+
+### Example Queries
+
+With the ontology and schema context, natural language queries like these become possible:
+
+- "Show me all unplanned downtime events for fillers in the last week"
+- "Which production line has the best OEE score for energy drinks?"
+- "Find all material jams that occurred downstream of equipment with mechanical failures"
+- "Calculate the total production loss from preventive maintenance activities"
+
+These queries leverage the ontological understanding of equipment relationships, downtime categorization, and production flow without requiring users to know the specific database structure.
+
 ## Contributing
 
 This is an experimental project exploring the intersection of semantic technologies and modern LLM capabilities. Contributions, ideas, and use cases are welcome.

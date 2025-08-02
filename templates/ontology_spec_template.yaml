@@ -1,0 +1,155 @@
+# SQLOnt Lean Ontology Template
+# Version: 1.0
+# Purpose: Practical ontology for LLM-based SQL generation across business systems
+# Focus: Minimal, practical structure without semantic web formalism
+
+# ====================================================================================
+# ONTOLOGY METADATA
+# ====================================================================================
+ontology:
+  name: "<YOUR_ONTOLOGY_NAME>"
+  version: "1.0"
+  namespace: "<SHORT_NAMESPACE>"  # e.g., "mes", "erp", "crm"
+  description: "<CLEAR_BUSINESS_DESCRIPTION>"
+  
+  # Related ontologies in your ecosystem
+  related_ontologies:
+    - namespace: "<OTHER_NAMESPACE>"
+      description: "<HOW_THEY_RELATE>"
+      shared_concepts: ["<CONCEPT1>", "<CONCEPT2>"]  # Concepts that appear in both
+    
+  # Business context
+  domain: "<BUSINESS_DOMAIN>"  # e.g., "manufacturing", "sales", "logistics"
+  owner: "<TEAM_OR_DEPARTMENT>"
+  created: "<YYYY-MM-DD>"
+  modified: "<YYYY-MM-DD>"
+
+# ====================================================================================
+# CLASSES (Business Entities)
+# ====================================================================================
+classes:
+  <ClassName>:
+    description: "<BUSINESS_DESCRIPTION>"
+    
+    # How this maps to other systems (simple names, not URIs)
+    maps_to:
+      <other_namespace>: "<TheirClassName>"
+      
+    # When to classify data as this type
+    conditions:
+      - field: "<FIELD_NAME>"
+        operator: "<equals|contains|greater_than|less_than|in>"
+        value: "<VALUE>"
+    
+    # Subclasses (if hierarchical)
+    subclasses:
+      <SubClassName>:
+        description: "<DESCRIPTION>"
+        conditions:
+          - field: "<FIELD>"
+            operator: "equals"
+            value: "<VALUE>"
+
+# ====================================================================================
+# RELATIONSHIPS (How entities connect)
+# ====================================================================================
+relationships:
+  <relationshipName>:
+    from: "<SourceClass>"
+    to: "<TargetClass>"
+    description: "<PLAIN_ENGLISH_DESCRIPTION>"
+    
+    # Cardinality
+    type: "one-to-many"  # or "one-to-one", "many-to-many"
+    
+    # How this typically appears in SQL
+    sql_hint: "<JOIN_PATTERN>"  # e.g., "orders.customer_id = customers.id"
+    
+    # Inverse relationship (if bidirectional)
+    inverse: "<inverseRelationshipName>"
+
+# ====================================================================================
+# PROPERTIES (Data attributes)
+# ====================================================================================
+properties:
+  <propertyName>:
+    class: "<OwningClass>"  # Which class has this property
+    type: "string"  # Simple types: string, integer, float, boolean, datetime, date
+    description: "<BUSINESS_MEANING>"
+    
+    # Database mapping
+    sql_column: "<COLUMN_NAME>"
+    sql_table: "<TABLE_NAME>"  # If different from main table
+    
+    # Business rules
+    required: true
+    unique: false
+    
+    # Validation (only if needed)
+    validation:
+      values: ["<VALUE1>", "<VALUE2>"]  # For enums
+      min: <NUMBER>  # For numeric
+      max: <NUMBER>
+      pattern: "<REGEX>"  # For strings
+    
+    # Business context
+    unit: "<UNIT_LABEL>"  # e.g., "USD", "meters", "percent"
+    business_name: "<FRIENDLY_NAME>"  # What business users call it
+    
+    # Example values (helps LLM understand)
+    examples: ["<EXAMPLE1>", "<EXAMPLE2>"]
+
+# ====================================================================================
+# BUSINESS RULES (Domain logic)
+# ====================================================================================
+business_rules:
+  <ruleName>:
+    description: "<WHAT_THIS_RULE_MEANS>"
+    
+    # When this rule applies
+    when:
+      class: "<CLASS_NAME>"
+      condition: "<CONDITION_DESCRIPTION>"
+    
+    # What it implies
+    implies: "<IMPLICATION>"
+    
+    # SQL hint for implementation
+    sql_hint: "<HOW_TO_CHECK_IN_SQL>"
+
+# ====================================================================================
+# CROSS-SYSTEM MAPPINGS
+# ====================================================================================
+system_mappings:
+  # How concepts in this ontology map to other systems
+  <external_system>:
+    type: "<SYSTEM_TYPE>"  # e.g., "ERP", "CRM", "MES"
+    namespace: "<their_namespace>"
+    
+    mappings:
+      - our_concept: "<OurClass>"
+        their_concept: "<TheirClass>"
+        join_key: "<FIELD_NAME>"  # How to join data
+        notes: "<ANY_TRANSFORMATION_NEEDED>"
+
+# ====================================================================================
+# COMMON QUERIES (Help LLM understand usage)
+# ====================================================================================
+common_queries:
+  - name: "<QUERY_NAME>"
+    question: "<NATURAL_LANGUAGE_QUESTION>"
+    involves: ["<Class1>", "<Property1>", "<Relationship1>"]  # Concepts used
+    sql_pattern: |
+      -- Typical SQL structure for this query
+      SELECT ...
+      FROM <table>
+      WHERE ...
+
+# ====================================================================================
+# GLOSSARY (Business terminology)
+# ====================================================================================
+glossary:
+  <term>:
+    definition: "<BUSINESS_DEFINITION>"
+    also_known_as: ["<SYNONYM1>", "<SYNONYM2>"]  # Alternative names
+    see_also: ["<RELATED_TERM>"]

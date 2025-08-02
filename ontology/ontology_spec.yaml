@@ -1,283 +1,477 @@
-# MES Ontology Specification
-# This file defines the complete ontology structure for the Manufacturing Execution System
-# It serves as the single source of truth for ontology generation
+# MES Manufacturing Ontology - Lean Version
+# Simplified for practical LLM-based SQL generation
 
+# ====================================================================================
+# ONTOLOGY METADATA
+# ====================================================================================
 ontology:
   name: "MES Manufacturing Ontology"
-  version: "1.0"
-  iri: "http://example.com/mes_ontology#"
-  description: "Manufacturing MES ontology aligned with raw data including inline KPI calculations"
+  version: "2.0"
+  namespace: "mes"
+  description: "Manufacturing execution system tracking production, equipment, and downtime"
+  
+  # Related ontologies in your ecosystem
+  related_ontologies:
+    - namespace: "erp"
+      description: "ERP system handles orders and inventory"
+      shared_concepts: ["Product", "ProductionOrder"]
+    - namespace: "quality"
+      description: "Quality system tracks defects and inspections"
+      shared_concepts: ["Product", "QualityScore"]
+    - namespace: "maintenance"
+      description: "Maintenance system schedules equipment service"
+      shared_concepts: ["Equipment", "PreventiveMaintenance"]
+    
+  # Business context
+  domain: "manufacturing"
+  owner: "Production Team"
+  created: "2024-01-01"
+  modified: "2024-01-15"
 
-# TBox - Class Hierarchy
+# ====================================================================================
+# CLASSES (Business Entities)
+# ====================================================================================
 classes:
   Process:
-    description: "Manufacturing workflow that transforms raw materials into finished products through defined operations"
+    description: "Manufacturing workflow that transforms materials into products"
     subclasses:
       ProductionOrder:
-        description: "Customer-driven manufacturing request specifying product type, quantity, and schedule"
+        description: "Customer order being manufactured"
+        maps_to:
+          erp: "SalesOrder"
         
   Resource:
-    description: "Assets required for production including equipment, production lines, and product specifications"
+    description: "Assets used in production"
     subclasses:
       Equipment:
-        description: "Physical machines that transform raw materials into finished products"
+        description: "Machines that process materials"
+        maps_to:
+          erp: "FixedAsset"
+          maintenance: "ServiceableAsset"
         subclasses:
           Filler:
-            description: "First stage in bottling line that fills containers with product"
-            equipment_type: "Filler"
+            description: "Fills containers with product"
+            conditions:
+              - field: "EquipmentType"
+                operator: "equals"
+                value: "Filler"
           Packer:
-            description: "Groups individual containers into cases or multipacks"
-            equipment_type: "Packer"
+            description: "Groups containers into cases"
+            conditions:
+              - field: "EquipmentType"
+                operator: "equals"
+                value: "Packer"
           Palletizer:
-            description: "Stacks cases onto pallets for shipping"
-            equipment_type: "Palletizer"
+            description: "Stacks cases onto pallets"
+            conditions:
+              - field: "EquipmentType"
+                operator: "equals"
+                value: "Palletizer"
+                
       ProductionLine:
-        description: "Complete set of equipment working together in sequence"
-      Product:
-        description: "Items manufactured for sale with defined specifications"
+        description: "Set of equipment working in sequence"
         
+      Product:
+        description: "Items we manufacture"
+        maps_to:
+          erp: "InventoryItem"
+          quality: "InspectableProduct"
+          
   Event:
-    description: "Time-stamped production occurrence captured at regular intervals"
+    description: "Time-stamped production activity"
     subclasses:
       ProductionLog:
-        description: "Snapshot of production metrics when equipment is running"
-        condition: "MachineStatus == 'Running'"
+        description: "Production metrics when running"
+        conditions:
+          - field: "MachineStatus"
+            operator: "equals"
+            value: "Running"
+            
       DowntimeLog:
-        description: "Equipment stoppage event with associated reason code"
-        condition: "MachineStatus == 'Stopped'"
-        
+        description: "Equipment stoppage event"
+        conditions:
+          - field: "MachineStatus"
+            operator: "equals"
+            value: "Stopped"
+            
   Reason:
-    description: "Categorized explanation for production events"
+    description: "Explanation for events"
     subclasses:
       DowntimeReason:
-        description: "Coded explanation for equipment stoppage"
+        description: "Why equipment stopped"
         subclasses:
           PlannedDowntime:
-            description: "Scheduled production interruptions"
+            description: "Scheduled stops"
+            conditions:
+              - field: "DowntimeReason"
+                operator: "contains"
+                value: "PLN-"
             subclasses:
               Changeover:
-                description: "Product switch requiring equipment reconfiguration"
-                code: "PLN-CO"
+                description: "Switching products"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "PLN-CO"
               Cleaning:
-                description: "Mandatory sanitation cycle for hygiene and safety"
-                code: "PLN-CLN"
+                description: "Sanitation cycle"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "PLN-CLN"
               PreventiveMaintenance:
-                description: "Scheduled equipment service to prevent breakdowns"
-                code: "PLN-PM"
+                description: "Scheduled service"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "PLN-PM"
+                    
           UnplannedDowntime:
-            description: "Unexpected production stoppages"
+            description: "Unexpected stops"
+            conditions:
+              - field: "DowntimeReason"
+                operator: "contains"
+                value: "UNP-"
             subclasses:
               MechanicalFailure:
-                description: "Equipment breakdown requiring repair"
-                code: "UNP-MECH"
+                description: "Equipment breakdown"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "UNP-MECH"
               MaterialJam:
-                description: "Product blockage in equipment causing temporary stoppage"
-                code: "UNP-JAM"
+                description: "Product blockage"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "UNP-JAM"
               MaterialStarvation:
-                description: "Upstream supply shortage preventing equipment operation"
-                code: "UNP-MAT"
-              ElectricalFailure:
-                description: "Power or control system malfunction"
-                code: "UNP-ELEC"
-              QualityCheck:
-                description: "Production halt for quality inspection"
-                code: "UNP-QC"
-              OperatorError:
-                description: "Production stoppage caused by human error or intervention"
-                code: "UNP-OPR"
-              SensorFailure:
-                description: "Misaligned or faulty sensors requiring adjustment"
-                code: "UNP-SENS"
+                description: "No input material"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "UNP-MAT"
 
-# RBox - Object Properties
-object_properties:
+# ====================================================================================
+# RELATIONSHIPS (How entities connect)
+# ====================================================================================
+relationships:
   isUpstreamOf:
-    domain: Equipment
-    range: Equipment
-    description: "Defines material flow direction from upstream to downstream equipment"
-    inverse: isDownstreamOf
-    
-  isDownstreamOf:
-    domain: Equipment
-    range: Equipment
-    description: "Inverse of isUpstreamOf - defines equipment receiving material flow"
+    from: "Equipment"
+    to: "Equipment"
+    description: "Material flows from upstream to downstream equipment"
+    type: "one-to-many"
+    sql_hint: "e1.downstream_equipment_id = e2.equipment_id"
+    inverse: "isDownstreamOf"
     
   belongsToLine:
-    domain: Equipment
-    range: ProductionLine
-    description: "Connects equipment to its parent production line"
-    inverse: hasEquipment
-    
-  hasEquipment:
-    domain: ProductionLine
-    range: Equipment
-    description: "Lists equipment belonging to a production line"
+    from: "Equipment"
+    to: "ProductionLine"
+    description: "Equipment is part of a production line"
+    type: "many-to-one"
+    sql_hint: "equipment.line_id = production_line.id"
+    inverse: "hasEquipment"
     
   executesOrder:
-    domain: Equipment
-    range: ProductionOrder
-    description: "Links equipment to the production order it is currently executing"
+    from: "Equipment"
+    to: "ProductionOrder"
+    description: "Equipment is currently working on this order"
+    type: "many-to-one"
+    sql_hint: "equipment.current_order_id = orders.id"
     
   producesProduct:
-    domain: ProductionOrder
-    range: Product
-    description: "Specifies which product type a production order produces"
+    from: "ProductionOrder"
+    to: "Product"
+    description: "Order specifies which product to make"
+    type: "many-to-one"
+    sql_hint: "orders.product_id = products.id"
     
   logsEvent:
-    domain: Equipment
-    range: Event
-    description: "Connects equipment to its time-stamped event log entries"
+    from: "Equipment"
+    to: "Event"
+    description: "Equipment generates event logs"
+    type: "one-to-many"
+    sql_hint: "equipment.id = events.equipment_id"
     
   hasDowntimeReason:
-    domain: DowntimeLog
-    range: DowntimeReason
-    description: "Links downtime events to their specific reason codes"
+    from: "DowntimeLog"
+    to: "DowntimeReason"
+    description: "Downtime event has a specific reason"
+    type: "many-to-one"
+    sql_hint: "events.downtime_reason_code = reasons.code"
 
-# RBox - Data Properties
-data_properties:
+# ====================================================================================
+# PROPERTIES (Data attributes)
+# ====================================================================================
+properties:
+  # Identifiers
   hasTimestamp:
-    domain: Event
-    range: string
-    csv_column: "Timestamp"
-    description: "Event timestamp"
-    data_context: "5-minute interval timestamp for production events"
-    example_value: "2025-06-01 00:00:00"
+    class: "Event"
+    type: "datetime"
+    description: "When the event occurred"
+    sql_column: "timestamp"
+    required: true
     
   hasOrderID:
-    domain: ProductionOrder
-    range: string
-    csv_column: "ProductionOrderID"
-    description: "Order identifier"
-    data_context: "Unique identifier for production order"
+    class: "ProductionOrder"
+    type: "string"
+    description: "Unique order identifier"
+    sql_column: "production_order_id"
+    required: true
+    unique: true
+    examples: ["ORD-1000", "ORD-1001"]
     
   hasLineID:
-    domain: ProductionLine
-    range: string
-    csv_column: "LineID"
-    description: "Line identifier"
-    data_context: "Production line identifier (1-3)"
+    class: "ProductionLine"
+    type: "string"
+    description: "Production line number"
+    sql_column: "line_id"
+    validation:
+      values: ["1", "2", "3"]
     
   hasEquipmentID:
-    domain: Equipment
-    range: string
-    csv_column: "EquipmentID"
-    description: "Equipment identifier"
-    data_context: "Unique equipment identifier (e.g., LINE1-FIL)"
-    example_value: "LINE1-FIL"
-    
-  hasEquipmentType:
-    domain: Equipment
-    range: string
-    csv_column: "EquipmentType"
-    description: "Type of equipment"
-    data_context: "Type of equipment (Filler, Packer, Palletizer)"
+    class: "Equipment"
+    type: "string"
+    description: "Unique equipment identifier"
+    sql_column: "equipment_id"
+    required: true
+    unique: true
+    examples: ["LINE1-FIL", "LINE2-PCK"]
     
   hasProductID:
-    domain: Product
-    range: string
-    csv_column: "ProductID"
+    class: "Product"
+    type: "string"
     description: "Product SKU"
-    data_context: "Product SKU identifier"
-    example_value: "SKU-1001"
+    sql_column: "product_id"
+    business_name: "SKU"
+    examples: ["SKU-2001", "SKU-2002"]
     
   hasProductName:
-    domain: Product
-    range: string
-    csv_column: "ProductName"
-    description: "Product name"
-    data_context: "Human-readable product name"
+    class: "Product"
+    type: "string"
+    description: "Product description"
+    sql_column: "product_name"
+    examples: ["12oz Soda", "16oz Energy Drink"]
     
+  hasEquipmentType:
+    class: "Equipment"
+    type: "string"
+    description: "Type of equipment"
+    sql_column: "equipment_type"
+    validation:
+      values: ["Filler", "Packer", "Palletizer"]
+    business_name: "Equipment Type"
+    
+  # Status and reasons
   hasMachineStatus:
-    domain: Event
-    range: string
-    csv_column: "MachineStatus"
-    description: "Equipment state"
-    data_context: "Current equipment state (Running/Stopped)"
+    class: "Event"
+    type: "string"
+    description: "Equipment running or stopped"
+    sql_column: "machine_status"
+    validation:
+      values: ["Running", "Stopped"]
     
-  hasDowntimeReasonCode:
-    domain: DowntimeLog
-    range: string
-    csv_column: "DowntimeReason"
-    description: "Downtime reason code"
-    data_context: "Reason code for equipment stoppage"
+  hasDowntimeReason:
+    class: "DowntimeLog"
+    type: "string"
+    description: "Code explaining why stopped"
+    sql_column: "downtime_reason"
+    examples: ["PLN-CO", "UNP-JAM", "PLN-PM"]
     
-  hasGoodUnits:
-    domain: ProductionLog
-    range: integer
-    csv_column: "GoodUnitsProduced"
-    description: "Good units produced"
-    data_context: "Count of sellable units produced in 5-min interval"
+  # Production metrics
+  hasGoodUnitsProduced:
+    class: "ProductionLog"
+    type: "integer"
+    description: "Sellable units produced"
+    sql_column: "good_units_produced"
+    unit: "units per 5 min"
+    validation:
+      min: 0
     
-  hasScrapUnits:
-    domain: ProductionLog
-    range: integer
-    csv_column: "ScrapUnitsProduced"
-    description: "Scrap units produced"
-    data_context: "Count of defective units in 5-min interval"
+  hasScrapUnitsProduced:
+    class: "ProductionLog"
+    type: "integer"
+    description: "Defective units produced"
+    sql_column: "scrap_units_produced"
+    unit: "units per 5 min"
+    validation:
+      min: 0
     
-  hasTargetRate:
-    domain: Product
-    range: integer
-    csv_column: "TargetRate_units_per_5min"
-    description: "Target production rate"
-    data_context: "Expected production rate per 5-minute interval"
+  hasTargetRateUnitsPer5min:
+    class: "Product"
+    type: "integer"
+    description: "Expected production rate"
+    sql_column: "target_rate_units_per_5min"
+    unit: "units per 5 min"
+    business_name: "Standard Rate"
     
-  hasStandardCost:
-    domain: Product
-    range: float
-    csv_column: "StandardCost_per_unit"
+  # Financial
+  hasStandardCostPerUnit:
+    class: "Product"
+    type: "float"
     description: "Manufacturing cost"
-    data_context: "Manufacturing cost per unit"
+    sql_column: "standard_cost_per_unit"
+    unit: "USD"
     
-  hasSalePrice:
-    domain: Product
-    range: float
-    csv_column: "SalePrice_per_unit"
+  hasSalePricePerUnit:
+    class: "Product"
+    type: "float"
     description: "Selling price"
-    data_context: "Selling price per unit"
+    sql_column: "sale_price_per_unit"
+    unit: "USD"
     
+  # KPIs
   hasAvailabilityScore:
-    domain: Event
-    range: float
-    csv_column: "Availability_Score"
-    description: "Percentage of scheduled time equipment was available for production"
-    data_context: "Equipment availability percentage (0-100)"
-    typical_value: "World-class: >90%"
+    class: "Event"
+    type: "float"
+    description: "Percent of time available for production"
+    sql_column: "availability_score"
+    unit: "percent"
+    validation:
+      min: 0
+      max: 100
+    business_name: "Availability %"
     
   hasPerformanceScore:
-    domain: Event
-    range: float
-    csv_column: "Performance_Score"
-    description: "Percentage of ideal cycle time achieved during production"
-    data_context: "Production speed efficiency (0-100)"
-    typical_value: "World-class: >95%"
+    class: "Event"
+    type: "float"
+    description: "Speed compared to ideal"
+    sql_column: "performance_score"
+    unit: "percent"
+    validation:
+      min: 0
+      max: 100
+    business_name: "Performance %"
     
   hasQualityScore:
-    domain: Event
-    range: float
-    csv_column: "Quality_Score"
-    description: "Percentage of total units produced that meet quality standards"
-    data_context: "Product quality percentage (0-100)"
-    typical_value: "World-class: >99%"
+    class: "Event"
+    type: "float"
+    description: "Percent of good units"
+    sql_column: "quality_score"
+    unit: "percent"
+    validation:
+      min: 0
+      max: 100
+    business_name: "Quality %"
     
   hasOEEScore:
-    domain: Event
-    range: float
-    csv_column: "OEE_Score"
-    description: "Overall Equipment Effectiveness - composite measure of availability, performance, and quality"
-    data_context: "Overall Equipment Effectiveness (0-100)"
-    typical_value: "World-class: >85%, Good: 60-75%"
-    calculation_method: "Availability × Performance × Quality"
+    class: "Event"
+    type: "float"
+    description: "Overall Equipment Effectiveness"
+    sql_column: "oee_score"
+    unit: "percent"
+    validation:
+      min: 0
+      max: 100
+    business_name: "OEE"
 
-# Downtime reason mappings (for backward compatibility)
-downtime_mappings:
-  PLN-CO: Changeover
-  PLN-CLN: Cleaning
-  PLN-PM: PreventiveMaintenance
-  UNP-MECH: MechanicalFailure
-  UNP-JAM: MaterialJam
-  UNP-MAT: MaterialStarvation
-  UNP-ELEC: ElectricalFailure
-  UNP-QC: QualityCheck
-  UNP-OPR: OperatorError
-  UNP-SENS: SensorFailure
+# ====================================================================================
+# BUSINESS RULES
+# ====================================================================================
+business_rules:
+  OEE_Calculation:
+    description: "OEE is product of availability, performance, and quality"
+    when:
+      class: "Event"
+      condition: "Has all three component scores"
+    implies: "OEE = (Availability × Performance × Quality) / 10000"
+    sql_hint: "availability_score * performance_score * quality_score / 10000"
+    
+  Downstream_Starvation:
+    description: "Downstream equipment stops when upstream stops"
+    when:
+      class: "Equipment"
+      condition: "Upstream equipment has stopped"
+    implies: "Downstream may show MaterialStarvation"
+    sql_hint: "Check for UNP-MAT in downstream equipment at same time"
+    
+  Quality_Impact:
+    description: "Quality score affects financial performance"
+    when:
+      class: "ProductionLog"
+      condition: "Scrap units > 0"
+    implies: "Lost revenue = scrap_units × sale_price"
+    sql_hint: "scrap_units_produced * sale_price_per_unit"
+
+# ====================================================================================
+# CROSS-SYSTEM MAPPINGS
+# ====================================================================================
+system_mappings:
+  ERP:
+    type: "SAP"
+    namespace: "erp"
+    mappings:
+      - our_concept: "ProductionOrder"
+        their_concept: "ProductionOrder"
+        join_key: "order_id"
+        notes: "Same order ID in both systems"
+      - our_concept: "Product"
+        their_concept: "Material"
+        join_key: "product_id"
+        notes: "Their material_number = our SKU"
+        
+  QualitySystem:
+    type: "Custom"
+    namespace: "quality"
+    mappings:
+      - our_concept: "Product"
+        their_concept: "InspectionItem"
+        join_key: "product_id"
+      - our_concept: "hasQualityScore"
+        their_concept: "PassRate"
+        notes: "Calculate from their inspection results"
+
+# ====================================================================================
+# COMMON QUERIES
+# ====================================================================================
+common_queries:
+  - name: "Current OEE by Line"
+    question: "What is the OEE for each production line?"
+    involves: ["ProductionLine", "Equipment", "hasOEEScore"]
+    sql_pattern: |
+      SELECT line_id, AVG(oee_score) as avg_oee
+      FROM mes_data
+      WHERE machine_status = 'Running'
+        AND timestamp >= NOW() - INTERVAL '1 hour'
+      GROUP BY line_id
+      
+  - name: "Bottleneck Analysis"
+    question: "Which equipment limits production on each line?"
+    involves: ["Equipment", "hasPerformanceScore", "belongsToLine"]
+    sql_pattern: |
+      SELECT line_id, equipment_id, MIN(performance_score)
+      FROM mes_data
+      WHERE machine_status = 'Running'
+      GROUP BY line_id
+      
+  - name: "Downtime Pareto"
+    question: "What are the top causes of unplanned downtime?"
+    involves: ["UnplannedDowntime", "hasDowntimeReason"]
+    sql_pattern: |
+      SELECT downtime_reason, COUNT(*) as occurrences
+      FROM mes_data
+      WHERE machine_status = 'Stopped'
+        AND downtime_reason LIKE 'UNP-%'
+      GROUP BY downtime_reason
+      ORDER BY occurrences DESC
+
+# ====================================================================================
+# GLOSSARY
+# ====================================================================================
+glossary:
+  OEE:
+    definition: "Overall Equipment Effectiveness - measure of manufacturing productivity"
+    also_known_as: ["Overall Equipment Efficiency"]
+    see_also: ["Availability", "Performance", "Quality"]
+    
+  Changeover:
+    definition: "Time to switch production from one product to another"
+    also_known_as: ["Setup", "Product Switch"]
+    
+  MaterialStarvation:
+    definition: "Equipment cannot run because upstream equipment isn't providing material"
+    also_known_as: ["Starved", "No Input"]
+    
+  Bottleneck:
+    definition: "Equipment that limits the production rate of the entire line"
+    also_known_as: ["Constraint", "Limiting Factor"]

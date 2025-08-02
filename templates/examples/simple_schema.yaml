@@ -1,0 +1,336 @@
+# Simple E-Commerce Database Schema Example
+# This corresponds to the simple_ontology.yaml example
+
+database:
+  name: "ecommerce_db"
+  type: "PostgreSQL"
+  version: "14.0"
+  
+  connection:
+    host: "${DB_HOST}"
+    port: 5432
+    database: "ecommerce"
+    schema: "public"
+    
+  description: "E-commerce database storing products, customers, and orders"
+  environment: "development"
+  created: "2024-01-15"
+  modified: "2024-01-15"
+  maintainer:
+    name: "John Doe"
+    email: "john@example.com"
+
+settings:
+  naming_convention:
+    tables: "snake_case"
+    columns: "snake_case"
+    indexes: "idx_{table}_{columns}"
+    constraints: "{type}_{table}_{columns}"
+
+tables:
+  # Products table
+  - name: "products"
+    description: "Catalog of products available for sale"
+    
+    ontology_mapping:
+      class: "Product"
+      uri: "http://example.com/ontology/ecommerce#Product"
+      
+    fields:
+      - name: "id"
+        type: "SERIAL"
+        nullable: false
+        primary_key: true
+        description: "Unique product identifier"
+        
+      - name: "name"
+        type: "VARCHAR(255)"
+        nullable: false
+        unique: true
+        description: "Product name"
+        ontology_mapping:
+          property: "productName"
+          uri: "http://example.com/ontology/ecommerce#productName"
+          
+      - name: "description"
+        type: "TEXT"
+        nullable: true
+        description: "Detailed product description"
+        
+      - name: "price"
+        type: "DECIMAL(10,2)"
+        nullable: false
+        default: "0.00"
+        description: "Product price in USD"
+        ontology_mapping:
+          property: "price"
+          uri: "http://example.com/ontology/ecommerce#price"
+        validation:
+          min_value: 0
+          
+      - name: "stock_quantity"
+        type: "INTEGER"
+        nullable: false
+        default: "0"
+        description: "Available inventory"
+        validation:
+          min_value: 0
+          
+      - name: "created_at"
+        type: "TIMESTAMP"
+        nullable: false
+        default: "CURRENT_TIMESTAMP"
+        description: "When product was added"
+        
+    indexes:
+      - name: "idx_products_name"
+        columns: ["name"]
+        type: "BTREE"
+        description: "Speed up product name searches"
+        
+    constraints:
+      checks:
+        - name: "chk_products_price_positive"
+          condition: "price >= 0"
+          description: "Ensure price is not negative"
+
+  # Customers table
+  - name: "customers"
+    description: "Registered customers"
+    
+    ontology_mapping:
+      class: "Customer"
+      uri: "http://example.com/ontology/ecommerce#Customer"
+      
+    fields:
+      - name: "id"
+        type: "SERIAL"
+        nullable: false
+        primary_key: true
+        description: "Unique customer identifier"
+        
+      - name: "email"
+        type: "VARCHAR(255)"
+        nullable: false
+        unique: true
+        description: "Customer email address"
+        ontology_mapping:
+          property: "customerEmail"
+          uri: "http://example.com/ontology/ecommerce#customerEmail"
+        validation:
+          pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+        classification:
+          pii: true
+          
+      - name: "first_name"
+        type: "VARCHAR(100)"
+        nullable: false
+        description: "Customer first name"
+        classification:
+          pii: true
+          
+      - name: "last_name"
+        type: "VARCHAR(100)"
+        nullable: false
+        description: "Customer last name"
+        classification:
+          pii: true
+          
+      - name: "created_at"
+        type: "TIMESTAMP"
+        nullable: false
+        default: "CURRENT_TIMESTAMP"
+        description: "Registration date"
+        
+    indexes:
+      - name: "idx_customers_email"
+        columns: ["email"]
+        unique: true
+        type: "BTREE"
+
+  # Orders table
+  - name: "orders"
+    description: "Customer orders"
+    
+    ontology_mapping:
+      class: "Order"
+      uri: "http://example.com/ontology/ecommerce#Order"
+      
+    fields:
+      - name: "id"
+        type: "SERIAL"
+        nullable: false
+        primary_key: true
+        description: "Unique order identifier"
+        
+      - name: "customer_id"
+        type: "INTEGER"
+        nullable: false
+        description: "Reference to customer"
+        ontology_mapping:
+          property: "placedBy"
+          uri: "http://example.com/ontology/ecommerce#placedBy"
+          
+      - name: "status"
+        type: "VARCHAR(20)"
+        nullable: false
+        default: "'pending'"
+        description: "Order status"
+        ontology_mapping:
+          property: "orderStatus"
+          uri: "http://example.com/ontology/ecommerce#orderStatus"
+        validation:
+          enum: ["pending", "processing", "shipped", "delivered", "cancelled"]
+          
+      - name: "total_amount"
+        type: "DECIMAL(10,2)"
+        nullable: false
+        default: "0.00"
+        description: "Order total in USD"
+        
+      - name: "created_at"
+        type: "TIMESTAMP"
+        nullable: false
+        default: "CURRENT_TIMESTAMP"
+        description: "Order placement time"
+        ontology_mapping:
+          property: "orderDate"
+          uri: "http://example.com/ontology/ecommerce#orderDate"
+          
+    indexes:
+      - name: "idx_orders_customer"
+        columns: ["customer_id"]
+        type: "BTREE"
+      - name: "idx_orders_status"
+        columns: ["status"]
+        type: "BTREE"
+        
+    constraints:
+      foreign_keys:
+        - name: "fk_orders_customer"
+          columns: ["customer_id"]
+          references:
+            table: "customers"
+            columns: ["id"]
+          on_delete: "RESTRICT"
+
+  # Order Items table (junction table for many-to-many)
+  - name: "order_items"
+    description: "Products within each order"
+    
+    ontology_mapping:
+      property: "containsProduct"
+      uri: "http://example.com/ontology/ecommerce#containsProduct"
+      
+    fields:
+      - name: "id"
+        type: "SERIAL"
+        nullable: false
+        primary_key: true
+        description: "Unique order item identifier"
+        
+      - name: "order_id"
+        type: "INTEGER"
+        nullable: false
+        description: "Reference to order"
+        
+      - name: "product_id"
+        type: "INTEGER"
+        nullable: false
+        description: "Reference to product"
+        
+      - name: "quantity"
+        type: "INTEGER"
+        nullable: false
+        default: "1"
+        description: "Quantity ordered"
+        validation:
+          min_value: 1
+          
+      - name: "unit_price"
+        type: "DECIMAL(10,2)"
+        nullable: false
+        description: "Price at time of order"
+        
+    indexes:
+      - name: "idx_order_items_order"
+        columns: ["order_id"]
+        type: "BTREE"
+      - name: "idx_order_items_product"
+        columns: ["product_id"]
+        type: "BTREE"
+        
+    constraints:
+      foreign_keys:
+        - name: "fk_order_items_order"
+          columns: ["order_id"]
+          references:
+            table: "orders"
+            columns: ["id"]
+          on_delete: "CASCADE"
+        - name: "fk_order_items_product"
+          columns: ["product_id"]
+          references:
+            table: "products"
+            columns: ["id"]
+          on_delete: "RESTRICT"
+      uniques:
+        - name: "uq_order_items_order_product"
+          columns: ["order_id", "product_id"]
+
+# Relationships documentation
+relationships:
+  - name: "customer_places_orders"
+    type: "one-to-many"
+    from:
+      table: "customers"
+      columns: ["id"]
+    to:
+      table: "orders"
+      columns: ["customer_id"]
+    description: "A customer can place multiple orders"
+    ontology_mapping:
+      property: "placedBy"
+      uri: "http://example.com/ontology/ecommerce#placedBy"
+      
+  - name: "order_contains_products"
+    type: "many-to-many"
+    from:
+      table: "orders"
+      columns: ["id"]
+    to:
+      table: "products"
+      columns: ["id"]
+    through:
+      table: "order_items"
+    description: "An order can contain multiple products, and products can be in multiple orders"
+    ontology_mapping:
+      property: "containsProduct"
+      uri: "http://example.com/ontology/ecommerce#containsProduct"
+
+# Sample data for testing
+sample_data:
+  products:
+    records:
+      - id: 1
+        name: "Laptop"
+        price: 999.99
+        stock_quantity: 50
+      - id: 2
+        name: "Mouse"
+        price: 29.99
+        stock_quantity: 200
+        
+  customers:
+    records:
+      - id: 1
+        email: "john@example.com"
+        first_name: "John"
+        last_name: "Doe"
+        
+  orders:
+    records:
+      - id: 1
+        customer_id: 1
+        status: "delivered"
+        total_amount: 1029.98

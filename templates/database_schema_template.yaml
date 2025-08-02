@@ -1,0 +1,105 @@
+# SQLOnt Lean Database Schema Template
+# Version: 1.0
+# Purpose: Simple database schema for LLM SQL generation
+# Auto-generates from API or manually maintained
+
+# ====================================================================================
+# DATABASE INFO
+# ====================================================================================
+database:
+  name: "<DATABASE_NAME>"
+  type: "<DATABASE_TYPE>"  # SQLite, PostgreSQL, MySQL, etc.
+  file: "<DATABASE_FILE>"  # For SQLite
+  connection: "<CONNECTION_STRING>"  # For other databases
+  description: "<DATABASE_DESCRIPTION>"
+
+# ====================================================================================
+# TABLE INFO (simplified - one main table or list key tables)
+# ====================================================================================
+table:
+  name: "<TABLE_NAME>"
+  description: "<TABLE_DESCRIPTION>"
+  primary_key: "<PRIMARY_KEY_COLUMN>"
+  indexes: ["<INDEXED_COLUMN1>", "<INDEXED_COLUMN2>"]  # For query performance
+
+# For multiple tables, use:
+# tables:
+#   - name: "<TABLE1>"
+#     description: "<DESCRIPTION>"
+#     primary_key: "<PK>"
+#   - name: "<TABLE2>"
+#     description: "<DESCRIPTION>"
+#     primary_key: "<PK>"
+
+# ====================================================================================
+# PROPERTIES (Column definitions with ontology mapping)
+# ====================================================================================
+properties:
+  <ontologyPropertyName>:  # e.g., hasOrderID, hasTimestamp
+    type: "<TYPE>"  # string, integer, float, boolean, datetime, date
+    sql_column: "<COLUMN_NAME>"  # Actual column name in database
+    sql_table: "<TABLE_NAME>"  # Optional: if using multiple tables
+    required: <true/false>
+    
+    # Business context
+    business_name: "<FRIENDLY_NAME>"  # What users call it
+    description: "<COLUMN_DESCRIPTION>"
+    
+    # Validation (only what's needed)
+    validation:
+      values: ["<VALUE1>", "<VALUE2>"]  # For enums
+      min: <NUMBER>
+      max: <NUMBER>
+      pattern: "<REGEX>"
+    
+    # Units and examples
+    unit: "<UNIT>"  # e.g., "USD", "percent", "meters"
+    examples: ["<EXAMPLE1>", "<EXAMPLE2>"]
+
+# ====================================================================================
+# RELATIONSHIPS (For multi-table schemas)
+# ====================================================================================
+relationships:
+  <relationshipName>:
+    from_table: "<SOURCE_TABLE>"
+    from_column: "<SOURCE_COLUMN>"
+    to_table: "<TARGET_TABLE>"
+    to_column: "<TARGET_COLUMN>"
+    type: "one-to-many"  # or "one-to-one", "many-to-many"
+    description: "<RELATIONSHIP_DESCRIPTION>"
+
+# ====================================================================================
+# MAPPINGS
+# ====================================================================================
+mappings:
+  ontology_namespace: "<NAMESPACE>"  # Which ontology this maps to
+  auto_mapped: <true/false>  # Whether mappings were auto-generated
+  
+  # Mapping rules used
+  mapping_rules:
+    snake_case_to_camelCase: true
+    prefix_with_has: true
+    
+  # Manual overrides
+  overrides:
+    <column_name>: "<ontology_property>"
+
+# ====================================================================================
+# COMMON QUERIES (SQL patterns for this database)
+# ====================================================================================
+common_queries:
+  - name: "<QUERY_NAME>"
+    description: "<WHAT_IT_DOES>"
+    sql: |
+      SELECT <columns>
+      FROM <table>
+      WHERE <conditions>
+
+# ====================================================================================
+# METADATA
+# ====================================================================================
+metadata:
+  generated: "<TIMESTAMP>"  # When this was generated
+  source: "<SOURCE>"  # How it was generated (API, manual, etc.)
+  api_endpoint: "<ENDPOINT>"  # If accessible via API
+  version: "1.0"

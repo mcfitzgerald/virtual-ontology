@@ -1,9 +1,10 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from fastapi import FastAPI, Query
-from sqlmodel import select
+from sqlmodel import select, inspect
+import sqlalchemy
 
-from database import create_db_and_tables, import_csv_data, SessionDep
+from database import create_db_and_tables, import_csv_data, SessionDep, engine
 from models import MESData
 from schemas import MESDataResponse
 
@@ -23,6 +24,86 @@ def on_startup():
 @app.get("/")
 def read_root():
     return {"message": "MES Data API", "version": "2.0.0"}
+
+
+@app.get("/schema")
+def get_schema() -> Dict[str, Any]:
+    """Get database schema information for generating YAML configuration"""
+    inspector = inspect(engine)
+    
+    # Get table information
+    tables = {}
+    for table_name in inspector.get_table_names():
+        table_info = {
+            "columns": [],
+            "indexes": [],
+            "primary_key": None
+        }
+        
+        # Get columns
+        for column in inspector.get_columns(table_name):
+            col_info = {
+                "name": column["name"],
+                "type": str(column["type"]),
+                "nullable": column["nullable"],
+                "default": str(column["default"]) if column["default"] else None,
+            }
+            
+            # Map SQLAlchemy types to simple types
+            type_str = str(column["type"])
+            if "INTEGER" in type_str or "BIGINT" in type_str:
+                col_info["simple_type"] = "integer"
+            elif "VARCHAR" in type_str or "TEXT" in type_str:
+                col_info["simple_type"] = "string"
+            elif "FLOAT" in type_str or "REAL" in type_str or "DOUBLE" in type_str:
+                col_info["simple_type"] = "float"
+            elif "DATETIME" in type_str or "TIMESTAMP" in type_str:
+                col_info["simple_type"] = "datetime"
+            elif "DATE" in type_str:
+                col_info["simple_type"] = "date"
+            elif "BOOLEAN" in type_str:
+                col_info["simple_type"] = "boolean"
+            else:
+                col_info["simple_type"] = "string"
+            
+            table_info["columns"].append(col_info)
+        
+        # Get primary key
+        pk = inspector.get_pk_constraint(table_name)
+        if pk:
+            table_info["primary_key"] = pk["constrained_columns"]
+        
+        # Get indexes
+        for index in inspector.get_indexes(table_name):
+            table_info["indexes"].append({
+                "name": index["name"],
+                "columns": index["column_names"],
+                "unique": index["unique"]
+            })
+        
+        tables[table_name] = table_info
+    
+    # Get model field information from SQLModel
+    model_info = {}
+    if hasattr(MESData, "model_fields"):
+        for field_name, field in MESData.model_fields.items():
+            field_info = {
+                "type": str(field.annotation) if hasattr(field, 'annotation') else "unknown",
+                "required": field.is_required() if hasattr(field, 'is_required') else True,
+                "default": str(field.default) if field.default is not None else None
+            }
+            model_info[field_name] = field_info
+    
+    return {
+        "database": {
+            "type": "SQLite",
+            "file": "../data/mes_database.db",
+            "tables": tables
+        },
+        "model_fields": model_info,
+        "api_endpoint": "/data",
+        "openapi_schema": app.openapi()["components"]["schemas"].get("MESDataResponse", {})
+    }
 
 
 @app.get("/data", response_model=List[MESDataResponse])

@@ -1,0 +1,254 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SQLOnt Ontology Specification Schema",
+  "description": "JSON Schema for validating SQLOnt ontology YAML files",
+  "type": "object",
+  "required": ["ontology", "classes"],
+  "properties": {
+    "ontology": {
+      "type": "object",
+      "required": ["name", "version", "iri", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of the ontology"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+          "description": "Semantic version number"
+        },
+        "iri": {
+          "type": "string",
+          "format": "uri",
+          "description": "IRI/URI for the ontology"
+        },
+        "@context": {
+          "type": "object",
+          "description": "YAML-LD context for linked data"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {"type": "string"},
+              "email": {"type": "string", "format": "email"},
+              "orcid": {"type": "string"}
+            }
+          }
+        },
+        "imports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["uri"],
+            "properties": {
+              "uri": {"type": "string", "format": "uri"},
+              "prefix": {"type": "string"},
+              "description": {"type": "string"}
+            }
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "classes": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9_]*$": {
+          "type": "object",
+          "required": ["description"],
+          "properties": {
+            "uri": {"type": "string", "format": "uri"},
+            "description": {"type": "string", "minLength": 1},
+            "definition": {"type": "string"},
+            "equivalent_to": {
+              "type": "array",
+              "items": {"type": "string", "format": "uri"}
+            },
+            "see_also": {
+              "type": "array",
+              "items": {"type": "string", "format": "uri"}
+            },
+            "constraints": {
+              "type": "object",
+              "properties": {
+                "min_cardinality": {"type": "integer", "minimum": 0},
+                "max_cardinality": {"type": "integer", "minimum": 1},
+                "disjoint_with": {
+                  "type": "array",
+                  "items": {"type": "string"}
+                }
+              }
+            },
+            "subclasses": {
+              "type": "object",
+              "$ref": "#/properties/classes"
+            },
+            "slots": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "examples": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "conditions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field": {"type": "string"},
+                  "operator": {"type": "string"},
+                  "value": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "object_properties": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9]*$": {
+          "type": "object",
+          "required": ["domain", "range", "description"],
+          "properties": {
+            "uri": {"type": "string", "format": "uri"},
+            "domain": {"type": "string"},
+            "range": {"type": "string"},
+            "description": {"type": "string", "minLength": 1},
+            "usage_note": {"type": "string"},
+            "inverse": {"type": "string"},
+            "symmetric": {"type": "boolean"},
+            "transitive": {"type": "boolean"},
+            "functional": {"type": "boolean"},
+            "cardinality": {
+              "type": "object",
+              "properties": {
+                "min": {"type": "integer", "minimum": 0},
+                "max": {"type": ["integer", "null"], "minimum": 1}
+              }
+            },
+            "equivalent_to": {
+              "type": "array",
+              "items": {"type": "string", "format": "uri"}
+            },
+            "subproperty_of": {
+              "type": "array",
+              "items": {"type": "string", "format": "uri"}
+            },
+            "sql_pattern": {"type": "string"}
+          }
+        }
+      }
+    },
+    "data_properties": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-zA-Z0-9]*$": {
+          "type": "object",
+          "required": ["domain", "range", "description"],
+          "properties": {
+            "uri": {"type": "string", "format": "uri"},
+            "domain": {"type": "string"},
+            "range": {
+              "type": "string",
+              "enum": ["xsd:string", "xsd:integer", "xsd:float", "xsd:decimal", "xsd:boolean", "xsd:dateTime", "xsd:date", "xsd:time"]
+            },
+            "description": {"type": "string", "minLength": 1},
+            "data_context": {"type": "string"},
+            "sql_column": {"type": "string"},
+            "sql_table": {"type": "string"},
+            "constraints": {
+              "type": "object",
+              "properties": {
+                "required": {"type": "boolean"},
+                "unique": {"type": "boolean"},
+                "pattern": {"type": "string"},
+                "min_value": {"type": ["number", "null"]},
+                "max_value": {"type": ["number", "null"]},
+                "min_length": {"type": "integer", "minimum": 0},
+                "max_length": {"type": "integer", "minimum": 1},
+                "enum": {
+                  "type": "array",
+                  "items": {"type": "string"}
+                }
+              }
+            },
+            "unit": {
+              "type": "object",
+              "properties": {
+                "uri": {"type": "string", "format": "uri"},
+                "label": {"type": "string"}
+              }
+            },
+            "example_values": {
+              "type": "array"
+            },
+            "typical_range": {"type": "string"},
+            "calculation": {
+              "type": "object",
+              "properties": {
+                "method": {"type": "string"},
+                "formula": {"type": "string"},
+                "depends_on": {
+                  "type": "array",
+                  "items": {"type": "string"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "inference_rules": {
+      "type": "object",
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "required": ["description"],
+          "properties": {
+            "description": {"type": "string"},
+            "if": {"type": "array"},
+            "then": {"type": "array"},
+            "sql_view": {"type": "string"}
+          }
+        }
+      }
+    },
+    "competency_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question"],
+        "properties": {
+          "question": {"type": "string"},
+          "expected_concepts": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "example_sparql": {"type": "string"},
+          "example_sql": {"type": "string"}
+        }
+      }
+    },
+    "mappings": {
+      "type": "object"
+    },
+    "documentation": {
+      "type": "object"
+    }
+  }
+}
