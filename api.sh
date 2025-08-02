@@ -22,7 +22,9 @@ find_port_process() {
 # Check if a process is our API
 is_our_api() {
     local pid=$1
-    if ps -p "$pid" -o command= 2>/dev/null | grep -q "python main.py"; then
+    local cmd=$(ps -p "$pid" -o command= 2>/dev/null)
+    # Check for both "python main.py" and full Python path with main.py
+    if echo "$cmd" | grep -q "main\.py"; then
         return 0
     fi
     return 1
@@ -82,8 +84,9 @@ start_api() {
     
     echo -e "${GREEN}Starting MES Data SQL API...${NC}"
     
-    # Start the API
-    cd "$API_DIR" && nohup python main.py > "../$LOG_FILE" 2>&1 &
+    # Start the API and get the PID directly
+    cd "$API_DIR"
+    python main.py > "../$LOG_FILE" 2>&1 &
     PID=$!
     cd ..
     
@@ -166,15 +169,17 @@ stop_api() {
 check_status() {
     local running=false
     local pid=""
+    local pid_file_valid=false
     
     # Check PID file
     if [ -f "$PID_FILE" ]; then
         pid=$(cat "$PID_FILE" 2>/dev/null)
-        if [ -n "$pid" ] && ps -p "$pid" > /dev/null 2>&1; then
+        if [ -n "$pid" ] && ps -p "$pid" > /dev/null 2>&1 && is_our_api "$pid"; then
             running=true
+            pid_file_valid=true
             echo -e "${GREEN}API is running with PID $pid (from PID file)${NC}"
         else
-            echo -e "${YELLOW}PID file exists but process $pid is not running${NC}"
+            echo -e "${YELLOW}PID file exists but process $pid is not running or not our API${NC}"
             rm -f "$PID_FILE"
         fi
     fi
@@ -183,16 +188,21 @@ check_status() {
     local port_pid=$(find_port_process)
     if [ -n "$port_pid" ]; then
         if is_our_api "$port_pid"; then
-            if [ "$port_pid" != "$pid" ]; then
-                echo -e "${YELLOW}API is running on port $PORT with PID $port_pid (not in PID file)${NC}"
-                # Update PID file
-                echo "$port_pid" > "$PID_FILE"
-            fi
             running=true
+            if [ "$port_pid" != "$pid" ] || [ "$pid_file_valid" = false ]; then
+                echo -e "${YELLOW}API is running on port $PORT with PID $port_pid${NC}"
+                if [ "$pid_file_valid" = false ]; then
+                    echo -e "${YELLOW}Updating PID file with correct PID${NC}"
+                    echo "$port_pid" > "$PID_FILE"
+                fi
+            fi
             pid=$port_pid
         else
             echo -e "${YELLOW}Port $PORT is used by another process (PID: $port_pid)${NC}"
         fi
+    elif [ "$pid_file_valid" = false ]; then
+        # No process on port and PID file is invalid
+        running=false
     fi
     
     if $running; then

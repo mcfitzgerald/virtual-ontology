@@ -17,6 +17,7 @@ Traditional semantic data systems require:
 - Define lightweight ontology (TBox/RBox with descriptions)
 - Map ontological concepts to database schema
 - Use LLM with ontology+schema context to generate SQL directly
+- Capture query intent for pattern learning and improvement
 
 ## Key Innovation
 
@@ -73,6 +74,16 @@ Designed to operate in an LLM-powered development environment (like Claude Code)
 - **Dynamic Selection**: Choose relevant ontology fragments based on query intent
 - **Pattern Library**: Cached successful query templates indexed by concepts
 
+### Intent-Driven Pattern Learning
+The system captures query intent at execution time, enabling pattern extraction and learning:
+
+1. **Intent Capture**: LLM provides concise intent (≤140 chars) when generating SQL
+2. **Query Logging**: Enhanced logging captures intent alongside SQL and results
+3. **Pattern Extraction**: Simple extraction of successful query patterns
+4. **LLM Analysis**: Pattern recognition and generalization by LLM
+
+This creates a feedback loop where successful queries inform future generation.
+
 ### Failure Management
 - **Human-in-the-Loop**: System augments human capability, not replace it
 - **Progressive Refinement**: Iterative query improvement through conversation
@@ -115,13 +126,20 @@ Beyond traditional text-to-SQL benchmarks, SQLOnt requires evaluation of:
 
 ## Project Status
 
-**Current Stage**: Prototype/Exploration
+**Current Stage**: Prototype with Working Demo
 
-**Goals**:
-- Validate virtual ontology concept
-- Establish acceptable failure rates
-- Develop pattern learning mechanisms
-- Create practical tooling for real-world use
+**Implemented Features**:
+- ✅ SQL execution API with safety controls
+- ✅ Intent-aware query logging system
+- ✅ Pattern extraction from successful queries
+- ✅ LLM-based SQL generation with ontological context
+- ✅ Demonstration with real MES manufacturing data
+
+**Next Steps**:
+- Automated context selection based on query intent
+- Expand pattern library through continued use
+- Implement confidence scoring for generated queries
+- Add support for multiple data sources
 
 ## Future Directions
 
@@ -156,6 +174,23 @@ The demo includes a FastAPI-based SQL interface for querying the MES database:
 Once started, the API is available at:
 - API endpoint: `http://localhost:8000`
 - Interactive docs: `http://localhost:8000/docs`
+- SQL execution: `POST /query` with JSON body `{"sql": "SELECT...", "limit": 1000}`
+
+### Executing Queries with Intent Tracking
+
+The `query-log.sh` wrapper enables intent-aware query execution:
+
+```bash
+# Execute query with intent description
+./query-log.sh POST /query \
+  --intent "Find equipment causing downstream starvation" \
+  -d '{"sql": "SELECT * FROM mes_data WHERE..."}'
+
+# View logged queries
+./query-log.sh --show-log <query_id>
+```
+
+Intent descriptions (≤140 chars) are logged alongside SQL for pattern learning.
 
 ### Sample Data
 
@@ -203,6 +238,25 @@ The MES ontology (`ontology/ontology_spec.yaml`) defines the conceptual model:
 
 The database schema (`ontology/database_schema.yaml`) maps the ontological concepts to SQL tables, providing the bridge between semantic queries and the underlying data structure.
 
+### Pattern Learning Workflow
+
+1. **Execute queries with intent**:
+```bash
+echo '{"sql": "SELECT COUNT(*) FROM mes_data"}' | \
+  ./query-log.sh POST /query --intent "Count total records" -d @-
+```
+
+2. **Extract successful patterns**:
+```bash
+python3 extract_queries.py
+# Creates extracted_patterns.yaml with intent-SQL pairs
+```
+
+3. **Analyze patterns** (LLM task):
+- Identify common SQL structures
+- Map intents to ontological concepts
+- Generate reusable templates
+
 ### Example Queries
 
 With the ontology and schema context, natural language queries like these become possible:
@@ -213,6 +267,15 @@ With the ontology and schema context, natural language queries like these become
 - "Calculate the total production loss from preventive maintenance activities"
 
 These queries leverage the ontological understanding of equipment relationships, downtime categorization, and production flow without requiring users to know the specific database structure.
+
+### Discovered Query Patterns
+
+Through intent-driven pattern learning, the system identifies reusable patterns:
+
+1. **Status Queries**: Use `MAX(timestamp)` for current state
+2. **Performance Analysis**: Aggregate with `AVG()`, filter by `Running` status
+3. **Categorization**: Use `CASE` statements with ontology-aware prefixes
+4. **Relationship Analysis**: Self-joins for equipment cascade effects
 
 ## Contributing
 

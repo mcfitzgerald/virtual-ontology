@@ -1,8 +1,9 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from fastapi import FastAPI, Query
-from sqlmodel import select, inspect
+from fastapi import FastAPI, Query, HTTPException
+from sqlmodel import select, inspect, text
 import sqlalchemy
+from pydantic import BaseModel
 
 from database import create_db_and_tables, import_csv_data, SessionDep, engine
 from models import MESData
@@ -21,10 +22,95 @@ def on_startup():
     import_csv_data()
 
 
+class SQLQuery(BaseModel):
+    sql: str
+    limit: Optional[int] = 1000
+
+class SQLResponse(BaseModel):
+    query: str
+    columns: List[str]
+    data: List[Dict[str, Any]]
+    row_count: int
+    limited: bool
+
 @app.get("/")
 def read_root():
     return {"message": "MES Data API", "version": "2.0.0"}
 
+
+@app.post("/query", response_model=SQLResponse)
+def execute_query(query: SQLQuery, session: SessionDep):
+    """Execute a SQL query against the MES database
+    
+    Safety features:
+    - Read-only queries only (SELECT statements)
+    - Row limit to prevent excessive data transfer
+    - Timeout protection (handled by SQLite)
+    """
+    sql = query.sql.strip()
+    
+    # Basic safety check - only allow SELECT statements
+    if not sql.upper().startswith('SELECT'):
+        raise HTTPException(
+            status_code=400, 
+            detail="Only SELECT statements are allowed"
+        )
+    
+    # Check for dangerous keywords
+    dangerous_keywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'EXEC', 'EXECUTE']
+    sql_upper = sql.upper()
+    for keyword in dangerous_keywords:
+        if keyword in sql_upper:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Query contains forbidden keyword: {keyword}"
+            )
+    
+    try:
+        # Apply limit if not already present and limit is specified
+        limited = False
+        if query.limit and 'LIMIT' not in sql_upper:
+            sql = f"{sql} LIMIT {query.limit + 1}"  # Add 1 to detect if limit was hit
+            limited = True
+        
+        # Execute the query
+        result = session.exec(text(sql))
+        
+        # Get column names
+        columns = list(result.keys()) if result.returns_rows else []
+        
+        # Fetch all results
+        rows = result.fetchall() if result.returns_rows else []
+        
+        # Check if we hit the limit
+        if limited and len(rows) > query.limit:
+            rows = rows[:query.limit]
+            limited = True
+        else:
+            limited = False
+        
+        # Convert rows to list of dicts
+        data = [dict(zip(columns, row)) for row in rows]
+        
+        # Convert datetime objects to strings for JSON serialization
+        for row in data:
+            for key, value in row.items():
+                if isinstance(value, datetime):
+                    row[key] = value.isoformat()
+        
+        return SQLResponse(
+            query=query.sql,
+            columns=columns,
+            data=data,
+            row_count=len(data),
+            limited=limited
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Query execution failed: {str(e)}"
+        )
 
 @app.get("/schema")
 def get_schema() -> Dict[str, Any]:

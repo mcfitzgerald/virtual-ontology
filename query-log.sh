@@ -57,7 +57,34 @@ execute_query() {
     local method="$1"
     local endpoint="$2"
     shift 2
-    local curl_args="$@"
+    
+    # Check for --intent parameter
+    local intent=""
+    local new_args=()
+    local skip_next=false
+    local next_is_intent=false
+    
+    for arg in "$@"; do
+        if [ "$next_is_intent" = true ]; then
+            intent="$arg"
+            # Validate intent length (140 chars max)
+            if [ ${#intent} -gt 140 ]; then
+                echo -e "${YELLOW}Warning: Intent truncated to 140 characters${NC}"
+                intent="${intent:0:140}"
+            fi
+            next_is_intent=false
+            continue
+        fi
+        
+        if [ "$arg" = "--intent" ]; then
+            next_is_intent=true
+            continue
+        fi
+        
+        new_args+=("$arg")
+    done
+    
+    local curl_args="${new_args[@]}"
     
     # Generate unique ID and timestamp
     local query_id=$(generate_id)
@@ -120,6 +147,7 @@ execute_query() {
         --arg ts "$timestamp" \
         --arg method "$method" \
         --arg endpoint "$endpoint" \
+        --arg intent "$intent" \
         --arg req_body "$request_body" \
         --arg resp "$response" \
         --arg resp_size "$response_size" \
@@ -130,6 +158,7 @@ execute_query() {
             timestamp: $ts,
             method: $method,
             endpoint: $endpoint,
+            intent: (if $intent != "" then $intent else null end),
             request_body: $req_body,
             response: $resp,
             response_size: ($resp_size | tonumber),
@@ -181,12 +210,12 @@ main() {
         echo "SQL API Query Logger"
         echo ""
         echo "Usage:"
-        echo "  $0 <METHOD> <ENDPOINT> [curl options]"
+        echo "  $0 <METHOD> <ENDPOINT> [--intent \"description\"] [curl options]"
         echo "  $0 --show-log <log_id>"
         echo ""
         echo "Examples:"
         echo "  $0 GET /tables"
-        echo "  $0 POST /query -d '{\"sql\": \"SELECT * FROM production_data\"}'"
+        echo "  $0 POST /query --intent \"Find equipment downtime patterns\" -d '{\"sql\": \"SELECT * FROM production_data\"}'"
         echo "  $0 --show-log 20250802_143022_a7b3"
         echo ""
         echo "Configuration:"
