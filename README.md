@@ -284,3 +284,6 @@ This is an experimental project exploring the intersection of semantic technolog
 ## License
 
 [To be determined]
+
+## Gaps
+Using sqlite which does not implement CTE so they haven' been tested, but they could offer incremental performance improvements

@@ -239,6 +239,48 @@ force_cleanup() {
     echo -e "${GREEN}Cleanup complete${NC}"
 }
 
+show_help() {
+    echo -e "${BLUE}MES Data SQL API Management Script${NC}"
+    echo -e "${BLUE}====================================${NC}"
+    echo ""
+    echo "This script manages the MES Data SQL API server lifecycle. It provides robust"
+    echo "process management with automatic port conflict detection, PID tracking, and"
+    echo "graceful shutdown capabilities. The API runs on port $PORT by default and serves"
+    echo "data through a FastAPI interface. The script ensures only one instance runs at"
+    echo "a time, handles stale processes, and provides color-coded status feedback for"
+    echo "easy monitoring. It automatically detects and resolves common issues like zombie"
+    echo "processes, port conflicts, and stale PID files."
+    echo ""
+    echo -e "${GREEN}Usage:${NC} $0 {start|stop|status|restart|force-cleanup|help}"
+    echo ""
+    echo -e "${GREEN}Commands:${NC}"
+    echo "  start         - Start the MES Data SQL API server"
+    echo "                  Checks for existing processes and port availability"
+    echo "  stop          - Gracefully stop the API server"
+    echo "                  Attempts clean shutdown before forcing termination"
+    echo "  status        - Check if the API is running and responding"
+    echo "                  Verifies both process and HTTP endpoint health"
+    echo "  restart       - Stop and restart the API server"
+    echo "                  Ensures clean restart with brief pause"
+    echo "  force-cleanup - Force stop all API processes and clear port"
+    echo "                  Use when normal stop fails or system is in bad state"
+    echo "  help          - Display this help message"
+    echo ""
+    echo -e "${GREEN}Files:${NC}"
+    echo "  PID File: $PID_FILE (tracks running process ID)"
+    echo "  Log File: $LOG_FILE (captures API output and errors)"
+    echo "  API Dir:  $API_DIR (location of main.py)"
+    echo ""
+    echo -e "${GREEN}Access Points:${NC}"
+    echo "  API Endpoint: http://localhost:$PORT/"
+    echo "  API Docs:     http://localhost:$PORT/docs"
+    echo ""
+    echo -e "${GREEN}Examples:${NC}"
+    echo "  $0 start      # Start the API server"
+    echo "  $0 status     # Check if server is running"
+    echo "  $0 restart    # Restart the server"
+}
+
 case "$1" in
     start)
         start_api
@@ -257,13 +299,17 @@ case "$1" in
     force-cleanup)
         force_cleanup
         ;;
+    help)
+        show_help
+        ;;
     *)
-        echo "Usage: $0 {start|stop|status|restart|force-cleanup}"
+        echo "Usage: $0 {start|stop|status|restart|force-cleanup|help}"
         echo "  start         - Start the MES Data SQL API"
         echo "  stop          - Stop the API"
         echo "  status        - Check if the API is running"
         echo "  restart       - Restart the API"
         echo "  force-cleanup - Force stop all API processes and clear port"
+        echo "  help          - Display detailed help and documentation"
         exit 1
         ;;
 esac

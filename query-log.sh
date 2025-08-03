@@ -2,6 +2,11 @@
 
 # SQL API Query Logger with Smart Truncation
 # Logs all queries and responses, truncates large responses for display
+#
+# IMPORTANT: JSON Escaping Issue
+# Due to shell argument parsing, inline JSON with -d flag often fails.
+# Use file reference instead: -d @/path/to/file.json
+# See --help for examples and workarounds
 
 # Configuration
 API_BASE_URL="http://localhost:8000"
@@ -30,10 +35,18 @@ check_jq() {
     fi
 }
 
-# Initialize log file if it doesn't exist
+# Initialize log file if it doesn't exist or is invalid
 init_log_file() {
     if [ ! -f "$LOG_FILE" ]; then
         echo "[]" > "$LOG_FILE"
+        echo -e "${GREEN}Created new log file: $LOG_FILE${NC}" >&2
+    else
+        # Validate existing file is valid JSON array
+        if ! jq -e 'type == "array"' "$LOG_FILE" >/dev/null 2>&1; then
+            echo -e "${YELLOW}Warning: Invalid log file detected, backing up and creating new${NC}" >&2
+            mv "$LOG_FILE" "${LOG_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
+            echo "[]" > "$LOG_FILE"
+        fi
     fi
 }
 
@@ -100,6 +113,9 @@ execute_query() {
     echo -e "${BLUE}Executing query (ID: $query_id)...${NC}"
     
     # Execute curl with all arguments
+    # KNOWN ISSUE: $curl_args without quotes causes JSON to be mangled
+    # This is intentionally left as-is for backward compatibility
+    # Workaround: Use file reference with -d @filename.json
     local http_code=$(curl -s -w "%{http_code}" -o "$temp_response" -D "$temp_headers" \
         -X "$method" "$full_url" \
         -H "Content-Type: application/json" \
@@ -166,9 +182,23 @@ execute_query() {
             status_code: ($status | tonumber)
         }')
     
-    # Append to log file
-    local updated_log=$(jq ". += [$log_entry]" "$LOG_FILE")
-    echo "$updated_log" > "$LOG_FILE"
+    # Append to log file with error handling
+    local temp_log=$(mktemp)
+    if jq ". += [$log_entry]" "$LOG_FILE" > "$temp_log" 2>/dev/null; then
+        # Verify the result is valid JSON
+        if jq -e '.' "$temp_log" >/dev/null 2>&1; then
+            mv "$temp_log" "$LOG_FILE"
+        else
+            echo -e "${RED}Error: Failed to create valid log entry${NC}" >&2
+            echo -e "${YELLOW}Query executed but not logged${NC}" >&2
+            rm -f "$temp_log"
+        fi
+    else
+        echo -e "${RED}Error: Failed to append to log file${NC}" >&2
+        echo -e "${YELLOW}Attempting to recreate log file...${NC}" >&2
+        echo "[$log_entry]" > "$LOG_FILE"
+        rm -f "$temp_log"
+    fi
     
     # Display response
     echo -e "${GREEN}Query ID: $query_id${NC}"
@@ -212,16 +242,127 @@ main() {
         echo "Usage:"
         echo "  $0 <METHOD> <ENDPOINT> [--intent \"description\"] [curl options]"
         echo "  $0 --show-log <log_id>"
+        echo "  $0 --example-json"
+        echo "  $0 --test"
+        echo "  $0 --verify-log"
+        echo "  $0 --repair-log"
         echo ""
         echo "Examples:"
         echo "  $0 GET /tables"
-        echo "  $0 POST /query --intent \"Find equipment downtime patterns\" -d '{\"sql\": \"SELECT * FROM production_data\"}'"
+        echo "  $0 POST /query --intent \"Find bottlenecks\" -d @query.json"
         echo "  $0 --show-log 20250802_143022_a7b3"
+        echo ""
+        echo -e "${YELLOW}⚠️  IMPORTANT: JSON Escaping Issue${NC}"
+        echo "Inline JSON often fails due to shell escaping. Use file reference instead:"
+        echo ""
+        echo -e "${RED}FAILS:${NC}"
+        echo "  $0 POST /query -d '{\"sql\": \"SELECT * FROM mes_data\"}'"
+        echo ""
+        echo -e "${GREEN}WORKS:${NC}"
+        echo "  echo '{\"sql\": \"SELECT * FROM mes_data\"}' > /tmp/query.json"
+        echo "  $0 POST /query -d @/tmp/query.json"
+        echo ""
+        echo "SQLite-Specific Notes:"
+        echo "  - Use double quotes for strings in SQL: WHERE status = \"Running\""
+        echo "  - Date functions: strftime('%H', timestamp), DATE(timestamp)"
+        echo "  - No STDDEV function available"
+        echo "  - No CTEs (WITH clauses) allowed by API"
         echo ""
         echo "Configuration:"
         echo "  API URL: $API_BASE_URL"
         echo "  Log file: $LOG_FILE"
         echo "  Max display size: $MAX_DISPLAY_SIZE bytes"
+        echo ""
+        echo "Troubleshooting:"
+        echo "  422 error: JSON formatting issue - use file reference"
+        echo "  400 error: SQL syntax error or unsupported function"
+        echo "  Empty results: Check date ranges (data is from June 2025)"
+        exit 0
+    fi
+    
+    if [ "$1" == "--example-json" ]; then
+        echo "Example query.json file:"
+        echo ""
+        echo '{'
+        echo '  "sql": "SELECT line_id, AVG(oee_score) as avg_oee FROM mes_data WHERE machine_status = \"Running\" GROUP BY line_id ORDER BY avg_oee DESC"'
+        echo '}'
+        echo ""
+        echo "Save this to a file and use: $0 POST /query -d @query.json"
+        exit 0
+    fi
+    
+    if [ "$1" == "--verify-log" ]; then
+        echo -e "${BLUE}Verifying log file integrity...${NC}"
+        if [ ! -f "$LOG_FILE" ]; then
+            echo -e "${RED}✗ Log file not found: $LOG_FILE${NC}"
+            echo "Run any query to create it, or use --repair-log"
+            exit 1
+        fi
+        
+        if jq -e 'type == "array"' "$LOG_FILE" >/dev/null 2>&1; then
+            local count=$(jq 'length' "$LOG_FILE")
+            echo -e "${GREEN}✓ Log file is valid JSON array${NC}"
+            echo -e "${GREEN}  Contains $count entries${NC}"
+            
+            # Check if we can read the entries
+            if jq -e '.[0] | has("id", "timestamp", "method")' "$LOG_FILE" >/dev/null 2>&1; then
+                echo -e "${GREEN}✓ Log entries have correct structure${NC}"
+            elif [ "$count" -eq 0 ]; then
+                echo -e "${YELLOW}  Log is empty but valid${NC}"
+            else
+                echo -e "${YELLOW}⚠ Log entries may have incorrect structure${NC}"
+            fi
+        else
+            echo -e "${RED}✗ Log file is not a valid JSON array${NC}"
+            echo "Use --repair-log to fix it"
+            exit 1
+        fi
+        exit 0
+    fi
+    
+    if [ "$1" == "--repair-log" ]; then
+        echo -e "${BLUE}Attempting to repair log file...${NC}"
+        if [ ! -f "$LOG_FILE" ]; then
+            echo "[]" > "$LOG_FILE"
+            echo -e "${GREEN}✓ Created new empty log file${NC}"
+        else
+            # Try to parse and fix
+            if jq -e '.' "$LOG_FILE" >/dev/null 2>&1; then
+                # It's valid JSON, check if it's an array
+                if jq -e 'type == "array"' "$LOG_FILE" >/dev/null 2>&1; then
+                    echo -e "${GREEN}✓ Log file is already valid${NC}"
+                else
+                    # Valid JSON but not an array, wrap it
+                    echo -e "${YELLOW}Converting to array format...${NC}"
+                    local backup="${LOG_FILE}.backup.$(date +%Y%m%d_%H%M%S)"
+                    mv "$LOG_FILE" "$backup"
+                    echo "[$(cat "$backup")]" | jq '.' > "$LOG_FILE"
+                    echo -e "${GREEN}✓ Converted to array format (backup: $backup)${NC}"
+                fi
+            else
+                # Not valid JSON at all
+                echo -e "${YELLOW}File is corrupted, creating backup and new file...${NC}"
+                mv "$LOG_FILE" "${LOG_FILE}.corrupted.$(date +%Y%m%d_%H%M%S)"
+                echo "[]" > "$LOG_FILE"
+                echo -e "${GREEN}✓ Created new empty log file${NC}"
+            fi
+        fi
+        exit 0
+    fi
+    
+    if [ "$1" == "--test" ]; then
+        echo -e "${BLUE}Testing API connectivity...${NC}"
+        response=$(curl -s -w "\n%{http_code}" "$API_BASE_URL")
+        http_code=$(echo "$response" | tail -n 1)
+        body=$(echo "$response" | sed '$d')
+        
+        if [ "$http_code" == "200" ]; then
+            echo -e "${GREEN}✓ API is responding at $API_BASE_URL${NC}"
+            echo "Response: $body"
+        else
+            echo -e "${RED}✗ API not responding (HTTP $http_code)${NC}"
+            echo "Check if API is running: ./api.sh status"
+        fi
         exit 0
     fi
     

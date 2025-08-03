@@ -1,0 +1,26 @@
+[
+  {
+    "id": "20250802_204335_bd21",
+    "timestamp": "2025-08-03T00:43:35Z",
+    "method": "POST",
+    "endpoint": "/query",
+    "intent": "Test logging fix",
+    "request_body": "@/tmp/test_log.json",
+    "response": "{\"query\":\"SELECT COUNT(*) as total FROM mes_data\",\"columns\":[\"total\"],\"data\":[{\"total\":36288}],\"row_count\":1,\"limited\":false}",
+    "response_size": 125,
+    "truncated": false,
+    "status_code": 200
+  },
+  {
+    "id": "20250802_204344_f74d",
+    "timestamp": "2025-08-03T00:43:44Z",
+    "method": "POST",
+    "endpoint": "/query",
+    "intent": "Test append functionality",
+    "request_body": "@/tmp/test2.json",
+    "response": "{\"query\":\"SELECT line_id, COUNT(*) as count FROM mes_data GROUP BY line_id\",\"columns\":[\"line_id\",\"count\"],\"data\":[{\"line_id\":\"1\",\"count\":12096},{\"line_id\":\"2\",\"count\":12096},{\"line_id\":\"3\",\"count\":12096}],\"row_count\":3,\"limited\":false}",
+    "response_size": 235,
+    "truncated": false,
+    "status_code": 200
+  }
+]
