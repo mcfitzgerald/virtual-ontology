@@ -281,3 +281,125 @@ EOF
 *Experiment conducted: August 2, 2025*
 *Total execution time: ~30 minutes*
 *Queries logged: query_logs.json*
+
+---
+
+# Session 2: Manufacturing Improvement Analysis with Visualizations
+
+## Session Overview
+Date: 2025-08-03
+Purpose: Deep-dive analysis to identify specific improvement opportunities
+Approach: 8 strategic business questions with comprehensive visualization
+
+## Key Process Learnings from Session 2
+
+### 1. Query Patterns That Worked Well
+- **File-based JSON** (`-d @/tmp/query.json`) was absolutely critical - inline JSON consistently failed
+- **Building complexity gradually** - start with simple queries, then layer in complexity
+- **Using business terminology** from ontology (e.g., "UNP-JAM" codes) made queries more intuitive
+
+### 2. Analytical Framework Success
+The **8 strategic questions approach** was highly effective:
+1. Hidden capacity (best OEE vs current)
+2. Bottleneck identification
+3. Million-dollar downtime problems
+4. Changeover impact
+5. True product profitability
+6. Cascade failure detection
+7. Quality issue mapping
+8. Predictive maintenance opportunities
+
+This progression naturally builds understanding and context, with each answer informing the next question.
+
+### 3. Visualization Integration
+- **Combining SQL + Python** was powerful - SQL for aggregation, Python for visualization
+- **Multi-panel dashboards** (3x3 grid) provided comprehensive view in one image
+- **Statistical summary + visual** combination gave both detail and patterns
+
+### 4. Critical Technical Patterns
+
+#### Query Execution
+```bash
+# ALWAYS use file reference for JSON
+echo '{"sql": "SELECT ..."}' > /tmp/query.json
+./query-log.sh POST /query --intent "description" -d @/tmp/query.json
+
+# NEVER use inline JSON (will fail)
+./query-log.sh POST /query -d '{"sql": "SELECT ..."}' # FAILS!
+```
+
+#### Large Result Handling
+```python
+# When results are truncated, load from query_logs.json
+with open('query_logs.json', 'r') as f:
+    logs = json.load(f)
+    
+for entry in logs:
+    if entry['id'] == 'query_id_here':
+        data = json.loads(entry['response'])['data']
+```
+
+### 5. Business Impact Translation
+- Convert operational metrics to financial impact immediately
+- Annualize findings for executive impact (2 weeks → annual)
+- Rank opportunities by $ value, not just operational metrics
+- Connect patterns to root causes with clear hypotheses
+
+### 6. User Interaction Patterns
+- **Progressive disclosure** - Summary first, then details
+- **Visual + numerical** combination for different audiences
+- **Business questions** rather than technical queries
+- **Clear action items** with quantified impact
+
+## Discovered Business Insights (Session 2)
+
+### Financial Impact Summary
+- **Hidden Capacity**: $2.3M annual opportunity (25% OEE improvement possible)
+- **Material Jams**: $21M annual loss (top downtime cause)
+- **Premium Juice Quality**: $7.7M annual scrap loss
+- **Total Opportunity**: $25M+ through operational excellence
+
+### Critical Findings
+1. **Packer equipment is the universal bottleneck** across all lines
+2. **32oz Premium Juice has 18% scrap rate** vs 4-6% for other products
+3. **Morning shift quality 6% worse** than afternoon (temperature/startup issues)
+4. **Line 1 systematically underperforms** Lines 2 and 3
+5. **Excessive changeovers** - Line 2 changes product every 19 minutes
+
+### Root Cause Hypotheses (Premium Juice Crisis)
+1. **Recipe/Formulation Issue** - Consistent 18% failure points to specification problem
+2. **Temperature Sensitivity** - Morning quality problems suggest viscosity issues
+3. **Line 1 Calibration** - Needs full equipment audit
+4. **Crew Training Gap** - Morning shift needs Premium Juice training
+
+## Visualization Best Practices
+
+### Multi-Panel Dashboard Structure
+```python
+fig = plt.figure(figsize=(16, 12))
+# 3x3 grid covering:
+# 1. Equipment comparison
+# 2. Time trends
+# 3. Heatmaps
+# 4. Distributions
+# 5. Hourly patterns
+# 6. Line comparisons
+# 7. Correlations
+# 8. Worst performers
+# 9. Top issues
+```
+
+### Color Coding
+- Red: Problem areas / below target
+- Green: Target lines / good performance
+- Orange/Yellow: Warning / attention needed
+- Blue: Neutral comparisons
+
+## Combined Sessions Conclusion
+Both sessions demonstrate the power of:
+- Semantic ontology layers for business translation
+- Strategic question progression for discovery
+- SQL aggregation + Python visualization for insights
+- Financial impact quantification for prioritization
+
+Total opportunities identified across sessions: **$65M+ annually**

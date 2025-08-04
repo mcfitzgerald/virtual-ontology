@@ -52,3 +52,39 @@ Ready to begin analysis once you've:
 3. Understood the user's analytical objectives
 
 Let's uncover insights hidden in your manufacturing data!
+
+## Analytical Best Practices
+- **ALWAYS use TodoWrite** for multi-step analysis to track progress
+- **Start with data boundary queries** (date ranges, record counts, distinct values)
+- **Build analytical narrative**: baseline → patterns → root causes → opportunities
+- **Quantify everything** in business terms (dollars, hours, percentages)
+- **Use the 8-question framework** for comprehensive analysis:
+  1. Hidden capacity (best vs current performance)
+  2. Bottleneck identification
+  3. Downtime financial impact
+  4. Changeover analysis
+  5. True product profitability
+  6. Cascade failure detection
+  7. Quality issue mapping
+  8. Predictive maintenance opportunities
+
+## Query Execution Patterns
+- **CRITICAL**: For query-log.sh, ALWAYS use file reference: `-d @/tmp/query.json`
+- Test connectivity before complex queries: `./query-log.sh --test`
+- For large result sets, data is saved to query_logs.json - use Python to analyze
+- SQLite-specific: Use double quotes for strings, no CTEs, no STDDEV function
+- Build complexity gradually - start simple, then layer in complexity
+
+## Visualization Workflow
+1. Query raw data and save to query_logs.json
+2. Load with Python: `json.load(f)` and find by query ID
+3. Create multi-panel visualizations (3x3 grid) for comprehensive analysis
+4. Always include: distribution, trends, heatmaps, correlations
+5. Combine visual output with statistical summary
+
+## Business Impact Translation
+- Convert operational metrics to financial impact immediately
+- Annualize findings for executive impact (2 weeks → annual)
+- Rank opportunities by $ value, not just operational metrics
+- Connect patterns to root causes with clear hypotheses
+- Use progressive disclosure: summary first, then details
