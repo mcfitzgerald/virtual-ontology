@@ -33,6 +33,8 @@ The virtual ontology approach:
 3. **Leverage agent capabilities** - Natural language REPLs handle the translation
 4. **Learn from usage** - Capture successful patterns for reuse
 
+<img src="demo.gif" alt="Live Session" loop="infinite" />
+
 ## What We've Learned
 
 Through testing with real manufacturing data:
