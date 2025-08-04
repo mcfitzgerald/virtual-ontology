@@ -72,3 +72,4 @@ docs/.doctrees/
 api.pd
 api.log
 query_logs.json
+*.cast
