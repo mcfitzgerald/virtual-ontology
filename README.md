@@ -20,9 +20,9 @@ An alternative data access pattern:
 
 Clone the repo, open a Claude Code session, load @sys_prompt.md in chat.
 
-## Demo Video
+## Code Walkthrough Video (30 minutes - short gif below)
 
-🎬 [Roll your own virtual ontology!](https://www.youtube.com/watch?v=xEEZS0_Sbj0)
+🎬 [Roll your own virtual ontology - Codewalk!](https://www.youtube.com/watch?v=xEEZS0_Sbj0)
 
 ## How It Works
 
@@ -34,10 +34,6 @@ The virtual ontology approach:
 4. **Learn from usage** - Capture successful patterns for reuse
 
 <img src="demo.gif" alt="Live Session" loop="infinite" />
-
-## What We've Learned
-
-Through testing with real manufacturing data:
 
 ### Complex Business Analysis
 - Identified significant improvement opportunities through systematic analysis
