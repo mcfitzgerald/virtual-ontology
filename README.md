@@ -22,7 +22,7 @@ Clone the repo, open a Claude Code session, load @sys_prompt.md in chat.
 
 ## Demo Video
 
-[![Watch the video]](https://www.youtube.com/watch?v=xEEZS0_Sbj0)
+🎬 [Roll your own virtual ontology!](https://www.youtube.com/watch?v=xEEZS0_Sbj0)
 
 ## How It Works
 
