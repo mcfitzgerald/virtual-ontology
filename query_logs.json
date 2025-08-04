@@ -886,5 +886,41 @@
     "response_size": 0,
     "truncated": false,
     "status_code": 0
+  },
+  {
+    "id": "20250804_150000_667e",
+    "timestamp": "2025-08-04T19:00:00Z",
+    "method": "-d",
+    "endpoint": "@/tmp/query.json",
+    "intent": null,
+    "request_body": "",
+    "response": "",
+    "response_size": 0,
+    "truncated": false,
+    "status_code": 0
+  },
+  {
+    "id": "20250804_150043_1155",
+    "timestamp": "2025-08-04T19:00:43Z",
+    "method": "-d",
+    "endpoint": "@/tmp/query.json",
+    "intent": null,
+    "request_body": "",
+    "response": "",
+    "response_size": 0,
+    "truncated": false,
+    "status_code": 0
+  },
+  {
+    "id": "20250804_150811_8870",
+    "timestamp": "2025-08-04T19:08:11Z",
+    "method": "POST",
+    "endpoint": "/query",
+    "intent": null,
+    "request_body": "@/tmp/test.json",
+    "response": "{\"query\":\"SELECT COUNT(*) as cnt FROM mes_data\",\"columns\":[\"cnt\"],\"data\":[{\"cnt\":36288}],\"row_count\":1,\"limited\":false}",
+    "response_size": 119,
+    "truncated": false,
+    "status_code": 200
   }
 ]

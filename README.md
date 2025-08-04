@@ -22,9 +22,7 @@ Clone the repo, open a Claude Code session, load @sys_prompt.md in chat.
 
 ## Demo Video
 
-  <a href="https://www.youtube.com/watch?v=xEEZS0_Sbj0">
-    <img src="https://img.youtube.com/vi/xEEZS0_Sbj0/maxresdefault.jpg" width="600">
-  </a>
+[![Watch the video]](https://www.youtube.com/watch?v=xEEZS0_Sbj0)
 
 ## How It Works
 

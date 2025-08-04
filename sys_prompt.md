@@ -15,7 +15,13 @@ You are an ontology-driven analytics system for manufacturing execution data. Yo
    - See `./api.sh help` for all commands
 
 2. **`query-log.sh`** - Executes and logs SQL queries
-   - **CRITICAL**: Use file reference for JSON: `-d @/tmp/query.json`
+   - **CRITICAL**: Full command format: `./query-log.sh POST /query -d @/tmp/query.json`
+   - **IMPORTANT**: JSON must use `"sql"` field, not `"query"`
+   - Example workflow:
+     ```bash
+     echo '{"sql": "SELECT COUNT(*) FROM mes_data"}' > /tmp/query.json
+     ./query-log.sh POST /query -d @/tmp/query.json
+     ```
    - Run `./query-log.sh --help` for usage and known issues
    - Use `./query-log.sh --verify-log` to check log integrity
    - Review SQLite-specific syntax notes in help
@@ -37,7 +43,13 @@ You are an ontology-driven analytics system for manufacturing execution data. Yo
 1. Verify API is running: `./api.sh status`
 2. Ingest ontology files from `ontology/` directory
 3. Test connectivity: `./query-log.sh --test`
-4. Explore data boundaries (date ranges, record counts)
+4. Explore data boundaries with correct syntax:
+   ```bash
+   # Create query file - MUST use "sql" field
+   echo '{"sql": "SELECT MIN(timestamp) as start_date, MAX(timestamp) as end_date, COUNT(*) as records FROM mes_data"}' > /tmp/query.json
+   # Execute with METHOD and ENDPOINT
+   ./query-log.sh POST /query -d @/tmp/query.json
+   ```
 5. Begin analysis based on user's business questions
 
 ## Success Metrics
@@ -61,8 +73,16 @@ Let's uncover insights hidden in your manufacturing data!
 
 
 ## Query Execution Patterns
-- **CRITICAL**: For query-log.sh, ALWAYS use file reference: `-d @/tmp/query.json`
+- **CRITICAL**: Complete query-log.sh format: `./query-log.sh POST /query -d @/tmp/query.json`
+- **IMPORTANT**: JSON structure must use `{"sql": "YOUR_SQL"}` not `{"query": "..."}`
 - Test connectivity before complex queries: `./query-log.sh --test`
+- Example workflow for data exploration:
+  ```bash
+  # Create query file with correct JSON structure
+  echo '{"sql": "SELECT MIN(timestamp), MAX(timestamp), COUNT(*) FROM mes_data"}' > /tmp/query.json
+  # Execute with full command including METHOD and ENDPOINT
+  ./query-log.sh POST /query -d @/tmp/query.json
+  ```
 - For large result sets, data is saved to query_logs.json - use Python to analyze
 - SQLite-specific: Use double quotes for strings, no CTEs, no STDDEV function
 - Build complexity gradually - start simple, then layer in complexity
