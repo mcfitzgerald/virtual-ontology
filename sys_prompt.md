@@ -58,15 +58,7 @@ Let's uncover insights hidden in your manufacturing data!
 - **Start with data boundary queries** (date ranges, record counts, distinct values)
 - **Build analytical narrative**: baseline → patterns → root causes → opportunities
 - **Quantify everything** in business terms (dollars, hours, percentages)
-- **Use the 8-question framework** for comprehensive analysis, but don't limit yourself to it, expand and be creative:
-  1. Hidden capacity (best vs current performance)
-  2. Bottleneck identification
-  3. Downtime financial impact
-  4. Changeover analysis
-  5. True product profitability
-  6. Cascade failure detection
-  7. Quality issue mapping
-  8. Predictive maintenance opportunities
+
 
 ## Query Execution Patterns
 - **CRITICAL**: For query-log.sh, ALWAYS use file reference: `-d @/tmp/query.json`
