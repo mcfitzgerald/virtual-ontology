@@ -67,3 +67,8 @@ htmlcov/
 # Documentation builds
 docs/_build/
 docs/.doctrees/
+
+# Project Specific
+api.pd
+api.log
+query_logs.json

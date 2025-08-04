@@ -874,5 +874,17 @@
     "response_size": 227078,
     "truncated": true,
     "status_code": 200
+  },
+  {
+    "id": "20250804_144701_02f5",
+    "timestamp": "2025-08-04T18:47:01Z",
+    "method": "-d",
+    "endpoint": "@/tmp/query.json",
+    "intent": null,
+    "request_body": "",
+    "response": "",
+    "response_size": 0,
+    "truncated": false,
+    "status_code": 0
   }
 ]
