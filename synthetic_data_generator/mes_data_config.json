@@ -1,0 +1,365 @@
+{
+  "ontology": {
+    "iri": "http://mes-ontology.org/factory.owl",
+    "name": "MES Factory Ontology",
+    "version": "1.0.0",
+    "description": "Manufacturing Execution System ontology for bottling plant operations"
+  },
+  
+  "equipment_configuration": {
+    "lines": {
+      "LINE1": {
+        "name": "Production Line 1",
+        "equipment_sequence": [
+          {"id": "LINE1-FIL", "type": "Filler", "position": 1},
+          {"id": "LINE1-PCK", "type": "Packer", "position": 2},
+          {"id": "LINE1-PAL", "type": "Palletizer", "position": 3}
+        ],
+        "process_flow": {
+          "LINE1-FIL": {"upstream": null, "downstream": "LINE1-PCK"},
+          "LINE1-PCK": {"upstream": "LINE1-FIL", "downstream": "LINE1-PAL"},
+          "LINE1-PAL": {"upstream": "LINE1-PCK", "downstream": null}
+        }
+      },
+      "LINE2": {
+        "name": "Production Line 2",
+        "equipment_sequence": [
+          {"id": "LINE2-FIL", "type": "Filler", "position": 1},
+          {"id": "LINE2-PCK", "type": "Packer", "position": 2},
+          {"id": "LINE2-PAL", "type": "Palletizer", "position": 3}
+        ],
+        "process_flow": {
+          "LINE2-FIL": {"upstream": null, "downstream": "LINE2-PCK"},
+          "LINE2-PCK": {"upstream": "LINE2-FIL", "downstream": "LINE2-PAL"},
+          "LINE2-PAL": {"upstream": "LINE2-PCK", "downstream": null}
+        }
+      },
+      "LINE3": {
+        "name": "Production Line 3",
+        "equipment_sequence": [
+          {"id": "LINE3-FIL", "type": "Filler", "position": 1},
+          {"id": "LINE3-PCK", "type": "Packer", "position": 2},
+          {"id": "LINE3-PAL", "type": "Palletizer", "position": 3}
+        ],
+        "process_flow": {
+          "LINE3-FIL": {"upstream": null, "downstream": "LINE3-PCK"},
+          "LINE3-PCK": {"upstream": "LINE3-FIL", "downstream": "LINE3-PAL"},
+          "LINE3-PAL": {"upstream": "LINE3-PCK", "downstream": null}
+        }
+      }
+    }
+  },
+  
+  "product_master": {
+    "SKU-1001": {
+      "name": "12oz Sparkling Water",
+      "target_rate_units_per_5min": 500,
+      "standard_cost_per_unit": 0.15,
+      "sale_price_per_unit": 0.50,
+      "normal_scrap_rate": 0.02,
+      "startup_scrap_rate": 0.05
+    },
+    "SKU-1002": {
+      "name": "32oz Premium Juice",
+      "target_rate_units_per_5min": 350,
+      "standard_cost_per_unit": 0.45,
+      "sale_price_per_unit": 1.50,
+      "normal_scrap_rate": 0.025,
+      "quality_issue_scrap_rate": 0.08,
+      "startup_scrap_rate": 0.06
+    },
+    "SKU-2001": {
+      "name": "12oz Soda",
+      "target_rate_units_per_5min": 475,
+      "standard_cost_per_unit": 0.20,
+      "sale_price_per_unit": 0.65,
+      "normal_scrap_rate": 0.015,
+      "startup_scrap_rate": 0.04
+    },
+    "SKU-2002": {
+      "name": "16oz Energy Drink",
+      "target_rate_units_per_5min": 450,
+      "standard_cost_per_unit": 0.55,
+      "sale_price_per_unit": 1.75,
+      "normal_scrap_rate": 0.02,
+      "performance_issue_lines": ["LINE1", "LINE3"],
+      "performance_degradation": {"min": 0.65, "max": 0.80},
+      "startup_scrap_rate": 0.07
+    },
+    "SKU-3001": {
+      "name": "8oz Kids Drink",
+      "target_rate_units_per_5min": 550,
+      "standard_cost_per_unit": 0.25,
+      "sale_price_per_unit": 0.75,
+      "normal_scrap_rate": 0.018,
+      "startup_scrap_rate": 0.045
+    }
+  },
+  
+  "downtime_reason_mapping": {
+    "PLN-CO": {
+      "class": "Changeover",
+      "category": "PlannedDowntime",
+      "description": "Planned changeover between products"
+    },
+    "PLN-CLN": {
+      "class": "Cleaning",
+      "category": "PlannedDowntime",
+      "description": "Planned cleaning cycle"
+    },
+    "PLN-PM": {
+      "class": "PreventiveMaintenance",
+      "category": "PlannedDowntime",
+      "description": "Planned preventive maintenance"
+    },
+    "UNP-MECH": {
+      "class": "MechanicalFailure",
+      "category": "UnplannedDowntime",
+      "description": "Unplanned mechanical failure"
+    },
+    "UNP-JAM": {
+      "class": "MaterialJam",
+      "category": "UnplannedDowntime",
+      "description": "Material jam in equipment"
+    },
+    "UNP-MAT": {
+      "class": "MaterialStarvation",
+      "category": "UnplannedDowntime",
+      "description": "Lack of input material"
+    },
+    "UNP-ELEC": {
+      "class": "ElectricalFailure",
+      "category": "UnplannedDowntime",
+      "description": "Electrical or control system failure"
+    },
+    "UNP-QC": {
+      "class": "QualityCheck",
+      "category": "UnplannedDowntime",
+      "description": "Quality control intervention"
+    },
+    "UNP-OPR": {
+      "class": "OperatorError",
+      "category": "UnplannedDowntime",
+      "description": "Operator error or absence"
+    },
+    "UNP-SENS": {
+      "class": "SensorFailure",
+      "category": "UnplannedDowntime",
+      "description": "Sensor misalignment or calibration issue"
+    }
+  },
+  
+  "anomaly_injection": {
+    "major_mechanical_failure": {
+      "enabled": true,
+      "equipment_id": "LINE3-FIL",
+      "start_datetime": "2025-06-08 02:00:00",
+      "end_datetime": "2025-06-08 07:30:00",
+      "downtime_reason": "UNP-MECH",
+      "description": "Major mechanical failure on Line 3 Filler"
+    },
+    "frequent_micro_stops": {
+      "enabled": true,
+      "equipment_id": "LINE2-PCK",
+      "probability_per_5min": 0.35,
+      "downtime_reason": "UNP-JAM",
+      "duration_range_minutes": {"min": 0.5, "max": 2},
+      "description": "Frequent micro-stops on Line 2 Packer"
+    },
+    "minor_stops_line1": {
+      "enabled": true,
+      "equipment_id": "LINE1-FIL",
+      "probability_per_5min": 0.20,
+      "downtime_reason": "UNP-SENS",
+      "duration_range_minutes": {"min": 0.5, "max": 1.5},
+      "description": "Sensor issues causing minor stops on Line 1 Filler"
+    },
+    "recurring_jams_line1": {
+      "enabled": true,
+      "equipment_id": "LINE1-PCK",
+      "probability_per_5min": 0.15,
+      "downtime_reason": "UNP-JAM",
+      "duration_range_minutes": {"min": 1, "max": 3},
+      "description": "Recurring jams on Line 1 Packer"
+    },
+    "electrical_issues": {
+      "enabled": true,
+      "equipment_id": "LINE2-PAL",
+      "probability_per_5min": 0.08,
+      "downtime_reason": "UNP-ELEC",
+      "duration_range_minutes": {"min": 10, "max": 45},
+      "description": "Intermittent electrical issues on Line 2 Palletizer"
+    },
+    "operator_issues_shift3": {
+      "enabled": true,
+      "equipment_id": "LINE1-FIL",
+      "hour_range": [22, 6],
+      "probability_per_5min": 0.12,
+      "downtime_reason": "UNP-OPR",
+      "duration_range_minutes": {"min": 5, "max": 20},
+      "description": "Night shift operator issues"
+    },
+    "quality_control_stops": {
+      "enabled": true,
+      "equipment_id": "LINE3-PCK",
+      "probability_per_5min": 0.05,
+      "downtime_reason": "UNP-QC",
+      "duration_range_minutes": {"min": 10, "max": 30},
+      "description": "Random quality control interventions"
+    },
+    "performance_bottleneck": {
+      "enabled": true,
+      "description": "Performance bottleneck for energy drinks on Lines 1 and 3"
+    },
+    "quality_issues": {
+      "enabled": true,
+      "description": "Quality issues for 32oz Premium Juice"
+    },
+    "changeover_scrap_spike": {
+      "enabled": true,
+      "duration_minutes": 90,
+      "scrap_multiplier": 3.0,
+      "description": "Increased scrap during first 90 minutes of changeovers"
+    },
+    "material_starvation_patterns": {
+      "enabled": true,
+      "equipment_patterns": [
+        {
+          "equipment_id": "LINE3-PCK",
+          "hour_range": [10, 12],
+          "probability_per_5min": 0.20,
+          "downtime_reason": "UNP-MAT",
+          "duration_range_minutes": {"min": 15, "max": 45}
+        },
+        {
+          "equipment_id": "LINE2-FIL",
+          "hour_range": [15, 17],
+          "probability_per_5min": 0.15,
+          "downtime_reason": "UNP-MAT",
+          "duration_range_minutes": {"min": 10, "max": 30}
+        }
+      ],
+      "description": "Material supply issues during specific hours"
+    },
+    "scheduled_maintenance": {
+      "enabled": true,
+      "patterns": [
+        {
+          "day_of_week": 3,
+          "hour": 14,
+          "duration_minutes": 120,
+          "equipment_id": "LINE1-FIL",
+          "downtime_reason": "PLN-PM"
+        },
+        {
+          "day_of_week": 5,
+          "hour": 6,
+          "duration_minutes": 90,
+          "equipment_id": "LINE2-PCK",
+          "downtime_reason": "PLN-PM"
+        }
+      ],
+      "description": "Weekly preventive maintenance schedules"
+    },
+    "cleaning_cycles": {
+      "enabled": true,
+      "frequency_hours": 8,
+      "duration_minutes": 30,
+      "downtime_reason": "PLN-CLN",
+      "description": "Regular cleaning cycles every 8 hours"
+    },
+    "random_sensor_issues": {
+      "enabled": true,
+      "equipment_patterns": [
+        {
+          "equipment_id": "LINE3-FIL",
+          "probability_per_5min": 0.06,
+          "downtime_reason": "UNP-SENS",
+          "duration_range_minutes": {"min": 0.5, "max": 2}
+        }
+      ],
+      "description": "Random sensor calibration issues"
+    },
+    "filler_micro_stops": {
+      "enabled": true,
+      "equipment_patterns": [
+        {
+          "equipment_id": "LINE2-FIL",
+          "probability_per_5min": 0.10,
+          "downtime_reason": "UNP-JAM",
+          "duration_range_minutes": {"min": 0.5, "max": 1.5}
+        },
+        {
+          "equipment_id": "LINE3-FIL",
+          "probability_per_5min": 0.08,
+          "downtime_reason": "UNP-JAM",
+          "duration_range_minutes": {"min": 0.5, "max": 1}
+        }
+      ],
+      "description": "Fill valve and foam control micro-stops"
+    },
+    "palletizer_micro_stops": {
+      "enabled": true,
+      "equipment_patterns": [
+        {
+          "equipment_id": "LINE1-PAL",
+          "probability_per_5min": 0.05,
+          "downtime_reason": "UNP-JAM",
+          "duration_range_minutes": {"min": 1, "max": 2}
+        },
+        {
+          "equipment_id": "LINE3-PAL",
+          "probability_per_5min": 0.06,
+          "downtime_reason": "UNP-JAM",
+          "duration_range_minutes": {"min": 0.5, "max": 1.5}
+        }
+      ],
+      "description": "Pallet stability and stretch wrap micro-stops"
+    },
+    "quality_variation_normal": {
+      "enabled": true,
+      "scrap_rate_multiplier": 1.2,
+      "probability_per_5min": 0.15,
+      "description": "Random quality variations during normal production"
+    },
+    "quality_end_of_run": {
+      "enabled": true,
+      "hours_before_changeover": 1,
+      "scrap_rate_multiplier": 1.5,
+      "description": "Quality degradation at end of long production runs"
+    },
+    "cascade_failures": {
+      "enabled": true,
+      "trigger_equipment": ["LINE1-FIL", "LINE2-FIL", "LINE3-FIL"],
+      "cascade_delay_minutes": 10,
+      "downstream_stop_probability": 0.8,
+      "description": "Downstream equipment starves when upstream stops"
+    }
+  },
+  
+  "production_schedule": {
+    "run_duration_hours": {"min": 4, "max": 12},
+    "changeover_gap_minutes": {"min": 30, "max": 60}
+  },
+  
+  "product_specifications": {
+    "normal_scrap_rate": 0.02,
+    "equipment_efficiency": {
+      "Filler": {"min": 0.75, "max": 0.92},
+      "Packer": {"min": 0.70, "max": 0.90},
+      "Palletizer": {"min": 0.80, "max": 0.95}
+    },
+    "performance_variation": {
+      "shift1": {"min": 0.90, "max": 1.00},
+      "shift2": {"min": 0.85, "max": 0.95},
+      "shift3": {"min": 0.75, "max": 0.90}
+    },
+    "random_performance_drops": {
+      "enabled": true,
+      "probability_per_5min": 0.05,
+      "degradation_factor": {"min": 0.60, "max": 0.80},
+      "duration_intervals": {"min": 2, "max": 6},
+      "description": "Random performance drops due to various minor issues"
+    }
+  }
+}
