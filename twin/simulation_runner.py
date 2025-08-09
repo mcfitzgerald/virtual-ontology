@@ -278,7 +278,7 @@ class SimulationRunner:
         run: SimulationRun,
         config_path: Path,
         duration_days: int
-    ) -> Path:
+    ) -> str:
         """
         Execute the actual simulation using the data generator
         
@@ -288,21 +288,22 @@ class SimulationRunner:
             duration_days: Duration in days
             
         Returns:
-            Path to output data file
+            Database table reference (simulation_data with run_id)
         """
-        # Create output path
-        output_dir = Path(f"twin/simulation_outputs")
-        output_dir.mkdir(exist_ok=True)
-        output_path = output_dir / f"{run.run_id}.csv"
+        # Calculate end date
+        from datetime import timedelta
+        start_date = datetime.now().date()
+        end_date = start_date + timedelta(days=duration_days)
         
-        # Build command
+        # Build command to write to database
         cmd = [
             "python",
             str(self.generator_path),
-            "--config", str(config_path),
-            "--output", str(output_path),
-            "--seed", str(run.seed),
-            "--days", str(duration_days)
+            "--output", "db",
+            "--table", "simulation_data",
+            "--run-id", run.run_id,
+            "--start-date", start_date.strftime("%Y-%m-%d"),
+            "--end-date", end_date.strftime("%Y-%m-%d")
         ]
         
         # Execute generator
@@ -325,30 +326,56 @@ class SimulationRunner:
             self._update_run_metadata(run)
             raise
         
-        return output_path
+        return f"simulation_data:{run.run_id}"
     
-    def _calculate_data_hash(self, data_path: Path) -> str:
+    def _calculate_data_hash(self, data_ref: str) -> str:
         """Calculate SHA256 hash of output data for integrity"""
-        sha256_hash = hashlib.sha256()
-        with open(data_path, "rb") as f:
-            for byte_block in iter(lambda: f.read(4096), b""):
-                sha256_hash.update(byte_block)
-        return sha256_hash.hexdigest()
+        if ":" in data_ref:
+            table, run_id = data_ref.split(":")
+            # Hash database records
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute(
+                    "SELECT * FROM simulation_data WHERE run_id = ? ORDER BY timestamp, equipment_id",
+                    (run_id,)
+                )
+                sha256_hash = hashlib.sha256()
+                for row in cursor:
+                    row_str = str(row).encode()
+                    sha256_hash.update(row_str)
+                return sha256_hash.hexdigest()
+        else:
+            # Legacy path support
+            sha256_hash = hashlib.sha256()
+            with open(data_ref, "rb") as f:
+                for byte_block in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(byte_block)
+            return sha256_hash.hexdigest()
     
-    def _calculate_kpis(self, data_path: Path) -> Dict[str, float]:
+    def _calculate_kpis(self, data_ref: str) -> Dict[str, float]:
         """
         Calculate KPI summary from simulation output
         
         Args:
-            data_path: Path to simulation output CSV
+            data_ref: Reference to data (database table:run_id or file path)
             
         Returns:
             Dictionary of KPI values
         """
         import pandas as pd
+        from sqlalchemy import create_engine
         
-        # Load simulation data
-        df = pd.read_csv(data_path)
+        if ":" in data_ref:
+            # Load from database
+            table, run_id = data_ref.split(":")
+            engine = create_engine(f"sqlite:///{self.db_path}")
+            df = pd.read_sql_query(
+                f"SELECT * FROM {table} WHERE run_id = ?",
+                engine,
+                params=[run_id]
+            )
+        else:
+            # Load from CSV (legacy)
+            df = pd.read_csv(data_ref)
         
         # Calculate aggregate KPIs
         kpis = {}

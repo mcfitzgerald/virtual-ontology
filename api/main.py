@@ -7,12 +7,16 @@ from pydantic import BaseModel
 
 from database import create_db_and_tables, import_csv_data, SessionDep, engine
 from models import MESData
+from simulation_endpoints import router as simulation_router
 
 app = FastAPI(
-    title="MES Data API",
-    description="Simple queryable API for Manufacturing Execution System data",
-    version="2.0.0"
+    title="MES Virtual Twin API",
+    description="API for Manufacturing Execution System data and Virtual Twin simulations",
+    version="3.0.0"
 )
+
+# Include simulation endpoints
+app.include_router(simulation_router)
 
 
 @app.on_event("startup")

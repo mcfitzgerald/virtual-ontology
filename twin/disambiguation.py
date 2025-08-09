@@ -99,10 +99,10 @@ class DisambiguationHelper:
                     break
         
         # Check for product references
-        if any(word in query_lower for word in ["product", "sku", "energy drink", "juice"]):
+        if any(word in query_lower for word in ["product", "sku", "energy drink", "juice", "soda"]):
             # Get available products from database
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("SELECT DISTINCT sku FROM production_orders LIMIT 10")
+                cursor = conn.execute("SELECT DISTINCT product_id FROM mes_data WHERE product_id IS NOT NULL LIMIT 10")
                 entities["products"] = [row[0] for row in cursor.fetchall()]
         
         # Check for metrics
@@ -209,10 +209,10 @@ class DisambiguationHelper:
         with sqlite3.connect(self.db_path) as conn:
             available = {}
             
-            # Get date range of data
+            # Get date range of data from mes_data
             cursor = conn.execute("""
-                SELECT MIN(created_at), MAX(created_at) 
-                FROM equipment_signals
+                SELECT MIN(timestamp), MAX(timestamp) 
+                FROM mes_data
             """)
             row = cursor.fetchone()
             if row and row[0]:
@@ -221,16 +221,16 @@ class DisambiguationHelper:
                     "end": row[1]
                 }
             
-            # Get available lines
+            # Get available lines from mes_data
             cursor = conn.execute("""
-                SELECT DISTINCT line_id FROM equipment
+                SELECT DISTINCT line_id FROM mes_data
             """)
             available["lines"] = [row[0] for row in cursor.fetchall()]
             
-            # Get available equipment
+            # Get available equipment from mes_data
             cursor = conn.execute("""
                 SELECT DISTINCT equipment_id, equipment_type 
-                FROM equipment
+                FROM mes_data
             """)
             available["equipment"] = [
                 {"id": row[0], "type": row[1]} 
