@@ -1,0 +1,374 @@
+# Natural Language Pattern Mappings for Virtual Twin
+# Maps common queries to specific twin operations
+
+# Pattern Categories:
+# - impact: "what if" scenarios
+# - optimize: multi-objective optimization requests  
+# - diagnose: root cause analysis
+# - compare: comparative analysis
+# - simulate: specific scenario simulations
+# - recommend: action recommendations
+
+patterns:
+  # Impact Analysis Patterns
+  impact:
+    - pattern: "(what|what's) (the|) impact of (.*)"
+      operation: simulate_parameter_change
+      extract:
+        - parameter_description: 3
+      examples:
+        - "What's the impact of better maintenance?"
+        - "What impact of reducing micro-stops?"
+      
+    - pattern: "if (we|i) (.*), what (would|will) happen"
+      operation: simulate_scenario
+      extract:
+        - action_description: 2
+      examples:
+        - "If we improve material reliability, what would happen?"
+        - "If I reduce scrap rate, what will happen?"
+    
+    - pattern: "how (much|) would (.*) improve (if|when) (.*)"
+      operation: calculate_improvement
+      extract:
+        - metric: 2
+        - condition: 4
+      examples:
+        - "How much would OEE improve if we fix micro-stops?"
+        - "How would quality improve when using better materials?"
+
+  # Optimization Patterns
+  optimize:
+    - pattern: "optimize (for|) (.*)"
+      operation: multi_objective_optimization
+      extract:
+        - objectives: 2
+      examples:
+        - "Optimize for energy efficiency"
+        - "Optimize throughput and quality"
+    
+    - pattern: "(maximize|minimise|minimize|maximise) (.*)"
+      operation: single_objective_optimization
+      extract:
+        - direction: 1
+        - objective: 2
+      examples:
+        - "Maximize OEE"
+        - "Minimize energy consumption"
+        - "Minimise scrap rate"
+    
+    - pattern: "find (the|) (best|optimal) (.*)"
+      operation: find_optimal_configuration
+      extract:
+        - target: 3
+      examples:
+        - "Find the best maintenance schedule"
+        - "Find optimal equipment settings"
+
+  # Diagnostic Patterns
+  diagnose:
+    - pattern: "why (is|are) (.*) (.*)"
+      operation: root_cause_analysis
+      extract:
+        - entity: 2
+        - condition: 3
+      examples:
+        - "Why is Line 2 outperforming others?"
+        - "Why are micro-stops increasing?"
+    
+    - pattern: "what('s|is) causing (.*)"
+      operation: identify_cause
+      extract:
+        - problem: 2
+      examples:
+        - "What's causing the quality issues?"
+        - "What is causing downtime on Line 1?"
+    
+    - pattern: "(find|identify|locate) (the|) bottleneck (.*)"
+      operation: bottleneck_analysis
+      extract:
+        - context: 3
+      examples:
+        - "Find the bottleneck when running energy drinks"
+        - "Identify bottleneck on Line 3"
+
+  # Comparison Patterns
+  compare:
+    - pattern: "compare (.*) (to|with|vs|versus) (.*)"
+      operation: comparative_analysis
+      extract:
+        - entity1: 1
+        - entity2: 3
+      examples:
+        - "Compare baseline to improved maintenance"
+        - "Compare Line 1 with Line 2"
+    
+    - pattern: "which (.*) (is|performs) (better|best|worse|worst)"
+      operation: ranking_analysis
+      extract:
+        - entities: 1
+        - metric: 3
+      examples:
+        - "Which line performs better?"
+        - "Which shift is best?"
+
+  # Simulation Patterns
+  simulate:
+    - pattern: "simulate (a|an|) (.*) (on|for|during) (.*)"
+      operation: scenario_simulation
+      extract:
+        - scenario: 2
+        - context: 4
+      examples:
+        - "Simulate a skilled operator on night shift"
+        - "Simulate maintenance during production"
+    
+    - pattern: "run (a|) (.*) (simulation|scenario)"
+      operation: run_scenario
+      extract:
+        - scenario_type: 2
+      examples:
+        - "Run a worst-case simulation"
+        - "Run maintenance improvement scenario"
+    
+    - pattern: "test (.*) configuration"
+      operation: test_configuration
+      extract:
+        - config_description: 1
+      examples:
+        - "Test improved material handling configuration"
+        - "Test new maintenance configuration"
+
+  # Recommendation Patterns
+  recommend:
+    - pattern: "(suggest|recommend) (.*)"
+      operation: generate_recommendation
+      extract:
+        - target: 2
+      examples:
+        - "Suggest improvements for Line 1"
+        - "Recommend maintenance schedule"
+    
+    - pattern: "how (can|should) (we|i) (.*)"
+      operation: action_recommendation
+      extract:
+        - action: 3
+      examples:
+        - "How can we reduce downtime?"
+        - "How should I improve quality?"
+    
+    - pattern: "what (should|can) (we|i) do (to|about) (.*)"
+      operation: solution_recommendation
+      extract:
+        - problem: 4
+      examples:
+        - "What should we do to improve OEE?"
+        - "What can I do about micro-stops?"
+
+# Parameter Mappings
+# Maps natural language descriptions to actionable parameters
+parameter_mappings:
+  maintenance:
+    - description: "better maintenance"
+      parameter: "micro_stop_probability"
+      adjustment: 0.5
+    - description: "improved maintenance"
+      parameter: "micro_stop_probability"
+      adjustment: 0.6
+    - description: "perfect maintenance"
+      parameter: "micro_stop_probability"
+      adjustment: 0.2
+    - description: "poor maintenance"
+      parameter: "micro_stop_probability"
+      adjustment: 1.5
+    - description: "no maintenance"
+      parameter: "micro_stop_probability"
+      adjustment: 2.0
+  
+  quality:
+    - description: "better quality control"
+      parameter: "scrap_multiplier"
+      adjustment: 0.6
+    - description: "improved quality"
+      parameter: "scrap_multiplier"
+      adjustment: 0.7
+    - description: "perfect quality"
+      parameter: "scrap_multiplier"
+      adjustment: 0.3
+    - description: "poor quality"
+      parameter: "scrap_multiplier"
+      adjustment: 1.5
+  
+  performance:
+    - description: "faster production"
+      parameter: "performance_factor"
+      adjustment: 1.1
+    - description: "slower production"
+      parameter: "performance_factor"
+      adjustment: 0.9
+    - description: "optimal speed"
+      parameter: "performance_factor"
+      adjustment: 0.95
+    - description: "maximum throughput"
+      parameter: "performance_factor"
+      adjustment: 1.0
+  
+  materials:
+    - description: "reliable supply"
+      parameter: "material_reliability"
+      value: 0.95
+    - description: "better materials"
+      parameter: "material_reliability"
+      value: 0.90
+    - description: "unreliable supply"
+      parameter: "material_reliability"
+      value: 0.70
+    - description: "perfect supply chain"
+      parameter: "material_reliability"
+      value: 0.98
+  
+  operators:
+    - description: "skilled operator"
+      parameter: "operator_issues_probability"
+      value: 0.02
+    - description: "experienced operator"
+      parameter: "operator_issues_probability"
+      value: 0.05
+    - description: "new operator"
+      parameter: "operator_issues_probability"
+      value: 0.15
+    - description: "trained operator"
+      parameter: "operator_issues_probability"
+      value: 0.08
+
+# Objective Mappings
+# Maps natural language objectives to KPIs
+objective_mappings:
+  efficiency:
+    - description: "energy efficiency"
+      direction: "minimize"
+      kpi: "energy_per_unit"
+    - description: "operational efficiency"
+      direction: "maximize"
+      kpi: "mean_oee"
+    - description: "equipment efficiency"
+      direction: "maximize"
+      kpi: "mean_availability"
+  
+  production:
+    - description: "throughput"
+      direction: "maximize"
+      kpi: "total_good_units"
+    - description: "output"
+      direction: "maximize"
+      kpi: "total_good_units"
+    - description: "productivity"
+      direction: "maximize"
+      kpi: "units_per_hour"
+  
+  quality:
+    - description: "quality"
+      direction: "minimize"
+      kpi: "scrap_rate"
+    - description: "defects"
+      direction: "minimize"
+      kpi: "total_scrap_units"
+    - description: "yield"
+      direction: "maximize"
+      kpi: "quality_score"
+  
+  cost:
+    - description: "cost"
+      direction: "minimize"
+      kpi: "total_cost"
+    - description: "waste"
+      direction: "minimize"
+      kpi: "total_scrap_units"
+    - description: "energy consumption"
+      direction: "minimize"
+      kpi: "total_energy"
+  
+  reliability:
+    - description: "uptime"
+      direction: "maximize"
+      kpi: "mean_availability"
+    - description: "downtime"
+      direction: "minimize"
+      kpi: "downtime_percentage"
+    - description: "reliability"
+      direction: "minimize"
+      kpi: "micro_stop_frequency"
+
+# Disambiguation Rules
+# Helps resolve ambiguous queries
+disambiguation:
+  entities:
+    - entity: "line"
+      prompt: "Which line? (1, 2, or 3)"
+    - entity: "shift"
+      prompt: "Which shift? (1, 2, or 3)"
+    - entity: "equipment"
+      prompt: "Which equipment? (Filler, Packer, or Palletizer)"
+    - entity: "product"
+      prompt: "Which product? (SKU-1001 to SKU-2006)"
+  
+  timeframes:
+    default: "last 7 days"
+    keywords:
+      - keyword: "today"
+        duration: "1 day"
+      - keyword: "yesterday"
+        duration: "1 day"
+        offset: 1
+      - keyword: "this week"
+        duration: "7 days"
+      - keyword: "last week"
+        duration: "7 days"
+        offset: 7
+      - keyword: "this month"
+        duration: "30 days"
+  
+  metrics:
+    - metric: "performance"
+      clarify: ["OEE", "throughput", "speed", "efficiency"]
+    - metric: "quality"
+      clarify: ["scrap_rate", "defect_rate", "yield"]
+    - metric: "efficiency"
+      clarify: ["OEE", "energy", "availability", "performance"]
+
+# Response Templates
+# Standard response formats for consistency
+response_templates:
+  impact_analysis: |
+    Impact Analysis: {scenario}
+    ━━━━━━━━━━━━━━━━━━━━━━━━━
+    Baseline: {baseline_kpi:.1%}
+    Simulated: {simulated_kpi:.1%}
+    Change: {change:+.1%}
+    
+    Financial Impact: ${financial_impact:,.0f}/month
+    Confidence: {confidence:.0%}
+  
+  optimization_result: |
+    Optimization Result
+    ━━━━━━━━━━━━━━━━━━━━━━━━━
+    Objectives: {objectives}
+    
+    Recommended Parameters:
+    {parameters}
+    
+    Expected Improvements:
+    {improvements}
+    
+    Trade-offs:
+    {tradeoffs}
+  
+  root_cause: |
+    Root Cause Analysis: {problem}
+    ━━━━━━━━━━━━━━━━━━━━━━━━━
+    Primary Cause: {primary_cause}
+    Contributing Factors:
+    {contributing_factors}
+    
+    Recommendation: {recommendation}
+    Confidence: {confidence:.0%}

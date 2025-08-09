@@ -360,6 +360,93 @@ def calculate_kpis(status, good_units, scrap_units, target_rate):
     }
 
 
+def save_to_database(df, table_name, run_id=None):
+    """Save DataFrame to database table"""
+    from sqlalchemy import create_engine
+    from api.models import MESData, SimulationData, TwinRun
+    from sqlmodel import Session, SQLModel
+    from datetime import datetime
+    
+    # Prepare dataframe for database
+    df_db = df.copy()
+    
+    # Rename columns to match database schema
+    column_mapping = {
+        'Timestamp': 'timestamp',
+        'ProductionOrderID': 'production_order_id',
+        'LineID': 'line_id',
+        'EquipmentID': 'equipment_id',
+        'EquipmentType': 'equipment_type',
+        'ProductID': 'product_id',
+        'ProductName': 'product_name',
+        'MachineStatus': 'machine_status',
+        'DowntimeReason': 'downtime_reason',
+        'GoodUnitsProduced': 'good_units_produced',
+        'ScrapUnitsProduced': 'scrap_units_produced',
+        'TargetRate_units_per_5min': 'target_rate_units_per_5min',
+        'StandardCost_per_unit': 'standard_cost_per_unit',
+        'SalePrice_per_unit': 'sale_price_per_unit',
+        'Availability_Score': 'availability_score',
+        'Performance_Score': 'performance_score',
+        'Quality_Score': 'quality_score',
+        'OEE_Score': 'oee_score'
+    }
+    df_db.rename(columns=column_mapping, inplace=True)
+    
+    # Add run_id if this is simulation data
+    if table_name == 'simulation_data':
+        if not run_id:
+            raise ValueError("run_id is required for simulation_data table")
+        df_db['run_id'] = run_id
+    
+    # Create database connection
+    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mes_database.db")
+    engine = create_engine(f"sqlite:///{db_path}")
+    
+    # Create tables if they don't exist
+    SQLModel.metadata.create_all(engine)
+    
+    # Save to database
+    with Session(engine) as session:
+        # Clear existing data if writing to mes_data (master data)
+        if table_name == 'mes_data':
+            session.query(MESData).delete()
+            session.commit()
+        
+        # Create twin_run record if needed for simulation data
+        if table_name == 'simulation_data':
+            # Check if run exists
+            from sqlmodel import select
+            statement = select(TwinRun).where(TwinRun.run_id == run_id)
+            existing_run = session.exec(statement).first()
+            if not existing_run:
+                # Create new run record
+                new_run = TwinRun(
+                    run_id=run_id,
+                    run_type='simulation',
+                    seed=42,  # Default seed
+                    generator_version='1.0.0',
+                    parent_run_id=None,
+                    started_at=datetime.now(),
+                    finished_at=datetime.now(),
+                    config_delta_json='{}',  # Empty config for now
+                    status='completed'
+                )
+                session.add(new_run)
+                session.commit()
+        
+        # Convert DataFrame to model objects
+        for _, row in df_db.iterrows():
+            if table_name == 'mes_data':
+                record = MESData(**row.to_dict())
+            else:
+                record = SimulationData(**row.to_dict())
+            session.add(record)
+        
+        session.commit()
+        print(f"Saved {len(df_db)} records to {table_name}")
+
+
 def generate_mes_data(start_date, end_date, config):
     """Main function to generate the complete MES dataset with inline KPIs."""
     
@@ -527,26 +614,54 @@ def generate_mes_data(start_date, end_date, config):
 
 def main():
     """Main execution function."""
+    import argparse
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
+    parser = argparse.ArgumentParser(description='Generate MES data')
+    parser.add_argument('--output', choices=['csv', 'db', 'both'], default='csv',
+                        help='Output format: csv, db (database), or both')
+    parser.add_argument('--table', choices=['mes_data', 'simulation_data'], default='mes_data',
+                        help='Database table to write to (only for db/both output)')
+    parser.add_argument('--run-id', type=str, default=None,
+                        help='Simulation run ID (required for simulation_data table)')
+    parser.add_argument('--start-date', type=str, default='2025-06-01',
+                        help='Start date (YYYY-MM-DD)')
+    parser.add_argument('--end-date', type=str, default='2025-06-14',
+                        help='End date (YYYY-MM-DD)')
+    args = parser.parse_args()
+    
     # Load configuration
     config = load_config()
     
-    # Define time period
-    start_date = datetime(2025, 6, 1, 0, 0)
-    end_date = datetime(2025, 6, 14, 23, 59)
+    # Parse dates
+    start_date = datetime.strptime(args.start_date, '%Y-%m-%d')
+    end_date = datetime.strptime(args.end_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
     
     print(f"MES Data Generation using {config['ontology']['name']} v{config['ontology']['version']}")
     print(f"Period: {start_date} to {end_date}")
+    print(f"Output: {args.output}")
+    if args.output in ['db', 'both']:
+        print(f"Table: {args.table}")
+        if args.table == 'simulation_data' and args.run_id:
+            print(f"Run ID: {args.run_id}")
     print("-" * 60)
     
     # Generate data
     mes_data = generate_mes_data(start_date, end_date, config)
     
-    # Save to CSV in the Data directory
-    output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data")
-    os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, "mes_data_with_kpis.csv")
-    mes_data.to_csv(output_file, index=False)
-    print(f"\nData saved to {output_file}")
+    # Save to CSV if requested
+    if args.output in ['csv', 'both']:
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data")
+        os.makedirs(output_dir, exist_ok=True)
+        output_file = os.path.join(output_dir, "mes_data_with_kpis.csv")
+        mes_data.to_csv(output_file, index=False)
+        print(f"\nData saved to {output_file}")
+    
+    # Save to database if requested
+    if args.output in ['db', 'both']:
+        save_to_database(mes_data, args.table, args.run_id)
+        print(f"\nData saved to database table: {args.table}")
     
     # Print summary statistics
     print("\nSummary Statistics:")

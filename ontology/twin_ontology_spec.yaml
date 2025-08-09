@@ -1,0 +1,365 @@
+# Virtual Twin Ontology - Extended with SOSA/QUDT Sensors
+# Builds on base MES ontology to add virtual sensors and synchronization
+
+# ====================================================================================
+# ONTOLOGY METADATA
+# ====================================================================================
+ontology:
+  name: "Virtual Twin Manufacturing Ontology"
+  version: "1.0"
+  namespace: "twin"
+  description: "Virtual twin layer with SOSA/SSN sensors and QUDT units for manufacturing"
+  imports:
+    - "../ontology_spec.yaml"  # Base MES ontology
+    - "http://www.w3.org/ns/sosa/"  # Sensor, Observation, Sampling, and Actuation
+    - "http://www.w3.org/ns/ssn/"  # Semantic Sensor Network
+    - "http://qudt.org/2.1/schema/qudt"  # Quantities, Units, Dimensions and Types
+  
+  # Standards compliance
+  standards:
+    - name: "ISO 23247"
+      description: "Digital twin framework for manufacturing"
+      compliance: "Full digital representation with observable elements"
+    - name: "SOSA/SSN"
+      description: "W3C/OGC Sensor ontology"
+      compliance: "Virtual sensors as sosa:Sensor instances"
+    - name: "QUDT"
+      description: "Quantities, Units, Dimensions and Types"
+      compliance: "All measurements use QUDT units"
+  
+  created: "2025-01-09"
+  modified: "2025-01-09"
+
+# ====================================================================================
+# VIRTUAL SENSORS (SOSA/SSN Compliant)
+# ====================================================================================
+virtual_sensors:
+  Equipment:
+    description: "Virtual sensors embedded in equipment for observing state"
+    embeds:
+      # Production sensors
+      - ThroughputSensor:
+          sensor_id: "throughput_sensor_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Observes production rate"
+          observes:
+            property: "qudt:VolumetricFlowRate"
+            unit: "http://qudt.org/vocab/unit/NUM-PER-MIN"
+            quantityKind: "http://qudt.org/vocab/quantitykind/CountingUnit"
+          observation_interval: "PT5M"  # ISO 8601 duration
+          
+      # Quality sensors
+      - QualityInspector:
+          sensor_id: "quality_sensor_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Observes product quality"
+          observes:
+            property: "qudt:MassFraction"
+            unit: "http://qudt.org/vocab/unit/PERCENT"
+            quantityKind: "http://qudt.org/vocab/quantitykind/Dimensionless"
+          observation_interval: "PT5M"
+          
+      # Efficiency sensors
+      - PowerMeter:
+          sensor_id: "power_meter_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Observes power consumption"
+          observes:
+            property: "qudt:Power"
+            unit: "http://qudt.org/vocab/unit/KiloW"
+            quantityKind: "http://qudt.org/vocab/quantitykind/Power"
+          observation_interval: "PT5M"
+          
+      # Performance sensors
+      - PerformanceSensor:
+          sensor_id: "performance_sensor_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Observes actual vs ideal performance"
+          observes:
+            property: "qudt:Dimensionless"
+            unit: "http://qudt.org/vocab/unit/PERCENT"
+            quantityKind: "http://qudt.org/vocab/quantitykind/Efficiency"
+          observation_interval: "PT5M"
+          
+      # Flow sensors
+      - MaterialFlowSensor:
+          sensor_id: "material_flow_sensor_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Observes material flow and buffer levels"
+          observes:
+            - property: "input_rate"
+              unit: "http://qudt.org/vocab/unit/NUM-PER-MIN"
+            - property: "buffer_level"
+              unit: "http://qudt.org/vocab/unit/NUM"
+          observation_interval: "PT5M"
+          
+      # Diagnostic sensors
+      - VibrationSensor:
+          sensor_id: "vibration_sensor_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Proxy for mechanical health"
+          observes:
+            property: "qudt:Velocity"
+            unit: "http://qudt.org/vocab/unit/MilliM-PER-SEC"
+            quantityKind: "http://qudt.org/vocab/quantitykind/LinearVelocity"
+          observation_interval: "PT1M"  # Higher frequency for diagnostics
+          
+      - TemperatureSensor:
+          sensor_id: "temperature_sensor_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Affects quality and equipment health"
+          observes:
+            property: "qudt:ThermodynamicTemperature"
+            unit: "http://qudt.org/vocab/unit/DEG_C"
+            quantityKind: "http://qudt.org/vocab/quantitykind/ThermodynamicTemperature"
+          observation_interval: "PT1M"
+          
+      # Availability sensor
+      - AvailabilitySensor:
+          sensor_id: "availability_sensor_{equipment_id}"
+          type: "sosa:Sensor"
+          description: "Observes equipment availability"
+          observes:
+            property: "qudt:Dimensionless"
+            unit: "http://qudt.org/vocab/unit/PERCENT"
+            quantityKind: "http://qudt.org/vocab/quantitykind/Dimensionless"
+          observation_interval: "PT5M"
+
+  ProductionLine:
+    description: "Line-level aggregated sensors"
+    embeds:
+      - LineThroughputSensor:
+          sensor_id: "line_throughput_sensor_{line_id}"
+          type: "sosa:Sensor"
+          description: "Aggregated line throughput"
+          observes:
+            property: "qudt:VolumetricFlowRate"
+            unit: "http://qudt.org/vocab/unit/NUM-PER-MIN"
+          aggregates_from: ["ThroughputSensor"]
+          
+      - LineOEESensor:
+          sensor_id: "line_oee_sensor_{line_id}"
+          type: "sosa:Sensor"
+          description: "Overall Equipment Effectiveness for line"
+          observes:
+            property: "qudt:Dimensionless"
+            unit: "http://qudt.org/vocab/unit/PERCENT"
+          computed_from: ["AvailabilitySensor", "PerformanceSensor", "QualityInspector"]
+
+# ====================================================================================
+# SYNCHRONIZATION METADATA
+# ====================================================================================
+synchronization:
+  Equipment:
+    interval: "PT5M"  # ISO 8601 duration - 5 minutes
+    source_type: "simulation"  # simulation | physical | hybrid
+    health_thresholds:
+      healthy_max_delay: "PT5M"  # Same as interval
+      delayed_max_delay: "PT10M"  # 2x interval
+      stale_after: "PT15M"  # 3x interval
+    metadata:
+      last_update: "timestamp"
+      source_run_id: "string"
+      data_hash: "sha256"
+      
+  ProductionLine:
+    interval: "PT5M"
+    source_type: "aggregated"
+    aggregation_method: "weighted_average"  # For OEE and performance
+    
+# ====================================================================================
+# OBSERVATION CLASSES (SOSA Compliant)
+# ====================================================================================
+observation_classes:
+  ThroughputObservation:
+    type: "sosa:Observation"
+    description: "Observation of production throughput"
+    properties:
+      - hasFeatureOfInterest: "Equipment"
+      - observedProperty: "qudt:VolumetricFlowRate"
+      - hasResult: "qudt:QuantityValue"
+      - resultTime: "xsd:dateTime"
+      - phenomenonTime: "xsd:dateTime"
+      - madeBySensor: "ThroughputSensor"
+      
+  QualityObservation:
+    type: "sosa:Observation"
+    description: "Observation of product quality"
+    properties:
+      - hasFeatureOfInterest: "Product"
+      - observedProperty: "qudt:MassFraction"
+      - hasResult: "qudt:QuantityValue"
+      - resultTime: "xsd:dateTime"
+      - madeBySensor: "QualityInspector"
+      
+  BufferLevelObservation:
+    type: "sosa:Observation"
+    description: "Observation of material buffer levels"
+    properties:
+      - hasFeatureOfInterest: "Equipment"
+      - observedProperty: "buffer_level"
+      - hasResult: "integer"
+      - resultTime: "xsd:dateTime"
+      - madeBySensor: "MaterialFlowSensor"
+
+# ====================================================================================
+# TWIN STATE PROPERTIES
+# ====================================================================================
+twin_properties:
+  # Synchronization health
+  hasSyncHealth:
+    class: "Equipment"
+    type: "string"
+    description: "Current synchronization health status"
+    sql_column: "sync_health"
+    validation:
+      values: ["HEALTHY", "DELAYED", "STALE"]
+      
+  hasLastSync:
+    class: "Equipment"
+    type: "datetime"
+    description: "Last successful synchronization timestamp"
+    sql_column: "last_sync"
+    required: true
+    
+  hasDataHash:
+    class: "Equipment"
+    type: "string"
+    description: "SHA256 hash of current state data"
+    sql_column: "data_hash"
+    
+  # Virtual sensor readings
+  hasBufferLevel:
+    class: "Equipment"
+    type: "integer"
+    description: "Current buffer level in units"
+    sql_column: "buffer_level"
+    unit: "units"
+    validation:
+      min: 0
+      max: 1000
+      
+  hasVibrationLevel:
+    class: "Equipment"
+    type: "float"
+    description: "Current vibration level"
+    sql_column: "vibration_level"
+    unit: "mm/s"
+    validation:
+      min: 0
+      max: 100
+      
+  hasOperatingTemp:
+    class: "Equipment"
+    type: "float"
+    description: "Current operating temperature"
+    sql_column: "operating_temp"
+    unit: "°C"
+    validation:
+      min: 0
+      max: 150
+      
+  hasPowerConsumption:
+    class: "Equipment"
+    type: "float"
+    description: "Current power consumption"
+    sql_column: "power_consumption"
+    unit: "kW"
+    validation:
+      min: 0
+
+# ====================================================================================
+# TWIN-SPECIFIC RELATIONSHIPS
+# ====================================================================================
+twin_relationships:
+  observes:
+    from: "Sensor"
+    to: "Property"
+    description: "Sensor observes a property"
+    type: "many-to-many"
+    namespace: "sosa"
+    
+  madeObservation:
+    from: "Sensor"
+    to: "Observation"
+    description: "Sensor made an observation"
+    type: "one-to-many"
+    namespace: "sosa"
+    
+  hasFeatureOfInterest:
+    from: "Observation"
+    to: "Equipment"
+    description: "Observation is about this equipment"
+    type: "many-to-one"
+    namespace: "sosa"
+    
+  aggregatesFrom:
+    from: "LineSensor"
+    to: "EquipmentSensor"
+    description: "Line sensor aggregates from equipment sensors"
+    type: "many-to-many"
+    
+  synchronizedWith:
+    from: "VirtualEquipment"
+    to: "PhysicalEquipment"
+    description: "Virtual twin synchronized with physical equipment"
+    type: "one-to-one"
+
+# ====================================================================================
+# TWIN BUSINESS RULES
+# ====================================================================================
+twin_business_rules:
+  Sync_Health_Calculation:
+    description: "Determine synchronization health based on time since last update"
+    when:
+      class: "Equipment"
+      condition: "Has last_sync timestamp"
+    implies: |
+      IF (now - last_sync) <= interval THEN 'HEALTHY'
+      ELIF (now - last_sync) <= 2*interval THEN 'DELAYED'
+      ELSE 'STALE'
+    sql_hint: |
+      CASE 
+        WHEN (julianday('now') - julianday(last_sync)) * 24 * 60 <= 5 THEN 'HEALTHY'
+        WHEN (julianday('now') - julianday(last_sync)) * 24 * 60 <= 10 THEN 'DELAYED'
+        ELSE 'STALE'
+      END
+      
+  Buffer_Depletion:
+    description: "Calculate buffer depletion when upstream stops"
+    when:
+      class: "Equipment"
+      condition: "Upstream equipment stopped"
+    implies: "Buffer depletes at depletion_rate units/min"
+    parameters:
+      depletion_rate: 10  # units/min
+      refill_rate: 20  # units/min when upstream running
+      
+  Temperature_Quality_Impact:
+    description: "Temperature affects quality score"
+    when:
+      class: "Equipment"
+      condition: "Temperature > optimal_range"
+    implies: "Quality degrades by 1% per degree over optimal"
+    parameters:
+      optimal_temp_min: 20  # °C
+      optimal_temp_max: 25  # °C
+      degradation_rate: 0.01  # per degree
+
+# ====================================================================================
+# SIMULATION PARAMETERS
+# ====================================================================================
+simulation_config:
+  deterministic:
+    seed_required: true
+    description: "All simulations must be reproducible with seed"
+    
+  provenance:
+    track_runs: true
+    store_config_delta: true
+    compute_data_hash: true
+    
+  intervals:
+    base_interval: "PT5M"  # 5 minutes
+    aggregation_window: "PT1H"  # 1 hour for KPIs
+    evaluation_window: "P7D"  # 7 days for optimization
