@@ -8,15 +8,17 @@ from pydantic import BaseModel
 from database import create_db_and_tables, import_csv_data, SessionDep, engine
 from models import MESData
 from simulation_endpoints import router as simulation_router
+from database_endpoints import router as database_router
 
 app = FastAPI(
     title="MES Virtual Twin API",
-    description="API for Manufacturing Execution System data and Virtual Twin simulations",
-    version="3.0.0"
+    description="API for Manufacturing Execution System data and Virtual Twin simulations with enhanced database management",
+    version="3.1.0"
 )
 
-# Include simulation endpoints
+# Include routers
 app.include_router(simulation_router)
+app.include_router(database_router)
 
 
 @app.on_event("startup")
@@ -38,7 +40,16 @@ class SQLResponse(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "MES Data API", "version": "2.0.0"}
+    return {
+        "message": "MES Virtual Twin API",
+        "version": "3.1.0",
+        "endpoints": {
+            "docs": "/docs",
+            "query": "/query",
+            "simulation": "/api/simulation",
+            "database": "/api/database"
+        }
+    }
 
 
 @app.post("/query", response_model=SQLResponse)

@@ -3,7 +3,7 @@
 # MES Data SQL API Management Script - Robust Version
 
 PID_FILE="api.pid"
-LOG_FILE="api.log"
+LOG_FILE="logs/api.log"
 API_DIR="api"
 PORT=8000
 

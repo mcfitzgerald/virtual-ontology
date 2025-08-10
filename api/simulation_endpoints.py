@@ -12,11 +12,11 @@ import os
 # Add twin directory to path
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'twin'))
 
-from twin.simulation_runner import SimulationRunner
-from twin.actionable_parameters import ActionableParameters
-from twin.recommendation_engine import RecommendationEngine
-from twin.disambiguation import DisambiguationHelper
-from twin.twin_state import TwinStateManager
+from simulation_runner import SimulationRunner
+from actionable_parameters import ActionableParameters
+from recommendation_engine import RecommendationEngine
+from disambiguation import DisambiguationHelper
+from twin_state import TwinStateManager
 
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
 

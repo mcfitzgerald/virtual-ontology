@@ -9,8 +9,12 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 import sys
 import os
+import logging
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from actionable_parameters import ActionableParameters
+from config_manager import ConfigurationManager
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigTransformer:
@@ -19,9 +23,11 @@ class ConfigTransformer:
     for the MES data generator
     """
     
-    def __init__(self, base_config_path: str = "synthetic_data_generator/mes_data_config.json"):
+    def __init__(self, base_config_path: str = "synthetic_data_generator/mes_data_config.json",
+                 db_path: str = "data/mes_database.db"):
         self.base_config_path = Path(base_config_path)
         self.base_config = self._load_base_config()
+        self.config_manager = ConfigurationManager(db_path)
         
     def _load_base_config(self) -> Dict[str, Any]:
         """Load the base MES configuration"""
@@ -149,10 +155,21 @@ class ConfigTransformer:
             "transformation_timestamp": datetime.now().isoformat()
         }
         
-        # Save if path provided
+        # Save to database if path provided (for backward compatibility)
         if save_path:
-            with open(save_path, 'w') as f:
-                json.dump(config, f, indent=2)
+            # Save to database
+            config_id = self.config_manager.store_config(
+                config,
+                config_type='full',
+                description=f"Parameters applied: {values}"
+            )
+            logger.info(f"Stored config in database: {config_id}")
+            
+            # Also save to file if explicit path given (for compatibility)
+            if save_path != 'auto':
+                with open(save_path, 'w') as f:
+                    json.dump(config, f, indent=2)
+                logger.info(f"Also saved to file: {save_path}")
         
         return config
     

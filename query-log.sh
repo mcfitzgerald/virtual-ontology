@@ -10,7 +10,7 @@
 
 # Configuration
 API_BASE_URL="http://localhost:8000"
-LOG_FILE="query_logs.json"
+LOG_FILE="learning_history/query_logs.json"
 MAX_DISPLAY_SIZE=5000  # Characters to display before truncation
 TRUNCATE_PREVIEW=1000  # Characters to show in truncated preview
 

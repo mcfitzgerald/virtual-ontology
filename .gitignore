@@ -73,3 +73,14 @@ api.pd
 api.log
 query_logs.json
 *.cast
+
+# Simulation Configs (now in database)
+twin/configs/
+data/simulation_configs/
+
+# Learning History
+learning_history/
+
+# Database backups
+*.backup*
+data/*.backup*

@@ -39,7 +39,7 @@ class VirtualTwin:
         self.helper = DisambiguationHelper()
         
         # Query result store (following virtual ontology pattern)
-        self.operation_log = "twin_operations.jsonl"
+        self.operation_log = "learning_history/twin_operations.jsonl"
         
     def get_baseline(self) -> Dict[str, Any]:
         """Get current baseline metrics from database"""

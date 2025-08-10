@@ -22,6 +22,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from actionable_parameters import ActionableParameters
 from config_transformer import ConfigTransformer
 from sync_health import SyncHealthMonitor
+from config_manager import ConfigurationManager
 
 
 @dataclass
@@ -58,6 +59,7 @@ class SimulationRunner:
         self.generator_path = Path(generator_path)
         self.generator_version = generator_version
         self.sync_monitor = SyncHealthMonitor(db_path)
+        self.config_manager = ConfigurationManager(db_path)
         
         # Initialize provenance database
         self._init_provenance_db()

@@ -18,7 +18,20 @@ An alternative data access pattern:
 
 ## Quickstart
 
-Clone the repo, open a Claude Code session, load @sys_prompt.md in chat.
+```bash
+# Clone the repository
+git clone https://github.com/your-org/virtual-ontology.git
+cd virtual-ontology
+
+# Initialize the database (one-time setup)
+python api/database_setup.py init
+
+# Start the API server
+./api.sh start
+
+# Ready to use with Claude Code!
+# Load @sys_prompt.md in chat to get started
+```
 
 ## Code Walkthrough Video (30 minutes - short gif below)
 
