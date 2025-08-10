@@ -360,6 +360,58 @@ def calculate_kpis(status, good_units, scrap_units, target_rate):
     }
 
 
+def calculate_energy_consumption(status, equipment_type, product_id, performance_score, config, is_micro_stop=False):
+    """
+    Calculate energy consumption for 5-minute interval based on equipment status and performance.
+    
+    Args:
+        status: Machine status (Running/Stopped)
+        equipment_type: Type of equipment (Filler/Packer/Palletizer)
+        product_id: Product being produced
+        performance_score: Performance percentage (0-100)
+        config: Configuration dictionary with energy parameters
+        is_micro_stop: Whether this is a micro-stop (uses surge power)
+    
+    Returns:
+        Energy consumption in kWh for the 5-minute interval
+    """
+    energy_config = config.get('energy_consumption', {})
+    base_consumption = energy_config.get('base_consumption_kw', {})
+    
+    # Get base consumption for equipment type
+    equip_energy = base_consumption.get(equipment_type, {})
+    if status == "Running":
+        base_kw = equip_energy.get('running', 15.0)  # Default 15kW if not specified
+    else:
+        base_kw = equip_energy.get('idle', 1.5)  # Default 1.5kW idle
+    
+    # Apply performance impact (non-linear scaling)
+    if status == "Running" and performance_score > 0:
+        perf_factor = performance_score / 100.0
+        scaling_factor = energy_config.get('performance_impact', {}).get('scaling_factor', 0.8)
+        # Energy doesn't scale linearly with performance
+        # Running at 50% speed might use 70% of energy
+        energy_factor = 1.0 - (1.0 - perf_factor) * scaling_factor
+        base_kw *= energy_factor
+    
+    # Apply product-specific factor
+    product_factors = energy_config.get('product_specific_factors', {})
+    if product_id and product_id in product_factors:
+        product_multiplier = product_factors[product_id].get('energy_multiplier', 1.0)
+        base_kw *= product_multiplier
+    
+    # Apply micro-stop penalty (startup surge)
+    if is_micro_stop:
+        micro_stop_config = energy_config.get('micro_stop_penalty', {})
+        surge_multiplier = micro_stop_config.get('startup_surge_multiplier', 1.5)
+        base_kw *= surge_multiplier
+    
+    # Convert to kWh for 5-minute interval (5/60 hours)
+    energy_kwh = base_kw * (5.0 / 60.0)
+    
+    return round(energy_kwh, 3)
+
+
 def save_to_database(df, table_name, run_id=None):
     """Save DataFrame to database table"""
     from sqlalchemy import create_engine
@@ -389,7 +441,8 @@ def save_to_database(df, table_name, run_id=None):
         'Availability_Score': 'availability_score',
         'Performance_Score': 'performance_score',
         'Quality_Score': 'quality_score',
-        'OEE_Score': 'oee_score'
+        'OEE_Score': 'oee_score',
+        'Energy_Consumption_kWh': 'energy_consumption_kwh'
     }
     df_db.rename(columns=column_mapping, inplace=True)
     
@@ -503,6 +556,16 @@ def generate_mes_data(start_date, end_date, config):
             
             if active_order.empty:
                 # Equipment is idle during changeover
+                # Calculate idle energy consumption
+                idle_energy = calculate_energy_consumption(
+                    status="Stopped",
+                    equipment_type=equip["EquipmentType"],
+                    product_id=None,
+                    performance_score=0,
+                    config=config,
+                    is_micro_stop=False
+                )
+                
                 log_entry = {
                     "Timestamp": current_time,
                     "ProductionOrderID": None,
@@ -521,7 +584,8 @@ def generate_mes_data(start_date, end_date, config):
                     "Availability_Score": 0.0,
                     "Performance_Score": 0.0,
                     "Quality_Score": 0.0,
-                    "OEE_Score": 0.0
+                    "OEE_Score": 0.0,
+                    "Energy_Consumption_kWh": idle_energy
                 }
                 all_logs.append(log_entry)
                 continue
@@ -583,6 +647,21 @@ def generate_mes_data(start_date, end_date, config):
             # Calculate instantaneous KPIs
             kpis = calculate_kpis(status, good_units, scrap_units, order_info["TargetRate_units_per_5min"])
             
+            # Calculate energy consumption
+            # Check if this is a micro-stop (short downtime that just started)
+            is_micro_stop = (status == "Stopped" and 
+                           equip_id in downtime_tracker and 
+                           (downtime_tracker[equip_id]["end"] - current_time).total_seconds() / 60 < 2)
+            
+            energy_consumption = calculate_energy_consumption(
+                status=status,
+                equipment_type=equip["EquipmentType"],
+                product_id=order_info["ProductID"],
+                performance_score=kpis['Performance_Score'],
+                config=config,
+                is_micro_stop=is_micro_stop
+            )
+            
             # Create log entry
             log_entry = {
                 "Timestamp": current_time,
@@ -603,7 +682,9 @@ def generate_mes_data(start_date, end_date, config):
                 "Availability_Score": kpis['Availability_Score'],
                 "Performance_Score": kpis['Performance_Score'],
                 "Quality_Score": kpis['Quality_Score'],
-                "OEE_Score": kpis['OEE_Score']
+                "OEE_Score": kpis['OEE_Score'],
+                # Energy consumption
+                "Energy_Consumption_kWh": energy_consumption
             }
             all_logs.append(log_entry)
         

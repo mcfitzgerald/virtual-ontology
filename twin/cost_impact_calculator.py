@@ -283,6 +283,7 @@ class CostImpactCalculator:
     def _get_run_kpis(self, run_id: str) -> Dict[str, float]:
         """Get KPIs for a simulation run from database"""
         with sqlite3.connect(self.db_path) as conn:
+            # Try to get from twin_runs table first
             cursor = conn.execute(
                 "SELECT kpi_summary_json FROM twin_runs WHERE run_id = ?",
                 (run_id,)
@@ -290,17 +291,67 @@ class CostImpactCalculator:
             row = cursor.fetchone()
             
             if row and row[0]:
-                return json.loads(row[0])
+                kpis = json.loads(row[0])
+            else:
+                # Calculate from actual data if run_id not found
+                kpis = self._calculate_kpis_from_data(conn, run_id)
             
-            # Return default KPIs if not found
+            # Add energy consumption data
+            energy_cursor = conn.execute("""
+                SELECT 
+                    SUM(energy_consumption_kwh) as total_energy,
+                    AVG(energy_consumption_kwh) as avg_energy
+                FROM mes_data 
+                WHERE timestamp >= datetime('now', '-7 days')
+            """)
+            energy_row = energy_cursor.fetchone()
+            
+            if energy_row and energy_row[0]:
+                kpis["weekly_energy_kwh"] = energy_row[0]
+                kpis["avg_energy_per_interval"] = energy_row[1]
+            else:
+                # Use default based on our actual data (25,332 kWh/week)
+                kpis["weekly_energy_kwh"] = 25332
+                kpis["avg_energy_per_interval"] = 0.7
+            
+            return kpis
+    
+    def _calculate_kpis_from_data(self, conn, run_id: str = None) -> Dict[str, float]:
+        """Calculate KPIs directly from mes_data table"""
+        cursor = conn.execute("""
+            SELECT 
+                AVG(oee_score) as mean_oee,
+                AVG(availability_score) as mean_availability,
+                AVG(performance_score) as mean_performance,
+                AVG(quality_score) as mean_quality,
+                SUM(CASE WHEN machine_status = 'Stopped' THEN 1 ELSE 0 END) * 100.0 / COUNT(*) as downtime_percentage,
+                AVG(CASE WHEN good_units_produced + scrap_units_produced > 0 
+                    THEN scrap_units_produced * 1.0 / (good_units_produced + scrap_units_produced) 
+                    ELSE 0 END) as scrap_rate
+            FROM mes_data
+            WHERE timestamp >= datetime('now', '-7 days')
+        """)
+        
+        row = cursor.fetchone()
+        if row:
             return {
-                "mean_oee": 0.65,
-                "mean_availability": 0.80,
-                "mean_performance": 0.85,
-                "mean_quality": 0.95,
-                "downtime_percentage": 20.0,
-                "scrap_rate": 0.05
+                "mean_oee": row[0] / 100.0 if row[0] else 0.65,
+                "mean_availability": row[1] / 100.0 if row[1] else 0.80,
+                "mean_performance": row[2] / 100.0 if row[2] else 0.85,
+                "mean_quality": row[3] / 100.0 if row[3] else 0.95,
+                "downtime_percentage": row[4] if row[4] else 20.0,
+                "scrap_rate": row[5] if row[5] else 0.05
             }
+        
+        # Return default KPIs if no data found
+        return {
+            "mean_oee": 0.65,
+            "mean_availability": 0.80,
+            "mean_performance": 0.85,
+            "mean_quality": 0.95,
+            "downtime_percentage": 20.0,
+            "scrap_rate": 0.05
+        }
     
     def _get_parameter_changes(self, baseline_run_id: str, improved_run_id: str) -> Dict[str, float]:
         """Get parameter changes between two runs"""
@@ -373,6 +424,11 @@ class CostImpactCalculator:
                 weekly_production *= rng.normal(1.0, 0.1)  # Add production variation
             scrap_units_saved = weekly_production * scrap_reduction
             savings += scrap_units_saved * self.cost_params.scrap_cost_per_unit
+        
+        # Energy consumption savings
+        energy_reduction_kwh = baseline_kpis.get("weekly_energy_kwh", 25332) - improved_kpis.get("weekly_energy_kwh", 25332)
+        if energy_reduction_kwh > 0:
+            savings += energy_reduction_kwh * self.cost_params.energy_cost_per_kwh
         
         # OEE improvement value
         oee_improvement = improved_kpis.get("mean_oee", 0.65) - baseline_kpis.get("mean_oee", 0.65)

@@ -169,27 +169,150 @@ class RunType(Enum):
 
 ## Technical Architecture
 
-### System Components
+### Annotated Repository Structure
 ```
 virtual-ontology/
-├── twin/                      # Core twin implementation
-│   ├── twin_ontology.py      # Ontology & sensors
-│   ├── actionable_parameters.py
-│   ├── simulation_runner.py
-│   ├── natural_language_patterns.py
-│   ├── optimization_engine.py
-│   ├── recommendation_engine.py
-│   ├── cost_impact_calculator.py
-│   ├── demo_scenarios.py
-│   └── visualization/        # Plotly visualizations
-├── api/
-│   └── graphql/             # GraphQL API layer
-├── data/
-│   └── mes_database.db      # SQLite database
-├── tests/                   # Test suites
-├── docs/                    # Documentation
-└── scripts/                 # Utility scripts
+├── 📁 twin/                          # Core virtual twin implementation
+│   ├── actionable_parameters.py     # 5 tunable parameters with QUDT units
+│   ├── config_transformer.py        # Maps parameters to mes_data_config.json
+│   ├── cost_impact_calculator.py    # Monte Carlo ROI simulation (10K iterations)
+│   ├── demo_scenarios.py            # 5 natural language demo scenarios
+│   ├── disambiguation.py            # Query context & entity resolution helper
+│   ├── line_coupling_model.py       # Cascade & buffer depletion logic
+│   ├── nl_patterns.yaml            # Natural language pattern mappings
+│   ├── optimization_engine.py       # ✅ NEW: Differential evolution optimizer
+│   ├── recommendation_engine.py     # Multi-objective optimization (NSGA-II style)
+│   ├── simulation_runner.py         # Deterministic simulation with provenance
+│   ├── sync_health.py              # Real-time synchronization monitoring
+│   ├── twin_state.py               # Run ledger & state management
+│   └── 📁 visualization/           # Interactive Plotly visualizations
+│       ├── __init__.py
+│       ├── financial_plots.py      # ROI distributions & confidence intervals
+│       ├── heatmaps.py            # Parameter sensitivity analysis
+│       ├── pareto_plots.py        # Multi-objective Pareto fronts
+│       └── time_series.py         # KPI trend analysis
+│
+├── 📁 api/                         # API layer
+│   ├── main.py                    # FastAPI application entry
+│   ├── database.py                # Database connection management
+│   ├── models.py                  # Pydantic models
+│   ├── simulation_endpoints.py    # REST endpoints for simulation
+│   └── 📁 graphql/               # GraphQL implementation
+│       ├── __init__.py
+│       ├── context.py            # Request context & database access
+│       ├── resolvers.py          # Query & mutation resolvers
+│       ├── router.py             # FastAPI GraphQL router
+│       ├── schema.py             # Complete GraphQL schema
+│       ├── subscriptions.py      # Real-time WebSocket subscriptions
+│       ├── types.py              # GraphQL type definitions
+│       └── visualization_resolvers.py # Chart generation resolvers
+│
+├── 📁 ontology/                    # Semantic models & schemas
+│   ├── ontology_spec.yaml         # Base MES manufacturing ontology
+│   ├── twin_ontology_spec.yaml    # ✅ Twin-specific SOSA/QUDT sensors (imports base)
+│   ├── database_schema.yaml       # Database structure definition
+│   └── learned_ontology_traversal_patterns.yaml # Query patterns
+│
+├── 📁 synthetic_data_generator/    # Data generation
+│   ├── mes_data_config.json       # Generation parameters
+│   └── mes_data_generation.py     # Configurable data generator
+│
+├── 📁 tests/                       # Comprehensive test suite
+│   ├── run_all_tests.py          # Test orchestrator
+│   ├── test_phase1_ontology.py   # Twin ontology & sensors
+│   ├── test_phase2_parameters.py  # Actionable parameters
+│   ├── test_phase3_simulation.py  # Simulation & provenance
+│   ├── test_phase4_nlp_optimization.py # NLP & optimization
+│   ├── test_phase4_with_simulation.py  # Integration testing
+│   ├── test_disambiguation.py     # Disambiguation logic
+│   ├── test_graphql_api.py       # GraphQL API tests
+│   ├── test_visualizations.py    # Visualization generation
+│   ├── test_twin_integration.py  # End-to-end integration
+│   ├── test_complete_workflow.py # Full workflow validation
+│   └── test_db_write.py          # Database operations
+│
+├── 📁 docs/                        # Documentation
+│   ├── PROJECT_DELIVERY_REPORT.md # This document
+│   ├── TWIN_PROOF.md              # ISO 23247 compliance proof
+│   ├── API_REFERENCE.md          # API documentation
+│   ├── GRAPHQL_VISUALIZATION.md  # GraphQL & viz guide
+│   ├── MIGRATION_GUIDE.md        # Upgrade instructions
+│   ├── USAGE_GUIDE.md             # User manual
+│   └── virtual_twin_conceptual_framework.md # Theory & concepts
+│
+├── 📁 scripts/                     # Utility scripts
+│   └── init_twin_database.py     # Database initialization
+│
+├── 📁 utils/                       # Helper utilities
+│   ├── cross_check_api_schema.py # Schema validation
+│   ├── extract_queries.py        # Query extraction
+│   ├── generate_database_schema.py # Schema generation
+│   └── verify_alignment.py       # Ontology alignment check
+│
+├── 📁 reference/                   # Reference materials
+│   ├── conceptual_postmortem.md  # Project learnings
+│   ├── GOLDEN_SESSION_ARCHIVE_20250802.md # Historic session
+│   ├── medium_article.md         # Published article
+│   ├── MES_30_QUERY_EXPERIMENT.md # Query experiments
+│   ├── MES_QUERY_GUIDE.md        # Query patterns
+│   ├── ontology_exploration_directive.md # Exploration guide
+│   └── sqlite_workarounds.md     # SQLite tips
+│
+├── 📁 templates/                   # Template files
+│   ├── database_schema_template.yaml
+│   ├── ontology_spec_template.yaml
+│   └── 📁 validation/
+│       ├── ontology_validator.json
+│       └── schema_validator.json
+│
+├── 📁 data/                        # Data files
+│   ├── mes_database.db            # SQLite database (not in git)
+│   └── baseline_config.json      # Baseline configuration
+│
+├── 📄 Root Files
+│   ├── README.md                  # Project overview
+│   ├── QUICKSTART_TWIN.md        # Quick start guide
+│   ├── VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md # Implementation blueprint
+│   ├── sys_prompt.md             # Base system prompt
+│   ├── sys_prompt_twin.md        # Enhanced twin system prompt
+│   ├── api.sh                    # API interaction script
+│   ├── query-log.sh              # Query logging script
+│   ├── twin-command.sh           # Twin CLI interface
+│   └── query_logs.json           # Query history
+│
+└── 📁 .claude/                     # Claude Code settings
+    └── settings.local.json        # Local configuration
 ```
+
+### Key Module Responsibilities
+
+#### Core Twin (`/twin`)
+- **actionable_parameters.py**: Defines 5 tunable parameters (micro-stops, performance, scrap, material, cascade)
+- **optimization_engine.py**: NEW - Scipy differential_evolution for multi-objective optimization
+- **simulation_runner.py**: Wraps data generator with deterministic seeding & provenance
+- **recommendation_engine.py**: Generates Pareto-optimal recommendations
+- **cost_impact_calculator.py**: Monte Carlo financial analysis with confidence intervals
+
+#### API Layer (`/api`)
+- **GraphQL Schema**: Type-safe API with subscriptions for real-time updates
+- **REST Endpoints**: Traditional HTTP API for compatibility
+- **WebSocket Support**: Real-time data streaming
+
+#### Ontology (`/ontology`)
+- **Base Ontology**: Manufacturing domain model (equipment, products, events)
+- **Twin Ontology**: Extends base with SOSA sensors & QUDT units (imports base)
+- **Relationships**: twin_ontology_spec.yaml imports ontology_spec.yaml at line 13
+
+#### Data Generation (`/synthetic_data_generator`)
+- Configurable synthetic data generation
+- Accepts actionable parameter overlays
+- Deterministic with seed control
+
+#### Testing (`/tests`)
+- Phase-based testing (1-4 matching implementation phases)
+- Integration testing across components
+- GraphQL API validation
+- Visualization rendering tests
 
 ### Technology Stack
 - **Language**: Python 3.8+

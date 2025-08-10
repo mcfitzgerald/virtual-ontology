@@ -361,5 +361,43 @@
       "duration_intervals": {"min": 2, "max": 6},
       "description": "Random performance drops due to various minor issues"
     }
+  },
+  
+  "energy_consumption": {
+    "description": "Energy consumption parameters by equipment type",
+    "base_consumption_kw": {
+      "Filler": {
+        "running": 20.0,
+        "idle": 2.0,
+        "description": "Pumps, heating/cooling systems, control"
+      },
+      "Packer": {
+        "running": 15.0,
+        "idle": 1.5,
+        "description": "Conveyors, wrapping mechanisms, sealing"
+      },
+      "Palletizer": {
+        "running": 10.0,
+        "idle": 1.0,
+        "description": "Lifting motors, stretch wrap, conveyors"
+      }
+    },
+    "performance_impact": {
+      "description": "How performance affects energy consumption",
+      "scaling_factor": 0.8,
+      "comment": "Energy scales at 80% of performance change (non-linear)"
+    },
+    "product_specific_factors": {
+      "SKU-1001": {"energy_multiplier": 0.9, "comment": "Lighter product, less energy"},
+      "SKU-1002": {"energy_multiplier": 1.2, "comment": "Larger container, more energy"},
+      "SKU-2001": {"energy_multiplier": 1.0, "comment": "Standard energy consumption"},
+      "SKU-2002": {"energy_multiplier": 1.1, "comment": "Slightly higher due to carbonation"},
+      "SKU-3001": {"energy_multiplier": 0.85, "comment": "Smaller container, less energy"}
+    },
+    "micro_stop_penalty": {
+      "description": "Extra energy consumed during start/stop cycles",
+      "startup_surge_multiplier": 1.5,
+      "duration_minutes": 0.5
+    }
   }
 }
