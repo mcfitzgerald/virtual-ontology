@@ -369,9 +369,8 @@ class SimulationRunner:
             table, run_id = data_ref.split(":")
             engine = create_engine(f"sqlite:///{self.db_path}")
             df = pd.read_sql_query(
-                f"SELECT * FROM {table} WHERE run_id = ?",
-                engine,
-                params=[run_id]
+                f"SELECT * FROM {table} WHERE run_id = '{run_id}'",
+                engine
             )
         else:
             # Load from CSV (legacy)
@@ -415,6 +414,12 @@ class SimulationRunner:
         if 'machine_status' in df.columns:
             downtime_pct = (df['machine_status'] == 'Stopped').mean() * 100
             kpis['downtime_percentage'] = downtime_pct
+        
+        # Convert numpy types to Python native types for JSON serialization
+        import numpy as np
+        for key, value in kpis.items():
+            if isinstance(value, (np.integer, np.floating)):
+                kpis[key] = value.item()  # Use .item() for proper conversion
         
         return kpis
     
