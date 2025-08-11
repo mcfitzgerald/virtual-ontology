@@ -1,6 +1,6 @@
 """
-Simulation Runner with Provenance Tracking
-Manages simulation runs with complete reproducibility and provenance
+Simulation Runner with Provenance Tracking and Monte Carlo Support
+Manages simulation runs with complete reproducibility, provenance, and uncertainty analysis
 """
 
 import hashlib
@@ -14,8 +14,10 @@ from dataclasses import dataclass, asdict
 import subprocess
 import tempfile
 import numpy as np
+import pandas as pd
 import sys
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Add twin directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -226,9 +228,10 @@ class SimulationRunner:
         transformer = ConfigTransformer()
         config = transformer.apply_parameters(parameters)
         
-        # Save config
-        config_path = Path(f"twin/configs/{run_id}.json")
-        config_path.parent.mkdir(exist_ok=True)
+        # Save config - use absolute path
+        config_dir = Path(__file__).parent / "configs"
+        config_dir.mkdir(exist_ok=True)
+        config_path = config_dir / f"{run_id}.json"
         with open(config_path, 'w') as f:
             json.dump(config, f, indent=2)
         
@@ -301,6 +304,8 @@ class SimulationRunner:
         cmd = [
             "python",
             str(self.generator_path),
+            "--config", str(config_path),  # Pass the custom config
+            "--seed", str(run.seed),  # Pass the seed for reproducibility
             "--output", "db",
             "--table", "simulation_data",
             "--run-id", run.run_id,
@@ -643,5 +648,381 @@ class SimulationRunner:
                 comparison["parameter_comparison"][param][run_id] = value
         
         return comparison
+    
+    def run_monte_carlo_simulation(
+        self,
+        base_parameters: ActionableParameters,
+        uncertainty_ranges: Dict[str, Tuple[float, float]],
+        n_simulations: int = 100,
+        duration_days: int = 7,
+        parallel: bool = True,
+        max_workers: int = 4,
+        notes: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Run Monte Carlo simulations with parameter uncertainty
+        
+        Args:
+            base_parameters: Base parameter configuration
+            uncertainty_ranges: Dict of parameter names to (min_pct, max_pct) variation
+                               e.g., {"micro_stop_probability": (-0.1, 0.1)} for ±10%
+            n_simulations: Number of Monte Carlo simulations to run
+            duration_days: Duration of each simulation in days
+            parallel: Whether to run simulations in parallel
+            max_workers: Maximum number of parallel workers
+            notes: Optional notes for the batch
+            
+        Returns:
+            Dictionary with aggregated results and statistics
+        """
+        mc_batch_id = f"mc-batch-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        
+        # Generate parameter sets with uncertainty
+        parameter_sets = self._generate_mc_parameter_sets(
+            base_parameters,
+            uncertainty_ranges,
+            n_simulations
+        )
+        
+        # Run simulations
+        if parallel:
+            results = self._run_parallel_simulations(
+                parameter_sets,
+                duration_days,
+                mc_batch_id,
+                max_workers
+            )
+        else:
+            results = self._run_sequential_simulations(
+                parameter_sets,
+                duration_days,
+                mc_batch_id
+            )
+        
+        # Aggregate results
+        mc_summary = self._aggregate_mc_results(results, mc_batch_id)
+        
+        # Store batch metadata
+        self._store_mc_batch_metadata(
+            mc_batch_id,
+            base_parameters,
+            uncertainty_ranges,
+            n_simulations,
+            mc_summary,
+            notes
+        )
+        
+        return mc_summary
+    
+    def _generate_mc_parameter_sets(
+        self,
+        base_parameters: ActionableParameters,
+        uncertainty_ranges: Dict[str, Tuple[float, float]],
+        n_simulations: int
+    ) -> List[ActionableParameters]:
+        """
+        Generate parameter sets with uncertainty for Monte Carlo simulation
+        
+        Args:
+            base_parameters: Base parameter configuration
+            uncertainty_ranges: Uncertainty ranges for each parameter
+            n_simulations: Number of parameter sets to generate
+            
+        Returns:
+            List of ActionableParameters with varied values
+        """
+        np.random.seed(seed)  # Use provided seed for reproducibility
+        parameter_sets = []
+        
+        for i in range(n_simulations):
+            # Create copy of base parameters
+            params = ActionableParameters()
+            base_values = base_parameters.get_all_values()
+            
+            # Apply uncertainty to each parameter
+            for param_name, base_value in base_values.items():
+                if param_name in uncertainty_ranges:
+                    min_pct, max_pct = uncertainty_ranges[param_name]
+                    # Generate random variation within range
+                    variation = np.random.uniform(min_pct, max_pct)
+                    new_value = base_value * (1 + variation)
+                    
+                    # Ensure within parameter bounds
+                    param_obj = params.parameters[param_name]
+                    min_bound, max_bound = param_obj.bounds
+                    new_value = np.clip(new_value, min_bound, max_bound)
+                    
+                    params.set_value(param_name, new_value)
+                else:
+                    params.set_value(param_name, base_value)
+            
+            parameter_sets.append(params)
+        
+        return parameter_sets
+    
+    def _run_parallel_simulations(
+        self,
+        parameter_sets: List[ActionableParameters],
+        duration_days: int,
+        batch_id: str,
+        max_workers: int
+    ) -> List[Dict[str, Any]]:
+        """
+        Run simulations in parallel using ThreadPoolExecutor
+        
+        Args:
+            parameter_sets: List of parameter configurations
+            duration_days: Duration of each simulation
+            batch_id: Batch identifier
+            max_workers: Maximum number of parallel workers
+            
+        Returns:
+            List of simulation results
+        """
+        results = []
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all simulations
+            future_to_params = {
+                executor.submit(
+                    self.run_simulation,
+                    parameters=params,
+                    duration_days=duration_days,
+                    notes=f"MC batch {batch_id}, simulation {i+1}/{len(parameter_sets)}"
+                ): (i, params)
+                for i, params in enumerate(parameter_sets)
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_params):
+                sim_index, params = future_to_params[future]
+                try:
+                    run_id = future.result()
+                    run = self._get_run_metadata(run_id)
+                    
+                    results.append({
+                        "simulation_index": sim_index,
+                        "run_id": run_id,
+                        "parameters": params.get_all_values(),
+                        "kpis": run.kpi_summary,
+                        "status": run.status
+                    })
+                except Exception as e:
+                    print(f"Simulation {sim_index} failed: {e}")
+                    results.append({
+                        "simulation_index": sim_index,
+                        "run_id": None,
+                        "parameters": params.get_all_values(),
+                        "kpis": None,
+                        "status": "failed",
+                        "error": str(e)
+                    })
+        
+        return results
+    
+    def _run_sequential_simulations(
+        self,
+        parameter_sets: List[ActionableParameters],
+        duration_days: int,
+        batch_id: str
+    ) -> List[Dict[str, Any]]:
+        """
+        Run simulations sequentially
+        
+        Args:
+            parameter_sets: List of parameter configurations
+            duration_days: Duration of each simulation
+            batch_id: Batch identifier
+            
+        Returns:
+            List of simulation results
+        """
+        results = []
+        
+        for i, params in enumerate(parameter_sets):
+            try:
+                run_id = self.run_simulation(
+                    parameters=params,
+                    duration_days=duration_days,
+                    notes=f"MC batch {batch_id}, simulation {i+1}/{len(parameter_sets)}"
+                )
+                run = self._get_run_metadata(run_id)
+                
+                results.append({
+                    "simulation_index": i,
+                    "run_id": run_id,
+                    "parameters": params.get_all_values(),
+                    "kpis": run.kpi_summary,
+                    "status": run.status
+                })
+            except Exception as e:
+                print(f"Simulation {i} failed: {e}")
+                results.append({
+                    "simulation_index": i,
+                    "run_id": None,
+                    "parameters": params.get_all_values(),
+                    "kpis": None,
+                    "status": "failed",
+                    "error": str(e)
+                })
+        
+        return results
+    
+    def _aggregate_mc_results(
+        self,
+        results: List[Dict[str, Any]],
+        batch_id: str
+    ) -> Dict[str, Any]:
+        """
+        Aggregate Monte Carlo simulation results
+        
+        Args:
+            results: List of individual simulation results
+            batch_id: Batch identifier
+            
+        Returns:
+            Aggregated statistics and distributions
+        """
+        # Filter successful simulations
+        successful_results = [r for r in results if r["status"] == "completed" and r["kpis"]]
+        
+        if not successful_results:
+            return {
+                "batch_id": batch_id,
+                "n_simulations": len(results),
+                "n_successful": 0,
+                "error": "No successful simulations"
+            }
+        
+        # Extract KPI data
+        kpi_data = {}
+        for result in successful_results:
+            for kpi, value in result["kpis"].items():
+                if kpi not in kpi_data:
+                    kpi_data[kpi] = []
+                kpi_data[kpi].append(value)
+        
+        # Calculate statistics for each KPI
+        kpi_statistics = {}
+        for kpi, values in kpi_data.items():
+            values_array = np.array(values)
+            kpi_statistics[kpi] = {
+                "mean": float(np.mean(values_array)),
+                "std": float(np.std(values_array)),
+                "median": float(np.median(values_array)),
+                "min": float(np.min(values_array)),
+                "max": float(np.max(values_array)),
+                "percentiles": {
+                    "p5": float(np.percentile(values_array, 5)),
+                    "p25": float(np.percentile(values_array, 25)),
+                    "p50": float(np.percentile(values_array, 50)),
+                    "p75": float(np.percentile(values_array, 75)),
+                    "p95": float(np.percentile(values_array, 95))
+                },
+                "confidence_interval_95": (
+                    float(np.percentile(values_array, 2.5)),
+                    float(np.percentile(values_array, 97.5))
+                ),
+                "coefficient_of_variation": float(np.std(values_array) / np.mean(values_array)) if np.mean(values_array) != 0 else 0
+            }
+        
+        # Parameter sensitivity analysis (simplified)
+        parameter_sensitivity = self._calculate_parameter_sensitivity(successful_results)
+        
+        return {
+            "batch_id": batch_id,
+            "n_simulations": len(results),
+            "n_successful": len(successful_results),
+            "success_rate": len(successful_results) / len(results),
+            "kpi_statistics": kpi_statistics,
+            "parameter_sensitivity": parameter_sensitivity,
+            "run_ids": [r["run_id"] for r in successful_results],
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    def _calculate_parameter_sensitivity(
+        self,
+        results: List[Dict[str, Any]]
+    ) -> Dict[str, Dict[str, float]]:
+        """
+        Calculate simplified parameter sensitivity using correlation
+        
+        Args:
+            results: List of simulation results
+            
+        Returns:
+            Parameter sensitivity metrics
+        """
+        if len(results) < 3:
+            return {}
+        
+        # Create DataFrame for analysis
+        param_data = pd.DataFrame([r["parameters"] for r in results])
+        kpi_data = pd.DataFrame([r["kpis"] for r in results])
+        
+        sensitivity = {}
+        
+        # Calculate correlation between each parameter and KPI
+        for param in param_data.columns:
+            sensitivity[param] = {}
+            for kpi in kpi_data.columns:
+                try:
+                    correlation = param_data[param].corr(kpi_data[kpi])
+                    sensitivity[param][kpi] = float(correlation) if not pd.isna(correlation) else 0.0
+                except:
+                    sensitivity[param][kpi] = 0.0
+        
+        return sensitivity
+    
+    def _store_mc_batch_metadata(
+        self,
+        batch_id: str,
+        base_parameters: ActionableParameters,
+        uncertainty_ranges: Dict[str, Tuple[float, float]],
+        n_simulations: int,
+        summary: Dict[str, Any],
+        notes: Optional[str]
+    ):
+        """
+        Store Monte Carlo batch metadata in database
+        
+        Args:
+            batch_id: Batch identifier
+            base_parameters: Base parameter configuration
+            uncertainty_ranges: Uncertainty ranges used
+            n_simulations: Number of simulations
+            summary: Aggregated results summary
+            notes: Optional notes
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            # Create MC batch table if it doesn't exist
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS mc_batches (
+                    batch_id TEXT PRIMARY KEY,
+                    base_parameters_json TEXT NOT NULL,
+                    uncertainty_ranges_json TEXT NOT NULL,
+                    n_simulations INTEGER NOT NULL,
+                    summary_json TEXT NOT NULL,
+                    notes TEXT,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            # Insert batch metadata
+            conn.execute("""
+                INSERT INTO mc_batches (
+                    batch_id, base_parameters_json, uncertainty_ranges_json,
+                    n_simulations, summary_json, notes
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                batch_id,
+                json.dumps(base_parameters.get_all_values()),
+                json.dumps(uncertainty_ranges),
+                n_simulations,
+                json.dumps(summary),
+                notes
+            ))
+            
+            conn.commit()
 
 

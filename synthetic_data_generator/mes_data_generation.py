@@ -14,7 +14,13 @@ from collections import defaultdict
 
 def load_config(config_file='mes_data_config.json'):
     """Load configuration from JSON file."""
-    config_path = os.path.join(os.path.dirname(__file__), config_file)
+    # If config_file is an absolute path, use it directly
+    if os.path.isabs(config_file):
+        config_path = config_file
+    else:
+        # Otherwise, look for it relative to this script's directory
+        config_path = os.path.join(os.path.dirname(__file__), config_file)
+    
     with open(config_path, 'r') as f:
         return json.load(f)
 
@@ -453,7 +459,9 @@ def save_to_database(df, table_name, run_id=None):
         df_db['run_id'] = run_id
     
     # Create database connection
-    db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mes_database.db")
+    # Allow database path to be configurable via environment variable
+    db_path = os.environ.get('MES_DATABASE_PATH', 
+                             os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mes_database.db"))
     engine = create_engine(f"sqlite:///{db_path}")
     
     # Create tables if they don't exist
@@ -710,10 +718,24 @@ def main():
                         help='Start date (YYYY-MM-DD)')
     parser.add_argument('--end-date', type=str, default='2025-06-14',
                         help='End date (YYYY-MM-DD)')
+    parser.add_argument('--config', type=str, default=None,
+                        help='Path to custom configuration file (overrides default mes_data_config.json)')
+    parser.add_argument('--seed', type=int, default=None,
+                        help='Random seed for reproducible simulations')
     args = parser.parse_args()
     
+    # Set random seed if provided
+    if args.seed is not None:
+        np.random.seed(args.seed)
+        print(f"Using random seed: {args.seed}")
+    
     # Load configuration
-    config = load_config()
+    if args.config:
+        config = load_config(args.config)
+        print(f"Using custom config: {args.config}")
+    else:
+        config = load_config()
+        print("Using default config: mes_data_config.json")
     
     # Parse dates
     start_date = datetime.strptime(args.start_date, '%Y-%m-%d')

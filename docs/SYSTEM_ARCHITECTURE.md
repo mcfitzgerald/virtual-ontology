@@ -89,7 +89,7 @@ User: "Find the best balance between energy and throughput"
     ↓
 LLM interprets as multi-objective optimization
     ↓
-Python: RecommendationEngine (NSGA-II algorithm)
+Python: RecommendationEngine (pymoo NSGA-II algorithm)
     ↓
 Runs multiple simulations internally
     ↓
@@ -101,16 +101,20 @@ LLM explains trade-offs to user
 ## Module Architecture
 
 ### Core Orchestration
-- **`twin/__init__.py`**: Module exports and public API
+- **`twin/__init__.py`**: Module exports and public API (v1.1.0)
   - Core: SimulationRunner, ActionableParameters, TwinStateManager
   - Analysis: OptimizationEngine, RecommendationEngine, CostImpactCalculator
   - Support: DisambiguationHelper, SyncHealthMonitor, LineCoupling
+  - **Enhanced with pymoo and PyMC libraries for robust scientific computing**
 
 ### Simulation & Prediction
 - **`SimulationRunner`**: Manages digital twin simulations
-  - Generates synthetic manufacturing data
+  - Generates synthetic manufacturing data with custom configurations
   - Tracks full provenance (twin_runs table)
-  - Supports Monte Carlo uncertainty analysis
+  - **Enhanced Monte Carlo wrapper** with parallel simulation support
+  - Batch uncertainty analysis with statistical aggregation
+  - Parameter sensitivity analysis
+  - Passes configurations and seeds to generator for reproducibility
 
 ### Optimization Modules
 - **`OptimizationEngine`**: scipy-based differential evolution
@@ -118,9 +122,12 @@ LLM explains trade-offs to user
   - Fast convergence for feasibility checks
   - Good for constrained problems
 
-- **`RecommendationEngine`**: NSGA-II genetic algorithm
-  - True multi-objective optimization
-  - Finds Pareto-optimal solutions
+- **`RecommendationEngine`**: **pymoo-based NSGA-II implementation**
+  - True multi-objective optimization with pymoo's proven algorithms
+  - Finds Pareto-optimal solutions with hypervolume indicators
+  - Advanced genetic operators (SBX crossover, PM mutation)
+  - Constraint handling and feasibility checking
+  - Visualization of Pareto fronts
   - Includes scenario mapping and confidence scoring
   - Stores recommendations with expected improvements
 
@@ -131,16 +138,18 @@ LLM explains trade-offs to user
   - Parameter hint mapping
   - Provides context, doesn't make decisions
 
-- **`CostImpactCalculator`**: Financial analysis
-  - Monte Carlo ROI calculations
-  - Uncertainty quantification
-  - Payback period estimation
+- **`CostImpactCalculator`**: **PyMC-based Bayesian financial analysis**
+  - Bayesian Monte Carlo ROI calculations using MCMC sampling
+  - Proper uncertainty quantification with credible intervals
+  - Probabilistic modeling of KPI improvements
+  - Advanced diagnostics (R-hat, ESS) for convergence
+  - Payback period estimation with confidence bounds
 
 ### Parameters & State
 - **`ActionableParameters`**: 5 tunable parameters
   1. `micro_stop_probability` (0.05-0.5): Equipment reliability
   2. `performance_factor` (0.5-1.0): Operator skill/calibration
-  3. `scrap_multiplier` (1.0-5.0): Quality control
+  3. `scrap_multiplier` (0.5-5.0): Quality control (< 1.0 improves, > 1.0 worsens)
   4. `material_reliability` (0.5-1.0): Supply chain quality
   5. `cascade_sensitivity` (0.0-1.0): Failure propagation
 
@@ -148,6 +157,18 @@ LLM explains trade-offs to user
   - Active parameters
   - Baseline references
   - Applied recommendations
+
+### Configuration Management
+- **`ConfigTransformer`**: Transforms parameters to generator configurations
+  - Maps ActionableParameters to mes_data_config.json structure
+  - Applies parameter changes to anomaly injection patterns
+  - Scales equipment efficiency and quality rates
+  
+- **`ConfigValidator`**: Validates configurations before simulation
+  - Ensures parameter changes are correctly applied
+  - Validates probability ranges (0.0-1.0)
+  - Checks scrap rates and efficiency bounds
+  - Provides detailed error and warning reports
 
 ## Database Access Patterns
 
@@ -252,15 +273,16 @@ virtual-ontology/
 │   └── simulation_configs/     # Archived config files
 │       └── archive/            # Historical config JSONs
 ├── twin/
-│   ├── __init__.py              # Module exports and API
-│   ├── simulation_runner.py     # Digital twin simulation
+│   ├── __init__.py              # Module exports and API (v1.1.0)
+│   ├── simulation_runner.py     # Digital twin simulation + MC wrapper
 │   ├── optimization_engine.py   # scipy-based optimization
-│   ├── recommendation_engine.py # NSGA-II multi-objective
+│   ├── recommendation_engine.py # pymoo NSGA-II multi-objective
 │   ├── config_manager.py        # Configuration storage manager
 │   ├── config_transformer.py    # Parameter to config transformer
+│   ├── config_validator.py      # Configuration validation layer
 │   ├── disambiguation.py        # NLP context helper
 │   ├── actionable_parameters.py # Parameter definitions
-│   ├── cost_impact_calculator.py # Financial analysis
+│   ├── cost_impact_calculator.py # PyMC Bayesian financial analysis
 │   ├── twin_state.py            # State management
 │   ├── line_coupling_model.py   # Production line interactions
 │   ├── sync_health.py          # Synchronization monitoring
@@ -327,17 +349,33 @@ virtual-ontology/
 
 ## Evolution Path
 
-### Current State (v1.0)
+### Current State (v1.1.0 - Enhanced with pymoo and PyMC)
 - LLM-orchestrated Python modules
+- **pymoo** for robust multi-objective optimization (NSGA-II, hypervolume, IGD)
+- **PyMC** for Bayesian probabilistic modeling and MCMC sampling
+- Enhanced Monte Carlo simulation with parallel execution support
 - SQLite database
 - File-based logging
 - Single-machine deployment
 
-### Potential Enhancements
+### Recent Enhancements (v1.1.0)
+- ✅ Replaced custom NSGA-II with pymoo's proven implementation
+- ✅ Integrated PyMC for Bayesian uncertainty quantification in ROI
+- ✅ Added parallel Monte Carlo simulation capability
+- ✅ Enhanced parameter sensitivity analysis
+- ✅ Improved convergence diagnostics (R-hat, ESS)
+- ✅ Fixed configuration passing to ensure parameters affect simulations
+- ✅ Added configuration validation layer for parameter verification
+- ✅ Implemented reproducible seeding for deterministic simulations
+- ✅ Made database path configurable via environment variable
+
+### Potential Future Enhancements
 - Read from twin_operations.jsonl for learning
 - Time-series database for simulation data
 - Distributed simulation runners
 - Real-time data integration
+- GPU acceleration for pymoo optimization
+- Advanced PyMC models with hierarchical priors
 
 ## Key Insights
 
@@ -348,6 +386,8 @@ virtual-ontology/
 5. **Pragmatic Simplicity**: SQLite and files instead of complex infrastructure
 6. **Ontology-Driven**: YAML ontologies define business concepts and data structures
 7. **Configuration as Data**: Configs stored in database, not files, with deduplication
+8. **Scientific Computing Libraries**: pymoo and PyMC provide proven algorithms over custom implementations
+9. **Bayesian Approach**: Proper uncertainty quantification through probabilistic modeling
 
 ## Success Metrics
 
@@ -355,11 +395,11 @@ virtual-ontology/
 The Virtual Twin POC succeeds if it can demonstrate these core capabilities:
 
 - ✅ **Answer**: "What's the financial impact of reducing micro-stops by 30%?"
-- ✅ **Recommend**: "Best parameters for maximizing OEE" with Pareto trade-offs
+- ✅ **Recommend**: "Best parameters for maximizing OEE" with Pareto trade-offs (pymoo NSGA-II)
 - ✅ **Explain**: "Why Line 2 outperforms Line 1"
-- ✅ **Validate**: Show reproducible results with confidence intervals
+- ✅ **Validate**: Show reproducible results with Bayesian credible intervals (PyMC)
 - ✅ **Demonstrate**: All interactions through conversational natural language
-- ✅ **Compute**: Probabilistic ROI via Monte Carlo (e.g., "$45K ± $5K weekly savings")
+- ✅ **Compute**: Bayesian ROI via PyMC MCMC (e.g., "$45K with 95% CI: $40K-$50K")
 
 ### Operational Metrics
 To measure the effectiveness of the Virtual Twin system, track these KPIs:

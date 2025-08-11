@@ -4,17 +4,22 @@ Virtual Twin Module - Manufacturing Digital Twin Simulation & Optimization
 This module provides a comprehensive digital twin framework for manufacturing systems,
 enabling simulation, optimization, and intelligent recommendation capabilities.
 
+Enhanced with:
+    - pymoo for robust multi-objective optimization (NSGA-II)
+    - PyMC for Bayesian Monte Carlo analysis
+    - Monte Carlo wrapper for uncertainty analysis
+
 Core Components:
-    - SimulationRunner: Execute what-if scenarios and parameter simulations
+    - SimulationRunner: Execute what-if scenarios with Monte Carlo support
     - ActionableParameters: Manage and validate simulation parameters
     - TwinStateManager: Track and synchronize virtual twin state
     - ConfigTransformer: Transform parameters into simulation configurations
     - ConfigurationManager: Store and retrieve configuration history
 
 Analysis Components:
-    - OptimizationEngine: Multi-objective optimization using NSGA-II
-    - RecommendationEngine: Generate scenario-based recommendations
-    - CostImpactCalculator: Financial impact and ROI analysis
+    - OptimizationEngine: Single/weighted multi-objective optimization
+    - RecommendationEngine: pymoo-based NSGA-II multi-objective optimization
+    - CostImpactCalculator: PyMC-based Bayesian ROI analysis
 
 Support Components:
     - DisambiguationHelper: Natural language query interpretation
@@ -22,13 +27,17 @@ Support Components:
     - LineCouplingModel: Model production line interactions
 
 Usage:
-    from twin import SimulationRunner, ActionableParameters
+    from twin import SimulationRunner, ActionableParameters, RecommendationEngine
     
-    # Run a simulation
+    # Run a Monte Carlo simulation
     runner = SimulationRunner()
     params = ActionableParameters()
-    params.set_value("micro_stop_probability", 0.05)
-    result = runner.run_simulation(params)
+    uncertainty = {"micro_stop_probability": (-0.1, 0.1)}  # ±10%
+    mc_results = runner.run_monte_carlo_simulation(params, uncertainty, n_simulations=100)
+    
+    # Run pymoo optimization
+    engine = RecommendationEngine()
+    results = engine.optimize(objectives, population_size=50, generations=100)
 """
 
 # Core Components - Main simulation and state management
@@ -40,16 +49,16 @@ from .config_manager import ConfigurationManager
 
 # Analysis Components - Optimization and recommendations
 from .optimization_engine import OptimizationEngine
-from .recommendation_engine import RecommendationEngine
-from .cost_impact_calculator import CostImpactCalculator
+from .recommendation_engine import RecommendationEngine, Objective, OptimizationResult, ManufacturingProblem
+from .cost_impact_calculator import CostImpactCalculator, CostParameters
 
 # Support Components - Helpers and utilities
 from .disambiguation import DisambiguationHelper
 from .sync_health import SyncHealthMonitor, SyncHealthStatus
 from .line_coupling_model import LineCoupling
 
-# Version
-__version__ = "1.0.0"
+# Version - Updated for pymoo/PyMC enhancements
+__version__ = "1.1.0"
 
 # Public API
 __all__ = [
@@ -64,7 +73,11 @@ __all__ = [
     # Analysis
     "OptimizationEngine",
     "RecommendationEngine",
+    "Objective",
+    "OptimizationResult",
+    "ManufacturingProblem",
     "CostImpactCalculator",
+    "CostParameters",
     # Support
     "DisambiguationHelper",
     "SyncHealthMonitor",

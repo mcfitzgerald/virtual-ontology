@@ -64,7 +64,7 @@ class ActionableParameters:
                 name="micro_stop_probability",
                 description="Probability of micro-stops (proxy for equipment maintenance quality)",
                 bounds=(0.05, 0.50),
-                default_value=0.20,
+                default_value=0.10,
                 unit="http://qudt.org/vocab/unit/UNITLESS",  # Probability is dimensionless
                 parameter_type=ParameterType.PROBABILITY,
                 causal_effect="Higher values reduce availability score",
@@ -93,15 +93,15 @@ class ActionableParameters:
             "scrap_multiplier": ActionableParameter(
                 name="scrap_multiplier",
                 description="Scrap rate multiplier (proxy for quality control procedures)",
-                bounds=(1.0, 5.0),
-                default_value=2.0,
+                bounds=(0.5, 5.0),
+                default_value=1.0,
                 unit="http://qudt.org/vocab/unit/UNITLESS",
                 parameter_type=ParameterType.FACTOR,
-                causal_effect="Increases defect rate, reduces quality score",
+                causal_effect="Multiplies defect rate - lower reduces scrap, higher increases scrap",
                 invariants=[
-                    "Must be >= 1.0",
+                    "Must be between 0.5 and 5.0",
                     "Multiplies base scrap rate",
-                    "Lower is better"
+                    "Lower is better (0.5 = 50% reduction, 1.0 = baseline, 2.0 = double)"
                 ]
             ),
             
@@ -124,7 +124,7 @@ class ActionableParameters:
                 name="cascade_sensitivity",
                 description="Line coupling strength (proxy for buffer capacity)",
                 bounds=(0.0, 1.0),
-                default_value=0.5,
+                default_value=0.3,
                 unit="http://qudt.org/vocab/unit/UNITLESS",
                 parameter_type=ParameterType.SENSITIVITY,
                 causal_effect="Controls propagation of blockages and starvation",
