@@ -43,7 +43,7 @@ The Virtual Twin system is an LLM-orchestrated manufacturing intelligence platfo
 ┌─────────────────────────────────────────────────────────┐
 │                 SQLite Database                         │
 │               data/mes_database.db                      │
-│                   (17 tables)                           │
+│                   (18 tables)                           │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -101,10 +101,10 @@ LLM explains trade-offs to user
 ## Module Architecture
 
 ### Core Orchestration
-- **`twin.py`**: Main `VirtualTwin` class that unifies all modules
-  - Provides high-level methods: `simulate()`, `optimize()`, `calculate_roi()`
-  - Handles workflow: baseline → operation → logging
-  - Logs operations to `twin_operations.jsonl` (currently write-only)
+- **`twin/__init__.py`**: Module exports and public API
+  - Core: SimulationRunner, ActionableParameters, TwinStateManager
+  - Analysis: OptimizationEngine, RecommendationEngine, CostImpactCalculator
+  - Support: DisambiguationHelper, SyncHealthMonitor, LineCoupling
 
 ### Simulation & Prediction
 - **`SimulationRunner`**: Manages digital twin simulations
@@ -236,39 +236,60 @@ The LLM chooses modules based on:
 virtual-ontology/
 ├── api.sh                    # SQL API server management
 ├── query-log.sh             # SQL query execution & logging
-├── twin.py                  # Main orchestration class
+├── SYSTEM_PROMPT.md         # Unified LLM instructions
+├── ontology/                   # Ontology specifications
+│   ├── ontology_spec.yaml      # MES business concepts
+│   ├── database_schema.yaml    # MES data structure
+│   ├── twin_ontology_spec.yaml # Twin layer concepts
+│   ├── twin_database_schema.yaml # Twin data structure
+│   ├── disambiguation_patterns.yaml # NLP patterns
+│   └── README.md               # Ontology documentation
 ├── data/
-│   ├── mes_database.db      # Single SQLite database (18 tables incl. configs)
-│   └── simulation_configs/  # Archived config files
-│       └── archive/         # Migrated historical configs
+│   ├── mes_database.db         # SQLite database (18 tables)
+│   ├── mes_data_sample.csv     # Sample data for import
+│   ├── mes_data_with_kpis.csv  # Data with calculated KPIs
+│   ├── baseline_config.json    # Base configuration
+│   └── simulation_configs/     # Archived config files
+│       └── archive/            # Historical config JSONs
 ├── twin/
+│   ├── __init__.py              # Module exports and API
 │   ├── simulation_runner.py     # Digital twin simulation
 │   ├── optimization_engine.py   # scipy-based optimization
 │   ├── recommendation_engine.py # NSGA-II multi-objective
 │   ├── config_manager.py        # Configuration storage manager
 │   ├── config_transformer.py    # Parameter to config transformer
-│   ├── disambiguation.py         # NLP context helper
+│   ├── disambiguation.py        # NLP context helper
 │   ├── actionable_parameters.py # Parameter definitions
 │   ├── cost_impact_calculator.py # Financial analysis
 │   ├── twin_state.py            # State management
-│   └── visualization/           # Plotting utilities
+│   ├── line_coupling_model.py   # Production line interactions
+│   ├── sync_health.py          # Synchronization monitoring
+│   ├── API.md                  # Module API documentation
+│   ├── README.md               # Module overview
+│   └── visualization/          # Plotting utilities
 ├── api/
-│   ├── database_setup.py       # Database initialization
-│   └── setup/                  # Setup modules
-│       ├── config.json         # Unified configuration
-│       ├── twin_tables.py      # Twin table management
-│       └── mes_historical.py   # Historical data generation
-├── scripts/
+│   ├── main.py                 # FastAPI application
+│   ├── database.py             # Database connection management
+│   ├── models.py               # SQLModel definitions
+│   ├── database_endpoints.py   # Database management endpoints
+│   ├── simulation_endpoints.py # Simulation API endpoints
+│   └── database_setup.py       # Database initialization
+├── scripts/                    # One-time setup scripts (completed)
+│   ├── init_twin_database.py   # Initialize twin tables
 │   └── migrate_configs.py      # Config migration script
 ├── docs/
-│   ├── DATABASE_ARCHITECTURE.md    # Database schema details
-│   ├── SYSTEM_ARCHITECTURE.md      # This document
-│   └── CONFIGURATION_MANAGEMENT.md # Config management guide
-├── learning_history/        # System learning and memory
-│   ├── query_logs.json      # SQL query history
-│   └── twin_operations.jsonl # Twin operation log (write-only)
+│   ├── SYSTEM_ARCHITECTURE.md  # This document
+│   └── DATABASE_AND_API.md     # Database schema and API endpoints
+├── templates/                   # Ontology and prompt templates
+│   ├── ontology_spec_template.yaml
+│   └── prompt_engineering_template.md
+├── reference/                   # Archived documentation
+│   ├── sys_prompt.md           # Original system prompt
+│   └── twin_sys_prompt.md      # Twin-specific prompt
+├── learning_history/            # System learning and memory
+│   └── query_logs.json         # SQL query history
 └── logs/
-    └── api.log              # API server logs
+    └── api.log                 # API server logs
 ```
 
 ## Logging & Traceability
@@ -280,16 +301,15 @@ virtual-ontology/
    - Full request/response captured
    - Enables query pattern learning
 
-2. **learning_history/twin_operations.jsonl**: Twin operations (currently write-only)
-   - Simulations, optimizations, ROI calculations
-   - Intended for operation replay (not yet implemented)
-   - JSON Lines format for streaming
+2. **Database audit trails**: Permanent operation records
+   - `twin_runs`: All simulation metadata and results
+   - `parameter_history`: Complete parameter change audit
+   - `simulation_configs`: Deduplicated configuration storage
 
-3. **Database tables**: Permanent record
-   - `twin_runs`: All simulation metadata
-   - `parameter_history`: Parameter evolution
-   - `recommendations`: All generated recommendations
-   - `sync_health_log`: System health tracking
+3. **API logs**: Server operation logs
+   - `logs/api.log`: FastAPI server logs
+   - Request/response tracking
+   - Error logging and debugging
 
 ## System Constraints & Limitations
 
@@ -315,21 +335,51 @@ virtual-ontology/
 
 ### Potential Enhancements
 - Read from twin_operations.jsonl for learning
-- GraphQL subscriptions for real-time updates
 - Time-series database for simulation data
 - Distributed simulation runners
 - Real-time data integration
 
 ## Key Insights
 
-1. **LLM-Centric Design**: The system assumes an LLM orchestrator, not human users
+1. **LLM-Centric Design**: The system assumes Claude Code as orchestrator, not human users
 2. **Separation of Analysis and Operations**: Different access patterns for different needs
 3. **Traceability Over Performance**: Every operation logged for audit and learning
-4. **Python Over APIs**: Direct module access instead of REST endpoints
+4. **Python Over APIs**: Direct module access for twin operations, REST for queries
 5. **Pragmatic Simplicity**: SQLite and files instead of complex infrastructure
+6. **Ontology-Driven**: YAML ontologies define business concepts and data structures
+7. **Configuration as Data**: Configs stored in database, not files, with deduplication
+
+## Success Metrics
+
+To measure the effectiveness of the Virtual Twin system, track these KPIs:
+
+### Operational Metrics
+- **Query Success Rate**: Target >90% successful query executions
+- **Simulation Accuracy**: Compare predictions to actual outcomes (target <10% deviation)
+- **Recommendation Adoption**: Percentage of recommendations implemented (target >60%)
+- **Parameter Optimization**: Improvement in KPIs after optimization (target >5% OEE gain)
+
+### Business Impact
+- **Time to Insight**: Reduce analysis time from hours to minutes (target <5 min)
+- **ROI Achievement**: Track actual vs predicted savings (target >80% accuracy)
+- **Downtime Reduction**: Measure decrease in unplanned downtime (target -20%)
+- **Energy Efficiency**: Track energy consumption improvements (target -15%)
+
+### System Performance
+- **Response Time**: API query response <2 seconds
+- **Simulation Speed**: Complete simulation in <30 seconds
+- **Database Growth**: Monitor storage efficiency (<100MB/month)
+- **Uptime**: System availability >99%
+
+### User Adoption
+- **Daily Active Queries**: Number of unique queries per day
+- **Feature Utilization**: Usage of simulation vs optimization vs recommendations
+- **Learning Curve**: Time for new users to get productive (target <1 week)
+- **User Satisfaction**: Feedback on insights quality and relevance
 
 ## References
 
-- [Database Architecture](DATABASE_ARCHITECTURE.md) - Detailed database schema
-- [Virtual Twin Implementation Plan](../VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md) - Original design
+- [Database and API Documentation](DATABASE_AND_API.md) - Database schema and API endpoints
+- [Usage Examples](EXAMPLES.md) - Example conversations and patterns
 - [System Prompt](../SYSTEM_PROMPT.md) - Unified LLM instructions for full workflow
+- [Twin Module Documentation](../twin/README.md) - Twin module capabilities

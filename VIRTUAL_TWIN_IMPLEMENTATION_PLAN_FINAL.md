@@ -363,42 +363,7 @@ def optimize_parameters(
 - `twin/recommendation_engine.py` - multi-objective optimization
 - `twin/disambiguation.py` - resolves ambiguous queries
 
-### Phase 5: GraphQL Visualization Layer (Day 4 - Optional)
-
-**Core Concept**: Thin GraphQL layer for type-safe visualization, keeping SQL as the source of truth.
-
-**Benefits of GraphQL Layer:**
-- Type safety for frontend developers
-- Self-documenting API
-- Works seamlessly with visualization libraries (D3, Grafana)
-- Auto-generated from ontology to maintain consistency
-
-**Schema with Safety Controls:**
-```graphql
-type VirtualTwin {
-  currentState: TwinState!
-  simulate(parameters: ActionableParameters!): SimulationResult!
-  recommend(objective: Objective!): [Recommendation!]!
-  compare(runIds: [ID!]!): Comparison!
-  syncHealth: SyncHealthReport!
-}
-
-type SyncHealthReport {
-  healthy: Int!
-  delayed: Int!
-  stale: Int!
-  details: [EntitySyncStatus!]!
-}
-
-# Depth limit: 3, Complexity limit: 100
-# Persisted operations only (hash-pinned)
-```
-
-**Files to create:**
-- `api/graphql_schema.py` - auto-generated from ontology
-- `api/graphql_resolvers.py` - thin wrappers around SQL
-
-### Phase 6: Demo & Validation (Day 5)
+### Phase 5: Demo & Validation (Day 4-5)
 
 **Core Concept**: Demonstrate the complete NIST progression from descriptive to prescriptive.
 
@@ -533,7 +498,6 @@ def calculate_probabilistic_roi(baseline, optimized, n_simulations=1000):
 - **Perfect 5-min data** - No real sync complexity, using deterministic generator
 - **Simple run tracking** - No event sourcing or bi-temporal model
 - **5 actionable parameters** - Not 50+ config options
-- **GraphQL for viz only** - SQL remains core, GraphQL is optional
 - **Natural language primary** - Claude Code is the interface
 
 ## Success Metrics
@@ -552,7 +516,6 @@ The POC succeeds if it can:
 - **Simulation**: Modified mes_data_generation.py with ActionableParameters
 - **Optimization**: pymoo for Pareto multi-objective (NSGA-II); NumPy for Monte Carlo
 - **Standards**: SOSA/SSN for sensors, QUDT for units (full URIs)
-- **GraphQL**: Strawberry or Graphene (optional)
 - **Visualization**: matplotlib/plotly for demos
 
 ## Deliverables
@@ -571,8 +534,7 @@ The POC succeeds if it can:
 - **Day 1**: Twin ontology with QUDT/SOSA sensors
 - **Day 2**: Actionable parameters and simulation runner
 - **Day 3**: Natural language patterns and optimization
-- **Day 4**: GraphQL layer (optional)
-- **Day 5**: Demo scenarios and validation
+- **Day 4-5**: Demo scenarios and validation
 
 ## Next Steps
 
