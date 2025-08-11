@@ -357,7 +357,3 @@ def demonstrate_parameters():
     # Generate config overlay
     print("\nCONFIG OVERLAY FOR SIMULATION:")
     print(json.dumps(params.to_config_overlay(), indent=2))
-
-
-if __name__ == "__main__":
-    demonstrate_parameters()

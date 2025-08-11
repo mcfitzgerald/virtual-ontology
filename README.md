@@ -30,7 +30,7 @@ python api/database_setup.py init
 ./api.sh start
 
 # Ready to use with Claude Code!
-# Load @sys_prompt.md in chat to get started
+# Load @SYSTEM_PROMPT.md in chat to get started
 ```
 
 ## Code Walkthrough Video (30 minutes - short gif below)

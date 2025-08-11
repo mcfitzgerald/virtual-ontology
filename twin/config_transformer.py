@@ -328,7 +328,3 @@ def demonstrate_config_transformation():
         print("\nEquipment efficiency (Filler) changes:")
         print(f"  Baseline: {baseline['product_specifications']['equipment_efficiency']['Filler']}")
         print(f"  Improved: {improved['product_specifications']['equipment_efficiency']['Filler']}")
-
-
-if __name__ == "__main__":
-    demonstrate_config_transformation()

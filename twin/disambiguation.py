@@ -28,7 +28,8 @@ class DisambiguationHelper:
         
     def _load_patterns(self) -> Dict[str, Any]:
         """Load natural language patterns from YAML"""
-        pattern_file = Path(__file__).parent / "nl_patterns.yaml"
+        # Look for patterns in ontology directory
+        pattern_file = Path(__file__).parent.parent / "ontology" / "disambiguation_patterns.yaml"
         if pattern_file.exists():
             with open(pattern_file, 'r') as f:
                 return yaml.safe_load(f)
@@ -459,7 +460,3 @@ def demonstrate_disambiguation():
     
     print("\n✅ Disambiguation helper demonstrated!")
     print("\nNote: The LLM makes final decisions - this just provides context")
-
-
-if __name__ == "__main__":
-    demonstrate_disambiguation()

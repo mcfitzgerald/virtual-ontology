@@ -362,7 +362,3 @@ def demonstrate_sync_health():
         print(f"\n⚠️  ALERTS: {len(alerts)} entities need attention")
         for entity_id, status in alerts:
             print(f"   - {entity_id}: {status}")
-
-
-if __name__ == "__main__":
-    demonstrate_sync_health()

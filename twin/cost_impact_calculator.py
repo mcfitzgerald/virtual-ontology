@@ -650,7 +650,3 @@ def demonstrate_cost_impact():
     print(report)
     
     print("\n✅ Cost impact calculator with Monte Carlo simulation demonstrated!")
-
-
-if __name__ == "__main__":
-    demonstrate_cost_impact()

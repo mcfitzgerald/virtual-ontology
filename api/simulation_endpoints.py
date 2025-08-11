@@ -6,17 +6,18 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+
 import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Add twin directory to path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'twin'))
-
-from simulation_runner import SimulationRunner
-from actionable_parameters import ActionableParameters
-from recommendation_engine import RecommendationEngine
-from disambiguation import DisambiguationHelper
-from twin_state import TwinStateManager
+from twin import (
+    SimulationRunner,
+    ActionableParameters,
+    RecommendationEngine,
+    DisambiguationHelper,
+    TwinStateManager
+)
 
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
 
@@ -345,7 +346,7 @@ async def get_sync_health():
     Get synchronization health status for all entities
     """
     try:
-        from twin.sync_health import SyncHealthMonitor
+        from twin import SyncHealthMonitor
         
         monitor = SyncHealthMonitor()
         summary = monitor.get_health_summary()

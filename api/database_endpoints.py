@@ -8,14 +8,9 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 import sqlite3
 import os
-import sys
-
-# Add paths for imports
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'twin'))
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
 from database import SessionDep
-from config_manager import ConfigurationManager
+from twin import ConfigurationManager
 
 router = APIRouter(prefix="/api/database", tags=["database"])
 

@@ -397,7 +397,3 @@ def demonstrate_line_coupling():
     for eq_id in equipment_sequence:
         prob = cascade_counts[eq_id] / n_simulations
         print(f"  {eq_id}: {prob:.2%} probability of being affected")
-
-
-if __name__ == "__main__":
-    demonstrate_line_coupling()

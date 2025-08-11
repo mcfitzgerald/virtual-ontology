@@ -1,365 +1,525 @@
-# Virtual Twin Ontology - Extended with SOSA/QUDT Sensors
-# Builds on base MES ontology to add virtual sensors and synchronization
+# Virtual Twin Ontology - Lean Extension Layer
+# Version: 2.0
+# Purpose: Extends MES ontology with virtual twin simulation and sensors
+# Focus: Only sensors/properties that exist in actual MES data
 
 # ====================================================================================
 # ONTOLOGY METADATA
 # ====================================================================================
 ontology:
   name: "Virtual Twin Manufacturing Ontology"
-  version: "1.0"
+  version: "2.0"
   namespace: "twin"
-  description: "Virtual twin layer with SOSA/SSN sensors and QUDT units for manufacturing"
-  imports:
-    - "../ontology_spec.yaml"  # Base MES ontology
-    - "http://www.w3.org/ns/sosa/"  # Sensor, Observation, Sampling, and Actuation
-    - "http://www.w3.org/ns/ssn/"  # Semantic Sensor Network
-    - "http://qudt.org/2.1/schema/qudt"  # Quantities, Units, Dimensions and Types
+  description: "Virtual twin layer for simulation, optimization, and what-if analysis"
   
-  # Standards compliance
-  standards:
-    - name: "ISO 23247"
-      description: "Digital twin framework for manufacturing"
-      compliance: "Full digital representation with observable elements"
-    - name: "SOSA/SSN"
-      description: "W3C/OGC Sensor ontology"
-      compliance: "Virtual sensors as sosa:Sensor instances"
-    - name: "QUDT"
-      description: "Quantities, Units, Dimensions and Types"
-      compliance: "All measurements use QUDT units"
-  
+  # Imports base MES ontology - we extend, not replace
+  related_ontologies:
+    - namespace: "mes"
+      description: "Base MES ontology with equipment, products, and events"
+      shared_concepts: ["Equipment", "ProductionLine", "Product", "DowntimeEvent"]
+      import_path: "./ontology_spec.yaml"
+    
+  # Business context
+  domain: "manufacturing_simulation"
+  owner: "Virtual Twin Team"
   created: "2025-01-09"
-  modified: "2025-01-09"
+  modified: "2025-01-10"
 
 # ====================================================================================
-# VIRTUAL SENSORS (SOSA/SSN Compliant)
+# CLASSES (Virtual Twin Entities)
 # ====================================================================================
-virtual_sensors:
-  Equipment:
-    description: "Virtual sensors embedded in equipment for observing state"
-    embeds:
-      # Production sensors
-      - ThroughputSensor:
-          sensor_id: "throughput_sensor_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Observes production rate"
-          observes:
-            property: "qudt:VolumetricFlowRate"
-            unit: "http://qudt.org/vocab/unit/NUM-PER-MIN"
-            quantityKind: "http://qudt.org/vocab/quantitykind/CountingUnit"
-          observation_interval: "PT5M"  # ISO 8601 duration
-          
-      # Quality sensors
-      - QualityInspector:
-          sensor_id: "quality_sensor_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Observes product quality"
-          observes:
-            property: "qudt:MassFraction"
-            unit: "http://qudt.org/vocab/unit/PERCENT"
-            quantityKind: "http://qudt.org/vocab/quantitykind/Dimensionless"
-          observation_interval: "PT5M"
-          
-      # Efficiency sensors
-      - PowerMeter:
-          sensor_id: "power_meter_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Observes power consumption"
-          observes:
-            property: "qudt:Power"
-            unit: "http://qudt.org/vocab/unit/KiloW"
-            quantityKind: "http://qudt.org/vocab/quantitykind/Power"
-          observation_interval: "PT5M"
-          
-      # Performance sensors
-      - PerformanceSensor:
-          sensor_id: "performance_sensor_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Observes actual vs ideal performance"
-          observes:
-            property: "qudt:Dimensionless"
-            unit: "http://qudt.org/vocab/unit/PERCENT"
-            quantityKind: "http://qudt.org/vocab/quantitykind/Efficiency"
-          observation_interval: "PT5M"
-          
-      # Flow sensors
-      - MaterialFlowSensor:
-          sensor_id: "material_flow_sensor_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Observes material flow and buffer levels"
-          observes:
-            - property: "input_rate"
-              unit: "http://qudt.org/vocab/unit/NUM-PER-MIN"
-            - property: "buffer_level"
-              unit: "http://qudt.org/vocab/unit/NUM"
-          observation_interval: "PT5M"
-          
-      # Diagnostic sensors
-      - VibrationSensor:
-          sensor_id: "vibration_sensor_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Proxy for mechanical health"
-          observes:
-            property: "qudt:Velocity"
-            unit: "http://qudt.org/vocab/unit/MilliM-PER-SEC"
-            quantityKind: "http://qudt.org/vocab/quantitykind/LinearVelocity"
-          observation_interval: "PT1M"  # Higher frequency for diagnostics
-          
-      - TemperatureSensor:
-          sensor_id: "temperature_sensor_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Affects quality and equipment health"
-          observes:
-            property: "qudt:ThermodynamicTemperature"
-            unit: "http://qudt.org/vocab/unit/DEG_C"
-            quantityKind: "http://qudt.org/vocab/quantitykind/ThermodynamicTemperature"
-          observation_interval: "PT1M"
-          
-      # Availability sensor
-      - AvailabilitySensor:
-          sensor_id: "availability_sensor_{equipment_id}"
-          type: "sosa:Sensor"
-          description: "Observes equipment availability"
-          observes:
-            property: "qudt:Dimensionless"
-            unit: "http://qudt.org/vocab/unit/PERCENT"
-            quantityKind: "http://qudt.org/vocab/quantitykind/Dimensionless"
-          observation_interval: "PT5M"
-
-  ProductionLine:
-    description: "Line-level aggregated sensors"
-    embeds:
-      - LineThroughputSensor:
-          sensor_id: "line_throughput_sensor_{line_id}"
-          type: "sosa:Sensor"
-          description: "Aggregated line throughput"
-          observes:
-            property: "qudt:VolumetricFlowRate"
-            unit: "http://qudt.org/vocab/unit/NUM-PER-MIN"
-          aggregates_from: ["ThroughputSensor"]
-          
-      - LineOEESensor:
-          sensor_id: "line_oee_sensor_{line_id}"
-          type: "sosa:Sensor"
-          description: "Overall Equipment Effectiveness for line"
-          observes:
-            property: "qudt:Dimensionless"
-            unit: "http://qudt.org/vocab/unit/PERCENT"
-          computed_from: ["AvailabilitySensor", "PerformanceSensor", "QualityInspector"]
-
-# ====================================================================================
-# SYNCHRONIZATION METADATA
-# ====================================================================================
-synchronization:
-  Equipment:
-    interval: "PT5M"  # ISO 8601 duration - 5 minutes
-    source_type: "simulation"  # simulation | physical | hybrid
-    health_thresholds:
-      healthy_max_delay: "PT5M"  # Same as interval
-      delayed_max_delay: "PT10M"  # 2x interval
-      stale_after: "PT15M"  # 3x interval
-    metadata:
-      last_update: "timestamp"
-      source_run_id: "string"
-      data_hash: "sha256"
-      
-  ProductionLine:
-    interval: "PT5M"
-    source_type: "aggregated"
-    aggregation_method: "weighted_average"  # For OEE and performance
+classes:
+  # Virtual Sensors - observe derived metrics from MES data
+  VirtualSensor:
+    description: "Virtual sensor that observes metrics derived from MES data"
+    maps_to:
+      mes: "Equipment"  # Sensors attached to equipment
     
-# ====================================================================================
-# OBSERVATION CLASSES (SOSA Compliant)
-# ====================================================================================
-observation_classes:
-  ThroughputObservation:
-    type: "sosa:Observation"
-    description: "Observation of production throughput"
-    properties:
-      - hasFeatureOfInterest: "Equipment"
-      - observedProperty: "qudt:VolumetricFlowRate"
-      - hasResult: "qudt:QuantityValue"
-      - resultTime: "xsd:dateTime"
-      - phenomenonTime: "xsd:dateTime"
-      - madeBySensor: "ThroughputSensor"
+    subclasses:
+      ThroughputSensor:
+        description: "Observes production rate from good_units_produced"
+        conditions:
+          - field: "sensor_type"
+            operator: "equals"
+            value: "throughput"
+            
+      QualityInspector:
+        description: "Observes quality metrics from scrap rate"
+        conditions:
+          - field: "sensor_type"
+            operator: "equals"
+            value: "quality"
+            
+      PowerMeter:
+        description: "Observes energy consumption (calculated from runtime and performance)"
+        conditions:
+          - field: "sensor_type"
+            operator: "equals"
+            value: "power"
+            
+      PerformanceSensor:
+        description: "Observes actual vs ideal performance ratio"
+        conditions:
+          - field: "sensor_type"
+            operator: "equals"
+            value: "performance"
+            
+      AvailabilitySensor:
+        description: "Observes equipment availability (uptime ratio)"
+        conditions:
+          - field: "sensor_type"
+            operator: "equals"
+            value: "availability"
+            
+      OEESensor:
+        description: "Observes Overall Equipment Effectiveness (composite metric)"
+        conditions:
+          - field: "sensor_type"
+            operator: "equals"
+            value: "oee"
+  
+  # Simulation Entities
+  SimulationRun:
+    description: "Execution of a virtual twin simulation with specific parameters"
+    maps_to:
+      mes: "ProductionRun"  # Similar to actual production runs
+    conditions:
+      - field: "run_type"
+        operator: "in"
+        value: ["baseline", "simulation", "optimization"]
+        
+  TwinState:
+    description: "Current state of the virtual twin including parameters and KPIs"
+    maps_to:
+      mes: "SystemState"
       
-  QualityObservation:
-    type: "sosa:Observation"
-    description: "Observation of product quality"
-    properties:
-      - hasFeatureOfInterest: "Product"
-      - observedProperty: "qudt:MassFraction"
-      - hasResult: "qudt:QuantityValue"
-      - resultTime: "xsd:dateTime"
-      - madeBySensor: "QualityInspector"
-      
-  BufferLevelObservation:
-    type: "sosa:Observation"
-    description: "Observation of material buffer levels"
-    properties:
-      - hasFeatureOfInterest: "Equipment"
-      - observedProperty: "buffer_level"
-      - hasResult: "integer"
-      - resultTime: "xsd:dateTime"
-      - madeBySensor: "MaterialFlowSensor"
+  ActionableParameter:
+    description: "Tunable parameter that can be adjusted in simulations"
+    subclasses:
+      MicroStopParameter:
+        description: "Probability of brief equipment stops"
+      PerformanceParameter:
+        description: "Equipment speed/efficiency multiplier"
+      ScrapParameter:
+        description: "Quality/scrap rate adjustment"
+      MaterialReliabilityParameter:
+        description: "Supply chain reliability factor"
+      CascadeSensitivityParameter:
+        description: "Downstream impact propagation strength"
 
 # ====================================================================================
-# TWIN STATE PROPERTIES
+# RELATIONSHIPS (How twin entities connect)
 # ====================================================================================
-twin_properties:
-  # Synchronization health
-  hasSyncHealth:
-    class: "Equipment"
-    type: "string"
-    description: "Current synchronization health status"
-    sql_column: "sync_health"
-    validation:
-      values: ["HEALTHY", "DELAYED", "STALE"]
-      
-  hasLastSync:
-    class: "Equipment"
-    type: "datetime"
-    description: "Last successful synchronization timestamp"
-    sql_column: "last_sync"
-    required: true
+relationships:
+  observes:
+    from: "VirtualSensor"
+    to: "Equipment"
+    description: "Virtual sensor observes equipment metrics"
+    type: "many-to-one"
+    sql_hint: "sensor.equipment_id = equipment.equipment_id"
     
-  hasDataHash:
-    class: "Equipment"
-    type: "string"
-    description: "SHA256 hash of current state data"
-    sql_column: "data_hash"
+  simulatesEquipment:
+    from: "SimulationRun"
+    to: "Equipment"
+    description: "Simulation run models equipment behavior"
+    type: "many-to-many"
+    sql_hint: "simulation_data.run_id = twin_runs.run_id AND simulation_data.equipment_id = equipment.equipment_id"
     
-  # Virtual sensor readings
-  hasBufferLevel:
-    class: "Equipment"
-    type: "integer"
-    description: "Current buffer level in units"
-    sql_column: "buffer_level"
-    unit: "units"
-    validation:
-      min: 0
-      max: 1000
-      
-  hasVibrationLevel:
-    class: "Equipment"
+  hasParentRun:
+    from: "SimulationRun"
+    to: "SimulationRun"
+    description: "Simulation lineage tracking (parent-child runs)"
+    type: "many-to-one"
+    sql_hint: "child.parent_run_id = parent.run_id"
+    inverse: "hasChildRuns"
+    
+  usesParameters:
+    from: "SimulationRun"
+    to: "ActionableParameter"
+    description: "Simulation uses specific parameter configuration"
+    type: "many-to-many"
+    sql_hint: "parameter_history.run_id = twin_runs.run_id"
+    
+  synchronizedWith:
+    from: "TwinState"
+    to: "Equipment"
+    description: "Twin state synchronized with equipment state"
+    type: "one-to-many"
+    sql_hint: "twin_state.equipment_id = equipment.equipment_id"
+
+# ====================================================================================
+# PROPERTIES (Twin data attributes)
+# ====================================================================================
+properties:
+  # Sensor Observations (mapped to actual MES columns)
+  throughput:
+    class: "ThroughputSensor"
     type: "float"
-    description: "Current vibration level"
-    sql_column: "vibration_level"
-    unit: "mm/s"
+    description: "Production rate in units per time period"
+    sql_column: "good_units_produced"
+    sql_table: "mes_data"
+    unit: "units/5min"
+    business_name: "Production Throughput"
+    examples: [42.5, 38.0, 45.2]
+    
+  scrapRate:
+    class: "QualityInspector"
+    type: "float"
+    description: "Percentage of units that are scrapped"
+    sql_column: "scrap_units_produced / NULLIF(good_units_produced + scrap_units_produced, 0)"
+    sql_table: "mes_data"
+    unit: "percent"
+    business_name: "Scrap Rate"
     validation:
       min: 0
       max: 100
-      
-  hasOperatingTemp:
-    class: "Equipment"
+    
+  powerConsumption:
+    class: "PowerMeter"
     type: "float"
-    description: "Current operating temperature"
-    sql_column: "operating_temp"
-    unit: "°C"
+    description: "Energy consumption (runtime × equipment_type × performance)"
+    sql_column: "energy_consumption_kwh"
+    sql_table: "mes_data"
+    unit: "kWh"
+    business_name: "Energy Usage"
+    examples: [15.5, 12.3, 18.7]
+    
+  performanceScore:
+    class: "PerformanceSensor"
+    type: "float"
+    description: "Actual vs ideal performance ratio"
+    sql_column: "performance_score"
+    sql_table: "mes_data"
+    unit: "percent"
     validation:
       min: 0
-      max: 150
-      
-  hasPowerConsumption:
-    class: "Equipment"
+      max: 100
+    
+  availabilityScore:
+    class: "AvailabilitySensor"
     type: "float"
-    description: "Current power consumption"
-    sql_column: "power_consumption"
-    unit: "kW"
+    description: "Equipment uptime ratio"
+    sql_column: "availability_score"
+    sql_table: "mes_data"
+    unit: "percent"
     validation:
       min: 0
+      max: 100
+    
+  oeeScore:
+    class: "OEESensor"
+    type: "float"
+    description: "Overall Equipment Effectiveness (Availability × Performance × Quality)"
+    sql_column: "oee_score"
+    sql_table: "mes_data"
+    unit: "percent"
+    business_name: "OEE"
+    
+  # Simulation Properties
+  runId:
+    class: "SimulationRun"
+    type: "string"
+    description: "Unique identifier for simulation run"
+    sql_column: "run_id"
+    sql_table: "twin_runs"
+    required: true
+    unique: true
+    examples: ["baseline-2025-01-10-001", "sim-opt-2025-01-10-042"]
+    
+  runType:
+    class: "SimulationRun"
+    type: "string"
+    description: "Type of simulation run"
+    sql_column: "run_type"
+    sql_table: "twin_runs"
+    validation:
+      values: ["baseline", "simulation", "optimization"]
+    
+  parentRunId:
+    class: "SimulationRun"
+    type: "string"
+    description: "Parent run for lineage tracking"
+    sql_column: "parent_run_id"
+    sql_table: "twin_runs"
+    
+  configDelta:
+    class: "SimulationRun"
+    type: "string"
+    description: "JSON of parameter changes from baseline"
+    sql_column: "config_delta_json"
+    sql_table: "twin_runs"
+    
+  kpiSummary:
+    class: "SimulationRun"
+    type: "string"
+    description: "JSON summary of KPI results"
+    sql_column: "kpi_summary_json"
+    sql_table: "twin_runs"
+    
+  # Actionable Parameters (the 5 levers we control)
+  microStopProbability:
+    class: "MicroStopParameter"
+    type: "float"
+    description: "Likelihood of brief equipment stops"
+    sql_column: "micro_stop_probability"
+    sql_table: "parameter_history"
+    unit: "probability"
+    validation:
+      min: 0.0
+      max: 1.0
+    business_name: "Micro-Stop Frequency"
+    
+  performanceFactor:
+    class: "PerformanceParameter"
+    type: "float"
+    description: "Equipment speed/efficiency multiplier"
+    sql_column: "performance_factor"
+    sql_table: "parameter_history"
+    validation:
+      min: 0.5
+      max: 1.0
+    business_name: "Performance Multiplier"
+    
+  scrapMultiplier:
+    class: "ScrapParameter"
+    type: "float"
+    description: "Quality/scrap rate adjustment factor"
+    sql_column: "scrap_multiplier"
+    sql_table: "parameter_history"
+    validation:
+      min: 0.5
+      max: 2.0
+    business_name: "Scrap Rate Factor"
+    
+  materialReliability:
+    class: "MaterialReliabilityParameter"
+    type: "float"
+    description: "Supply chain reliability (0=unreliable, 1=perfect)"
+    sql_column: "material_reliability"
+    sql_table: "parameter_history"
+    validation:
+      min: 0.5
+      max: 1.0
+    business_name: "Material Supply Reliability"
+    
+  cascadeSensitivity:
+    class: "CascadeSensitivityParameter"
+    type: "float"
+    description: "How strongly upstream issues affect downstream"
+    sql_column: "cascade_sensitivity"
+    sql_table: "parameter_history"
+    validation:
+      min: 0.0
+      max: 1.0
+    business_name: "Cascade Effect Strength"
+    
+  # Synchronization Properties
+  syncHealth:
+    class: "TwinState"
+    type: "string"
+    description: "Health of synchronization between physical and virtual"
+    sql_column: "sync_status_json"
+    sql_table: "twin_state"
+    validation:
+      values: ["HEALTHY", "DELAYED", "STALE", "UNKNOWN"]
+    
+  lastSync:
+    class: "TwinState"
+    type: "datetime"
+    description: "Last successful synchronization timestamp"
+    sql_column: "timestamp"
+    sql_table: "twin_state"
+    required: true
 
 # ====================================================================================
-# TWIN-SPECIFIC RELATIONSHIPS
+# BUSINESS RULES (Twin-specific logic)
 # ====================================================================================
-twin_relationships:
-  observes:
-    from: "Sensor"
-    to: "Property"
-    description: "Sensor observes a property"
-    type: "many-to-many"
-    namespace: "sosa"
-    
-  madeObservation:
-    from: "Sensor"
-    to: "Observation"
-    description: "Sensor made an observation"
-    type: "one-to-many"
-    namespace: "sosa"
-    
-  hasFeatureOfInterest:
-    from: "Observation"
-    to: "Equipment"
-    description: "Observation is about this equipment"
-    type: "many-to-one"
-    namespace: "sosa"
-    
-  aggregatesFrom:
-    from: "LineSensor"
-    to: "EquipmentSensor"
-    description: "Line sensor aggregates from equipment sensors"
-    type: "many-to-many"
-    
-  synchronizedWith:
-    from: "VirtualEquipment"
-    to: "PhysicalEquipment"
-    description: "Virtual twin synchronized with physical equipment"
-    type: "one-to-one"
-
-# ====================================================================================
-# TWIN BUSINESS RULES
-# ====================================================================================
-twin_business_rules:
-  Sync_Health_Calculation:
-    description: "Determine synchronization health based on time since last update"
+business_rules:
+  Power_Calculation:
+    description: "Energy consumption based on runtime, equipment type, and performance"
     when:
       class: "Equipment"
+      condition: "Status is Running or Idle"
+    implies: "Energy = base_kw × performance_factor × time_hours"
+    sql_hint: |
+      CASE 
+        WHEN machine_status = 'Running' THEN 
+          15.0 * (performance_score/100.0) * 0.083  -- 5 min = 0.083 hours
+        WHEN machine_status = 'Idle' THEN 
+          1.5 * 0.083
+        ELSE 0
+      END
+      
+  OEE_Calculation:
+    description: "Overall Equipment Effectiveness calculation"
+    when:
+      class: "Equipment"
+      condition: "Has availability, performance, and quality scores"
+    implies: "OEE = Availability × Performance × Quality / 1000000"
+    sql_hint: "availability_score * performance_score * quality_score / 1000000.0"
+    
+  Cascade_Impact:
+    description: "Upstream failures impact downstream equipment"
+    when:
+      class: "Equipment"
+      condition: "Upstream equipment has downtime"
+    implies: "Downstream performance degraded by cascade_sensitivity factor"
+    sql_hint: |
+      downstream_performance = upstream_performance * (1 - cascade_sensitivity * upstream_downtime_ratio)
+      
+  Sync_Health_Status:
+    description: "Determine synchronization health based on last update"
+    when:
+      class: "TwinState"
       condition: "Has last_sync timestamp"
     implies: |
-      IF (now - last_sync) <= interval THEN 'HEALTHY'
-      ELIF (now - last_sync) <= 2*interval THEN 'DELAYED'
+      IF (now - last_sync) <= 5 minutes THEN 'HEALTHY'
+      ELIF (now - last_sync) <= 10 minutes THEN 'DELAYED'
       ELSE 'STALE'
     sql_hint: |
       CASE 
-        WHEN (julianday('now') - julianday(last_sync)) * 24 * 60 <= 5 THEN 'HEALTHY'
-        WHEN (julianday('now') - julianday(last_sync)) * 24 * 60 <= 10 THEN 'DELAYED'
+        WHEN (julianday('now') - julianday(timestamp)) * 24 * 60 <= 5 THEN 'HEALTHY'
+        WHEN (julianday('now') - julianday(timestamp)) * 24 * 60 <= 10 THEN 'DELAYED'
         ELSE 'STALE'
       END
       
-  Buffer_Depletion:
-    description: "Calculate buffer depletion when upstream stops"
+  Parameter_Impact_Mapping:
+    description: "How actionable parameters affect KPIs"
     when:
-      class: "Equipment"
-      condition: "Upstream equipment stopped"
-    implies: "Buffer depletes at depletion_rate units/min"
-    parameters:
-      depletion_rate: 10  # units/min
-      refill_rate: 20  # units/min when upstream running
-      
-  Temperature_Quality_Impact:
-    description: "Temperature affects quality score"
-    when:
-      class: "Equipment"
-      condition: "Temperature > optimal_range"
-    implies: "Quality degrades by 1% per degree over optimal"
-    parameters:
-      optimal_temp_min: 20  # °C
-      optimal_temp_max: 25  # °C
-      degradation_rate: 0.01  # per degree
+      class: "ActionableParameter"
+      condition: "Parameter value changed"
+    implies: |
+      micro_stop_probability → affects availability_score
+      performance_factor → affects performance_score directly
+      scrap_multiplier → affects quality_score
+      material_reliability → affects material-related downtime
+      cascade_sensitivity → affects downstream equipment performance
 
 # ====================================================================================
-# SIMULATION PARAMETERS
+# COMMON QUERIES (Help LLM understand twin usage)
 # ====================================================================================
-simulation_config:
-  deterministic:
-    seed_required: true
-    description: "All simulations must be reproducible with seed"
+common_queries:
+  - name: "Get current twin state"
+    question: "What's the current state of the virtual twin?"
+    involves: ["TwinState", "syncHealth", "lastSync"]
+    sql_pattern: |
+      SELECT * FROM twin_state 
+      ORDER BY timestamp DESC 
+      LIMIT 1
+      
+  - name: "Compare simulation runs"
+    question: "How do these simulation runs compare?"
+    involves: ["SimulationRun", "kpiSummary", "configDelta"]
+    sql_pattern: |
+      SELECT run_id, run_type, 
+             json_extract(kpi_summary_json, '$.mean_oee') as oee,
+             json_extract(config_delta_json, '$.micro_stop_probability') as micro_stops
+      FROM twin_runs
+      WHERE run_id IN (?, ?)
+      
+  - name: "Get simulation lineage"
+    question: "Show the lineage of this simulation run"
+    involves: ["SimulationRun", "hasParentRun", "parentRunId"]
+    sql_pattern: |
+      WITH RECURSIVE lineage AS (
+        SELECT * FROM twin_runs WHERE run_id = ?
+        UNION ALL
+        SELECT t.* FROM twin_runs t
+        JOIN lineage l ON t.run_id = l.parent_run_id
+      )
+      SELECT * FROM lineage ORDER BY started_at
+      
+  - name: "Track parameter changes"
+    question: "How have parameters changed across runs?"
+    involves: ["ActionableParameter", "SimulationRun", "usesParameters"]
+    sql_pattern: |
+      SELECT run_id, parameter_name, old_value, new_value, change_reason
+      FROM parameter_history
+      WHERE run_id = ?
+      ORDER BY parameter_name
+      
+  - name: "Energy impact analysis"
+    question: "What's the energy impact of this simulation?"
+    involves: ["PowerMeter", "powerConsumption", "SimulationRun"]
+    sql_pattern: |
+      SELECT AVG(energy_consumption_kwh) as avg_energy,
+             SUM(energy_consumption_kwh) as total_energy
+      FROM simulation_data
+      WHERE run_id = ?
+      
+  - name: "Best parameters for OEE"
+    question: "Which parameters give the best OEE?"
+    involves: ["OptimizationRun", "oeeScore", "configDelta"]
+    sql_pattern: |
+      SELECT run_id, 
+             json_extract(kpi_summary_json, '$.mean_oee') as oee,
+             config_delta_json
+      FROM twin_runs
+      WHERE run_type = 'optimization'
+      ORDER BY json_extract(kpi_summary_json, '$.mean_oee') DESC
+      LIMIT 10
+
+# ====================================================================================
+# CROSS-SYSTEM MAPPINGS
+# ====================================================================================
+system_mappings:
+  # How twin concepts map to base MES system
+  mes_system:
+    type: "MES"
+    namespace: "mes"
     
-  provenance:
-    track_runs: true
-    store_config_delta: true
-    compute_data_hash: true
+    mappings:
+      - our_concept: "VirtualSensor"
+        their_concept: "Equipment"
+        join_key: "equipment_id"
+        notes: "Virtual sensors observe equipment metrics"
+        
+      - our_concept: "SimulationRun"
+        their_concept: "ProductionOrder"
+        join_key: "production_order_id"
+        notes: "Simulations model production runs"
+        
+      - our_concept: "TwinState"
+        their_concept: "SystemState"
+        join_key: "timestamp"
+        notes: "Twin state mirrors system state at point in time"
+        
+  # Potential future integrations
+  erp_system:
+    type: "ERP"
+    namespace: "erp"
     
-  intervals:
-    base_interval: "PT5M"  # 5 minutes
-    aggregation_window: "PT1H"  # 1 hour for KPIs
-    evaluation_window: "P7D"  # 7 days for optimization
+    mappings:
+      - our_concept: "SimulationRun"
+        their_concept: "ProductionPlan"
+        join_key: "plan_id"
+        notes: "Simulations could test production plans before execution"
+
+# ====================================================================================
+# GLOSSARY (Twin-specific terminology)
+# ====================================================================================
+glossary:
+  digital_twin:
+    definition: "Virtual representation of physical manufacturing system for simulation"
+    also_known_as: ["virtual twin", "simulation model", "digital shadow"]
+    see_also: ["SimulationRun", "TwinState"]
+    
+  what_if_scenario:
+    definition: "Simulation testing impact of parameter changes without affecting production"
+    also_known_as: ["scenario analysis", "sensitivity analysis"]
+    see_also: ["SimulationRun", "ActionableParameter"]
+    
+  pareto_front:
+    definition: "Set of optimal solutions when optimizing multiple objectives"
+    also_known_as: ["pareto optimal", "non-dominated solutions"]
+    see_also: ["OptimizationRun", "multi-objective"]
+    
+  actionable_parameter:
+    definition: "Parameter that can be directly controlled or influenced in real operations"
+    also_known_as: ["tunable parameter", "control lever", "decision variable"]
+    see_also: ["microStopProbability", "performanceFactor"]
+    
+  synchronization:
+    definition: "Process of keeping virtual twin aligned with physical system state"
+    also_known_as: ["sync", "state alignment", "twin update"]
+    see_also: ["syncHealth", "lastSync", "TwinState"]

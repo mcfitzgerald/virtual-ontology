@@ -509,7 +509,3 @@ def demonstrate_twin_state():
     print(report)
     
     print("\n✅ Twin state management demonstrated!")
-
-
-if __name__ == "__main__":
-    demonstrate_twin_state()

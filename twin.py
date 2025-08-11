@@ -5,23 +5,19 @@ Main entry point for LLM to orchestrate twin operations
 Following the virtual ontology pattern
 """
 
-import sys
-import os
 import json
 import sqlite3
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 import argparse
 
-# Add twin module path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'twin'))
-
-from simulation_runner import SimulationRunner
-from optimization_engine import OptimizationEngine
-from cost_impact_calculator import CostImpactCalculator
-from financial_roi_demo import FinancialROIAnalyzer
-from disambiguation import DisambiguationHelper
-from actionable_parameters import ActionableParameters
+from twin import (
+    SimulationRunner,
+    OptimizationEngine,
+    CostImpactCalculator,
+    DisambiguationHelper,
+    ActionableParameters
+)
 
 
 class VirtualTwin:

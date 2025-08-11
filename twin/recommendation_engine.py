@@ -722,7 +722,3 @@ def demonstrate_recommendation_engine():
                     print(f"  {kpi}: {improvement:+.1f}%")
     
     print("\n✅ Recommendation engine demonstrated!")
-
-
-if __name__ == "__main__":
-    demonstrate_recommendation_engine()

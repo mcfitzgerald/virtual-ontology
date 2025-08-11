@@ -332,4 +332,4 @@ virtual-ontology/
 
 - [Database Architecture](DATABASE_ARCHITECTURE.md) - Detailed database schema
 - [Virtual Twin Implementation Plan](../VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md) - Original design
-- [System Prompts](../sys_prompt.md, ../twin_sys_prompt.md) - LLM instructions
+- [System Prompt](../SYSTEM_PROMPT.md) - Unified LLM instructions for full workflow
