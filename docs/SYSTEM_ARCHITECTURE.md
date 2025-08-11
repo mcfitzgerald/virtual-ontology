@@ -351,9 +351,19 @@ virtual-ontology/
 
 ## Success Metrics
 
-To measure the effectiveness of the Virtual Twin system, track these KPIs:
+### POC Success Criteria
+The Virtual Twin POC succeeds if it can demonstrate these core capabilities:
+
+- ✅ **Answer**: "What's the financial impact of reducing micro-stops by 30%?"
+- ✅ **Recommend**: "Best parameters for maximizing OEE" with Pareto trade-offs
+- ✅ **Explain**: "Why Line 2 outperforms Line 1"
+- ✅ **Validate**: Show reproducible results with confidence intervals
+- ✅ **Demonstrate**: All interactions through conversational natural language
+- ✅ **Compute**: Probabilistic ROI via Monte Carlo (e.g., "$45K ± $5K weekly savings")
 
 ### Operational Metrics
+To measure the effectiveness of the Virtual Twin system, track these KPIs:
+
 - **Query Success Rate**: Target >90% successful query executions
 - **Simulation Accuracy**: Compare predictions to actual outcomes (target <10% deviation)
 - **Recommendation Adoption**: Percentage of recommendations implemented (target >60%)
@@ -376,6 +386,13 @@ To measure the effectiveness of the Virtual Twin system, track these KPIs:
 - **Feature Utilization**: Usage of simulation vs optimization vs recommendations
 - **Learning Curve**: Time for new users to get productive (target <1 week)
 - **User Satisfaction**: Feedback on insights quality and relevance
+
+### Workflow Success Metrics
+- **Discovery**: Baseline metrics established within 3-5 queries
+- **Simulation**: What-if scenarios run for each major finding
+- **Optimization**: Pareto front generated for multi-objective goals
+- **Impact**: Financial ROI calculated for all recommendations
+- **Action**: Specific parameter changes with expected outcomes
 
 ## References
 
