@@ -2,7 +2,7 @@
 
 ## LLM-Orchestrated Predictive Simulation & Optimization
 
-A next-generation manufacturing intelligence system that combines semantic data access with digital twin simulation capabilities. This platform enables natural language exploration of production data, predictive what-if scenarios, multi-objective optimization, and financial impact analysis - all orchestrated through conversational AI.
+A next-generation manufacturing virtual twin that combines semantic data access with digital twin simulation capabilities. This platform enables natural language exploration of production data, predictive what-if scenarios, multi-objective optimization, and financial impact analysis - all orchestrated through conversational AI.
 
 ## 🎯 Core Capabilities
 
@@ -153,26 +153,15 @@ Financial modeling with Bayesian credible intervals
 - **SQLite**: Embedded database with full SQL support
 - **Configuration Pipeline**: Robust parameter → config → simulation flow
 
-## 📈 Proven Results
-
-From real manufacturing data analysis:
-- **86% query success rate** on first attempt
-- **98% success** with single refinement
-- **5-10% OEE improvements** identified
-- **$400K+ annual savings** opportunities discovered
-- **<30 second** simulation runtime
-- ✅ **Configuration changes properly affect simulation outcomes**
-- ✅ **Reproducible results with controlled seeding**
-- ✅ **Parameter improvements lead to measurable KPI gains**
 
 ## 🎬 Demo & Documentation
 
 ### Video Walkthrough
-🎬 [Virtual Twin Platform - Full Demo](https://www.youtube.com/watch?v=xEEZS0_Sbj0) (30 min)
+🎬 [Virtual Twin Platform - Full Demo]() (30 min)
 
 ### Key Documentation
 - [System Architecture](docs/SYSTEM_ARCHITECTURE.md) - Complete technical design
-- [API Reference](twin/API.md) - Module API documentation
+- [Twin Modeler](twin/README.md) - Twin Module  documentation
 - [Database Schema](docs/DATABASE_AND_API.md) - Data model details
 - [System Prompt](SYSTEM_PROMPT.md) - LLM orchestration guide
 
