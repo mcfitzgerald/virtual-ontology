@@ -472,10 +472,25 @@ class CostImpactCalculator:
                 weekly_savings = kwh_saved * self.cost_params.energy_cost_per_kwh
                 
             else:
-                # General OEE improvement
-                oee_mean = improved_kpis.get("mean_oee", 0.65) - baseline_kpis.get("mean_oee", 0.65)
-                oee_improvement = pm.Normal("oee_improvement", mu=oee_mean, sigma=oee_mean * 0.2)
-                weekly_value = 500000  # Weekly production value
+                # General OEE improvement - properly handle percentage to fraction conversion
+                baseline_oee = baseline_kpis.get("mean_oee", 65.0)  # As percentage
+                improved_oee = improved_kpis.get("mean_oee", 65.0)  # As percentage
+                
+                # Calculate the improvement as a fraction for financial impact
+                # E.g., if OEE goes from 47.7% to 57.5%, that's a 9.8 percentage point improvement
+                # which represents a 9.8/100 = 0.098 (9.8%) improvement in production value
+                oee_improvement_pct_points = improved_oee - baseline_oee  # Percentage points
+                oee_improvement_fraction = oee_improvement_pct_points / 100.0  # As fraction
+                
+                # Ensure sigma is always positive and reasonable
+                oee_sigma = max(abs(oee_improvement_fraction) * 0.2, 0.001)  # At least 0.1% sigma
+                oee_improvement = pm.Normal("oee_improvement", mu=oee_improvement_fraction, sigma=oee_sigma)
+                
+                # Calculate actual weekly production value (7 days * daily value)
+                # Using realistic estimate based on typical MES data (~$590k/day from query)
+                weekly_value = 4_100_000  # ~$590k/day * 7 days from actual data
+                
+                # Financial impact: production value * OEE improvement fraction
                 weekly_savings = weekly_value * oee_improvement
             
             # Add uncertainty multiplier
@@ -656,26 +671,60 @@ class CostImpactCalculator:
         if "micro_stop_probability" in parameter_changes:
             change = parameter_changes["micro_stop_probability"]
             # Reducing micro-stops improves availability
-            improved_kpis["mean_availability"] *= (1 + change * 0.5)
-            improved_kpis["downtime_percentage"] *= (1 + change)
+            # Note: negative change (e.g., -0.5 for 50% reduction) should INCREASE availability
+            if "mean_availability" in improved_kpis:
+                # Invert the sign: reducing stops (-) increases availability (+)
+                improved_kpis["mean_availability"] *= (1 - change * 0.5)  # Note the minus sign
+                # Ensure stays within valid percentage range
+                improved_kpis["mean_availability"] = min(100.0, max(0.0, improved_kpis["mean_availability"]))
+            
+            # Handle downtime_percentage - calculate from availability if not present
+            if "downtime_percentage" not in improved_kpis and "mean_availability" in improved_kpis:
+                improved_kpis["downtime_percentage"] = 100 - improved_kpis["mean_availability"]
+            
+            if "downtime_percentage" in improved_kpis:
+                improved_kpis["downtime_percentage"] *= (1 + change)
+                improved_kpis["downtime_percentage"] = min(100.0, max(0.0, improved_kpis["downtime_percentage"]))
         
         if "scrap_multiplier" in parameter_changes:
             change = parameter_changes["scrap_multiplier"]
             # Reducing scrap improves quality
-            improved_kpis["mean_quality"] *= (1 - change * 0.2)
-            improved_kpis["scrap_rate"] *= (1 + change)
+            if "mean_quality" in improved_kpis:
+                improved_kpis["mean_quality"] *= (1 - change * 0.2)
+                # Ensure stays within valid percentage range
+                improved_kpis["mean_quality"] = min(100.0, max(0.0, improved_kpis["mean_quality"]))
+            if "scrap_rate" in improved_kpis:
+                improved_kpis["scrap_rate"] *= (1 + change)
+                # Scrap rate is typically 0-100 but often expressed as 0-1, keep reasonable
+                improved_kpis["scrap_rate"] = max(0.0, improved_kpis["scrap_rate"])
         
         if "performance_factor" in parameter_changes:
             change = parameter_changes["performance_factor"]
             # Improving performance factor
-            improved_kpis["mean_performance"] *= (1 + change * 0.3)
+            if "mean_performance" in improved_kpis:
+                improved_kpis["mean_performance"] *= (1 + change * 0.3)
+                # Ensure stays within valid percentage range
+                improved_kpis["mean_performance"] = min(100.0, max(0.0, improved_kpis["mean_performance"]))
         
-        # Recalculate OEE
-        improved_kpis["mean_oee"] = (
-            improved_kpis.get("mean_availability", 0.8) *
-            improved_kpis.get("mean_performance", 0.85) *
-            improved_kpis.get("mean_quality", 0.95)
-        )
+        # Don't recalculate OEE - it's not just the product of the three factors
+        # The actual simulation has complex interactions that affect OEE differently
+        # Instead, estimate OEE improvement based on the component improvements
+        if "mean_oee" in improved_kpis:
+            # Estimate OEE improvement as weighted average of component improvements
+            baseline_avail = baseline_kpis.get("mean_availability", 80.0)
+            baseline_perf = baseline_kpis.get("mean_performance", 85.0)
+            baseline_qual = baseline_kpis.get("mean_quality", 95.0)
+            
+            avail_improvement = (improved_kpis.get("mean_availability", baseline_avail) - baseline_avail) / baseline_avail
+            perf_improvement = (improved_kpis.get("mean_performance", baseline_perf) - baseline_perf) / baseline_perf
+            qual_improvement = (improved_kpis.get("mean_quality", baseline_qual) - baseline_qual) / baseline_qual
+            
+            # Weighted average based on typical impact
+            weighted_improvement = (avail_improvement * 0.4 + perf_improvement * 0.4 + qual_improvement * 0.2)
+            
+            # Apply improvement to baseline OEE
+            improved_kpis["mean_oee"] = baseline_kpis.get("mean_oee", 65.0) * (1 + weighted_improvement)
+            improved_kpis["mean_oee"] = min(100.0, max(0.0, improved_kpis["mean_oee"]))
         
         return improved_kpis
     

@@ -41,12 +41,21 @@ from twin import (
 )
 ```
 
+## Critical Setup Requirements
+- **Virtual Environment**: ALWAYS activate `source ~/.venvs/ont/bin/activate`
+- **Python Path**: Set `PYTHONPATH=/Users/michael/github/virtual-ontology:$PYTHONPATH`
+- **Test Scripts**: Use `/tmp/` directory for test scripts and debugging
+
 ## Known System Characteristics
 - **Database**: SQLite at `data/mes_database.db` (not PostgreSQL/MySQL)
 - **SQLite Limitations**: No CTEs (WITH clauses), no STDDEV function
 - **API Restrictions**: SELECT-only queries through query-log.sh
 - **JSON Handling**: Inline JSON often fails - use file references
 - **Data Period**: Historical MES data (verify timeframe with initial query)
+- **KPI Storage**: All KPIs stored as percentages (e.g., 68.17 means 68.17%)
+- **Parameter Changes**: Use fractional format (-0.5 for 50% reduction, 0.1 for 10% increase)
+- **OEE Complexity**: Simulated OEE ≠ Availability × Performance × Quality (complex interactions)
+- **Production Value**: Query actual daily value: ~$590k/day, ~$4.1M/week
 
 ## Initial Workflow
 
@@ -80,12 +89,23 @@ from twin import (
 # Always establish baseline first
 baseline_oee = sql_query("SELECT AVG(oee_score) FROM mes_data WHERE...")
 
+# CRITICAL: Parameter change format
+# - Use FRACTIONS not percentages: -0.5 for 50% reduction
+# - Negative values for reductions IMPROVE metrics
+# - Example: micro_stop_probability = -0.5 → 50% fewer stops → HIGHER availability
+
 # Simulate improvement scenario
 from twin import SimulationRunner, ActionableParameters
 runner = SimulationRunner()
 params = ActionableParameters()
-params.set_value("micro_stop_probability", 0.05)  # 50% reduction
+params.set_value("micro_stop_probability", 0.05)  # Set to absolute 5% probability
 result = runner.run_simulation(params, duration_days=7)
+
+# For CostImpactCalculator, use parameter changes:
+parameter_changes = {
+    "micro_stop_probability": -0.5,  # 50% reduction (fraction)
+    "performance_factor": 0.1        # 10% improvement (fraction)
+}
 ```
 
 ### Phase 4: Optimization (When Multiple Objectives)
@@ -144,6 +164,14 @@ print(f"ROI: {impact['roi_percentage']:.1f}% in {impact['payback_days']} days")
 - Connect patterns to root causes with clear hypotheses
 - Use progressive disclosure: summary first, then details
 
+## Common Pitfalls to Avoid
+1. **Wrong Environment**: Not activating virtual environment → ModuleNotFoundError
+2. **KPI Confusion**: Treating percentages as fractions → 100x calculation errors
+3. **Parameter Signs**: Negative changes reduce the parameter, not the outcome
+4. **Hardcoded Values**: Using default $500k instead of actual production value
+5. **OEE Calculation**: Multiplying raw percentages instead of fractions
+6. **API Queries**: Using "query" instead of "sql" in JSON → 400 errors
+
 ## Best Practices
 0. **ALWAYS use TodoWrite** for multi-step analysis
 1. **Start with data boundaries** but move quickly to simulation
@@ -152,6 +180,23 @@ print(f"ROI: {impact['roi_percentage']:.1f}% in {impact['payback_days']} days")
 4. **Test scenarios progressively**: 10% → 20% → 30% improvements
 5. **Include confidence intervals** in predictions
 6. **Document patterns** for reusability
+
+## Financial Impact Calculation
+1. Query actual production value first:
+   ```sql
+   SELECT SUM(good_units_produced * sale_price_per_unit) as daily_revenue 
+   FROM mes_data WHERE date(timestamp) = '2025-06-01'
+   ```
+2. Weekly value = daily_revenue * 7 (typically ~$4.1M)
+3. Impact = weekly_value * (OEE_improvement_percentage_points / 100)
+
+## Debugging Workflow
+When calculations seem wrong:
+1. Create test script in `/tmp/debug_issue.py`
+2. Check intermediate values step-by-step
+3. Verify KPI formats (percentages vs fractions)
+4. Compare estimated vs simulated results
+5. Use smaller parameter changes to validate direction
 
 ## Success Metrics
 - **Discovery**: Baseline metrics established within 3-5 queries
