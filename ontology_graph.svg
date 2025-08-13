@@ -1,0 +1,12 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <rect width="800" height="600" fill="#f5f5f5"/>
+    <text x="400" y="300" text-anchor="middle" font-size="16" fill="#666">
+        Ontology Graph Export
+    </text>
+    <text x="400" y="330" text-anchor="middle" font-size="12" fill="#999">
+        95 nodes, 84 edges
+    </text>
+    <text x="400" y="360" text-anchor="middle" font-size="10" fill="#999">
+        For interactive visualization, use PyVis export or view in the app
+    </text>
+</svg>

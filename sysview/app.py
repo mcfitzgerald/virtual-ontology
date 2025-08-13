@@ -8,8 +8,9 @@ from dash import html, dcc, Input, Output, State, ALL
 import dash_cytoscape as cyto
 from pathlib import Path
 import json
+import base64
 
-# Load extra layouts for Cytoscape
+# Load extra layouts for Cytoscape - enables image export
 cyto.load_extra_layouts()
 
 # Import custom modules
@@ -258,6 +259,56 @@ def highlight_connected(selected_node, display_options, current_elements):
         })
     
     return stylesheet
+
+# Callback for image export  
+@app.callback(
+    [Output('cytoscape-graph', 'generateImage'),
+     Output('download-output', 'data')],
+    [Input('export-image-btn', 'n_clicks'),
+     Input('export-pyvis-btn', 'n_clicks'),
+     Input('export-obsidian-btn', 'n_clicks')],
+    [State('cytoscape-graph', 'elements')],
+    prevent_initial_call=True
+)
+def handle_export(image_clicks, pyvis_clicks, obsidian_clicks, elements):
+    """Handle export button clicks."""
+    from dash import ctx
+    
+    if not ctx.triggered:
+        return {}, None
+    
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if button_id == 'export-image-btn':
+        # Trigger image generation from Cytoscape
+        # This will generate a PNG image
+        return {
+            'type': 'png',
+            'action': 'download',
+            'filename': 'ontology_graph.png',
+            'options': {
+                'output': 'blob',
+                'bg': 'white',
+                'width': 1920,
+                'height': 1080,
+                'maxWidth': 5000,
+                'maxHeight': 5000
+            }
+        }, None
+    
+    elif button_id == 'export-pyvis-btn':
+        # Export to PyVis HTML
+        from src.export_utils import export_to_pyvis
+        html_content = export_to_pyvis(elements)
+        return {}, dict(content=html_content, filename="ontology_graph.html")
+    
+    elif button_id == 'export-obsidian-btn':
+        # Export to Obsidian vault
+        from src.export_utils import export_to_obsidian
+        zip_content = export_to_obsidian(elements, ontology_data)
+        return {}, dict(content=zip_content, filename="obsidian_vault.zip", type="application/zip")
+    
+    return {}, None
 
 # Add CSS styling
 app.index_string = '''

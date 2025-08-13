@@ -259,6 +259,6 @@ def get_concentric_layout():
     """Get concentric layout configuration."""
     return {
         'name': 'concentric',
-        'minNodeSpacing': 50,
-        'levelWidth': lambda level: level * 2 
+        'minNodeSpacing': 50
+        # levelWidth removed - not a valid parameter for concentric layout
     }
