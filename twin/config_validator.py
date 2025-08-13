@@ -225,37 +225,3 @@ def validate_parameter_bounds(parameters: Dict[str, float]) -> Tuple[bool, List[
                 )
     
     return len(errors) == 0, errors
-
-
-if __name__ == "__main__":
-    # Test the validator
-    import sys
-    sys.path.append('..')
-    from actionable_parameters import ActionableParameters
-    from config_transformer import ConfigTransformer
-    
-    # Create test parameters
-    params = ActionableParameters()
-    params.set_value("micro_stop_probability", 0.05)
-    params.set_value("scrap_multiplier", 0.7)
-    
-    # Transform to config
-    transformer = ConfigTransformer()
-    config = transformer.apply_parameters(params)
-    
-    # Validate
-    validator = ConfigValidator()
-    is_valid = validator.validate_config(config, params.get_all_values())
-    
-    print(f"Validation result: {'PASS' if is_valid else 'FAIL'}")
-    report = validator.get_report()
-    
-    if report['errors']:
-        print("\nErrors:")
-        for error in report['errors']:
-            print(f"  - {error}")
-    
-    if report['warnings']:
-        print("\nWarnings:")
-        for warning in report['warnings']:
-            print(f"  - {warning}")

@@ -104,7 +104,7 @@ LLM explains trade-offs to user
 - **`twin/__init__.py`**: Module exports and public API (v1.1.0)
   - Core: SimulationRunner, ActionableParameters, TwinStateManager
   - Analysis: OptimizationEngine, RecommendationEngine, CostImpactCalculator
-  - Support: DisambiguationHelper, SyncHealthMonitor, LineCoupling
+  - Support: SyncHealthMonitor, LineCoupling
   - **Enhanced with pymoo and PyMC libraries for robust scientific computing**
 
 ### Simulation & Prediction
@@ -132,12 +132,6 @@ LLM explains trade-offs to user
   - Stores recommendations with expected improvements
 
 ### Analysis & Intelligence
-- **`DisambiguationHelper`**: Context provider for NLP
-  - Entity identification (lines, equipment, products)
-  - Timeframe detection
-  - Parameter hint mapping
-  - Provides context, doesn't make decisions
-
 - **`CostImpactCalculator`**: **PyMC-based Bayesian financial analysis**
   - Bayesian Monte Carlo ROI calculations using MCMC sampling
   - Proper uncertainty quantification with credible intervals
@@ -207,7 +201,6 @@ LLM explains trade-offs to user
 | SimulationRunner | Direct SQLite | twin_runs, simulation_data, parameter_history | All |
 | OptimizationEngine | Via SimulationRunner | optimization_results | All |
 | RecommendationEngine | Direct SQLite | recommendations, twin_runs | All |
-| DisambiguationHelper | Direct SQLite | mes_data, twin_runs | SELECT only |
 | CostImpactCalculator | Direct SQLite | mes_data, twin_runs | SELECT only |
 | TwinStateManager | Direct SQLite | twin_state | All |
 
@@ -216,8 +209,6 @@ LLM explains trade-offs to user
 ### Decision Flow
 ```
 User Query
-    ↓
-DisambiguationHelper.get_query_context()
     ↓
 LLM interprets intent:
     ├── "What is..." → SQL query via query-log.sh
@@ -249,7 +240,7 @@ The LLM chooses modules based on:
 | "Find the best..." | OptimizationEngine | Single objective |
 | "Balance A and B" | RecommendationEngine | Multi-objective |
 | "What's the ROI?" | CostImpactCalculator | Financial analysis |
-| "Why is X happening?" | DisambiguationHelper + SQL | Root cause analysis |
+| "Why is X happening?" | SQL analysis | Root cause analysis |
 
 ## File Structure
 
@@ -263,7 +254,6 @@ virtual-ontology/
 │   ├── database_schema.yaml    # MES data structure
 │   ├── twin_ontology_spec.yaml # Twin layer concepts
 │   ├── twin_database_schema.yaml # Twin data structure
-│   ├── disambiguation_patterns.yaml # NLP patterns
 │   └── README.md               # Ontology documentation
 ├── data/
 │   ├── mes_database.db         # SQLite database (18 tables)
@@ -280,7 +270,6 @@ virtual-ontology/
 │   ├── config_manager.py        # Configuration storage manager
 │   ├── config_transformer.py    # Parameter to config transformer
 │   ├── config_validator.py      # Configuration validation layer
-│   ├── disambiguation.py        # NLP context helper
 │   ├── actionable_parameters.py # Parameter definitions
 │   ├── cost_impact_calculator.py # PyMC Bayesian financial analysis
 │   ├── twin_state.py            # State management

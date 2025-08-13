@@ -55,11 +55,13 @@ class SimulationRunner:
         self,
         db_path: str = "data/mes_database.db",
         generator_path: str = "synthetic_data_generator/mes_data_generation.py",
-        generator_version: str = "1.0.0"
+        generator_version: str = "1.0.0",
+        verbose: bool = False
     ):
         self.db_path = db_path
         self.generator_path = Path(generator_path)
         self.generator_version = generator_version
+        self.verbose = verbose
         self.sync_monitor = SyncHealthMonitor(db_path)
         self.config_manager = ConfigurationManager(db_path)
         
@@ -315,19 +317,29 @@ class SimulationRunner:
         
         # Execute generator
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            
-            # Log output if verbose
-            if result.stdout:
-                print(f"Generator output: {result.stdout}")
+            # If not verbose, suppress stdout (but keep stderr for error reporting)
+            if self.verbose:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                if result.stdout:
+                    print(f"Generator output: {result.stdout}")
+            else:
+                # Run quietly, capturing only stderr for error reporting
+                result = subprocess.run(
+                    cmd,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    check=True
+                )
                 
         except subprocess.CalledProcessError as e:
-            print(f"Simulation failed: {e.stderr}")
+            if self.verbose:
+                print(f"Simulation failed: {e.stderr}")
             run.status = "failed"
             run.notes = f"{run.notes}\nError: {e.stderr}" if run.notes else f"Error: {e.stderr}"
             self._update_run_metadata(run)
@@ -808,7 +820,8 @@ class SimulationRunner:
                         "status": run.status
                     })
                 except Exception as e:
-                    print(f"Simulation {sim_index} failed: {e}")
+                    if self.verbose:
+                        print(f"Simulation {sim_index} failed: {e}")
                     results.append({
                         "simulation_index": sim_index,
                         "run_id": None,
@@ -856,7 +869,8 @@ class SimulationRunner:
                     "status": run.status
                 })
             except Exception as e:
-                print(f"Simulation {i} failed: {e}")
+                if self.verbose:
+                    print(f"Simulation {i} failed: {e}")
                 results.append({
                     "simulation_index": i,
                     "run_id": None,

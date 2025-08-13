@@ -10,6 +10,31 @@ metadata:
   success_rate: "100%"
   description: "Reusable SQL patterns for navigating ontological hierarchies, relationships, and properties"
 
+  # ====================================================================================
+# USAGE GUIDELINES
+# ====================================================================================
+
+usage_guidelines:
+  pattern_selection:
+    - "Choose patterns based on the ontological concepts involved in your query"
+    - "Start with simple patterns and combine them for complex queries"
+    - "Consider the relationships and hierarchies defined in your ontology"
+    
+  pattern_combination:
+    - "Patterns can be nested (e.g., use class filtering within temporal slicing)"
+    - "Use subqueries to combine multiple patterns"
+    - "Apply property aggregations after relationship traversals"
+    
+  optimization_tips:
+    - "Index columns used in JOIN conditions and WHERE clauses"
+    - "Use appropriate time windows for temporal patterns"
+    - "Consider query complexity when combining multiple patterns"
+    
+  adaptation_guidelines:
+    - "Replace placeholder variables ({table}, {field}) with actual names"
+    - "Adjust thresholds and categories based on domain requirements"
+    - "Modify aggregation functions based on data types and needs"
+
 # ====================================================================================
 # PHASE 1: CLASS HIERARCHY PATTERNS
 # ====================================================================================
@@ -563,53 +588,3 @@ complex_traversal_patterns:
     example_use_case: "Optimize changeover sequences and durations"
     complexity: "advanced"
     reusability: "medium"
-
-# ====================================================================================
-# USAGE GUIDELINES
-# ====================================================================================
-
-usage_guidelines:
-  pattern_selection:
-    - "Choose patterns based on the ontological concepts involved in your query"
-    - "Start with simple patterns and combine them for complex queries"
-    - "Consider the relationships and hierarchies defined in your ontology"
-    
-  pattern_combination:
-    - "Patterns can be nested (e.g., use class filtering within temporal slicing)"
-    - "Use subqueries to combine multiple patterns"
-    - "Apply property aggregations after relationship traversals"
-    
-  optimization_tips:
-    - "Index columns used in JOIN conditions and WHERE clauses"
-    - "Use appropriate time windows for temporal patterns"
-    - "Consider query complexity when combining multiple patterns"
-    
-  adaptation_guidelines:
-    - "Replace placeholder variables ({table}, {field}) with actual names"
-    - "Adjust thresholds and categories based on domain requirements"
-    - "Modify aggregation functions based on data types and needs"
-
-# ====================================================================================
-# PATTERN METRICS
-# ====================================================================================
-
-pattern_metrics:
-  total_patterns: 23
-  by_phase:
-    class_hierarchy: 5
-    relationship_traversal: 4
-    property_patterns: 5
-    temporal_patterns: 5
-    complex_traversals: 4
-  by_complexity:
-    simple: 7
-    intermediate: 11
-    advanced: 5
-  by_reusability:
-    high: 16
-    medium: 7
-    low: 0
-  validation:
-    all_patterns_tested: true
-    success_rate: "100%"
-    database: "SQLite with mes_data table"

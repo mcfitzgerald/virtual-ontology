@@ -9,8 +9,15 @@ Complete API documentation for the Virtual Twin module.
 Main class for executing simulations and managing runs.
 
 ```python
-class SimulationRunner(db_path: str = "data/mes_database.db")
+class SimulationRunner(
+    db_path: str = "data/mes_database.db",
+    verbose: bool = False
+)
 ```
+
+**Parameters:**
+- `db_path`: Path to the database file
+- `verbose`: If True, print progress messages; if False (default), run quietly
 
 #### Methods
 
@@ -95,6 +102,12 @@ def get_all_values() -> Dict[str, float]
 ```
 Get all parameter values as dictionary.
 
+##### get_all
+```python
+def get_all() -> Dict[str, float]
+```
+Alias for `get_all_values()` - returns all current parameter values.
+
 ##### reset
 ```python
 def reset(parameter_name: Optional[str] = None) -> None
@@ -166,41 +179,50 @@ class RecommendationEngine(db_path: str = "data/mes_database.db")
 
 #### Methods
 
-##### recommend_for_oee_improvement
+##### recommend_for_scenario
 ```python
-def recommend_for_oee_improvement(baseline_run_id: Optional[str] = None) -> List[Dict]
+def recommend_for_scenario(
+    scenario: str,
+    save_recommendation: bool = True,
+    use_simulation: bool = False
+) -> Dict[str, Any]
 ```
-Generate recommendations to improve OEE.
+Generate optimized recommendations for a specific scenario using genetic algorithms.
 
-**Returns:** List of parameter recommendations with expected impacts
+**Parameters:**
+- `scenario`: Description of optimization goal (e.g., "maximize_oee", "reduce_downtime")
+- `save_recommendation`: Whether to save to database
+- `use_simulation`: If True, run actual simulations; if False, use approximations
 
-##### recommend_for_downtime_reduction
+**Returns:** Dictionary with:
 ```python
-def recommend_for_downtime_reduction() -> List[Dict]
+{
+    "scenario": str,                    # Input scenario description
+    "recommendation_id": str,            # Database ID if saved
+    "parameters": Dict[str, float],      # Recommended parameter values
+    "expected_improvements": Dict[str, float],  # KPI improvements as percentages
+    "objectives_achieved": Dict[str, float],    # Objective function values
+    "feasible": bool,                   # Whether solution meets constraints
+    "confidence": float,                 # Confidence level (typically 0.85)
+    "algorithm": str                     # Algorithm used (e.g., "pymoo NSGA-II")
+}
 ```
-Generate recommendations to reduce downtime.
 
-##### recommend_for_quality_improvement
+##### optimize
 ```python
-def recommend_for_quality_improvement() -> List[Dict]
-```
-Generate recommendations to improve quality.
-
-##### recommend_for_energy_efficiency
-```python
-def recommend_for_energy_efficiency() -> List[Dict]
-```
-Generate recommendations for energy efficiency.
-
-##### multi_objective_optimization
-```python
-def multi_objective_optimization(
-    objectives: List[str] = ["mean_oee", "downtime_percentage"],
+def optimize(
+    objectives: List[Objective],
+    constraints: Optional[Dict[str, Tuple[float, float]]] = None,
     population_size: int = 50,
-    n_generations: int = 20
-) -> List[Dict]
+    generations: int = 100,
+    seed: int = 42,
+    verbose: bool = True,
+    use_simulation: bool = False
+) -> List[OptimizationResult]
 ```
-Find Pareto-optimal configurations.
+Run multi-objective optimization using NSGA-II algorithm.
+
+**Returns:** List of Pareto-optimal solutions
 
 ---
 
@@ -217,21 +239,27 @@ class CostImpactCalculator(
 
 #### Methods
 
-##### calculate_financial_impact
+##### calculate_scenario_impact
 ```python
-def calculate_financial_impact(
+def calculate_scenario_impact(
+    scenario: str,
     baseline_kpis: Dict[str, float],
-    scenario_kpis: Dict[str, float],
-    duration_days: int = 30
-) -> Dict[str, float]
+    parameter_changes: Dict[str, float],
+    n_simulations: int = 1000
+) -> Dict[str, Any]
 ```
-Calculate financial impact of KPI changes.
+Calculate financial impact of parameter changes for a scenario.
+
+**Parameters:**
+- `scenario`: Name/description of the scenario
+- `baseline_kpis`: Dictionary of baseline KPI values
+- `parameter_changes`: Dictionary of parameter changes (as fractions, e.g., -0.5 for 50% reduction)
+- `n_simulations`: Number of Monte Carlo simulations for uncertainty analysis
 
 **Returns:** Dictionary with:
-- `revenue_impact`: Change in revenue
-- `cost_impact`: Change in costs
-- `net_impact`: Net financial impact
-- `roi_percentage`: Return on investment
+- `weekly_impact`: Weekly financial impact statistics (mean, median, CI)
+- `annual_impact`: Annual projections
+- `method`: Analysis method used (e.g., "monte_carlo")
 
 ##### calculate_roi
 ```python
@@ -246,41 +274,6 @@ Calculate return on investment percentage.
 
 ## Support Components
 
-### DisambiguationHelper
-
-Natural language query interpretation and entity resolution.
-
-```python
-class DisambiguationHelper(db_path: str = "data/mes_database.db")
-```
-
-#### Methods
-
-##### get_query_context
-```python
-def get_query_context(query: str) -> Dict[str, Any]
-```
-Provide context to help interpret a query.
-
-**Returns:** Dictionary with:
-- `entities`: Identified entities (lines, equipment, etc.)
-- `timeframe`: Temporal references
-- `parameter_hints`: Likely relevant parameters
-- `suggested_clarifications`: Questions to ask user
-
-##### resolve_entity
-```python
-def resolve_entity(entity_type: str, entity_ref: str) -> Optional[str]
-```
-Resolve entity reference to canonical form.
-
-**Parameters:**
-- `entity_type`: Type of entity ("line", "equipment", "shift")
-- `entity_ref`: Reference string from query
-
-**Returns:** Canonical entity ID or None if ambiguous
-
----
 
 ### TwinStateManager
 
@@ -453,14 +446,6 @@ Raised when optimization fails to converge.
 ---
 
 ## Configuration Files
-
-### ontology/disambiguation_patterns.yaml
-
-Defines natural language patterns for query interpretation:
-- Pattern mappings to operations
-- Parameter name translations
-- Objective mappings
-- Response templates
 
 ---
 

@@ -329,36 +329,3 @@ class SyncHealthMonitor:
         output.append("=" * 80)
         
         return "\n".join(output)
-
-
-def demonstrate_sync_health():
-    """Demonstrate sync health monitoring"""
-    monitor = SyncHealthMonitor()
-    
-    # Simulate some entity updates
-    print("Simulating entity synchronization...")
-    
-    # Update equipment entities
-    for line in range(1, 4):
-        for equipment in ["FIL", "PCK", "PAL"]:
-            entity_id = f"LINE{line}-{equipment}"
-            monitor.update_sync_metadata(
-                entity_id=entity_id,
-                entity_type="Equipment",
-                data={"status": "Running", "oee": 0.85},
-                source_run_id="sim-2025-01-09-001"
-            )
-    
-    # Simulate some delayed entities
-    import time
-    time.sleep(1)
-    
-    # Check health
-    print("\n" + monitor.visualize_health())
-    
-    # Check for alerts
-    alerts = monitor.check_and_alert(alert_threshold="DELAYED")
-    if alerts:
-        print(f"\n⚠️  ALERTS: {len(alerts)} entities need attention")
-        for entity_id, status in alerts:
-            print(f"   - {entity_id}: {status}")

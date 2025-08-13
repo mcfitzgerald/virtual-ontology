@@ -22,7 +22,6 @@ Analysis Components:
     - CostImpactCalculator: PyMC-based Bayesian ROI analysis
 
 Support Components:
-    - DisambiguationHelper: Natural language query interpretation
     - SyncHealthMonitor: Monitor synchronization health
     - LineCouplingModel: Model production line interactions
 
@@ -53,7 +52,6 @@ from .recommendation_engine import RecommendationEngine, Objective, Optimization
 from .cost_impact_calculator import CostImpactCalculator, CostParameters
 
 # Support Components - Helpers and utilities
-from .disambiguation import DisambiguationHelper
 from .sync_health import SyncHealthMonitor, SyncHealthStatus
 from .line_coupling_model import LineCoupling
 
@@ -79,7 +77,6 @@ __all__ = [
     "CostImpactCalculator",
     "CostParameters",
     # Support
-    "DisambiguationHelper",
     "SyncHealthMonitor",
     "SyncHealthStatus",
     "LineCoupling",

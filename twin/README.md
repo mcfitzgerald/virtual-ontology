@@ -176,14 +176,6 @@ The module is designed for Natural Language REPL pattern:
 
 ## Configuration
 
-### Disambiguation Patterns
-
-Natural language patterns are defined in `ontology/disambiguation_patterns.yaml`:
-- Query patterns mapped to operations
-- Parameter name mappings
-- Objective translations
-- Response templates
-
 ### Simulation Configuration
 
 Default configurations stored in database:

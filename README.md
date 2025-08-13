@@ -104,7 +104,6 @@ System: [Calculates $450K annual benefit with 95% CI: $400K-$500K]
 - **CostImpactCalculator**: PyMC Bayesian financial analysis
 
 ### Analysis Modules
-- **DisambiguationHelper**: Context-aware query interpretation
 - **TwinStateManager**: Virtual-physical synchronization tracking
 - **LineCouplingModel**: Production line interaction modeling
 - **SyncHealthMonitor**: System health and drift detection

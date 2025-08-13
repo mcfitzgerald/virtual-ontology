@@ -160,6 +160,10 @@ class ActionableParameters:
         """Get all current parameter values"""
         return self.current_values.copy()
     
+    def get_all(self) -> Dict[str, float]:
+        """Alias for get_all_values() - get all current parameter values"""
+        return self.get_all_values()
+    
     def set_all_values(self, values: Dict[str, float]) -> None:
         """Set multiple parameter values at once"""
         for name, value in values.items():
@@ -328,32 +332,3 @@ class ActionableParameters:
             lines.append(f"  Causal Effect: {param.causal_effect}")
         
         return "\n".join(lines)
-
-
-def demonstrate_parameters():
-    """Demonstrate actionable parameters"""
-    params = ActionableParameters()
-    
-    print(params.describe())
-    
-    print("\n\nSETTING IMPROVED MAINTENANCE SCENARIO:")
-    print("-" * 50)
-    
-    # Simulate improved maintenance
-    params.set_value("micro_stop_probability", 0.10)  # Reduce from 0.20 to 0.10
-    params.set_value("performance_factor", 0.95)  # Improve from 0.85 to 0.95
-    
-    print(f"Micro-stop probability: {params.get_value('micro_stop_probability')}")
-    print(f"Performance factor: {params.get_value('performance_factor')}")
-    
-    # Calculate impacts
-    print("\nEXPECTED IMPACTS:")
-    micro_stop_impact = params.calculate_impact("micro_stop_probability", -50)  # 50% reduction
-    print(f"Reducing micro-stops by 50%: {micro_stop_impact}")
-    
-    perf_impact = params.calculate_impact("performance_factor", 11.76)  # From 0.85 to 0.95
-    print(f"Improving performance by 11.76%: {perf_impact}")
-    
-    # Generate config overlay
-    print("\nCONFIG OVERLAY FOR SIMULATION:")
-    print(json.dumps(params.to_config_overlay(), indent=2))

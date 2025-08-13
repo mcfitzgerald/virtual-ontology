@@ -311,23 +311,43 @@ class RecommendationEngine:
         # Extract Pareto front solutions
         results = []
         if res.F is not None:
-            for i in range(len(res.X)):
+            # Handle both 1D and 2D arrays from optimizer
+            if len(res.X.shape) == 1:
+                # Single solution - reshape to 2D
+                X_array = res.X.reshape(1, -1)
+            else:
+                X_array = res.X
+                
+            for i in range(len(X_array)):
                 # Convert solution to parameter dictionary
                 param_dict = {
-                    name: float(res.X[i, j])
+                    name: float(X_array[i, j])
                     for j, name in enumerate(problem.param_names)
                 }
                 
                 # Create objective dictionary
-                obj_dict = {
-                    obj.name: float(res.F[i, j])
-                    for j, obj in enumerate(objectives)
-                }
+                # Handle both 1D and 2D F arrays
+                if len(res.F.shape) == 1:
+                    F_array = res.F.reshape(1, -1)
+                else:
+                    F_array = res.F
+                    
+                # Un-negate maximized objectives when storing
+                obj_dict = {}
+                for j, obj in enumerate(objectives):
+                    value = float(F_array[i, j])
+                    # If objective was maximized, it was negated, so un-negate it
+                    if obj.direction == 'maximize':
+                        value = -value
+                    obj_dict[obj.name] = value
                 
                 # Determine feasibility
                 feasible = True
-                if hasattr(res, 'G') and res.G is not None:
-                    feasible = np.all(res.G[i] <= 0)
+                if hasattr(res, 'G') and res.G is not None and len(res.G) > 0:
+                    if len(res.G.shape) == 1:
+                        feasible = np.all(res.G <= 0)
+                    else:
+                        feasible = np.all(res.G[i] <= 0) if i < len(res.G) else True
                 
                 results.append(OptimizationResult(
                     parameters=param_dict,
@@ -401,7 +421,7 @@ class RecommendationEngine:
         
         # Set labels if provided
         if objective_names:
-            plot.set_labels(objective_names)
+            plot.axis_labels = objective_names
         
         plot.show()
     
@@ -519,26 +539,66 @@ class RecommendationEngine:
         scenario_lower = scenario.lower()
         objectives = []
         
-        # Energy efficiency
-        if any(word in scenario_lower for word in ['energy', 'power', 'consumption']):
+        # For specific scenarios, always include OEE as primary objective
+        # to prevent solutions that destroy overall performance
+        
+        if 'maximize_oee' in scenario_lower or 'oee' in scenario_lower:
+            # Single objective: maximize OEE
             objectives.append(Objective(
-                name="energy_efficiency",
-                direction="minimize",
-                kpi_name="energy_per_unit",
+                name="oee",
+                direction="maximize",
+                kpi_name="mean_oee",
                 weight=1.0
             ))
         
-        # Quality
-        if any(word in scenario_lower for word in ['quality', 'scrap', 'defect']):
+        elif 'reduce_downtime' in scenario_lower or 'availability' in scenario_lower:
+            # Primary: maximize availability, Secondary: maintain OEE
+            objectives.append(Objective(
+                name="availability",
+                direction="maximize",
+                kpi_name="mean_availability",
+                weight=1.0
+            ))
+            # Add OEE as secondary to prevent degradation
+            objectives.append(Objective(
+                name="oee",
+                direction="maximize",
+                kpi_name="mean_oee",
+                weight=0.5
+            ))
+        
+        elif 'improve_quality' in scenario_lower or 'scrap' in scenario_lower:
+            # Primary: minimize scrap, Secondary: maintain OEE
             objectives.append(Objective(
                 name="quality",
                 direction="minimize",
                 kpi_name="scrap_rate",
                 weight=1.0
             ))
+            # Add OEE as secondary to prevent degradation
+            objectives.append(Objective(
+                name="oee",
+                direction="maximize",
+                kpi_name="mean_oee",
+                weight=0.5
+            ))
         
-        # Throughput
-        if any(word in scenario_lower for word in ['throughput', 'production', 'output']):
+        elif any(word in scenario_lower for word in ['energy', 'power', 'consumption']):
+            objectives.append(Objective(
+                name="energy_efficiency",
+                direction="minimize",
+                kpi_name="energy_per_unit",
+                weight=1.0
+            ))
+            # Add OEE as secondary
+            objectives.append(Objective(
+                name="oee",
+                direction="maximize",
+                kpi_name="mean_oee",
+                weight=0.5
+            ))
+        
+        elif any(word in scenario_lower for word in ['throughput', 'production', 'output']):
             objectives.append(Objective(
                 name="throughput",
                 direction="maximize",
@@ -546,22 +606,19 @@ class RecommendationEngine:
                 weight=1.0
             ))
         
-        # Maintenance
-        if any(word in scenario_lower for word in ['maintenance', 'downtime', 'availability']):
-            objectives.append(Objective(
-                name="availability",
-                direction="maximize",
-                kpi_name="mean_availability",
-                weight=1.0
-            ))
-        
-        # Cost
-        if any(word in scenario_lower for word in ['cost', 'savings', 'financial']):
+        elif any(word in scenario_lower for word in ['cost', 'savings', 'financial']):
             objectives.append(Objective(
                 name="cost",
                 direction="minimize",
                 kpi_name="total_cost",
-                weight=1.5
+                weight=1.0
+            ))
+            # Add OEE as secondary
+            objectives.append(Objective(
+                name="oee",
+                direction="maximize",
+                kpi_name="mean_oee",
+                weight=0.5
             ))
         
         # Default: optimize OEE
@@ -574,96 +631,3 @@ class RecommendationEngine:
             ))
         
         return objectives
-
-
-def demonstrate_recommendation_engine():
-    """Demonstrate multi-objective optimization with pymoo"""
-    print("RECOMMENDATION ENGINE DEMONSTRATION (pymoo)")
-    print("=" * 60)
-    
-    engine = RecommendationEngine()
-    
-    # Test 1: Energy vs Throughput optimization
-    print("\n1. MULTI-OBJECTIVE OPTIMIZATION: Energy vs Throughput")
-    print("-" * 40)
-    
-    objectives = [
-        Objective("energy", "minimize", "energy_per_unit"),
-        Objective("throughput", "maximize", "total_good_units")
-    ]
-    
-    results = engine.optimize(
-        objectives=objectives,
-        population_size=30,
-        generations=40,
-        verbose=False,
-        use_simulation=False  # Use approximation for demo
-    )
-    
-    print(f"Found {len(results)} Pareto-optimal solutions")
-    
-    # Calculate hypervolume
-    hv = engine.calculate_hypervolume(results)
-    print(f"Hypervolume indicator: {hv:.4f}")
-    
-    print("\nTop 3 solutions:")
-    for i, result in enumerate(results[:3], 1):
-        print(f"\nSolution {i}:")
-        print(f"  Energy: {-result.objectives.get('energy', 0):.1f} kWh/unit")
-        print(f"  Throughput: {-result.objectives.get('throughput', 0):.0f} units")
-        print(f"  Feasible: {result.feasible}")
-        print(f"  Key parameters:")
-        for param, value in result.parameters.items():
-            params = ActionableParameters()
-            default = params.parameters[param].default
-            if abs(value - default) > 0.05:  # Show only changed params
-                print(f"    {param}: {value:.3f}")
-    
-    # Visualize Pareto front (if in interactive environment)
-    try:
-        engine.visualize_pareto_front(
-            results,
-            objective_names=["Energy (kWh/unit)", "Throughput (units)"]
-        )
-    except:
-        print("(Visualization skipped - requires display)")
-    
-    # Test 2: Scenario-based recommendation
-    print("\n2. SCENARIO-BASED RECOMMENDATION (pymoo)")
-    print("-" * 40)
-    
-    scenarios = [
-        "optimize for energy efficiency",
-        "maximize throughput while maintaining quality",
-        "reduce maintenance costs"
-    ]
-    
-    for scenario in scenarios:
-        print(f"\nScenario: '{scenario}'")
-        recommendation = engine.recommend_for_scenario(
-            scenario,
-            save_recommendation=False,
-            use_simulation=False
-        )
-        
-        if "error" not in recommendation:
-            print(f"Algorithm: {recommendation.get('algorithm', 'N/A')}")
-            print(f"Confidence: {recommendation.get('confidence', 0):.0%}")
-            print("Recommended changes:")
-            params = ActionableParameters()
-            for param, value in recommendation["parameters"].items():
-                default = params.parameters[param].default
-                if abs(value - default) > 0.01:
-                    change = ((value - default) / default * 100) if default != 0 else 0
-                    print(f"  {param}: {value:.3f} ({change:+.1f}% from default)")
-            
-            print("Expected improvements:")
-            for kpi, improvement in recommendation["expected_improvements"].items():
-                if abs(improvement) > 1:
-                    print(f"  {kpi}: {improvement:+.1f}%")
-    
-    print("\n✅ pymoo-based recommendation engine demonstrated!")
-
-
-if __name__ == "__main__":
-    demonstrate_recommendation_engine()

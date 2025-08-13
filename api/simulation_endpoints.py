@@ -15,7 +15,6 @@ from twin import (
     SimulationRunner,
     ActionableParameters,
     RecommendationEngine,
-    DisambiguationHelper,
     TwinStateManager
 )
 
@@ -42,11 +41,6 @@ class OptimizationRequest(BaseModel):
     population_size: int = Field(default=50, ge=10, le=200)
     generations: int = Field(default=20, ge=5, le=100)
     baseline_run_id: Optional[str] = None
-
-
-class QueryContextRequest(BaseModel):
-    """Request model for query disambiguation"""
-    query: str
 
 
 @router.post("/run")
@@ -244,23 +238,6 @@ async def get_recommendations(
             "recommendations": recommendations,
             "baseline_run_id": baseline_run_id
         }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/query/context")
-async def get_query_context(request: QueryContextRequest):
-    """
-    Get disambiguation context for a natural language query
-    
-    This helps the LLM understand what the user is asking about
-    """
-    try:
-        helper = DisambiguationHelper()
-        context = helper.get_query_context(request.query)
-        
-        return context
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
