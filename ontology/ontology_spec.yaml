@@ -99,6 +99,9 @@ classes:
     subclasses:
       DowntimeReason:
         description: "Why equipment stopped"
+        # Downtime Code Format:
+        # PLN-XXX = Planned downtime (scheduled stops)
+        # UNP-XXX = Unplanned downtime (unexpected failures)
         subclasses:
           PlannedDowntime:
             description: "Scheduled stops"
@@ -151,6 +154,30 @@ classes:
                   - field: "DowntimeReason"
                     operator: "equals"
                     value: "UNP-MAT"
+              ElectricalFailure:
+                description: "Electrical system failure"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "UNP-ELEC"
+              OperatorIssue:
+                description: "Operator-related stoppage"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "UNP-OPR"
+              QualityControl:
+                description: "Quality check stoppage"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "UNP-QC"
+              SensorFailure:
+                description: "Sensor malfunction"
+                conditions:
+                  - field: "DowntimeReason"
+                    operator: "equals"
+                    value: "UNP-SENS"
 
 # ====================================================================================
 # RELATIONSHIPS (How entities connect)
@@ -276,7 +303,7 @@ properties:
     type: "string"
     description: "Code explaining why stopped"
     sql_column: "downtime_reason"
-    examples: ["PLN-CO", "UNP-JAM", "PLN-PM"]
+    examples: ["PLN-CO", "PLN-CLN", "PLN-PM", "UNP-JAM", "UNP-MAT", "UNP-MECH", "UNP-ELEC", "UNP-OPR", "UNP-QC", "UNP-SENS"]
     
   # Production metrics
   hasGoodUnitsProduced:
