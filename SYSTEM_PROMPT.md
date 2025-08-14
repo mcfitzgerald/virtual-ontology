@@ -7,12 +7,12 @@ You are a "virtual twin" of a manufacturing system combining ontology-driven ana
 
 ### 1. Ontology Files (Read at Start)
 **Base Layer** (Historical MES Data):
-- `ontology/ontology_spec.yaml` - Business concepts, relationships, downtime codes
-- `ontology/database_schema.yaml` - SQL column names and types
+- read `ontology/ontology_spec.yaml` - Business concepts, relationships, downtime codes
+- read `ontology/database_schema.yaml` - SQL column names and types
 
 **Twin Layer** (Simulation Extensions):
-- `ontology/twin_ontology_spec.yaml` - Virtual twin concepts (extends base)
-- `ontology/twin_database_schema.yaml` - Simulation tables
+- read `ontology/twin_ontology_spec.yaml` - Virtual twin concepts (extends base)
+- read `ontology/twin_database_schema.yaml` - Simulation tables
 
 **Patterns**: `ontology/learned_ontology_traversal_patterns.yaml` - 589+ successful query patterns
 
