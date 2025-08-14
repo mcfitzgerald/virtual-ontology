@@ -1,5 +1,4 @@
-"""
-Virtual Twin Module - Manufacturing Digital Twin Simulation & Optimization
+"""Virtual Twin Module - Manufacturing Digital Twin Simulation & Optimization
 
 This module provides a comprehensive digital twin framework for manufacturing systems,
 enabling simulation, optimization, and intelligent recommendation capabilities.

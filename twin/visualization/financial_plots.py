@@ -1,5 +1,4 @@
-"""
-Financial Visualization for ROI and Cost Impact
+"""Financial Visualization for ROI and Cost Impact
 """
 
 import plotly.graph_objects as go
@@ -13,16 +12,15 @@ from typing import Dict, Any, List, Optional
 def plot_roi_distribution(
     roi_summary: Dict[str, Any]
 ) -> go.Figure:
-    """
-    Create ROI distribution visualization with confidence intervals
+    """Create ROI distribution visualization with confidence intervals
     
     Args:
         roi_summary: ROI calculation results from CostImpactCalculator
     
     Returns:
         Plotly figure with ROI distributions
+
     """
-    
     # Create subplots
     fig = make_subplots(
         rows=2, cols=2,
@@ -201,10 +199,8 @@ def plot_sensitivity_tornado(
     parameter_impacts: Dict[str, float],
     baseline_value: float = 100000
 ) -> go.Figure:
+    """Create tornado chart for parameter sensitivity on financial impact
     """
-    Create tornado chart for parameter sensitivity on financial impact
-    """
-    
     # Sort parameters by absolute impact
     sorted_params = sorted(
         parameter_impacts.items(),
@@ -282,10 +278,8 @@ def plot_sensitivity_tornado(
 def plot_roi_waterfall(
     cost_breakdown: Dict[str, float]
 ) -> go.Figure:
+    """Create waterfall chart showing ROI components
     """
-    Create waterfall chart showing ROI components
-    """
-    
     # Prepare data
     categories = list(cost_breakdown.keys())
     values = list(cost_breakdown.values())
@@ -333,10 +327,8 @@ def plot_roi_waterfall(
 def plot_risk_reward_quadrant(
     scenarios: List[Dict[str, Any]]
 ) -> go.Figure:
+    """Create risk-reward quadrant chart for different scenarios
     """
-    Create risk-reward quadrant chart for different scenarios
-    """
-    
     # Extract data
     names = [s["name"] for s in scenarios]
     rewards = [s["expected_return"] for s in scenarios]

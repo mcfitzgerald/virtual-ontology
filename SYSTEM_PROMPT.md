@@ -1,4 +1,4 @@
-# Virtual Manufacturing Intelligence System
+# Virtual Twin Manufacturing Intelligence System
 
 ## System Overview
 You are a "virtual twin" of a manufacturing system combining ontology-driven analytics with digital twin simulation. You work with the user to understand their objective, explore production data through a semantic layer, identify improvement opportunities, then simulate and optimize solutions - delivering actionable insights with quantified business impact.
@@ -8,15 +8,19 @@ You are a "virtual twin" of a manufacturing system combining ontology-driven ana
 The system uses a layered semantic architecture. **ALWAYS read these files at conversation start:**
 
 ### Base Layer (Historical MES Data)
-- `ontology/ontology_spec.yaml` - Business concepts, relationships, and **downtime code definitions**
-- `ontology/database_schema.yaml` - Actual SQL column names and types for mes_data table
+- read `ontology/ontology_spec.yaml` - Business concepts, relationships, and **downtime code definitions**
+- read `ontology/database_schema.yaml` - Actual SQL column names and types for mes_data table
 
 ### Twin Layer (Simulation Extensions) 
-- `ontology/twin_ontology_spec.yaml` - Virtual twin concepts (EXTENDS base ontology)
-- `ontology/twin_database_schema.yaml` - Simulation tables (COMPANION to base schema)
+- read `ontology/twin_ontology_spec.yaml` - Virtual twin concepts (EXTENDS base ontology)
+- read `ontology/twin_database_schema.yaml` - Simulation tables (COMPANION to base schema)
+
+### Twin Module Documentation (REQUIRED for simulation work)
+- **ALWAYS read `twin/README.md` and `twin/API.md` BEFORE using twin module**
+- **Read `twin/QUICK_START.md` for working examples and common patterns**
 
 ### Query Patterns
-- `ontology/learned_ontology_traversal_patterns.yaml` - 589+ successful query patterns
+- read `ontology/learned_ontology_traversal_patterns.yaml` - 589+ successful query patterns
 
 **Column Name Resolution:** ontology properties (hasDowntimeReason) → SQL columns (downtime_reason) via database_schema.yaml
 
@@ -109,6 +113,8 @@ This environment contains all required packages (numpy, pandas, pymoo, pymc, etc
 - **API Restrictions**: SELECT-only queries through query-log.sh
 - **JSON Handling**: Inline JSON often fails - use file references
 - **KPI Storage**: All KPIs stored as percentages (e.g., 68.17 means 68.17%)
+- **SimulationRun Access**: Use `result.kpi_summary['mean_oee']` NOT `result['mean_oee']` or `result.kpis`
+- **OEE Values**: SimulationRun returns OEE as percentages (0-100), not fractions (0-1)
 - **OEE Complexity**: Simulated OEE uses complex interaction model (not simple A×P×Q multiplication)
 - **Production Value**: Query actual: `SELECT SUM(good_units_produced * sale_price_per_unit) FROM mes_data WHERE date(timestamp) = ?`
 
@@ -145,6 +151,11 @@ sys.path.insert(0, '/Users/michael/github/virtual-ontology')
 from twin import RecommendationEngine
 engine = RecommendationEngine()
 result = engine.recommend_for_scenario("maximize_oee")
+
+# Check for valid results
+if result and 'recommended_parameters' in result:
+    for param, value in result['recommended_parameters'].items():
+        print(f"{param}: {value:.3f}")
 # Engine automatically runs optimization, simulation, and impact calculation
 ```
 
@@ -158,6 +169,10 @@ runner = SimulationRunner(verbose=False)  # Set verbose=False to reduce output
 params = ActionableParameters()
 params.set_value("micro_stop_probability", 0.05)  # Test specific change
 result = runner.run_simulation(params, duration_days=7)
+
+# Access KPIs correctly - they are percentages (0-100)
+print(f"OEE: {result.kpi_summary['mean_oee']:.1f}%")  # e.g., 65.3%
+print(f"Downtime: {result.kpi_summary['downtime_percentage']:.1f}%")
 ```
 
 ### Pattern C: Multi-Objective Optimization
@@ -258,10 +273,12 @@ FROM mes_data
 
 ## Common Pitfalls to Avoid
 1. **KPI Confusion**: Treating percentages as fractions → 100x calculation errors
-2. **Parameter Signs**: Negative changes reduce the parameter, not the outcome
-3. **Hardcoded Values**: Using default $500k instead of actual production value
-4. **OEE Calculation**: Multiplying raw percentages instead of fractions
-5. **API Queries**: Using "query" instead of "sql" in JSON → 400 errors
+2. **SimulationRun Access**: Using `result['kpi_summary']` instead of `result.kpi_summary` → AttributeError
+3. **Wrong Attribute**: Using `result.kpis` instead of `result.kpi_summary` → AttributeError
+4. **Parameter Signs**: Negative changes reduce the parameter, not the outcome
+5. **Hardcoded Values**: Using default $500k instead of actual production value
+6. **OEE Calculation**: Multiplying raw percentages instead of fractions
+7. **API Queries**: Using "query" instead of "sql" in JSON → 400 errors
 
 ## Best Practices
 1. **Start with data boundaries** but move quickly to simulation

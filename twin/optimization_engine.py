@@ -1,5 +1,4 @@
-"""
-Twin Optimization Engine
+"""Twin Optimization Engine
 Multi-objective optimization using scipy's differential evolution algorithm
 Following VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md Phase 4 specifications
 """
@@ -11,6 +10,7 @@ from scipy.optimize import differential_evolution, NonlinearConstraint, LinearCo
 import logging
 from datetime import datetime
 import json
+from .config_loader import ConfigLoader
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ActionableParameter:
-    """
-    Actionable parameter that can be tuned in the simulation
+    """Actionable parameter that can be tuned in the simulation
     Ref: VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md lines 114-122
     """
+
     name: str
     bounds: Tuple[float, float]
     unit: str  # QUDT URI
@@ -33,6 +33,7 @@ class ActionableParameter:
 @dataclass
 class OptimizationObjective:
     """Single optimization objective"""
+
     name: str
     direction: str  # 'minimize' or 'maximize'
     weight: float = 1.0
@@ -42,6 +43,7 @@ class OptimizationObjective:
 @dataclass
 class OptimizationResult:
     """Result from optimization run"""
+
     parameters: Dict[str, float]
     objectives: Dict[str, float]
     success: bool
@@ -54,8 +56,7 @@ class OptimizationResult:
 
 
 class OptimizationEngine:
-    """
-    Multi-objective optimization engine using differential evolution
+    """Multi-objective optimization engine using differential evolution
     Implements NSGA-II concepts for Pareto optimization
     """
     
@@ -63,69 +64,79 @@ class OptimizationEngine:
     PARAMETERS = {
         'micro_stop_probability': ActionableParameter(
             name='micro_stop_probability',
-            bounds=(0.05, 0.50),
+            bounds=(0.05, 0.50),  # TODO: HARDCODED - parameter bounds
             unit='http://qudt.org/vocab/unit/PERCENT',
             causal_effect='Reduces availability score',
             invariants=['value >= 0', 'value <= 1']
         ),
         'performance_factor': ActionableParameter(
             name='performance_factor',
-            bounds=(0.50, 1.00),
+            bounds=(0.50, 1.00),  # TODO: HARDCODED - parameter bounds
             unit='http://qudt.org/vocab/quantitykind/Dimensionless',
             causal_effect='Scales actual vs target throughput',
             invariants=['value > 0', 'value <= 1']
         ),
         'scrap_multiplier': ActionableParameter(
             name='scrap_multiplier',
-            bounds=(1.0, 5.0),
+            bounds=(1.0, 5.0),  # TODO: HARDCODED - parameter bounds
             unit='http://qudt.org/vocab/quantitykind/Dimensionless',
             causal_effect='Increases defect rate, reduces quality score',
             invariants=['value >= 1']
         ),
         'material_reliability': ActionableParameter(
             name='material_reliability',
-            bounds=(0.50, 1.00),
+            bounds=(0.50, 1.00),  # TODO: HARDCODED - parameter bounds
             unit='http://qudt.org/vocab/unit/PERCENT',
             causal_effect='Probability of good material batch',
             invariants=['value >= 0', 'value <= 1']
         ),
         'cascade_sensitivity': ActionableParameter(
             name='cascade_sensitivity',
-            bounds=(0.0, 1.0),
+            bounds=(0.0, 1.0),  # TODO: HARDCODED - parameter bounds
             unit='http://qudt.org/vocab/quantitykind/Dimensionless',
             causal_effect='Controls blockage/starvation propagation',
             invariants=['value >= 0', 'value <= 1']
         )
     }
     
-    def __init__(self, simulation_runner=None):
-        """
-        Initialize optimization engine
+    def __init__(self, simulation_runner: Optional[Any] = None) -> None:
+        """Initialize optimization engine
         
         Args:
             simulation_runner: Optional simulation runner for evaluating solutions
+
         """
-        self.simulation_runner = simulation_runner
-        self.evaluation_count = 0
-        self.best_solution = None
-        self.pareto_front = []
+        self.loader = ConfigLoader()
+        self.config = self.loader.config
+        
+        # Update parameter bounds from configuration
+        for param_name, param_config in self.config["parameters"].items():
+            if param_name in self.PARAMETERS:
+                self.PARAMETERS[param_name].bounds = (
+                    param_config["bounds"]["min"],
+                    param_config["bounds"]["max"]
+                )
+        
+        self.simulation_runner: Optional[Any] = simulation_runner
+        self.evaluation_count: int = 0
+        self.best_solution: Optional[OptimizationResult] = None
+        self.pareto_front: List[OptimizationResult] = []
         
     def optimize(
         self,
         objectives: List[OptimizationObjective],
         constraints: Optional[Dict[str, Any]] = None,
-        population_size: int = 40,
-        generations: int = 100,
-        seed: int = 42,
+        population_size: int = 40,  # TODO: HARDCODED - default population size
+        generations: int = 100,  # TODO: HARDCODED - default generations
+        seed: int = 42,  # TODO: HARDCODED - default seed
         strategy: str = 'best1bin',
-        mutation: Tuple[float, float] = (0.5, 1.0),
-        recombination: float = 0.7,
+        mutation: Tuple[float, float] = (0.5, 1.0),  # TODO: HARDCODED - mutation range
+        recombination: float = 0.7,  # TODO: HARDCODED - recombination probability
         workers: int = 1,
         callback: Optional[Callable] = None,
         verbose: bool = True
     ) -> List[OptimizationResult]:
-        """
-        Run multi-objective optimization using differential evolution
+        """Run multi-objective optimization using differential evolution
         Following VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md lines 283-358
         
         Args:
@@ -143,6 +154,7 @@ class OptimizationEngine:
             
         Returns:
             List of Pareto-optimal solutions
+
         """
         if verbose:
             logger.info(f"Starting optimization with {len(objectives)} objectives")
@@ -153,19 +165,19 @@ class OptimizationEngine:
         self.pareto_front = []
         
         # Build bounds from parameters
-        bounds = []
-        param_names = []
+        bounds: List[Tuple[float, float]] = []
+        param_names: List[str] = []
         for param_name, param in self.PARAMETERS.items():
             bounds.append(param.bounds)
             param_names.append(param_name)
         
         # Create objective function
-        def objective_function(x):
+        def objective_function(x: np.ndarray) -> float:
             """Evaluate solution and return objective values"""
             self.evaluation_count += 1
             
             # Map array to parameter dict
-            params = {name: val for name, val in zip(param_names, x)}
+            params: Dict[str, float] = {name: val for name, val in zip(param_names, x)}
             
             # Simulate with parameters (or use mock if no runner)
             if self.simulation_runner:
@@ -175,7 +187,7 @@ class OptimizationEngine:
                 results = self._mock_simulation(params)
             
             # Calculate objective values
-            obj_values = []
+            obj_values: List[float] = []
             for obj in objectives:
                 value = self._calculate_objective(results, obj)
                 # Negate if maximizing (differential_evolution minimizes)
@@ -191,7 +203,7 @@ class OptimizationEngine:
                 return obj_values[0]
         
         # Build constraints if provided
-        scipy_constraints = []
+        scipy_constraints: List[Any] = []
         if constraints:
             scipy_constraints = self._build_constraints(constraints, param_names)
         
@@ -202,7 +214,7 @@ class OptimizationEngine:
             strategy=strategy,
             maxiter=generations,
             popsize=population_size,
-            tol=0.01,
+            tol=0.01,  # TODO: HARDCODED - tolerance
             mutation=mutation,
             recombination=recombination,
             seed=seed,
@@ -217,7 +229,7 @@ class OptimizationEngine:
         )
         
         # Convert result to OptimizationResult
-        opt_params = {name: val for name, val in zip(param_names, result.x)}
+        opt_params: Dict[str, float] = {name: val for name, val in zip(param_names, result.x)}
         
         # Get final objective values
         if self.simulation_runner:
@@ -225,7 +237,7 @@ class OptimizationEngine:
         else:
             final_results = self._mock_simulation(opt_params)
         
-        obj_values = {}
+        obj_values: Dict[str, float] = {}
         for obj in objectives:
             value = self._calculate_objective(final_results, obj)
             obj_values[obj.name] = value
@@ -253,8 +265,7 @@ class OptimizationEngine:
         seed: int = 42,
         verbose: bool = True
     ) -> List[OptimizationResult]:
-        """
-        True multi-objective optimization with Pareto front
+        """True multi-objective optimization with Pareto front
         Uses multiple differential evolution runs with different weights
         
         This is a simplified version - full NSGA-II would be better
@@ -310,11 +321,10 @@ class OptimizationEngine:
     def validate_with_monte_carlo(
         self,
         solution: OptimizationResult,
-        n_simulations: int = 1000,
-        confidence_level: float = 0.95
+        n_simulations: int = 1000,  # TODO: HARDCODED - default simulations
+        confidence_level: float = 0.95  # TODO: HARDCODED - default confidence level
     ) -> OptimizationResult:
-        """
-        Validate solution with Monte Carlo simulation
+        """Validate solution with Monte Carlo simulation
         Following VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md lines 351-357
         
         Args:
@@ -324,6 +334,7 @@ class OptimizationEngine:
             
         Returns:
             Updated solution with confidence intervals
+
         """
         if not self.simulation_runner:
             # Mock validation
@@ -334,10 +345,10 @@ class OptimizationEngine:
             return solution
         
         # Run multiple simulations with different seeds
-        objective_samples = {obj_name: [] for obj_name in solution.objectives}
+        objective_samples: Dict[str, List[float]] = {obj_name: [] for obj_name in solution.objectives}
         
         for i in range(n_simulations):
-            seed = np.random.randint(0, 2**32)
+            seed: int = np.random.randint(0, 2**32)  # TODO: HARDCODED - seed range
             results = self.simulation_runner.simulate(solution.parameters, seed=seed)
             
             for obj_name in solution.objectives:
@@ -345,12 +356,12 @@ class OptimizationEngine:
                 objective_samples[obj_name].append(value)
         
         # Calculate confidence intervals
-        alpha = 1 - confidence_level
+        alpha: float = 1 - confidence_level
         for obj_name, samples in objective_samples.items():
-            lower = np.percentile(samples, alpha/2 * 100)
-            upper = np.percentile(samples, (1 - alpha/2) * 100)
-            mean = np.mean(samples)
-            std = np.std(samples)
+            lower: float = float(np.percentile(samples, alpha/2 * 100))
+            upper: float = float(np.percentile(samples, (1 - alpha/2) * 100))
+            mean: float = float(np.mean(samples))
+            std: float = float(np.std(samples))
             
             # Update solution with statistics
             solution.objectives[obj_name] = mean
@@ -362,20 +373,20 @@ class OptimizationEngine:
     def _mock_simulation(self, params: Dict[str, float]) -> Dict[str, Any]:
         """Mock simulation for testing without actual simulator"""
         # Simple model for testing
-        micro_stop = params.get('micro_stop_probability', 0.15)
-        performance = params.get('performance_factor', 0.85)
-        scrap = params.get('scrap_multiplier', 2.0)
-        material = params.get('material_reliability', 0.85)
-        cascade = params.get('cascade_sensitivity', 0.5)
+        micro_stop: float = params.get('micro_stop_probability', 0.15)  # TODO: HARDCODED - default value
+        performance: float = params.get('performance_factor', 0.85)  # TODO: HARDCODED - default value
+        scrap: float = params.get('scrap_multiplier', 2.0)  # TODO: HARDCODED - default value
+        material: float = params.get('material_reliability', 0.85)  # TODO: HARDCODED - default value
+        cascade: float = params.get('cascade_sensitivity', 0.5)  # TODO: HARDCODED - default value
         
         # Mock KPIs based on parameters
-        availability = max(0, min(100, 95 - micro_stop * 100))
-        quality = max(0, min(100, 100 / scrap))
-        oee = (availability * performance * quality) / 100
+        availability: float = max(0, min(100, 95 - micro_stop * 100))  # TODO: HARDCODED - formula
+        quality: float = max(0, min(100, 100 / scrap))
+        oee: float = (availability * performance * quality) / 100
         
         # Mock energy and throughput
-        energy_per_unit = 0.5 + cascade * 0.2
-        throughput = 1000 * performance * material
+        energy_per_unit: float = 0.5 + cascade * 0.2  # TODO: HARDCODED - energy formula
+        throughput: float = 1000 * performance * material  # TODO: HARDCODED - base throughput 1000
         
         return {
             'oee': oee,
@@ -517,8 +528,7 @@ class OptimizationEngine:
         constraints: Optional[Dict[str, Any]] = None,
         verbose: bool = True
     ) -> Dict[str, Any]:
-        """
-        Generate recommendation for a specific scenario using natural language
+        """Generate recommendation for a specific scenario using natural language
         
         Args:
             scenario: Natural language description of optimization goal
@@ -527,6 +537,7 @@ class OptimizationEngine:
             
         Returns:
             Recommendation with parameters and expected improvements
+
         """
         # Parse scenario to objectives (simplified)
         objectives = self._parse_scenario_to_objectives(scenario)
@@ -592,23 +603,23 @@ class OptimizationEngine:
         """Generate implementation steps for parameter changes"""
         steps = []
         
-        if parameters.get('micro_stop_probability', 0.15) < 0.10:
+        if parameters.get('micro_stop_probability', self.config["parameters"]["micro_stop_probability"]["default"]) < 0.10:
             steps.append("Implement preventive maintenance schedule")
             steps.append("Train operators on micro-stop prevention")
         
-        if parameters.get('performance_factor', 0.85) > 0.90:
+        if parameters.get('performance_factor', self.config["parameters"]["performance_factor"]["default"]) > 0.90:
             steps.append("Optimize equipment speed settings")
             steps.append("Review and adjust production targets")
         
-        if parameters.get('scrap_multiplier', 2.0) < 1.5:
+        if parameters.get('scrap_multiplier', self.config["parameters"]["scrap_multiplier"]["default"]) < 1.5:
             steps.append("Enhance quality control procedures")
             steps.append("Implement inline inspection systems")
         
-        if parameters.get('material_reliability', 0.85) > 0.95:
+        if parameters.get('material_reliability', self.config["parameters"]["material_reliability"]["default"]) > 0.95:
             steps.append("Work with suppliers on material quality")
             steps.append("Implement incoming material inspection")
         
-        if parameters.get('cascade_sensitivity', 0.5) < 0.3:
+        if parameters.get('cascade_sensitivity', self.config["parameters"]["cascade_sensitivity"]["default"]) < 0.3:
             steps.append("Increase buffer capacity between equipment")
             steps.append("Implement decoupling strategies")
         
@@ -618,13 +629,13 @@ class OptimizationEngine:
         """Identify risks associated with parameter changes"""
         risks = []
         
-        if parameters.get('performance_factor', 0.85) > 0.95:
+        if parameters.get('performance_factor', self.config["parameters"]["performance_factor"]["default"]) > 0.95:
             risks.append("Equipment wear may increase at higher speeds")
         
-        if parameters.get('scrap_multiplier', 2.0) < 1.2:
+        if parameters.get('scrap_multiplier', self.config["parameters"]["scrap_multiplier"]["default"]) < 1.2:
             risks.append("Quality improvements may require capital investment")
         
-        if parameters.get('cascade_sensitivity', 0.5) < 0.2:
+        if parameters.get('cascade_sensitivity', self.config["parameters"]["cascade_sensitivity"]["default"]) < 0.2:
             risks.append("Increased buffer inventory costs")
         
         return risks if risks else ["No significant risks identified"]

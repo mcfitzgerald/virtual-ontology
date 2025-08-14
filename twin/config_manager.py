@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Configuration Manager for Virtual Twin Simulations
+"""Configuration Manager for Virtual Twin Simulations
 Handles storage and retrieval of simulation configurations in database
 """
 
@@ -9,23 +8,39 @@ import sqlite3
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
+from sqlite3 import Connection, Cursor
 import logging
+from .config_loader import ConfigLoader
 
 logger = logging.getLogger(__name__)
 
 
 class ConfigurationManager:
-    """
-    Manages simulation configurations with database storage
+    """Manages simulation configurations with database storage
     Provides efficient storage using deltas and on-demand generation
     """
     
-    def __init__(self, db_path: str = "data/mes_database.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None) -> None:
+        """Initialize the ConfigurationManager.
+        
+        Args:
+            db_path: Path to SQLite database. If None, uses path from configuration.
+            
+        Raises:
+            KeyError: If database path not found in configuration.
+
+        """
+        self.loader = ConfigLoader()
+        self.config = self.loader.config
+        
+        if db_path is None:
+            db_path = self.config["database"]["path"]
+            
+        self.db_path: str = db_path
         self._init_database()
     
-    def _init_database(self):
+    def _init_database(self) -> None:
         """Initialize configuration storage tables"""
         with sqlite3.connect(self.db_path) as conn:
             # Table for storing full configurations
@@ -74,8 +89,7 @@ class ConfigurationManager:
         config_type: str = 'full',
         description: Optional[str] = None
     ) -> str:
-        """
-        Store configuration in database
+        """Store configuration in database
         
         Args:
             config: Configuration dictionary
@@ -85,6 +99,7 @@ class ConfigurationManager:
             
         Returns:
             config_id of stored configuration
+
         """
         config_hash = self._calculate_hash(config)
         
@@ -102,7 +117,7 @@ class ConfigurationManager:
                 return existing[0]
             
             # Generate new config ID
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            timestamp: str = datetime.now().strftime("%Y%m%d-%H%M%S")
             config_id = f"cfg-{timestamp}-{config_hash[:8]}"
             
             # Store configuration
@@ -159,30 +174,32 @@ class ConfigurationManager:
     def list_configs(
         self,
         config_type: Optional[str] = None,
-        limit: int = 100
+        limit: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """List available configurations"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             
-            query = """
+            query: str = """
                 SELECT config_id, run_id, config_type, description, 
                        created_at, config_hash
                 FROM simulation_configs 
                 WHERE is_archived = 0
             """
             
-            params = []
+            params: List[Any] = []
             if config_type:
                 query += " AND config_type = ?"
                 params.append(config_type)
             
+            if limit is None:
+                limit = self.config["display_limits"]["max_config_list"]
             query += " ORDER BY created_at DESC LIMIT ?"
             params.append(limit)
             
             cursor.execute(query, params)
             
-            configs = []
+            configs: List[Dict[str, Any]] = []
             for row in cursor.fetchall():
                 configs.append({
                     'config_id': row[0],
@@ -208,8 +225,11 @@ class ConfigurationManager:
             conn.commit()
             return cursor.rowcount > 0
     
-    def cleanup_old_configs(self, days_to_keep: int = 30) -> int:
+    def cleanup_old_configs(self, days_to_keep: Optional[int] = None) -> int:
         """Archive configs older than specified days"""
+        if days_to_keep is None:
+            days_to_keep = self.config["retention"]["config_history_days"]
+            
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -227,22 +247,25 @@ class ConfigurationManager:
             
         return archived_count
     
-    def migrate_file_configs(self, config_dir: str = "twin/configs") -> int:
-        """
-        Migrate existing file-based configs to database
+    def migrate_file_configs(self, config_dir: Optional[str] = None) -> int:
+        """Migrate existing file-based configs to database
         
         Args:
             config_dir: Directory containing config JSON files
             
         Returns:
             Number of configs migrated
+
         """
-        config_path = Path(config_dir)
+        if config_dir is None:
+            config_dir = self.config["paths"]["config_dir"]
+            
+        config_path: Path = Path(config_dir)
         if not config_path.exists():
             logger.warning(f"Config directory not found: {config_dir}")
             return 0
         
-        migrated = 0
+        migrated: int = 0
         for config_file in config_path.glob("*.json"):
             try:
                 with open(config_file, 'r') as f:
@@ -250,14 +273,14 @@ class ConfigurationManager:
                 
                 # Extract run_id from filename if possible
                 # Format: sim-YYYYMMDD-HHMMSS-hash.json
-                filename = config_file.stem
-                parts = filename.split('-')
+                filename: str = config_file.stem
+                parts: List[str] = filename.split('-')
                 
                 # Try to find matching run in database
-                run_id = None
+                run_id: Optional[str] = None
                 if len(parts) >= 4:
                     # Reconstruct potential timestamp
-                    timestamp_str = f"{parts[1]}-{parts[2]}"
+                    timestamp_str: str = f"{parts[1]}-{parts[2]}"
                     
                     with sqlite3.connect(self.db_path) as conn:
                         cursor = conn.cursor()
@@ -272,7 +295,7 @@ class ConfigurationManager:
                             run_id = result[0]
                 
                 # Store in database
-                description = f"Migrated from {config_file.name}"
+                description: str = f"Migrated from {config_file.name}"
                 config_id = self.store_config(
                     config,
                     run_id=run_id,
@@ -291,10 +314,9 @@ class ConfigurationManager:
     def export_config_to_file(
         self,
         config_id: str,
-        output_dir: str = "data/simulation_configs"
+        output_dir: Optional[str] = None
     ) -> Optional[str]:
-        """
-        Export configuration to file for archival
+        """Export configuration to file for archival
         
         Args:
             config_id: Configuration ID to export
@@ -302,17 +324,21 @@ class ConfigurationManager:
             
         Returns:
             Path to exported file or None if failed
+
         """
+        if output_dir is None:
+            output_dir = self.config["paths"]["export_dir"]
+            
         config = self.get_config(config_id)
         if not config:
             logger.error(f"Config not found: {config_id}")
             return None
         
-        output_path = Path(output_dir)
+        output_path: Path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
-        filename = f"{config_id}.json"
-        file_path = output_path / filename
+        filename: str = f"{config_id}.json"
+        file_path: Path = output_path / filename
         
         try:
             with open(file_path, 'w') as f:

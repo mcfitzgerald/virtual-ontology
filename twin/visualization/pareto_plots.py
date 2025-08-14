@@ -1,5 +1,4 @@
-"""
-Pareto Front Visualization for Multi-objective Optimization
+"""Pareto Front Visualization for Multi-objective Optimization
 """
 
 import plotly.graph_objects as go
@@ -16,8 +15,7 @@ def create_pareto_plot(
     objectives: List[str] = ["oee", "energy"],
     db_path: str = "data/mes_database.db"
 ) -> go.Figure:
-    """
-    Create interactive Pareto front visualization
+    """Create interactive Pareto front visualization
     
     Args:
         run_ids: List of simulation run IDs to compare
@@ -26,8 +24,8 @@ def create_pareto_plot(
     
     Returns:
         Plotly figure object
+
     """
-    
     # Get data from database
     data_points = []
     
@@ -146,8 +144,7 @@ def create_pareto_plot(
 
 
 def identify_pareto_front(points: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Identify Pareto optimal points (non-dominated solutions)
+    """Identify Pareto optimal points (non-dominated solutions)
     Assumes maximizing OEE and minimizing energy
     """
     for i, point_i in enumerate(points):
@@ -177,8 +174,7 @@ def create_pareto_3d(
     objectives: List[str] = ["oee", "energy", "quality"],
     db_path: str = "data/mes_database.db"
 ) -> go.Figure:
-    """
-    Create 3D Pareto front visualization for three objectives
+    """Create 3D Pareto front visualization for three objectives
     """
     # Get data
     data_points = []

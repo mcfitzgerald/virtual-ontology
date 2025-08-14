@@ -1,20 +1,21 @@
-"""
-Twin State Management
+"""Twin State Management
 Manages the current state of the virtual twin and run ledger
 """
 
 import sqlite3
 import json
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass
 import pandas as pd
 import numpy as np
+from .config_loader import ConfigLoader
 
 
 @dataclass
 class TwinState:
     """Current state of the virtual twin"""
+
     current_run_id: str
     baseline_run_id: str
     last_update: datetime
@@ -26,16 +27,30 @@ class TwinState:
 
 
 class TwinStateManager:
-    """
-    Manages virtual twin state and provides high-level operations
+    """Manages virtual twin state and provides high-level operations
     for querying, comparing, and optimizing the twin
     """
     
-    def __init__(self, db_path: str = "data/mes_database.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None) -> None:
+        """Initialize the TwinStateManager.
+        
+        Args:
+            db_path: Path to SQLite database. If None, uses path from configuration.
+            
+        Raises:
+            KeyError: If database path not found in configuration.
+
+        """
+        self.loader = ConfigLoader()
+        self.config = self.loader.config
+        
+        if db_path is None:
+            db_path = self.config["database"]["path"]
+            
+        self.db_path: str = db_path
         self._init_state_tables()
         
-    def _init_state_tables(self):
+    def _init_state_tables(self) -> None:
         """Initialize state management tables"""
         with sqlite3.connect(self.db_path) as conn:
             # Twin state table
@@ -78,7 +93,7 @@ class TwinStateManager:
                     lower_bound REAL NOT NULL,
                     upper_bound REAL NOT NULL,
                     n_samples INTEGER NOT NULL,
-                    confidence_level REAL DEFAULT 0.95
+                    confidence_level REAL
                 )
             """)
             
@@ -87,12 +102,12 @@ class TwinStateManager:
     def get_current_state(self) -> Optional[TwinState]:
         """Get the current state of the virtual twin"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("""
+            cursor: sqlite3.Cursor = conn.execute("""
                 SELECT * FROM twin_state 
                 ORDER BY timestamp DESC 
                 LIMIT 1
             """)
-            row = cursor.fetchone()
+            row: Optional[Tuple[Any, ...]] = cursor.fetchone()
             
             if not row:
                 return None
@@ -104,7 +119,7 @@ class TwinStateManager:
                 WHERE run_id = ?
             """, (row[2],))  # current_run_id
             
-            confidence_intervals = {
+            confidence_intervals: Dict[str, Tuple[float, float]] = {
                 r[0]: (r[1], r[2]) for r in conf_cursor.fetchall()
             }
             
@@ -124,40 +139,40 @@ class TwinStateManager:
         run_id: str,
         baseline_run_id: Optional[str] = None,
         notes: Optional[str] = None
-    ):
-        """
-        Update the twin state based on a simulation run
+    ) -> None:
+        """Update the twin state based on a simulation run
         
         Args:
             run_id: Run ID to set as current state
             baseline_run_id: Optional baseline for comparison
             notes: Optional notes about the state change
+
         """
         # Get run data
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute(
+            cursor: sqlite3.Cursor = conn.execute(
                 "SELECT * FROM twin_runs WHERE run_id = ?",
                 (run_id,)
             )
-            run = cursor.fetchone()
+            run: Optional[Tuple[Any, ...]] = cursor.fetchone()
             
             if not run:
                 raise ValueError(f"Run {run_id} not found")
             
             # Extract data
-            parameters = json.loads(run[7])  # config_delta_json
-            kpis = json.loads(run[10]) if run[10] else {}  # kpi_summary_json
+            parameters: Dict[str, float] = json.loads(run[7])  # config_delta_json
+            kpis: Dict[str, float] = json.loads(run[10]) if run[10] else {}  # kpi_summary_json
             
             # Get sync status
             sync_cursor = conn.execute("""
                 SELECT entity_id, health_status 
                 FROM sync_health_dashboard
             """)
-            sync_status = {row[0]: row[1] for row in sync_cursor.fetchall()}
+            sync_status: Dict[str, str] = {row[0]: row[1] for row in sync_cursor.fetchall()}
             
             # Use existing baseline if not provided
             if not baseline_run_id:
-                current_state = self.get_current_state()
+                current_state: Optional[TwinState] = self.get_current_state()
                 baseline_run_id = current_state.baseline_run_id if current_state else run_id
             
             # Insert new state
@@ -177,45 +192,45 @@ class TwinStateManager:
     def calculate_confidence(
         self,
         run_id: str,
-        n_validation_runs: int = 10,
-        confidence_level: float = 0.95
-    ):
-        """
-        Calculate confidence intervals for KPIs using validation runs
+        n_validation_runs: int = 10,  # TODO: HARDCODED - default validation runs
+        confidence_level: float = 0.95  # TODO: HARDCODED - default confidence level
+    ) -> None:
+        """Calculate confidence intervals for KPIs using validation runs
         
         Args:
             run_id: Base run to validate
             n_validation_runs: Number of validation runs
             confidence_level: Confidence level (default 95%)
+
         """
         # This would normally run multiple simulations with different seeds
         # For demonstration, we'll simulate the results
         
         with sqlite3.connect(self.db_path) as conn:
             # Get base run KPIs
-            cursor = conn.execute(
+            cursor: sqlite3.Cursor = conn.execute(
                 "SELECT kpi_summary_json FROM twin_runs WHERE run_id = ?",
                 (run_id,)
             )
-            row = cursor.fetchone()
+            row: Optional[Tuple[Any, ...]] = cursor.fetchone()
             if not row or not row[0]:
                 return
             
-            base_kpis = json.loads(row[0])
+            base_kpis: Dict[str, float] = json.loads(row[0])
             
             # Simulate validation runs (in reality, would run actual simulations)
             for kpi, base_value in base_kpis.items():
                 # Simulate variation
-                std_dev = base_value * 0.05  # 5% standard deviation
-                samples = np.random.normal(base_value, std_dev, n_validation_runs)
+                std_dev: float = base_value * 0.05  # TODO: HARDCODED - 5% standard deviation
+                samples: np.ndarray = np.random.normal(base_value, std_dev, n_validation_runs)
                 
                 # Calculate statistics
-                mean_val = np.mean(samples)
-                std_val = np.std(samples)
+                mean_val: float = float(np.mean(samples))
+                std_val: float = float(np.std(samples))
                 
                 # Calculate confidence interval
                 from scipy import stats
-                confidence_interval = stats.t.interval(
+                confidence_interval: Tuple[float, float] = stats.t.interval(
                     confidence_level,
                     n_validation_runs - 1,
                     loc=mean_val,
@@ -244,8 +259,7 @@ class TwinStateManager:
         confidence: float = 0.0,
         notes: Optional[str] = None
     ) -> int:
-        """
-        Create a new recommendation
+        """Create a new recommendation
         
         Args:
             parameters: Recommended parameter values
@@ -256,9 +270,10 @@ class TwinStateManager:
             
         Returns:
             Recommendation ID
+
         """
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("""
+            cursor: sqlite3.Cursor = conn.execute("""
                 INSERT INTO recommendations 
                 (recommendation_type, parameters_json, expected_improvement_json,
                  confidence, status, notes)
@@ -277,17 +292,17 @@ class TwinStateManager:
     def _get_active_recommendations(self) -> List[Dict[str, Any]]:
         """Get pending recommendations"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("""
+            cursor: sqlite3.Cursor = conn.execute("""
                 SELECT recommendation_id, recommendation_type, 
                        parameters_json, expected_improvement_json,
                        confidence, created_at
                 FROM recommendations 
                 WHERE status = 'pending'
                 ORDER BY created_at DESC
-                LIMIT 5
-            """)
+                LIMIT ?  -- From configuration
+            """, (self.config["display_limits"]["max_active_recommendations"],))
             
-            recommendations = []
+            recommendations: List[Dict[str, Any]] = []
             for row in cursor.fetchall():
                 recommendations.append({
                     "id": row[0],
@@ -301,27 +316,27 @@ class TwinStateManager:
             return recommendations
     
     def accept_recommendation(self, recommendation_id: int) -> Dict[str, float]:
-        """
-        Accept a recommendation and return its parameters
+        """Accept a recommendation and return its parameters
         
         Args:
             recommendation_id: ID of recommendation to accept
             
         Returns:
             Parameter values from the recommendation
+
         """
         with sqlite3.connect(self.db_path) as conn:
             # Get recommendation
-            cursor = conn.execute(
+            cursor: sqlite3.Cursor = conn.execute(
                 "SELECT parameters_json FROM recommendations WHERE recommendation_id = ?",
                 (recommendation_id,)
             )
-            row = cursor.fetchone()
+            row: Optional[Tuple[Any, ...]] = cursor.fetchone()
             
             if not row:
                 raise ValueError(f"Recommendation {recommendation_id} not found")
             
-            parameters = json.loads(row[0])
+            parameters: Dict[str, float] = json.loads(row[0])
             
             # Update status
             conn.execute(
@@ -336,17 +351,17 @@ class TwinStateManager:
         self,
         n_runs: int = 10
     ) -> Dict[str, List[float]]:
-        """
-        Get KPI improvement trends over recent runs
+        """Get KPI improvement trends over recent runs
         
         Args:
             n_runs: Number of recent runs to analyze
             
         Returns:
             Dictionary of KPI trends
+
         """
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("""
+            cursor: sqlite3.Cursor = conn.execute("""
                 SELECT run_id, kpi_summary_json, started_at
                 FROM twin_runs 
                 WHERE status = 'completed' AND kpi_summary_json IS NOT NULL
@@ -354,9 +369,9 @@ class TwinStateManager:
                 LIMIT ?
             """, (n_runs,))
             
-            trends = {}
+            trends: Dict[str, List[float]] = {}
             for row in cursor.fetchall():
-                kpis = json.loads(row[1])
+                kpis: Dict[str, float] = json.loads(row[1])
                 for kpi, value in kpis.items():
                     if kpi not in trends:
                         trends[kpi] = []
@@ -370,12 +385,12 @@ class TwinStateManager:
     
     def generate_state_report(self) -> str:
         """Generate a comprehensive state report"""
-        state = self.get_current_state()
+        state: Optional[TwinState] = self.get_current_state()
         
         if not state:
             return "No twin state available"
         
-        report = []
+        report: List[str] = []
         report.append("=" * 60)
         report.append("VIRTUAL TWIN STATE REPORT")
         report.append("=" * 60)
@@ -407,7 +422,7 @@ class TwinStateManager:
         # Sync status summary
         report.append("SYNCHRONIZATION STATUS:")
         report.append("-" * 40)
-        status_counts = {}
+        status_counts: Dict[str, int] = {}
         for entity, status in state.sync_status.items():
             status_counts[status] = status_counts.get(status, 0) + 1
         
@@ -429,15 +444,15 @@ class TwinStateManager:
             report.append("No active recommendations")
         
         # Improvement trends
-        trends = self.get_improvement_trends(5)
+        trends: Dict[str, List[float]] = self.get_improvement_trends(5)  # TODO: HARDCODED - last 5 runs
         if trends:
             report.append("")
             report.append("RECENT TRENDS (last 5 runs):")
             report.append("-" * 40)
             for kpi, values in trends.items():
                 if len(values) > 1:
-                    trend = "↑" if values[-1] > values[0] else "↓" if values[-1] < values[0] else "→"
-                    change = ((values[-1] - values[0]) / values[0] * 100) if values[0] != 0 else 0
+                    trend: str = "↑" if values[-1] > values[0] else "↓" if values[-1] < values[0] else "→"
+                    change: float = ((values[-1] - values[0]) / values[0] * 100) if values[0] != 0 else 0
                     report.append(f"  {kpi}: {trend} {change:+.1f}%")
         
         report.append("")

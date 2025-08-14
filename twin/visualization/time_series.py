@@ -1,5 +1,4 @@
-"""
-Time Series Visualization for KPI Trends
+"""Time Series Visualization for KPI Trends
 """
 
 import plotly.graph_objects as go
@@ -17,8 +16,7 @@ def plot_kpi_trends(
     kpis: List[str] = ["oee", "availability", "performance", "quality"],
     db_path: str = "data/mes_database.db"
 ) -> go.Figure:
-    """
-    Create interactive time series plots for KPI trends
+    """Create interactive time series plots for KPI trends
     
     Args:
         run_ids: List of simulation run IDs to plot
@@ -27,8 +25,8 @@ def plot_kpi_trends(
     
     Returns:
         Plotly figure with time series plots
+
     """
-    
     # Create subplots for each KPI
     fig = make_subplots(
         rows=len(kpis),
@@ -193,8 +191,7 @@ def plot_kpi_comparison(
     kpi: str = "oee",
     db_path: str = "data/mes_database.db"
 ) -> go.Figure:
-    """
-    Create comparison plot for a single KPI across multiple runs
+    """Create comparison plot for a single KPI across multiple runs
     """
     fig = go.Figure()
     

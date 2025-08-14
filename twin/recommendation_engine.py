@@ -1,5 +1,4 @@
-"""
-Recommendation Engine with Multi-Objective Optimization using pymoo
+"""Recommendation Engine with Multi-Objective Optimization using pymoo
 Uses NSGA-II algorithm for finding Pareto-optimal configurations
 """
 
@@ -24,15 +23,15 @@ from pymoo.indicators.igd import IGD
 from pymoo.util.ref_dirs import get_reference_directions
 from pymoo.visualization.scatter import Scatter
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from actionable_parameters import ActionableParameters
-from simulation_runner import SimulationRunner
-from twin_state import TwinStateManager
+from .actionable_parameters import ActionableParameters
+from .simulation_runner import SimulationRunner
+from .twin_state import TwinStateManager
 
 
 @dataclass
 class Objective:
     """Optimization objective definition"""
+
     name: str
     direction: str  # 'minimize' or 'maximize'
     kpi_name: str
@@ -43,6 +42,7 @@ class Objective:
 @dataclass
 class OptimizationResult:
     """Result from multi-objective optimization"""
+
     parameters: Dict[str, float]
     objectives: Dict[str, float]
     pareto_rank: int
@@ -52,8 +52,7 @@ class OptimizationResult:
 
 
 class ManufacturingProblem(Problem):
-    """
-    Multi-objective optimization problem for manufacturing using pymoo
+    """Multi-objective optimization problem for manufacturing using pymoo
     Wraps the simulation runner to evaluate actual simulations
     """
     
@@ -63,30 +62,30 @@ class ManufacturingProblem(Problem):
         objectives: List[Objective],
         constraints: Optional[Dict[str, Tuple[float, float]]] = None,
         use_simulation: bool = False  # Toggle between simulation and approximation
-    ):
-        """
-        Initialize the manufacturing optimization problem
+    ) -> None:
+        """Initialize the manufacturing optimization problem
         
         Args:
             simulation_runner: SimulationRunner instance for evaluations
             objectives: List of optimization objectives
             constraints: Optional parameter constraints
             use_simulation: If True, run actual simulations; if False, use approximations
+
         """
-        self.runner = simulation_runner
-        self.objectives = objectives
-        self.constraints = constraints or {}
-        self.use_simulation = use_simulation
-        self.cached_evaluations = {}
+        self.runner: SimulationRunner = simulation_runner
+        self.objectives: List[Objective] = objectives
+        self.constraints: Dict[str, Tuple[float, float]] = constraints or {}
+        self.use_simulation: bool = use_simulation
+        self.cached_evaluations: Dict[str, Any] = {}
         
         # Get parameter definitions
-        params = ActionableParameters()
-        self.param_names = list(params.parameters.keys())
-        self.param_objects = list(params.parameters.values())
+        params: ActionableParameters = ActionableParameters()
+        self.param_names: List[str] = list(params.parameters.keys())
+        self.param_objects: List[Any] = list(params.parameters.values())
         
         # Set bounds from ActionableParameters
-        xl = []
-        xu = []
+        xl: List[float] = []
+        xu: List[float] = []
         for param_name, param_obj in zip(self.param_names, self.param_objects):
             if param_name in self.constraints:
                 min_val, max_val = self.constraints[param_name]
@@ -96,7 +95,7 @@ class ManufacturingProblem(Problem):
             xu.append(max_val)
         
         # Count constraints for pymoo
-        n_ieq_constr = len([obj for obj in objectives if obj.constraint is not None])
+        n_ieq_constr: int = len([obj for obj in objectives if obj.constraint is not None])
         
         super().__init__(
             n_var=len(self.param_names),  # 5 actionable parameters
@@ -107,12 +106,14 @@ class ManufacturingProblem(Problem):
         )
     
     def _evaluate(self, x, out, *args, **kwargs):
-        """
-        Evaluate objectives and constraints for a batch of solutions
+        """Evaluate objectives and constraints for a batch of solutions.
         
         Args:
-            x: Array of decision variables (population x n_var)
-            out: Dictionary to store objectives and constraints
+            x: Array of decision variables (population x n_var).
+            out: Dictionary to store objectives and constraints.
+            *args: Additional positional arguments passed by pymoo framework.
+            **kwargs: Additional keyword arguments passed by pymoo framework.
+
         """
         n_pop = x.shape[0]
         objectives = np.zeros((n_pop, self.n_obj))
@@ -160,34 +161,33 @@ class ManufacturingProblem(Problem):
             out["G"] = np.column_stack(constraints) if len(constraints) > 0 else None
     
     def _run_simulation(self, param_dict: Dict[str, float]) -> Dict[str, float]:
-        """
-        Run actual simulation using SimulationRunner
+        """Run actual simulation using SimulationRunner
         
         Args:
             param_dict: Dictionary of parameter values
             
         Returns:
             Dictionary of KPI values
+
         """
         # Create ActionableParameters instance
-        params = ActionableParameters()
+        params: ActionableParameters = ActionableParameters()
         for name, value in param_dict.items():
             params.set_value(name, value)
         
         # Run simulation
-        run_id = self.runner.run_simulation(
+        run_id: str = self.runner.run_simulation(
             parameters=params,
-            duration_days=7,
+            duration_days=7,  # TODO: HARDCODED - duration
             notes="Optimization evaluation"
         )
         
         # Get KPIs from simulation
-        kpis = self.runner.get_run_kpis(run_id)
+        kpis: Dict[str, float] = self.runner.get_run_kpis(run_id)
         return kpis
     
     def _approximate_kpis(self, param_dict: Dict[str, float]) -> Dict[str, float]:
-        """
-        Approximate KPIs based on parameters (faster than simulation)
+        """Approximate KPIs based on parameters (faster than simulation)
         Uses simplified models for demonstration
         
         Args:
@@ -195,39 +195,40 @@ class ManufacturingProblem(Problem):
             
         Returns:
             Dictionary of approximated KPI values
+
         """
-        values = param_dict
+        values: Dict[str, float] = param_dict
         
         # Base values
-        base_oee = 0.65
-        base_availability = 0.80
-        base_performance = 0.85
-        base_quality = 0.95
-        base_energy = 1000.0  # kWh per day
-        base_scrap = 0.05
+        base_oee: float = 0.65  # TODO: HARDCODED - base OEE
+        base_availability: float = 0.80  # TODO: HARDCODED - base availability
+        base_performance: float = 0.85  # TODO: HARDCODED - base performance
+        base_quality: float = 0.95  # TODO: HARDCODED - base quality
+        base_energy: float = 1000.0  # TODO: HARDCODED - base energy kWh per day
+        base_scrap: float = 0.05  # TODO: HARDCODED - base scrap rate
         
         # Calculate impacts
-        micro_stop_impact = (0.20 - values['micro_stop_probability']) / 0.20
-        perf_impact = (values['performance_factor'] - 0.85) / 0.85
-        scrap_impact = (2.0 - values['scrap_multiplier']) / 2.0
-        material_impact = (values['material_reliability'] - 0.85) / 0.85
-        cascade_impact = (0.5 - values['cascade_sensitivity']) / 0.5
+        micro_stop_impact: float = (0.20 - values['micro_stop_probability']) / 0.20  # TODO: HARDCODED - baseline 0.20
+        perf_impact: float = (values['performance_factor'] - 0.85) / 0.85  # TODO: HARDCODED - baseline 0.85
+        scrap_impact: float = (2.0 - values['scrap_multiplier']) / 2.0  # TODO: HARDCODED - baseline 2.0
+        material_impact: float = (values['material_reliability'] - 0.85) / 0.85  # TODO: HARDCODED - baseline 0.85
+        cascade_impact: float = (0.5 - values['cascade_sensitivity']) / 0.5  # TODO: HARDCODED - baseline 0.5
         
         # Calculate KPIs
-        availability = base_availability * (1 + 0.3 * micro_stop_impact + 0.1 * material_impact)
-        performance = base_performance * (1 + 0.4 * perf_impact)
-        quality = base_quality * (1 + 0.2 * scrap_impact)
+        availability: float = base_availability * (1 + 0.3 * micro_stop_impact + 0.1 * material_impact)  # TODO: HARDCODED - impact weights
+        performance: float = base_performance * (1 + 0.4 * perf_impact)  # TODO: HARDCODED - impact weight 0.4
+        quality: float = base_quality * (1 + 0.2 * scrap_impact)  # TODO: HARDCODED - impact weight 0.2
         
-        oee = availability * performance * quality
+        oee: float = availability * performance * quality
         
         # Energy inversely related to performance
-        energy_per_unit = base_energy * (1 - 0.2 * perf_impact)
+        energy_per_unit: float = base_energy * (1 - 0.2 * perf_impact)  # TODO: HARDCODED - energy impact 0.2
         
         # Scrap rate
-        scrap_rate = base_scrap * values['scrap_multiplier']
+        scrap_rate: float = base_scrap * values['scrap_multiplier']
         
         # Downtime
-        downtime_pct = (1 - availability) * 100
+        downtime_pct: float = (1 - availability) * 100
         
         return {
             'mean_oee': min(1.0, max(0.0, oee)),
@@ -237,14 +238,13 @@ class ManufacturingProblem(Problem):
             'energy_per_unit': max(100, energy_per_unit),
             'scrap_rate': min(0.5, max(0.0, scrap_rate)),
             'downtime_percentage': min(100, max(0, downtime_pct)),
-            'total_good_units': 10000 * oee,  # Approximate production
-            'total_cost': 1000 + energy_per_unit * 0.15 + scrap_rate * 5000  # Simplified cost
+            'total_good_units': 10000 * oee,  # TODO: HARDCODED - base production 10000
+            'total_cost': 1000 + energy_per_unit * 0.15 + scrap_rate * 5000  # TODO: HARDCODED - cost formula
         }
 
 
 class RecommendationEngine:
-    """
-    Multi-objective optimization engine for virtual twin recommendations
+    """Multi-objective optimization engine for virtual twin recommendations
     Uses pymoo's NSGA-II algorithm with proper constraint handling
     """
     
@@ -252,22 +252,28 @@ class RecommendationEngine:
         self,
         simulation_runner: Optional[SimulationRunner] = None,
         state_manager: Optional[TwinStateManager] = None
-    ):
-        self.runner = simulation_runner or SimulationRunner()
-        self.state_manager = state_manager or TwinStateManager()
+    ) -> None:
+        """Initialize the RecommendationEngine.
+        
+        Args:
+            simulation_runner: Optional SimulationRunner instance. If None, creates a new one.
+            state_manager: Optional TwinStateManager instance. If None, creates a new one.
+
+        """
+        self.runner: SimulationRunner = simulation_runner or SimulationRunner()
+        self.state_manager: TwinStateManager = state_manager or TwinStateManager()
         
     def optimize(
         self,
         objectives: List[Objective],
         constraints: Optional[Dict[str, Tuple[float, float]]] = None,
-        population_size: int = 50,
-        generations: int = 100,
-        seed: int = 42,
+        population_size: int = 50,  # TODO: HARDCODED - default population size
+        generations: int = 100,  # TODO: HARDCODED - default generations
+        seed: int = 42,  # TODO: HARDCODED - default seed
         verbose: bool = True,
         use_simulation: bool = False
     ) -> List[OptimizationResult]:
-        """
-        Run multi-objective optimization using pymoo's NSGA-II
+        """Run multi-objective optimization using pymoo's NSGA-II
         
         Args:
             objectives: List of optimization objectives
@@ -280,7 +286,16 @@ class RecommendationEngine:
             
         Returns:
             List of Pareto-optimal solutions
+
         """
+        # Set defaults from configuration if not provided
+        if population_size is None:
+            population_size = 50
+        if generations is None:
+            generations = 100
+        if seed is None:
+            seed = self.config["simulation"]["seed_range"]["min"]
+            
         # Create the optimization problem
         problem = ManufacturingProblem(
             simulation_runner=self.runner,
@@ -364,8 +379,7 @@ class RecommendationEngine:
         results: List[OptimizationResult],
         ref_point: Optional[np.ndarray] = None
     ) -> float:
-        """
-        Calculate hypervolume indicator for the Pareto front
+        """Calculate hypervolume indicator for the Pareto front
         
         Args:
             results: List of optimization results
@@ -373,6 +387,7 @@ class RecommendationEngine:
             
         Returns:
             Hypervolume value
+
         """
         if not results:
             return 0.0
@@ -394,13 +409,13 @@ class RecommendationEngine:
         objective_names: Optional[List[str]] = None,
         true_front: Optional[np.ndarray] = None
     ):
-        """
-        Visualize the Pareto front using pymoo's Scatter plot
+        """Visualize the Pareto front using pymoo's Scatter plot
         
         Args:
             results: List of optimization results
             objective_names: Names of objectives for axis labels
             true_front: Optional true Pareto front for comparison
+
         """
         if not results:
             print("No results to visualize")
@@ -431,8 +446,7 @@ class RecommendationEngine:
         save_recommendation: bool = True,
         use_simulation: bool = False
     ) -> Dict[str, Any]:
-        """
-        Generate recommendation for a specific scenario using pymoo
+        """Generate recommendation for a specific scenario using pymoo
         
         Args:
             scenario: Scenario description
@@ -441,6 +455,7 @@ class RecommendationEngine:
             
         Returns:
             Recommendation dictionary
+
         """
         # Map scenario to objectives
         objectives = self._map_scenario_to_objectives(scenario)
@@ -507,8 +522,7 @@ class RecommendationEngine:
         results: List[OptimizationResult],
         objectives: List[Objective]
     ) -> OptimizationResult:
-        """
-        Select a compromise solution from Pareto front
+        """Select a compromise solution from Pareto front
         Uses distance to ideal point
         
         Args:
@@ -517,6 +531,7 @@ class RecommendationEngine:
             
         Returns:
             Best compromise solution
+
         """
         if len(results) == 1:
             return results[0]

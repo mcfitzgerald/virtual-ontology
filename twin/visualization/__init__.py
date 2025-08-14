@@ -1,5 +1,4 @@
-"""
-Visualization Module for Virtual Twin
+"""Visualization Module for Virtual Twin
 Interactive plots using Plotly
 """
 

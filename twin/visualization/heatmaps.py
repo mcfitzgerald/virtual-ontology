@@ -1,5 +1,4 @@
-"""
-Heatmap Visualizations for Parameter Sensitivity and Correlations
+"""Heatmap Visualizations for Parameter Sensitivity and Correlations
 """
 
 import plotly.graph_objects as go
@@ -15,8 +14,7 @@ def create_sensitivity_heatmap(
     run_ids: List[str],
     db_path: str = "data/mes_database.db"
 ) -> go.Figure:
-    """
-    Create parameter sensitivity heatmap showing impact on KPIs
+    """Create parameter sensitivity heatmap showing impact on KPIs
     
     Args:
         run_ids: List of simulation run IDs to analyze
@@ -24,8 +22,8 @@ def create_sensitivity_heatmap(
     
     Returns:
         Plotly heatmap figure
+
     """
-    
     # Define parameters and KPIs
     parameters = [
         "micro_stop_probability",
@@ -97,7 +95,6 @@ def calculate_sensitivity(
     db_path: str
 ) -> np.ndarray:
     """Calculate sensitivity matrix from runs"""
-    
     # Initialize matrix
     matrix = np.zeros((len(parameters), len(kpis)))
     
@@ -154,10 +151,8 @@ def create_correlation_heatmap(
     run_id: str,
     db_path: str = "data/mes_database.db"
 ) -> go.Figure:
+    """Create correlation heatmap between different KPIs
     """
-    Create correlation heatmap between different KPIs
-    """
-    
     # Get data
     data = []
     with sqlite3.connect(db_path) as conn:
@@ -226,10 +221,8 @@ def create_equipment_performance_heatmap(
     run_ids: List[str],
     db_path: str = "data/mes_database.db"
 ) -> go.Figure:
+    """Create heatmap showing equipment performance across lines
     """
-    Create heatmap showing equipment performance across lines
-    """
-    
     # Equipment types and lines
     equipment_types = ["FIL", "PCK", "PAL"]
     lines = ["LINE1", "LINE2", "LINE3"]

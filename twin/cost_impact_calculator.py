@@ -1,5 +1,4 @@
-"""
-Cost Impact Calculator with PyMC for Bayesian Monte Carlo ROI Simulation
+"""Cost Impact Calculator with PyMC for Bayesian Monte Carlo ROI Simulation
 Provides probabilistic financial validation for virtual twin recommendations
 """
 
@@ -22,76 +21,140 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 @dataclass
 class CostParameters:
-    """Financial parameters for ROI calculation"""
+    """Financial parameters for ROI calculation - no defaults, all required"""
+
     # Production costs
-    labor_cost_per_hour: float = 75.0  # USD per hour
-    energy_cost_per_kwh: float = 0.12  # USD per kWh
-    material_cost_per_unit: float = 0.50  # USD per unit
+    labor_cost_per_hour: float
+    energy_cost_per_kwh: float
+    material_cost_per_unit: float
     
     # Downtime costs
-    downtime_cost_per_hour: float = 5000.0  # USD per hour of downtime
+    downtime_cost_per_hour: float
     
     # Quality costs
-    scrap_cost_per_unit: float = 2.00  # USD per scrapped unit
-    rework_cost_per_unit: float = 1.50  # USD per reworked unit
+    scrap_cost_per_unit: float
+    rework_cost_per_unit: float
     
     # Implementation costs
-    parameter_change_cost: float = 1000.0  # One-time cost per parameter change
-    training_cost: float = 2500.0  # One-time training cost
-    monitoring_cost_per_week: float = 500.0  # Ongoing monitoring cost
+    parameter_change_cost: float
+    training_cost: float
+    monitoring_cost_per_week: float
     
     # Financial parameters
-    discount_rate: float = 0.10  # Annual discount rate for NPV
-    confidence_level: float = 0.95  # Confidence level for intervals
+    discount_rate: float
+    confidence_level: float
 
 
 class CostImpactCalculator:
-    """
-    Calculates financial impact of virtual twin recommendations
+    """Calculates financial impact of virtual twin recommendations
     using PyMC for Bayesian Monte Carlo simulation with proper uncertainty quantification
+    
+    Configuration is REQUIRED - all cost parameters must come from config
     """
     
     def __init__(
         self,
-        db_path: str = "data/mes_database.db",
+        db_path: Optional[str] = None,
         cost_params: Optional[CostParameters] = None
-    ):
-        self.db_path = db_path
-        self.cost_params = cost_params or CostParameters()
+    ) -> None:
+        """Initialize CostImpactCalculator.
+        Configuration is required - will raise error if not available.
+        
+        Args:
+            db_path: Path to SQLite database (uses config if None)
+            cost_params: Optional CostParameters (uses config if None)
+            
+        Raises:
+            RuntimeError: If configuration is not available
+            ValueError: If required config values are missing
+
+        """
+        # Always load from config - no fallbacks
+        from .config_loader import get_config
+        self.config = get_config()  # Will raise error if config not available
+        
+        # Get database path
+        self.db_path: str = db_path if db_path is not None else self.config.get("database.path")
+        if not self.db_path:
+            raise ValueError("Database path not provided and not found in configuration")
+        
+        # Load cost parameters from config if not provided
+        if cost_params is None:
+            cost_params = self._load_cost_params_from_config()
+            
+        self.cost_params: CostParameters = cost_params
+    
+    def _load_cost_params_from_config(self) -> CostParameters:
+        """Load cost parameters from configuration.
+        All parameters are required - no defaults.
+        
+        Returns:
+            CostParameters with values from config
+            
+        Raises:
+            KeyError: If required config keys are missing
+
+        """
+        cost_config = self.config.get("cost_parameters")
+        if not cost_config:
+            raise ValueError("cost_parameters section not found in configuration")
+            
+        try:
+            return CostParameters(
+                labor_cost_per_hour=cost_config["labor_cost_per_hour"],
+                energy_cost_per_kwh=cost_config["energy_cost_per_kwh"],
+                material_cost_per_unit=cost_config["material_cost_per_unit"],
+                downtime_cost_per_hour=cost_config["downtime_cost_per_hour"],
+                scrap_cost_per_unit=cost_config["scrap_cost_per_unit"],
+                rework_cost_per_unit=cost_config["rework_cost_per_unit"],
+                parameter_change_cost=cost_config["parameter_change_cost"],
+                training_cost=cost_config["training_cost"],
+                monitoring_cost_per_week=cost_config["monitoring_cost_per_week"],
+                discount_rate=cost_config["discount_rate"],
+                confidence_level=cost_config["confidence_level"]
+            )
+        except KeyError as e:
+            raise KeyError(f"Missing required cost parameter in configuration: {e}")
         
     def calculate_roi(
         self,
         baseline_run_id: str,
         improved_run_id: str,
-        n_simulations: int = 10000,
-        time_horizon_weeks: int = 52,
+        n_simulations: Optional[int] = None,
+        time_horizon_weeks: Optional[int] = None,
         include_uncertainty: bool = True
     ) -> Dict[str, Any]:
-        """
-        Calculate ROI using PyMC Bayesian Monte Carlo simulation
+        """Calculate ROI using PyMC Bayesian Monte Carlo simulation
         
         Args:
             baseline_run_id: Run ID for baseline scenario
             improved_run_id: Run ID for improved scenario
-            n_simulations: Number of Monte Carlo simulations
-            time_horizon_weeks: Time horizon for ROI calculation
+            n_simulations: Number of Monte Carlo simulations (uses config default if None)
+            time_horizon_weeks: Time horizon for ROI calculation (uses config default if None)
             include_uncertainty: Whether to add uncertainty to parameters
             
         Returns:
             Dictionary with ROI metrics and credible intervals
+
         """
+        # Use config defaults if not provided
+        if n_simulations is None:
+            n_simulations = self.config.get("simulation.validation_runs") * 1000
+        if time_horizon_weeks is None:
+            time_horizon_weeks = self.config.get("cost_parameters.default_time_horizon_weeks")
+            
         # Get KPIs from database
-        baseline_kpis = self._get_run_kpis(baseline_run_id)
-        improved_kpis = self._get_run_kpis(improved_run_id)
+        baseline_kpis: Dict[str, float] = self._get_run_kpis(baseline_run_id)
+        improved_kpis: Dict[str, float] = self._get_run_kpis(improved_run_id)
         
         # Get parameter changes
-        param_changes = self._get_parameter_changes(baseline_run_id, improved_run_id)
+        param_changes: Dict[str, float] = self._get_parameter_changes(baseline_run_id, improved_run_id)
         
         # Calculate implementation costs
-        implementation_cost = self._calculate_implementation_cost(param_changes)
+        implementation_cost: float = self._calculate_implementation_cost(param_changes)
         
         # Build and run PyMC model for ROI calculation
-        roi_results = self._run_pymc_roi_model(
+        roi_results: Dict[str, Any] = self._run_pymc_roi_model(
             baseline_kpis,
             improved_kpis,
             implementation_cost,
@@ -111,8 +174,7 @@ class CostImpactCalculator:
         time_horizon_weeks: int,
         include_uncertainty: bool
     ) -> Dict[str, Any]:
-        """
-        Build and run PyMC model for ROI calculation with proper Bayesian inference
+        """Build and run PyMC model for ROI calculation with proper Bayesian inference
         
         Args:
             baseline_kpis: Baseline KPI values
@@ -124,6 +186,7 @@ class CostImpactCalculator:
             
         Returns:
             Dictionary with ROI metrics and credible intervals
+
         """
         with pm.Model() as roi_model:
             
@@ -303,8 +366,7 @@ class CostImpactCalculator:
         n_simulations: int,
         include_uncertainty: bool
     ) -> Dict[str, Any]:
-        """
-        Extract results from PyMC trace and calculate statistics
+        """Extract results from PyMC trace and calculate statistics
         
         Args:
             trace: PyMC InferenceData object
@@ -315,6 +377,7 @@ class CostImpactCalculator:
             
         Returns:
             Dictionary with ROI metrics and credible intervals
+
         """
         # Extract posterior samples
         posterior = trace.posterior
@@ -413,8 +476,7 @@ class CostImpactCalculator:
         parameter_changes: Dict[str, float],
         n_simulations: int = 1000
     ) -> Dict[str, Any]:
-        """
-        Calculate financial impact of a specific scenario using PyMC
+        """Calculate financial impact of a specific scenario using PyMC
         
         Args:
             scenario: Scenario name (e.g., "reduce_micro_stops_30%")
@@ -424,6 +486,7 @@ class CostImpactCalculator:
             
         Returns:
             Financial impact with credible intervals
+
         """
         with pm.Model() as scenario_model:
             # Estimate KPI improvements based on parameter changes
@@ -661,8 +724,7 @@ class CostImpactCalculator:
         baseline_kpis: Dict[str, float],
         parameter_changes: Dict[str, float]
     ) -> Dict[str, float]:
-        """
-        Estimate KPI impact from parameter changes (deterministic for now)
+        """Estimate KPI impact from parameter changes (deterministic for now)
         Could be enhanced with probabilistic relationships
         """
         improved_kpis = baseline_kpis.copy()
