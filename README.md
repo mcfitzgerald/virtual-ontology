@@ -159,9 +159,9 @@ Financial modeling with Bayesian credible intervals
 🎬 [Virtual Twin Platform - Full Demo]() (30 min)
 
 ### Key Documentation
-- [System Architecture](docs/SYSTEM_ARCHITECTURE.md) - Complete technical design
-- [Twin Modeler](twin/README.md) - Twin Module  documentation
-- [Database Schema](docs/DATABASE_AND_API.md) - Data model details
+- [System Architecture](SYSTEM_ARCHITECTURE.md) - Complete technical design
+- [Twin Modeler](twin/README.md) - Twin Module documentation
+- [Database Schema](DATABASE_AND_API.md) - Data model details
 - [System Prompt](SYSTEM_PROMPT.md) - LLM orchestration guide
 
 ## 🚦 Success Metrics

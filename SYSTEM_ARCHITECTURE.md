@@ -277,6 +277,9 @@ virtual-ontology/
 │   ├── sync_health.py          # Synchronization monitoring
 │   ├── API.md                  # Module API documentation
 │   ├── README.md               # Module overview
+│   ├── docs/                   # Twin documentation
+│   │   ├── PATTERNS_REFERENCE.md # Error-free code patterns
+│   │   └── EXAMPLES.md         # Usage examples
 │   └── visualization/          # Plotting utilities
 ├── api/
 │   ├── main.py                 # FastAPI application
@@ -288,9 +291,8 @@ virtual-ontology/
 ├── scripts/                    # One-time setup scripts (completed)
 │   ├── init_twin_database.py   # Initialize twin tables
 │   └── migrate_configs.py      # Config migration script
-├── docs/
-│   ├── SYSTEM_ARCHITECTURE.md  # This document
-│   └── DATABASE_AND_API.md     # Database schema and API endpoints
+├── SYSTEM_ARCHITECTURE.md      # This document (root directory)
+├── DATABASE_AND_API.md         # Database schema and API endpoints (root directory)
 ├── templates/                   # Ontology and prompt templates
 │   ├── ontology_spec_template.yaml
 │   └── prompt_engineering_template.md
@@ -426,6 +428,6 @@ To measure the effectiveness of the Virtual Twin system, track these KPIs:
 ## References
 
 - [Database and API Documentation](DATABASE_AND_API.md) - Database schema and API endpoints
-- [Usage Examples](EXAMPLES.md) - Example conversations and patterns
-- [System Prompt](../SYSTEM_PROMPT.md) - Unified LLM instructions for full workflow
+- [Usage Examples](twin/docs/EXAMPLES.md) - Example conversations and patterns
+- [System Prompt](SYSTEM_PROMPT.md) - Unified LLM instructions for full workflow
 - [Twin Module Documentation](../twin/README.md) - Twin module capabilities

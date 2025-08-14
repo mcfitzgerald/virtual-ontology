@@ -7,8 +7,8 @@ import os
 import sys
 from pathlib import Path
 
-# Add the parent directory to sys.path to find the twin module
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+# Add the parent directory to sys.path to find the twin module  
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -37,7 +37,7 @@ extensions = [
 
 # AutoAPI Configuration
 autoapi_type = 'python'
-autoapi_dirs = ['../../twin']
+autoapi_dirs = ['../..']
 autoapi_options = [
     'members',                  # Document members
     'undoc-members',           # Include members without docstrings
