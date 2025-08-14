@@ -14,12 +14,17 @@ def get_default_stylesheet():
                 'text-valign': 'center',
                 'text-halign': 'center',
                 'font-size': '10px',
-                'width': '40px',
-                'height': '40px',
-                'border-width': 2,
-                'border-color': '#666',
+                'font-family': 'sans-serif',
+                'color': '#000000',  # Black text for all nodes
+                'width': 'data(width)',  # Use dynamic width from node data
+                'height': 'data(height)',  # Use dynamic height from node data
+                'border-width': 1,
+                'border-color': '#999999',
                 'text-wrap': 'wrap',
-                'text-max-width': '80px'
+                'text-max-width': '120px',
+                'text-background-color': '#ffffff',
+                'text-background-opacity': 0.7,
+                'text-background-padding': '2px'
             }
         },
         
@@ -28,23 +33,22 @@ def get_default_stylesheet():
             'selector': '.class',
             'style': {
                 'shape': 'roundrectangle',
-                'width': '60px',
-                'height': '40px',
-                'font-weight': 'bold'
+                'font-size': '10px',
+                'color': '#000000'  # Black text
             }
         },
         {
             'selector': '.class.mes',
             'style': {
-                'background-color': '#3498db',
-                'color': '#fff'
+                'background-color': '#B3E5FC',  # Light blue pastel
+                'border-color': '#81D4FA'
             }
         },
         {
             'selector': '.class.twin',
             'style': {
-                'background-color': '#2ecc71',
-                'color': '#fff'
+                'background-color': '#C8E6C9',  # Light green pastel
+                'border-color': '#A5D6A7'
             }
         },
         
@@ -53,35 +57,35 @@ def get_default_stylesheet():
             'selector': '.property',
             'style': {
                 'shape': 'ellipse',
-                'width': '30px',
-                'height': '30px',
-                'font-size': '8px'
+                'font-size': '9px',
+                'color': '#000000'  # Black text
             }
         },
         {
             'selector': '.property.mes',
             'style': {
-                'background-color': '#85C1E9',
-                'border-color': '#3498db'
+                'background-color': '#E1F5FE',  # Very light blue pastel
+                'border-color': '#B3E5FC'
             }
         },
         {
             'selector': '.property.twin',
             'style': {
-                'background-color': '#82E0AA',
-                'border-color': '#2ecc71'
+                'background-color': '#E8F5E9',  # Very light green pastel  
+                'border-color': '#C8E6C9'
             }
         },
         
-        # Relationship nodes
+        # Relationship nodes (if any remain)
         {
             'selector': '.relationship',
             'style': {
                 'shape': 'diamond',
                 'width': '35px',
                 'height': '35px',
-                'background-color': '#9b59b6',
-                'color': '#fff',
+                'background-color': '#FFCCBC',  # Light red/coral pastel
+                'border-color': '#FFAB91',
+                'color': '#000000',
                 'font-size': '9px'
             }
         },
@@ -91,11 +95,22 @@ def get_default_stylesheet():
             'selector': '.business_rule',
             'style': {
                 'shape': 'hexagon',
-                'width': '45px',
-                'height': '45px',
-                'background-color': '#e74c3c',
-                'color': '#fff',
-                'font-size': '9px'
+                'font-size': '10px',
+                'color': '#000000'  # Black text
+            }
+        },
+        {
+            'selector': '.business_rule.mes',
+            'style': {
+                'background-color': '#E1BEE7',  # Light purple pastel
+                'border-color': '#CE93D8'
+            }
+        },
+        {
+            'selector': '.business_rule.twin',
+            'style': {
+                'background-color': '#FFF9C4',  # Light yellow pastel
+                'border-color': '#FFF59D'
             }
         },
         

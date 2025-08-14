@@ -18,12 +18,36 @@ class OntologyParser:
         self.twin_ontology = None
         
     def load_ontologies(self) -> Tuple[Dict, Dict]:
-        """Load both ontology YAML files."""
-        with open(self.mes_path, 'r') as f:
-            self.mes_ontology = yaml.safe_load(f)
+        """Load both ontology YAML files with enhanced error handling."""
+        try:
+            with open(self.mes_path, 'r') as f:
+                self.mes_ontology = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            if hasattr(e, 'problem_mark'):
+                mark = e.problem_mark
+                raise ValueError(
+                    f"YAML error in MES ontology at line {mark.line+1}, "
+                    f"column {mark.column+1}: {e}"
+                )
+            else:
+                raise ValueError(f"YAML error in MES ontology: {e}")
+        except FileNotFoundError:
+            raise FileNotFoundError(f"MES ontology file not found: {self.mes_path}")
         
-        with open(self.twin_path, 'r') as f:
-            self.twin_ontology = yaml.safe_load(f)
+        try:
+            with open(self.twin_path, 'r') as f:
+                self.twin_ontology = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            if hasattr(e, 'problem_mark'):
+                mark = e.problem_mark
+                raise ValueError(
+                    f"YAML error in Twin ontology at line {mark.line+1}, "
+                    f"column {mark.column+1}: {e}"
+                )
+            else:
+                raise ValueError(f"YAML error in Twin ontology: {e}")
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Twin ontology file not found: {self.twin_path}")
             
         return self.mes_ontology, self.twin_ontology
     
@@ -140,6 +164,22 @@ class OntologyParser:
                 
         return queries
     
+    def extract_glossary(self, ontology: Dict, namespace: str) -> Dict:
+        """Extract glossary terms from an ontology."""
+        glossary = {}
+        
+        if 'glossary' in ontology:
+            for term, data in ontology['glossary'].items():
+                glossary[f"{namespace}:{term}"] = {
+                    'term': term,
+                    'namespace': namespace,
+                    'definition': data.get('definition', ''),
+                    'also_known_as': data.get('also_known_as', []),
+                    'see_also': data.get('see_also', [])
+                }
+                
+        return glossary
+    
     def parse_all(self) -> Dict:
         """Parse both ontologies and extract all components."""
         self.load_ontologies()
@@ -150,6 +190,7 @@ class OntologyParser:
         mes_properties = self.extract_properties(self.mes_ontology, 'mes')
         mes_rules = self.extract_business_rules(self.mes_ontology, 'mes')
         mes_queries = self.extract_common_queries(self.mes_ontology, 'mes')
+        mes_glossary = self.extract_glossary(self.mes_ontology, 'mes')
         
         # Extract from Twin ontology
         twin_classes = self.extract_classes(self.twin_ontology, 'twin')
@@ -157,9 +198,13 @@ class OntologyParser:
         twin_properties = self.extract_properties(self.twin_ontology, 'twin')
         twin_rules = self.extract_business_rules(self.twin_ontology, 'twin')
         twin_queries = self.extract_common_queries(self.twin_ontology, 'twin')
+        twin_glossary = self.extract_glossary(self.twin_ontology, 'twin')
         
         # Extract cross-system mappings
         cross_mappings = self._extract_cross_mappings()
+        
+        # Merge glossaries
+        combined_glossary = {**mes_glossary, **twin_glossary}
         
         return {
             'classes': mes_classes + twin_classes,
@@ -168,6 +213,7 @@ class OntologyParser:
             'business_rules': mes_rules + twin_rules,
             'common_queries': mes_queries + twin_queries,
             'cross_mappings': cross_mappings,
+            'glossary': combined_glossary,
             'metadata': {
                 'mes': self.mes_ontology.get('ontology', {}),
                 'twin': self.twin_ontology.get('ontology', {})
