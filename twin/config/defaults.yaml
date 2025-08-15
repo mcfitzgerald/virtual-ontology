@@ -42,52 +42,59 @@ simulation:
   # Standard deviation multiplier for simulation variation
   std_dev_multiplier: 0.05  # 5% of base value
 
-# Actionable Parameters Configuration
+# Actionable Parameters Configuration - Scaling Approach
+# All parameters are multipliers where 1.0 = baseline (actual production)
 parameters:
+  # Legacy names kept for compatibility, but with scaling interpretation
   micro_stop_probability:
-    description: "Probability of micro-stops (proxy for equipment maintenance quality)"
+    description: "Maintenance effectiveness multiplier - scales equipment reliability (1.0 = baseline)"
     bounds:
-      min: 0.05
-      max: 0.50
-    default: 0.10
+      min: 0.3   # Can improve to 30% of baseline issues
+      max: 1.5   # Can degrade to 150% of baseline issues
+    default: 1.0  # Baseline production
     unit: "http://qudt.org/vocab/unit/UNITLESS"
-    type: "probability"
+    type: "factor"
+    causal_effect: "Scales all micro-stop and jam probabilities"
     
   performance_factor:
-    description: "Performance multiplier (proxy for operator skill and equipment calibration)"
+    description: "Operational excellence multiplier - scales equipment performance (1.0 = baseline)"
     bounds:
-      min: 0.50
-      max: 1.00
-    default: 0.85
+      min: 0.7   # Can degrade to 70% of baseline
+      max: 1.3   # Can improve to 130% of baseline
+    default: 1.0  # Baseline production
     unit: "http://qudt.org/vocab/unit/UNITLESS"
     type: "factor"
+    causal_effect: "Scales equipment efficiency and shift performance"
     
   scrap_multiplier:
-    description: "Scrap rate multiplier (proxy for quality control procedures)"
+    description: "Quality control effectiveness - scales scrap rates (1.0 = baseline)"
     bounds:
-      min: 0.5
-      max: 5.0
-    default: 1.0
+      min: 0.5   # Can improve to 50% of baseline scrap
+      max: 1.5   # Can degrade to 150% of baseline scrap
+    default: 1.0  # Baseline production
     unit: "http://qudt.org/vocab/unit/UNITLESS"
     type: "factor"
+    causal_effect: "Scales product scrap rates"
     
   material_reliability:
-    description: "Supply chain reliability factor (proxy for material flow consistency)"
+    description: "Supply chain reliability multiplier (1.0 = baseline)"
     bounds:
-      min: 0.50
-      max: 1.00
-    default: 0.85
+      min: 0.5   # Can degrade to 50% reliability
+      max: 1.2   # Can improve to 120% reliability
+    default: 1.0  # Baseline production
     unit: "http://qudt.org/vocab/unit/UNITLESS"
-    type: "probability"
+    type: "factor"
+    causal_effect: "Inversely scales material starvation probability"
     
   cascade_sensitivity:
-    description: "Line coupling strength (proxy for buffering and decoupling)"
+    description: "Line decoupling effectiveness - inverse cascade (1.0 = baseline coupling)"
     bounds:
-      min: 0.00
-      max: 1.00
-    default: 0.30
+      min: 0.5   # Better decoupling (50% of baseline cascade)
+      max: 2.0   # Worse coupling (200% of baseline cascade)
+    default: 1.0  # Baseline production
     unit: "http://qudt.org/vocab/unit/UNITLESS"
-    type: "sensitivity"
+    type: "factor"
+    causal_effect: "Scales downstream impact of upstream failures"
 
 # Equipment Configuration Multipliers
 equipment_multipliers:

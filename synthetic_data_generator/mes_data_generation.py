@@ -2,6 +2,7 @@
 """
 Enhanced MES Data Generation Script with Full Configuration Support
 Generates manufacturing data with realistic OEE values based on configuration
+Supports both JSON and YAML configuration files
 """
 
 import pandas as pd
@@ -9,11 +10,20 @@ import numpy as np
 import random
 from datetime import datetime, timedelta
 import json
+import yaml
 import os
 from collections import defaultdict
+from typing import Dict, Any, Optional
 
-def load_config(config_file='mes_data_config.json'):
-    """Load configuration from JSON file."""
+def load_config(config_file: str = 'mes_data_config.json') -> Dict[str, Any]:
+    """Load configuration from JSON or YAML file.
+    
+    Args:
+        config_file: Path to configuration file (JSON or YAML)
+        
+    Returns:
+        Configuration dictionary
+    """
     # If config_file is an absolute path, use it directly
     if os.path.isabs(config_file):
         config_path = config_file
@@ -21,8 +31,146 @@ def load_config(config_file='mes_data_config.json'):
         # Otherwise, look for it relative to this script's directory
         config_path = os.path.join(os.path.dirname(__file__), config_file)
     
-    with open(config_path, 'r') as f:
-        return json.load(f)
+    # Check if file exists with exact name first
+    if not os.path.exists(config_path):
+        # Try YAML version if JSON doesn't exist
+        if config_path.endswith('.json'):
+            yaml_path = config_path.replace('.json', '.yaml')
+            if os.path.exists(yaml_path):
+                config_path = yaml_path
+    
+    # Detect file type and load accordingly
+    if config_path.endswith(('.yaml', '.yml')):
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            # Apply scaling factors if present
+            config = apply_scaling_factors(config)
+            return config
+    else:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+
+def apply_scaling_factors(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Apply scaling parameters to baseline values if present.
+    
+    Args:
+        config: Raw configuration dictionary
+        
+    Returns:
+        Configuration with scaled values
+    """
+    if 'scaling_parameters' not in config or 'baseline_values' not in config:
+        return config
+    
+    # Get current scaling factors (default to 1.0)
+    scaling = config.get('scaling_parameters', {})
+    baseline = config.get('baseline_values', {})
+    
+    # Create anomaly_injection section from baseline values
+    if 'anomaly_injection' not in config:
+        config['anomaly_injection'] = {}
+    
+    # Apply maintenance_effectiveness to micro-stops
+    maintenance_factor = scaling.get('maintenance_effectiveness', {}).get('current', 
+                                    scaling.get('maintenance_effectiveness', {}).get('default', 1.0))
+    
+    if 'micro_stops' in baseline:
+        for stop_id, stop_data in baseline['micro_stops'].items():
+            # Create injection pattern with scaled probability
+            base_prob = stop_data['probability_per_5min']
+            scaled_prob = base_prob * maintenance_factor
+            
+            # Extract equipment ID from stop ID (e.g., LINE2_PCK_jam -> LINE2-PCK)
+            parts = stop_id.split('_')
+            if len(parts) >= 2:
+                equipment_id = f"{parts[0]}-{parts[1]}"
+                
+                config['anomaly_injection'][stop_id] = {
+                    'enabled': True,
+                    'equipment_id': equipment_id,
+                    'probability_per_5min': scaled_prob,
+                    'downtime_reason': stop_data['downtime_reason'],
+                    'duration_range_minutes': stop_data['duration_range_minutes'],
+                    'description': f"Scaled from baseline {base_prob:.2f} by factor {maintenance_factor:.2f}"
+                }
+    
+    # Apply operational_excellence to equipment efficiency
+    ops_factor = scaling.get('operational_excellence', {}).get('current',
+                           scaling.get('operational_excellence', {}).get('default', 1.0))
+    
+    if 'equipment_efficiency' in baseline:
+        if 'product_specifications' not in config:
+            config['product_specifications'] = {}
+        
+        config['product_specifications']['equipment_efficiency'] = {}
+        for equipment_type, efficiency in baseline['equipment_efficiency'].items():
+            config['product_specifications']['equipment_efficiency'][equipment_type] = {
+                'min': max(0.5, efficiency['min'] * ops_factor),
+                'max': min(1.0, efficiency['max'] * ops_factor)
+            }
+    
+    # Apply operational_excellence to shift performance
+    if 'shift_performance' in baseline:
+        config['product_specifications']['performance_variation'] = {}
+        for shift, performance in baseline['shift_performance'].items():
+            config['product_specifications']['performance_variation'][shift] = {
+                'min': max(0.5, performance['min'] * ops_factor),
+                'max': min(1.0, performance['max'] * ops_factor)
+            }
+    
+    # Apply quality_control_effectiveness to scrap rates
+    quality_factor = scaling.get('quality_control_effectiveness', {}).get('current',
+                               scaling.get('quality_control_effectiveness', {}).get('default', 1.0))
+    
+    if 'scrap_rates' in baseline and 'product_master' in config:
+        for sku, product_data in config['product_master'].items():
+            if sku in baseline['scrap_rates'].get('normal', {}):
+                product_data['normal_scrap_rate'] = baseline['scrap_rates']['normal'][sku] * quality_factor
+            if sku in baseline['scrap_rates'].get('startup', {}):
+                product_data['startup_scrap_rate'] = baseline['scrap_rates']['startup'][sku] * quality_factor
+    
+    # Apply supply_chain_reliability to material starvation
+    supply_factor = scaling.get('supply_chain_reliability', {}).get('current',
+                              scaling.get('supply_chain_reliability', {}).get('default', 1.0))
+    
+    if 'material_starvation' in baseline:
+        patterns = []
+        for location, pattern in baseline['material_starvation'].items():
+            # Lower reliability = higher starvation probability
+            starvation_multiplier = 2.0 - supply_factor  # 1.0 reliability = 1.0x, 0.5 reliability = 1.5x
+            patterns.append({
+                'equipment_id': location.replace('_', '-'),
+                'hour_range': pattern['hour_range'],
+                'probability_per_5min': pattern['probability_per_5min'] * starvation_multiplier,
+                'downtime_reason': pattern['downtime_reason'],
+                'duration_range_minutes': pattern['duration_range_minutes']
+            })
+        
+        config['anomaly_injection']['material_starvation_patterns'] = {
+            'enabled': True,
+            'equipment_patterns': patterns,
+            'description': f"Material starvation scaled by supply reliability {supply_factor:.2f}"
+        }
+    
+    # Apply line_decoupling_factor to cascade sensitivity
+    decoupling_factor = scaling.get('line_decoupling_factor', {}).get('current',
+                                  scaling.get('line_decoupling_factor', {}).get('default', 1.0))
+    
+    if 'cascade_failures' in baseline:
+        # Higher decoupling = lower cascade probability
+        cascade_reduction = 1.0 / decoupling_factor if decoupling_factor > 0 else 1.0
+        config['anomaly_injection']['cascade_failures'] = {
+            'enabled': True,
+            'downstream_stop_probability': baseline['cascade_failures']['downstream_stop_probability'] * cascade_reduction,
+            'cascade_delay_minutes': baseline['cascade_failures']['cascade_delay_minutes'],
+            'description': f"Cascade sensitivity scaled by decoupling factor {decoupling_factor:.2f}"
+        }
+    
+    # Copy over other baseline sections that don't need scaling
+    if 'performance_drops' in baseline:
+        config['product_specifications']['random_performance_drops'] = baseline['performance_drops']
+    
+    return config
 
 def get_product_master(config):
     """Returns a DataFrame of product master data from configuration."""
@@ -622,35 +770,57 @@ def generate_mes_data(start_date, end_date, config):
             if config.get('anomaly_injection', {}).get('cascade_failures', {}).get('enabled', False):
                 cascade_config = config['anomaly_injection']['cascade_failures']
                 
-                # Check if this is a trigger equipment (upstream) that just stopped
-                if equip_id in cascade_config['trigger_equipment'] and status == "Stopped":
-                    # Mark cascade start time for downstream equipment on same line
-                    line_id = equip["LineID"]
-                    cascade_key = f"LINE{line_id}"
-                    if cascade_key not in cascade_tracker:
-                        cascade_tracker[cascade_key] = current_time
+                # Get equipment flows for proper cascade modeling
+                equipment_flows = cascade_config.get('equipment_flows', {
+                    'LINE1': ['LINE1-FIL', 'LINE1-PCK', 'LINE1-PAL'],
+                    'LINE2': ['LINE2-FIL', 'LINE2-PCK', 'LINE2-PAL'],
+                    'LINE3': ['LINE3-FIL', 'LINE3-PCK', 'LINE3-PAL']
+                })
                 
-                # Check if this is a trigger equipment that just restarted
-                elif equip_id in cascade_config['trigger_equipment'] and status == "Running":
-                    # Clear cascade for this line
-                    line_id = equip["LineID"]
-                    cascade_key = f"LINE{line_id}"
-                    if cascade_key in cascade_tracker:
-                        del cascade_tracker[cascade_key]
+                # Determine line and position in flow
+                line_key = f"LINE{equip['LineID']}"
+                equipment_flow = equipment_flows.get(line_key, [])
                 
-                # Check if this is downstream equipment that should be starved
-                elif equip_id not in cascade_config['trigger_equipment'] and status == "Running":
-                    line_id = equip["LineID"]
-                    cascade_key = f"LINE{line_id}"
-                    if cascade_key in cascade_tracker:
-                        # Check if enough time has passed for cascade
-                        time_since_upstream_stop = (current_time - cascade_tracker[cascade_key]).total_seconds() / 60
-                        if time_since_upstream_stop >= cascade_config['cascade_delay_minutes']:
-                            # Apply cascade failure with probability
-                            if random.random() < cascade_config['downstream_stop_probability']:
-                                status = "Stopped"
-                                reason = "UNP-MAT"  # Material starvation
-                                good_units, scrap_units = 0, 0
+                # Check if this equipment just stopped (can trigger cascade)
+                if equip_id in equipment_flow and status == "Stopped":
+                    # Mark cascade start time for each downstream equipment
+                    position = equipment_flow.index(equip_id)
+                    downstream_equipment = equipment_flow[position + 1:]  # All equipment after this one
+                    
+                    for downstream_id in downstream_equipment:
+                        cascade_key = f"{equip_id}_to_{downstream_id}"
+                        if cascade_key not in cascade_tracker:
+                            cascade_tracker[cascade_key] = current_time
+                
+                # Check if this equipment just restarted (clears cascade)
+                elif equip_id in equipment_flow and status == "Running":
+                    # Clear cascades originating from this equipment
+                    position = equipment_flow.index(equip_id)
+                    downstream_equipment = equipment_flow[position + 1:]
+                    
+                    for downstream_id in downstream_equipment:
+                        cascade_key = f"{equip_id}_to_{downstream_id}"
+                        if cascade_key in cascade_tracker:
+                            del cascade_tracker[cascade_key]
+                
+                # Check if this equipment should be affected by an upstream cascade
+                elif equip_id in equipment_flow and status == "Running":
+                    # Check all potential upstream equipment that could affect this one
+                    position = equipment_flow.index(equip_id)
+                    upstream_equipment = equipment_flow[:position]  # All equipment before this one
+                    
+                    for upstream_id in upstream_equipment:
+                        cascade_key = f"{upstream_id}_to_{equip_id}"
+                        if cascade_key in cascade_tracker:
+                            # Check if enough time has passed for cascade
+                            time_since_upstream_stop = (current_time - cascade_tracker[cascade_key]).total_seconds() / 60
+                            if time_since_upstream_stop >= cascade_config['cascade_delay_minutes']:
+                                # Apply cascade failure with probability
+                                if random.random() < cascade_config['downstream_stop_probability']:
+                                    status = "Stopped"
+                                    reason = "UNP-MAT"  # Material starvation
+                                    good_units, scrap_units = 0, 0
+                                    break  # Stop checking once we've cascaded
             
             # Calculate instantaneous KPIs
             kpis = calculate_kpis(status, good_units, scrap_units, order_info["TargetRate_units_per_5min"])

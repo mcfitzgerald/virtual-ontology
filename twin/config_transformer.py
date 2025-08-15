@@ -1,5 +1,6 @@
 """Config Transformer Module
-Maps actionable parameters to mes_data_config.json for simulation
+Applies scaling parameters to baseline configuration for simulation.
+All parameters are treated as multipliers where 1.0 = baseline.
 """
 
 import json
@@ -36,7 +37,15 @@ class ConfigTransformer:
         self.config = self.loader.config
         
         if base_config_path is None:
-            base_config_path = self.config["paths"]["base_config"]
+            # Try YAML first, then JSON
+            yaml_path = self.config["paths"].get("base_config", "synthetic_data_generator/mes_baseline_config.yaml")
+            if yaml_path.endswith('.json'):
+                yaml_path = yaml_path.replace('.json', '.yaml')
+            if Path(yaml_path).exists():
+                base_config_path = yaml_path
+            else:
+                base_config_path = self.config["paths"]["base_config"]
+        
         if db_path is None:
             db_path = self.config["database"]["path"]
             
@@ -44,129 +53,257 @@ class ConfigTransformer:
         self.base_config: Dict[str, Any] = self._load_base_config()
         self.config_manager: ConfigurationManager = ConfigurationManager(db_path)
         
+        # Store baseline values for scaling
+        self.baseline_values: Dict[str, Any] = self._extract_baseline_values()
+        
     def _load_base_config(self) -> Dict[str, Any]:
-        """Load the base MES configuration"""
-        with open(self.base_config_path, 'r') as f:
-            return json.load(f)
+        """Load the base MES configuration from JSON or YAML."""
+        if self.base_config_path.suffix in ['.yaml', '.yml']:
+            import yaml
+            with open(self.base_config_path, 'r') as f:
+                return yaml.safe_load(f)
+        else:
+            with open(self.base_config_path, 'r') as f:
+                return json.load(f)
+    
+    def _extract_baseline_values(self) -> Dict[str, Any]:
+        """Extract baseline values from configuration.
+        
+        Returns:
+            Dictionary of baseline values for scaling
+        """
+        baseline: Dict[str, Any] = {}
+        
+        # Extract from YAML baseline_values section if present
+        if 'baseline_values' in self.base_config:
+            return self.base_config['baseline_values']
+        
+        # Otherwise extract from existing JSON structure
+        if 'anomaly_injection' in self.base_config:
+            anomalies = self.base_config['anomaly_injection']
+            
+            # Extract micro-stop probabilities
+            baseline['micro_stops'] = {}
+            if 'frequent_micro_stops' in anomalies:
+                baseline['micro_stops']['frequent'] = anomalies['frequent_micro_stops'].get('probability_per_5min', 0.35)
+            if 'minor_stops_line1' in anomalies:
+                baseline['micro_stops']['minor_line1'] = anomalies['minor_stops_line1'].get('probability_per_5min', 0.20)
+            if 'recurring_jams_line1' in anomalies:
+                baseline['micro_stops']['jams_line1'] = anomalies['recurring_jams_line1'].get('probability_per_5min', 0.15)
+            
+            # Extract other baseline values
+            if 'material_starvation_patterns' in anomalies:
+                baseline['material_starvation'] = anomalies['material_starvation_patterns'].get('equipment_patterns', [])
+            
+            if 'cascade_failures' in anomalies:
+                baseline['cascade_sensitivity'] = anomalies['cascade_failures'].get('downstream_stop_probability', 0.30)
+        
+        # Extract performance baselines
+        if 'product_specifications' in self.base_config:
+            specs = self.base_config['product_specifications']
+            if 'equipment_efficiency' in specs:
+                baseline['equipment_efficiency'] = specs['equipment_efficiency']
+            if 'performance_variation' in specs:
+                baseline['shift_performance'] = specs['performance_variation']
+        
+        return baseline
     
     def apply_parameters(
         self, 
         parameters: ActionableParameters,
         save_path: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Apply actionable parameters to create a new configuration
+        """Apply scaling parameters to create a new configuration.
+        
+        All parameters are treated as multipliers where 1.0 = baseline.
         
         Args:
-            parameters: ActionableParameters instance with current values
+            parameters: ActionableParameters instance with scaling values
             save_path: Optional path to save the transformed config
             
         Returns:
-            Transformed configuration dictionary
+            Transformed configuration dictionary with scaled values
 
         """
         # Start with a deep copy of base config
         config: Dict[str, Any] = copy.deepcopy(self.base_config)
         
-        # Get parameter values
+        # Get parameter values (scaling factors)
         values: Dict[str, float] = parameters.get_all_values()
         
-        # 1. Apply micro_stop_probability
-        micro_stop_prob: float = values["micro_stop_probability"]
+        # Track parameter changes for transparency
+        self._track_parameter_changes(config, values)
         
-        # Update frequent micro-stops
-        config["anomaly_injection"]["frequent_micro_stops"]["probability_per_5min"] = micro_stop_prob
-        config["anomaly_injection"]["frequent_micro_stops"]["description"] = (
-            f"Micro-stops with probability {micro_stop_prob:.2f} (adjusted by virtual twin)"
-        )
+        # 1. Apply micro_stop_probability (now a scaling factor)
+        micro_stop_scale: float = values.get("micro_stop_probability", 1.0)
         
-        # Update minor stops on Line 1  
-        config["anomaly_injection"]["minor_stops_line1"]["probability_per_5min"] = micro_stop_prob * self.config["micro_stops"]["minor_stops_line1_multiplier"]
+        # Apply scaling to baseline values
+        if 'micro_stops' in self.baseline_values:
+            for stop_id, stop_data in self.baseline_values['micro_stops'].items():
+                # Handle both dict and float formats
+                if isinstance(stop_data, dict):
+                    base_prob = stop_data.get('probability_per_5min', 0.1)
+                else:
+                    base_prob = float(stop_data)
+                scaled_prob = base_prob * micro_stop_scale
+                
+                # Find and update the corresponding anomaly injection
+                if stop_id in config.get('anomaly_injection', {}):
+                    config['anomaly_injection'][stop_id]['probability_per_5min'] = scaled_prob
+                    config['anomaly_injection'][stop_id]['description'] = (
+                        f"Scaled from baseline {base_prob:.3f} by factor {micro_stop_scale:.2f}"
+                    )
         
-        # Update recurring jams
-        config["anomaly_injection"]["recurring_jams_line1"]["probability_per_5min"] = micro_stop_prob * self.config["micro_stops"]["recurring_jams_line1_multiplier"]
+        # Apply to patterns from old config structure if needed
+        if 'anomaly_injection' in config:
+            # Scale frequent micro-stops
+            if 'frequent_micro_stops' in config['anomaly_injection']:
+                base = self.baseline_values.get('micro_stops', {}).get('frequent', 0.35)
+                config['anomaly_injection']['frequent_micro_stops']['probability_per_5min'] = base * micro_stop_scale
+            
+            # Scale minor stops
+            if 'minor_stops_line1' in config['anomaly_injection']:
+                base = self.baseline_values.get('micro_stops', {}).get('minor_line1', 0.20)
+                config['anomaly_injection']['minor_stops_line1']['probability_per_5min'] = base * micro_stop_scale
+            
+            # Scale recurring jams
+            if 'recurring_jams_line1' in config['anomaly_injection']:
+                base = self.baseline_values.get('micro_stops', {}).get('jams_line1', 0.15)
+                config['anomaly_injection']['recurring_jams_line1']['probability_per_5min'] = base * micro_stop_scale
+            
+            # Scale equipment pattern micro-stops
+            for pattern_type in ['filler_micro_stops', 'palletizer_micro_stops']:
+                if pattern_type in config['anomaly_injection']:
+                    if 'equipment_patterns' in config['anomaly_injection'][pattern_type]:
+                        for pattern in config['anomaly_injection'][pattern_type]['equipment_patterns']:
+                            if 'probability_per_5min' in pattern:
+                                # Assume baseline if not found
+                                base_prob = pattern.get('baseline_probability', pattern['probability_per_5min'])
+                                pattern['probability_per_5min'] = base_prob * micro_stop_scale
+                                pattern['baseline_probability'] = base_prob  # Store for reference
         
-        # Update filler micro-stops
-        for pattern in config["anomaly_injection"]["filler_micro_stops"]["equipment_patterns"]:
-            pattern["probability_per_5min"] = micro_stop_prob * self.config["micro_stops"]["filler_micro_stops_multiplier"]
+        # 2. Apply performance_factor (now a scaling factor)
+        perf_scale: float = values.get("performance_factor", 1.0)
         
-        # Update palletizer micro-stops
-        for pattern in config["anomaly_injection"]["palletizer_micro_stops"]["equipment_patterns"]:
-            pattern["probability_per_5min"] = micro_stop_prob * self.config["micro_stops"]["palletizer_micro_stops_multiplier"]
+        # Scale equipment efficiency from baseline
+        if 'equipment_efficiency' in self.baseline_values:
+            if 'product_specifications' not in config:
+                config['product_specifications'] = {}
+            
+            config['product_specifications']['equipment_efficiency'] = {}
+            for equipment, efficiency in self.baseline_values['equipment_efficiency'].items():
+                config['product_specifications']['equipment_efficiency'][equipment] = {
+                    'min': max(0.5, efficiency.get('min', 0.75) * perf_scale),
+                    'max': min(1.0, efficiency.get('max', 0.95) * perf_scale)
+                }
         
-        # 2. Apply performance_factor
-        perf_factor: float = values["performance_factor"]
+        # Scale shift performance from baseline
+        if 'shift_performance' in self.baseline_values:
+            config['product_specifications']['performance_variation'] = {}
+            for shift, performance in self.baseline_values['shift_performance'].items():
+                config['product_specifications']['performance_variation'][shift] = {
+                    'min': max(0.5, performance.get('min', 0.8) * perf_scale),
+                    'max': min(1.0, performance.get('max', 1.0) * perf_scale)
+                }
         
-        # Update equipment efficiency ranges
-        config["product_specifications"]["equipment_efficiency"] = {
-            "Filler": {
-                "min": max(0.5, perf_factor * self.config["equipment_multipliers"]["efficiency"]["filler"]["min_multiplier"]),
-                "max": min(1.0, perf_factor * self.config["equipment_multipliers"]["efficiency"]["filler"]["max_multiplier"])
-            },
-            "Packer": {
-                "min": max(0.5, perf_factor * self.config["equipment_multipliers"]["efficiency"]["packer"]["min_multiplier"]),
-                "max": min(1.0, perf_factor * self.config["equipment_multipliers"]["efficiency"]["packer"]["max_multiplier"])
-            },
-            "Palletizer": {
-                "min": max(0.5, perf_factor * self.config["equipment_multipliers"]["efficiency"]["palletizer"]["min_multiplier"]),
-                "max": min(1.0, perf_factor * self.config["equipment_multipliers"]["efficiency"]["palletizer"]["max_multiplier"])
+        # Scale performance drops if present
+        if 'performance_drops' in self.baseline_values:
+            if 'random_performance_drops' not in config['product_specifications']:
+                config['product_specifications']['random_performance_drops'] = {}
+            
+            base_factor = self.baseline_values['performance_drops'].get('degradation_factor', {'min': 0.6, 'max': 0.8})
+            config['product_specifications']['random_performance_drops']['degradation_factor'] = {
+                'min': max(0.3, base_factor.get('min', 0.6) * perf_scale),
+                'max': min(1.0, base_factor.get('max', 0.8) * perf_scale)
             }
+        
+        # 3. Apply scrap_multiplier (now a scaling factor)
+        scrap_scale: float = values.get("scrap_multiplier", 1.0)
+        
+        # Scale quality variations
+        if 'anomaly_injection' in config:
+            if 'quality_variation_normal' in config['anomaly_injection']:
+                config['anomaly_injection']['quality_variation_normal']['scrap_rate_multiplier'] = scrap_scale
+            
+            if 'quality_end_of_run' in config['anomaly_injection']:
+                config['anomaly_injection']['quality_end_of_run']['scrap_rate_multiplier'] = scrap_scale * 1.5
+            
+            if 'changeover_scrap_spike' in config['anomaly_injection']:
+                config['anomaly_injection']['changeover_scrap_spike']['scrap_multiplier'] = scrap_scale * 1.5
+        
+        # Scale product-specific scrap rates from baseline
+        if 'scrap_rates' in self.baseline_values and 'product_master' in config:
+            for sku, product_data in config['product_master'].items():
+                # Scale normal scrap rates
+                if sku in self.baseline_values['scrap_rates'].get('normal', {}):
+                    base_rate = self.baseline_values['scrap_rates']['normal'][sku]
+                    product_data['normal_scrap_rate'] = min(0.15, base_rate * scrap_scale)
+                
+                # Scale startup scrap rates
+                if sku in self.baseline_values['scrap_rates'].get('startup', {}):
+                    base_rate = self.baseline_values['scrap_rates']['startup'][sku]
+                    product_data['startup_scrap_rate'] = min(0.20, base_rate * scrap_scale)
+        
+        # 4. Apply material_reliability (now a scaling factor)
+        mat_scale: float = values.get("material_reliability", 1.0)
+        
+        # Material reliability inversely affects starvation (higher reliability = lower starvation)
+        starvation_scale: float = 2.0 - mat_scale  # 1.0 reliability = 1.0x baseline, 0.5 = 1.5x baseline
+        
+        # Scale material starvation patterns from baseline
+        if 'material_starvation' in self.baseline_values:
+            if 'anomaly_injection' not in config:
+                config['anomaly_injection'] = {}
+            
+            patterns = []
+            for pattern in self.baseline_values.get('material_starvation', []):
+                if isinstance(pattern, dict):
+                    scaled_pattern = pattern.copy()
+                    base_prob = pattern.get('probability_per_5min', 0.15)
+                    scaled_pattern['probability_per_5min'] = base_prob * starvation_scale
+                    patterns.append(scaled_pattern)
+            
+            if patterns:
+                config['anomaly_injection']['material_starvation_patterns'] = {
+                    'enabled': True,
+                    'equipment_patterns': patterns,
+                    'description': f"Material starvation scaled by reliability factor {mat_scale:.2f}"
+                }
+        
+        # 5. Apply cascade_sensitivity (now a scaling factor for coupling)
+        cascade_scale: float = values.get("cascade_sensitivity", 1.0)
+        
+        # Scale cascade sensitivity from baseline
+        base_cascade = self.baseline_values.get('cascade_sensitivity', 0.30)
+        
+        if 'anomaly_injection' not in config:
+            config['anomaly_injection'] = {}
+        
+        # Define equipment flow for proper cascade modeling
+        equipment_flows = {
+            'LINE1': ['LINE1-FIL', 'LINE1-PCK', 'LINE1-PAL'],
+            'LINE2': ['LINE2-FIL', 'LINE2-PCK', 'LINE2-PAL'],
+            'LINE3': ['LINE3-FIL', 'LINE3-PCK', 'LINE3-PAL']
         }
         
-        # Update shift performance variations
-        config["product_specifications"]["performance_variation"] = {
-            "shift1": {"min": perf_factor * self.config["equipment_multipliers"]["shift_performance"]["shift1"]["min_multiplier"], "max": min(1.0, perf_factor * self.config["equipment_multipliers"]["shift_performance"]["shift1"]["max_multiplier"])},
-            "shift2": {"min": perf_factor * self.config["equipment_multipliers"]["shift_performance"]["shift2"]["min_multiplier"], "max": perf_factor * self.config["equipment_multipliers"]["shift_performance"]["shift2"]["max_multiplier"]},
-            "shift3": {"min": perf_factor * self.config["equipment_multipliers"]["shift_performance"]["shift3"]["min_multiplier"], "max": perf_factor * self.config["equipment_multipliers"]["shift_performance"]["shift3"]["max_multiplier"]}
+        config['anomaly_injection']['cascade_failures'] = {
+            'enabled': True,
+            'downstream_stop_probability': min(1.0, base_cascade * cascade_scale),
+            'cascade_delay_minutes': 5,  # Keep constant
+            'equipment_flows': equipment_flows,  # Production flow sequences
+            'description': f"Cascade sensitivity scaled from baseline {base_cascade:.2f} by factor {cascade_scale:.2f}"
         }
-        
-        # Update random performance drops
-        config["product_specifications"]["random_performance_drops"]["degradation_factor"] = {
-            "min": max(self.config["equipment_multipliers"]["performance_degradation"]["floor"], perf_factor * self.config["equipment_multipliers"]["performance_degradation"]["min_multiplier"]),
-            "max": perf_factor * self.config["equipment_multipliers"]["performance_degradation"]["max_multiplier"]
-        }
-        
-        # 3. Apply scrap_multiplier
-        scrap_mult: float = values["scrap_multiplier"]
-        
-        # Update quality variations
-        config["anomaly_injection"]["quality_variation_normal"]["scrap_rate_multiplier"] = scrap_mult
-        
-        # Update end-of-run quality degradation
-        config["anomaly_injection"]["quality_end_of_run"]["scrap_rate_multiplier"] = scrap_mult * self.config["scrap_rates"]["end_of_run_multiplier"]
-        
-        # Update changeover scrap spike
-        config["anomaly_injection"]["changeover_scrap_spike"]["scrap_multiplier"] = scrap_mult * self.config["scrap_rates"]["changeover_spike_multiplier"]
-        
-        # Update product-specific scrap rates
-        for sku, product_data in config["product_master"].items():
-            if "normal_scrap_rate" in product_data:
-                # Apply multiplier but keep reasonable bounds
-                base_rate: float = product_data["normal_scrap_rate"]
-                product_data["normal_scrap_rate"] = min(self.config["scrap_rates"]["normal_scrap_max"], base_rate * scrap_mult)
-            if "startup_scrap_rate" in product_data:
-                startup_rate: float = product_data["startup_scrap_rate"]
-                product_data["startup_scrap_rate"] = min(self.config["scrap_rates"]["startup_scrap_max"], startup_rate * scrap_mult)
-        
-        # 4. Apply material_reliability
-        mat_reliability: float = values["material_reliability"]
-        starvation_prob: float = max(self.config["material_cascade"]["starvation_prob_min"], (1.0 - mat_reliability) * self.config["material_cascade"]["starvation_prob_multiplier"])
-        
-        # Update material starvation patterns
-        for pattern in config["anomaly_injection"]["material_starvation_patterns"]["equipment_patterns"]:
-            pattern["probability_per_5min"] = starvation_prob
-        
-        # 5. Apply cascade_sensitivity
-        cascade_sens: float = values["cascade_sensitivity"]
-        
-        # Update cascade failure probability
-        config["anomaly_injection"]["cascade_failures"]["downstream_stop_probability"] = cascade_sens
-        config["anomaly_injection"]["cascade_failures"]["cascade_delay_minutes"] = int(self.config["material_cascade"]["cascade_delay_base"] * (1 - cascade_sens) + self.config["material_cascade"]["cascade_delay_offset"])
         
         # Add metadata about transformation
         from datetime import datetime
         config["twin_metadata"] = {
-            "transformed_by": "virtual_twin",
+            "transformed_by": "virtual_twin_scaling",
             "parameters_applied": values,
+            "baseline_values_used": True,
+            "scaling_interpretation": {
+                param: f"{value:.2f}x baseline" 
+                for param, value in values.items()
+            },
             "transformation_timestamp": datetime.now().isoformat()
         }
         
@@ -193,20 +330,20 @@ class ConfigTransformer:
         scenario_name: str,
         parameter_changes: Dict[str, float]
     ) -> Dict[str, Any]:
-        """Create a specific scenario configuration
+        """Create a specific scenario configuration.
         
         Args:
             scenario_name: Name of the scenario
-            parameter_changes: Dictionary of parameter names and their new values
+            parameter_changes: Dictionary of parameter names and their scaling values
             
         Returns:
-            Scenario configuration
+            Scenario configuration with scaled values
 
         """
         # Create parameters instance
         params: ActionableParameters = ActionableParameters()
         
-        # Apply changes
+        # Apply changes (all are scaling factors)
         for name, value in parameter_changes.items():
             params.set_value(name, value)
         
@@ -217,10 +354,80 @@ class ConfigTransformer:
         config["scenario"] = {
             "name": scenario_name,
             "description": f"Virtual twin scenario: {scenario_name}",
-            "parameter_changes": parameter_changes
+            "parameter_changes": parameter_changes,
+            "interpretation": {
+                param: f"{value:.0f}% of baseline" if value != 1.0 else "baseline"
+                for param, value in parameter_changes.items()
+            }
         }
         
         return config
+    
+    def _track_parameter_changes(
+        self,
+        config: Dict[str, Any],
+        values: Dict[str, float]
+    ) -> None:
+        """Track parameter changes for transparency.
+        
+        Args:
+            config: Configuration being modified
+            values: Parameter scaling values applied
+        """
+        if 'parameter_tracking' not in config:
+            config['parameter_tracking'] = {}
+        
+        config['parameter_tracking']['scaling_factors'] = values
+        config['parameter_tracking']['baseline_source'] = str(self.base_config_path)
+        config['parameter_tracking']['changes'] = []
+        
+        # Log each parameter change
+        for param, value in values.items():
+            if value != 1.0:  # Only track non-baseline values
+                percent_change = (value - 1.0) * 100
+                config['parameter_tracking']['changes'].append({
+                    'parameter': param,
+                    'scaling_factor': value,
+                    'percent_change': f"{percent_change:+.0f}%",
+                    'interpretation': self._interpret_parameter(param, value)
+                })
+    
+    def _interpret_parameter(
+        self,
+        param_name: str,
+        value: float
+    ) -> str:
+        """Interpret what a parameter scaling means.
+        
+        Args:
+            param_name: Name of the parameter
+            value: Scaling value
+            
+        Returns:
+            Human-readable interpretation
+        """
+        if value == 1.0:
+            return "No change from baseline"
+        
+        interpretations = {
+            'micro_stop_probability': (
+                f"Equipment issues {'reduced' if value < 1.0 else 'increased'} to {value*100:.0f}% of baseline"
+            ),
+            'performance_factor': (
+                f"Performance {'improved' if value > 1.0 else 'degraded'} to {value*100:.0f}% of baseline"
+            ),
+            'scrap_multiplier': (
+                f"Scrap rates {'reduced' if value < 1.0 else 'increased'} to {value*100:.0f}% of baseline"
+            ),
+            'material_reliability': (
+                f"Material supply {'improved' if value > 1.0 else 'degraded'} to {value*100:.0f}% of baseline"
+            ),
+            'cascade_sensitivity': (
+                f"Equipment coupling {'reduced' if value < 1.0 else 'increased'} to {value*100:.0f}% of baseline"
+            )
+        }
+        
+        return interpretations.get(param_name, f"Scaled to {value*100:.0f}% of baseline")
     
     def create_optimization_scenarios(self) -> Dict[str, Dict[str, Any]]:
         """Create standard optimization scenarios for comparison
@@ -231,11 +438,15 @@ class ConfigTransformer:
         """
         scenarios: Dict[str, Dict[str, Any]] = {}
         
-        # Baseline scenario
+        # Baseline scenario (all parameters at 1.0)
         params_baseline: ActionableParameters = ActionableParameters()
+        # Ensure all parameters are at 1.0 (baseline)
+        for param_name in params_baseline.parameters.keys():
+            params_baseline.set_value(param_name, 1.0)
+        
         scenarios["baseline"] = {
             "config": self.apply_parameters(params_baseline),
-            "description": "Current state baseline",
+            "description": "Current state baseline (all scaling factors = 1.0)",
             "parameters": params_baseline.get_all_values()
         }
         

@@ -329,7 +329,8 @@ class SimulationRunner:
             
             # Store results
             self._update_run_metadata(run)
-            self._store_simulation_data(run_id, result['data'])
+            # Data is already stored in database by the generator script
+            # self._store_simulation_data(run_id, result['data'])
             
             if self.verbose:
                 print(f"Simulation completed: OEE={kpi_summary['mean_oee']:.1f}%")
@@ -540,17 +541,15 @@ class SimulationRunner:
         duration_days: int
     ) -> Dict[str, Any]:
         """Execute the simulation subprocess and return results."""
-        # Create temp file for output
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            output_path = f.name
-        
         try:
-            # Build command
+            # Build command to write directly to database
             cmd = [
                 sys.executable,
                 str(self.generator_path),
                 '--config', config_path,
-                '--output', output_path,
+                '--output', 'db',
+                '--table', 'simulation_data',
+                '--run-id', run_id,
                 '--start-date', self.config.get("simulation.default_start_date"),
                 '--end-date', f'2025-06-{duration_days:02d}',
                 '--seed', str(seed)
@@ -564,8 +563,12 @@ class SimulationRunner:
                 check=True
             )
             
-            # Load generated data
-            df = pd.read_csv(output_path)
+            # Load generated data from database
+            with sqlite3.connect(self.db_path) as conn:
+                df = pd.read_sql_query(
+                    f"SELECT * FROM simulation_data WHERE run_id = '{run_id}'",
+                    conn
+                )
             
             # Calculate hash
             data_hash = hashlib.sha256(df.to_csv(index=False).encode()).hexdigest()
@@ -573,15 +576,11 @@ class SimulationRunner:
             return {
                 'data': df,
                 'hash': data_hash,
-                'output_path': output_path
+                'output_path': None  # No file path since we're using database
             }
             
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Simulation subprocess failed: {e.stderr}")
-        finally:
-            # Clean up temp file if needed
-            if os.path.exists(output_path):
-                os.unlink(output_path)
                 
     def _calculate_kpis(
         self,

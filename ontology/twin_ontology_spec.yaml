@@ -256,62 +256,68 @@ properties:
     sql_column: "kpi_summary_json"
     sql_table: "twin_runs"
     
-  # Actionable Parameters (the 5 levers we control)
-  microStopProbability:
-    class: "MicroStopParameter"
+  # Actionable Parameters (the 5 scaling levers we control)
+  # All parameters are multipliers where 1.0 = baseline production
+  maintenanceEffectiveness:
+    class: "MaintenanceParameter"
     type: "float"
-    description: "Likelihood of brief equipment stops"
-    sql_column: "micro_stop_probability"
+    description: "Maintenance quality multiplier - scales equipment reliability (1.0 = baseline)"
+    sql_column: "micro_stop_probability"  # Keep old column name for compatibility
     sql_table: "parameter_history"
-    unit: "probability"
+    unit: "multiplier"
     validation:
-      min: 0.0
-      max: 1.0
-    business_name: "Micro-Stop Frequency"
+      min: 0.3   # Can improve to 30% of baseline issues
+      max: 1.5   # Can degrade to 150% of baseline issues
+    business_name: "Maintenance Effectiveness"
+    interpretation: "Scales all micro-stop and jam probabilities"
     
-  performanceFactor:
+  operationalExcellence:
     class: "PerformanceParameter"
     type: "float"
-    description: "Equipment speed/efficiency multiplier"
-    sql_column: "performance_factor"
+    description: "Overall operational efficiency multiplier (1.0 = baseline)"
+    sql_column: "performance_factor"  # Keep old column name for compatibility
     sql_table: "parameter_history"
     validation:
-      min: 0.5
-      max: 1.0
-    business_name: "Performance Multiplier"
+      min: 0.7   # Can degrade to 70% of baseline
+      max: 1.3   # Can improve to 130% of baseline
+    business_name: "Operational Excellence"
+    interpretation: "Scales equipment efficiency and shift performance"
     
-  scrapMultiplier:
-    class: "ScrapParameter"
+  qualityControlEffectiveness:
+    class: "QualityParameter"
     type: "float"
-    description: "Quality/scrap rate adjustment factor"
-    sql_column: "scrap_multiplier"
+    description: "Quality control effectiveness - scales scrap rates (1.0 = baseline)"
+    sql_column: "scrap_multiplier"  # Keep old column name for compatibility
     sql_table: "parameter_history"
     validation:
-      min: 0.5
-      max: 2.0
-    business_name: "Scrap Rate Factor"
+      min: 0.5   # Can improve to 50% of baseline scrap
+      max: 1.5   # Can degrade to 150% of baseline scrap
+    business_name: "Quality Control Effectiveness"
+    interpretation: "Scales product scrap rates"
     
-  materialReliability:
+  supplyChainReliability:
     class: "MaterialReliabilityParameter"
     type: "float"
-    description: "Supply chain reliability (0=unreliable, 1=perfect)"
-    sql_column: "material_reliability"
+    description: "Material supply reliability multiplier (1.0 = baseline)"
+    sql_column: "material_reliability"  # Keep old column name for compatibility
     sql_table: "parameter_history"
     validation:
-      min: 0.5
-      max: 1.0
-    business_name: "Material Supply Reliability"
+      min: 0.5   # Can degrade to 50% reliability
+      max: 1.2   # Can improve to 120% reliability
+    business_name: "Supply Chain Reliability"
+    interpretation: "Inversely scales material starvation probability"
     
-  cascadeSensitivity:
+  lineDecouplingFactor:
     class: "CascadeSensitivityParameter"
     type: "float"
-    description: "How strongly upstream issues affect downstream"
-    sql_column: "cascade_sensitivity"
+    description: "Equipment isolation effectiveness (1.0 = baseline coupling)"
+    sql_column: "cascade_sensitivity"  # Keep old column name for compatibility
     sql_table: "parameter_history"
     validation:
-      min: 0.0
-      max: 1.0
-    business_name: "Cascade Effect Strength"
+      min: 0.5   # Better decoupling (50% of baseline cascade)
+      max: 2.0   # Worse coupling (200% of baseline cascade)
+    business_name: "Line Decoupling Factor"
+    interpretation: "Scales downstream impact of upstream failures"
     
   # Synchronization Properties
   syncHealth:
@@ -384,16 +390,21 @@ business_rules:
       END
       
   Parameter_Impact_Mapping:
-    description: "How actionable parameters affect KPIs"
+    description: "How scaling parameters affect KPIs (all relative to baseline)"
     when:
       class: "ActionableParameter"
-      condition: "Parameter value changed"
+      condition: "Parameter value changed from 1.0 (baseline)"
     implies: |
-      micro_stop_probability → affects availability_score
-      performance_factor → affects performance_score directly
-      scrap_multiplier → affects quality_score
-      material_reliability → affects material-related downtime
-      cascade_sensitivity → affects downstream equipment performance
+      maintenanceEffectiveness < 1.0 → improves availability_score (fewer stops)
+      maintenanceEffectiveness > 1.0 → degrades availability_score (more stops)
+      operationalExcellence > 1.0 → improves performance_score
+      operationalExcellence < 1.0 → degrades performance_score
+      qualityControlEffectiveness < 1.0 → improves quality_score (less scrap)
+      qualityControlEffectiveness > 1.0 → degrades quality_score (more scrap)
+      supplyChainReliability > 1.0 → reduces material-related downtime
+      supplyChainReliability < 1.0 → increases material-related downtime
+      lineDecouplingFactor < 1.0 → reduces cascade effects (better isolation)
+      lineDecouplingFactor > 1.0 → increases cascade effects (worse isolation)
 
 # ====================================================================================
 # COMMON QUERIES (Help LLM understand twin usage)

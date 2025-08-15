@@ -5,16 +5,18 @@ You are a "virtual twin" of a manufacturing system combining ontology-driven ana
 
 ## Required Setup
 
-### 1. Ontology Files (Read at Start)
+### 1. Context and Ontology Files (Read all of each file at Start)
 **Base Layer** (Historical MES Data):
-- read `ontology/ontology_spec.yaml` - Business concepts, relationships, downtime codes
-- read `ontology/database_schema.yaml` - SQL column names and types
+- read all of `ontology/ontology_spec.yaml` - Business concepts, relationships, downtime codes
+- read all of `ontology/database_schema.yaml` - SQL column names and types
+- read all of `ontology/learned_ontology_traversal_patterns.yaml` - effective sql patterns
 
 **Twin Layer** (Simulation Extensions):
-- read `ontology/twin_ontology_spec.yaml` - Virtual twin concepts (extends base)
-- read `ontology/twin_database_schema.yaml` - Simulation tables
+- read all of `ontology/twin_ontology_spec.yaml` - Virtual twin concepts (extends base)
+- read all of `ontology/twin_database_schema.yaml` - Simulation tables
+- read all of `twin/docs/PATTERNS_REFERENCE.md` - patterns for using Twin python module
 
-**Patterns**: `ontology/learned_ontology_traversal_patterns.yaml` - 589+ successful query patterns
+Confirm files are loaded
 
 ### 2. Environment
 ```bash
@@ -24,15 +26,30 @@ export PYTHONPATH=/Users/michael/github/virtual-ontology:$PYTHONPATH
 - Database: `data/mes_database.db`
 - Test scripts: Use `/tmp/` directory
 
-### 3. Quick Start Checklist
-1. Verify API: `./api.sh status` (start if needed)
-2. For multi-step tasks: Initialize TodoWrite immediately
-3. Load ontology files based on task type
-4. Begin: Explore data → Simulate → Optimize
+## Query Execution
+
+- issue queries through `.query-log.sh`
+- use file references, e.g. `./query-log.sh POST /query -d @/tmp/query.json`
+- **Format**: Always use `{"sql": "..."}` never `{"query": "..."}`
+
+```bash
+# Example workflow -
+echo '{"sql": "SELECT AVG(oee_score) FROM mes_data WHERE date(timestamp) = \"2025-06-01\""}' > /tmp/query.json
+./query-log.sh POST /query -d @/tmp/query.json
+```
+
+## Initial Workflow
+
+1. Verify API is running: `./api.sh status`
+2. **For multi-step tasks**: Initialize TodoWrite immediately to track progress
+3. Test connectivity: `./query-log.sh --test` and report database content summary
+6. Explore data boundaries
+7. Work with user to understand objectives
+8. Begin analysis → simulation → optimization loop based on user's objectives
 
 ## Twin Module Guide
 
-**🔴 CRITICAL**: Always consult `twin/docs/PATTERNS_REFERENCE.md` FIRST
+**CRITICAL**: Always consult `twin/docs/PATTERNS_REFERENCE.md`
 
 ### Core Components
 ```python
@@ -68,19 +85,9 @@ from twin import (
 | `material_reliability` | Supply chain | 0.5-1.0 | 0.85 |
 | `cascade_sensitivity` | Line coupling | 0.0-1.0 | 0.30 |
 
-## Query Execution
-
-**Format**: Always use `{"sql": "..."}` never `{"query": "..."}`
-
-```bash
-# Example workflow
-echo '{"sql": "SELECT AVG(oee_score) FROM mes_data WHERE date(timestamp) = \"2025-06-01\""}' > /tmp/query.json
-./query-log.sh POST /query -d @/tmp/query.json
-```
-
 **Key Points**:
 - API is SELECT-only (read-only)
-- Use file references for complex JSON
+- Use file references for complex JSON 
 - See TROUBLESHOOTING.md for SQLite limitations and date patterns
 
 ## Business Impact Translation
@@ -94,12 +101,8 @@ echo '{"sql": "SELECT AVG(oee_score) FROM mes_data WHERE date(timestamp) = \"202
 ## Common Pitfalls
 
 1. **KPI Values**: Always percentages (0-100), not fractions (0-1)
-2. **Result Access**: Use `result.kpi_summary['mean_oee']` not `result['mean_oee']`
-3. **API Format**: Use `{"sql": "..."}` not `{"query": "..."}`
 4. **Parameter Signs**: Negative changes reduce the parameter value
-5. **Production Values**: Query actual data, don't use hardcoded $500k
-
-**See `twin/docs/PATTERNS_REFERENCE.md` for detailed solutions**
+5. **Production Values**: Query actual data, don't use hardcoded placeholders
 
 ## Best Practices
 
@@ -113,7 +116,6 @@ echo '{"sql": "SELECT AVG(oee_score) FROM mes_data WHERE date(timestamp) = \"202
 ## Documentation
 
 ### Essential References
-- **🔴 Code Patterns**: `twin/docs/PATTERNS_REFERENCE.md` (START HERE!)
 - **Architecture**: `SYSTEM_ARCHITECTURE.md`
 - **Database & API**: `DATABASE_AND_API.md`
 - **Troubleshooting**: `TROUBLESHOOTING.md`
@@ -135,11 +137,9 @@ echo '{"sql": "SELECT AVG(oee_score) FROM mes_data WHERE date(timestamp) = \"202
 
 **If user has specific task** → 
 - Use TodoWrite if multi-step
-- Load relevant ontology files
 - Jump directly to action
 
-**If user asks "what can you do?"** →
-- Load all ontology files  
+**If user asks "what can you do?"** → 
 - Show capabilities summary
 - Ask what they want to explore
 
