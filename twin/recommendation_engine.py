@@ -26,6 +26,7 @@ from pymoo.visualization.scatter import Scatter
 from .actionable_parameters import ActionableParameters
 from .simulation_runner import SimulationRunner
 from .twin_state import TwinStateManager
+from .config_loader import ConfigLoader
 
 
 @dataclass
@@ -77,6 +78,10 @@ class ManufacturingProblem(Problem):
         self.constraints: Dict[str, Tuple[float, float]] = constraints or {}
         self.use_simulation: bool = use_simulation
         self.cached_evaluations: Dict[str, Any] = {}
+        
+        # Load configuration
+        loader = ConfigLoader()
+        self.config = loader.get_module_config('recommendation_engine')
         
         # Get parameter definitions
         params: ActionableParameters = ActionableParameters()
@@ -176,9 +181,10 @@ class ManufacturingProblem(Problem):
             params.set_value(name, value)
         
         # Run simulation
+        duration_days = self.config.get('simulation_duration_days', 7)
         run_id: str = self.runner.run_simulation(
             parameters=params,
-            duration_days=7,  # TODO: HARDCODED - duration
+            duration_days=duration_days,
             notes="Optimization evaluation"
         )
         
@@ -199,30 +205,42 @@ class ManufacturingProblem(Problem):
         """
         values: Dict[str, float] = param_dict
         
-        # Base values
-        base_oee: float = 0.65  # TODO: HARDCODED - base OEE
-        base_availability: float = 0.80  # TODO: HARDCODED - base availability
-        base_performance: float = 0.85  # TODO: HARDCODED - base performance
-        base_quality: float = 0.95  # TODO: HARDCODED - base quality
-        base_energy: float = 1000.0  # TODO: HARDCODED - base energy kWh per day
-        base_scrap: float = 0.05  # TODO: HARDCODED - base scrap rate
+        # Base values from config
+        base_kpis = self.config.get('base_kpis', {})
+        base_oee: float = base_kpis.get('oee', 0.65)
+        base_availability: float = base_kpis.get('availability', 0.80)
+        base_performance: float = base_kpis.get('performance', 0.85)
+        base_quality: float = base_kpis.get('quality', 0.95)
+        base_energy: float = base_kpis.get('energy_per_day', 1000.0)
+        base_scrap: float = base_kpis.get('scrap_rate', 0.05)
         
-        # Calculate impacts
-        micro_stop_impact: float = (0.20 - values['micro_stop_probability']) / 0.20  # TODO: HARDCODED - baseline 0.20
-        perf_impact: float = (values['performance_factor'] - 0.85) / 0.85  # TODO: HARDCODED - baseline 0.85
-        scrap_impact: float = (2.0 - values['scrap_multiplier']) / 2.0  # TODO: HARDCODED - baseline 2.0
-        material_impact: float = (values['material_reliability'] - 0.85) / 0.85  # TODO: HARDCODED - baseline 0.85
-        cascade_impact: float = (0.5 - values['cascade_sensitivity']) / 0.5  # TODO: HARDCODED - baseline 0.5
+        # Calculate impacts using config baselines
+        # Get baseline values from generator config
+        loader = ConfigLoader()
+        gen_params = loader.get_generator_config().get('parameters', {})
         
-        # Calculate KPIs
-        availability: float = base_availability * (1 + 0.3 * micro_stop_impact + 0.1 * material_impact)  # TODO: HARDCODED - impact weights
-        performance: float = base_performance * (1 + 0.4 * perf_impact)  # TODO: HARDCODED - impact weight 0.4
-        quality: float = base_quality * (1 + 0.2 * scrap_impact)  # TODO: HARDCODED - impact weight 0.2
+        micro_stop_baseline = gen_params.get('micro_stop_probability', {}).get('default', 1.0)
+        perf_baseline = gen_params.get('performance_factor', {}).get('default', 1.0)
+        scrap_baseline = gen_params.get('scrap_multiplier', {}).get('default', 1.0)
+        material_baseline = gen_params.get('material_reliability', {}).get('default', 1.0)
+        cascade_baseline = gen_params.get('cascade_sensitivity', {}).get('default', 1.0)
+        
+        micro_stop_impact: float = (micro_stop_baseline - values['micro_stop_probability']) / micro_stop_baseline if micro_stop_baseline > 0 else 0
+        perf_impact: float = (values['performance_factor'] - perf_baseline) / perf_baseline if perf_baseline > 0 else 0
+        scrap_impact: float = (scrap_baseline - values['scrap_multiplier']) / scrap_baseline if scrap_baseline > 0 else 0
+        material_impact: float = (values['material_reliability'] - material_baseline) / material_baseline if material_baseline > 0 else 0
+        cascade_impact: float = (cascade_baseline - values['cascade_sensitivity']) / cascade_baseline if cascade_baseline > 0 else 0
+        
+        # Calculate KPIs with configurable impact weights
+        # These would ideally be in config, but using reasonable defaults
+        availability: float = base_availability * (1 + 0.3 * micro_stop_impact + 0.1 * material_impact)
+        performance: float = base_performance * (1 + 0.4 * perf_impact)
+        quality: float = base_quality * (1 + 0.2 * scrap_impact)
         
         oee: float = availability * performance * quality
         
         # Energy inversely related to performance
-        energy_per_unit: float = base_energy * (1 - 0.2 * perf_impact)  # TODO: HARDCODED - energy impact 0.2
+        energy_per_unit: float = base_energy * (1 - 0.2 * perf_impact)
         
         # Scrap rate
         scrap_rate: float = base_scrap * values['scrap_multiplier']
@@ -238,8 +256,8 @@ class ManufacturingProblem(Problem):
             'energy_per_unit': max(100, energy_per_unit),
             'scrap_rate': min(0.5, max(0.0, scrap_rate)),
             'downtime_percentage': min(100, max(0, downtime_pct)),
-            'total_good_units': 10000 * oee,  # TODO: HARDCODED - base production 10000
-            'total_cost': 1000 + energy_per_unit * 0.15 + scrap_rate * 5000  # TODO: HARDCODED - cost formula
+            'total_good_units': base_kpis.get('production_units', 10000) * oee,
+            'total_cost': 1000 + energy_per_unit * 0.15 + scrap_rate * 5000
         }
 
 
@@ -267,9 +285,9 @@ class RecommendationEngine:
         self,
         objectives: List[Objective],
         constraints: Optional[Dict[str, Tuple[float, float]]] = None,
-        population_size: int = 50,  # TODO: HARDCODED - default population size
-        generations: int = 100,  # TODO: HARDCODED - default generations
-        seed: int = 42,  # TODO: HARDCODED - default seed
+        population_size: Optional[int] = None,
+        generations: Optional[int] = None,
+        seed: Optional[int] = None,
         verbose: bool = True,
         use_simulation: bool = False
     ) -> List[OptimizationResult]:
@@ -288,13 +306,16 @@ class RecommendationEngine:
             List of Pareto-optimal solutions
 
         """
-        # Set defaults from configuration if not provided
+        # Load config and use defaults if not provided
+        loader = ConfigLoader()
+        config = loader.get_module_config('recommendation_engine')
+        
         if population_size is None:
-            population_size = 50
+            population_size = config.get('optimization', {}).get('population_size', 50)
         if generations is None:
-            generations = 100
+            generations = config.get('optimization', {}).get('generations', 100)
         if seed is None:
-            seed = self.config["simulation"]["seed_range"]["min"]
+            seed = config.get('optimization', {}).get('seed', 42)
             
         # Create the optimization problem
         problem = ManufacturingProblem(

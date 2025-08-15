@@ -126,7 +126,8 @@ class SimulationRunner:
         
         # Get required values from config
         self.db_path: str = db_path if db_path is not None else self.config.get("database.path")
-        self.generator_path: Path = Path(generator_path if generator_path is not None else self.config.get("paths.generator"))
+        # Generator is now internal to twin module
+        self.generator_path: Path = Path(__file__).parent / "generator.py"
         self.generator_version: str = generator_version if generator_version is not None else self.config.get("simulation.generator_version")
         
         # Validate required config values exist
@@ -274,12 +275,14 @@ class SimulationRunner:
         transformer = ConfigTransformer()
         config = transformer.apply_parameters(parameters)
         
-        # Save config - use absolute path
-        config_dir = Path(__file__).parent / "configs"
-        config_dir.mkdir(exist_ok=True)
-        config_path = config_dir / f"{run_id}.json"
-        with open(config_path, 'w') as f:
-            json.dump(config, f, indent=2)
+        # Store config in database instead of file
+        # The config_manager will handle deduplication via hashing
+        config_id = self.config_manager.store_config(
+            run_id=run_id,
+            config=config,
+            config_type="generator",
+            description=f"Simulation config with parameters: {parameters.get_all_values()}"
+        )
         
         # Create run metadata
         run = SimulationRun(
@@ -312,7 +315,7 @@ class SimulationRunner:
         try:
             result = self._execute_simulation(
                 run_id=run_id,
-                config_path=str(config_path),
+                config_id=config_id,
                 seed=seed,
                 duration_days=duration_days
             )
@@ -536,17 +539,28 @@ class SimulationRunner:
     def _execute_simulation(
         self,
         run_id: str,
-        config_path: str,
+        config_id: str,
         seed: int,
         duration_days: int
     ) -> Dict[str, Any]:
         """Execute the simulation subprocess and return results."""
         try:
+            # Retrieve config from database
+            config = self.config_manager.get_config(config_id)
+            if not config:
+                raise ValueError(f"Config {config_id} not found in database")
+            
+            # Write config to a temporary file for the generator
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                json.dump(config, f, indent=2)
+                temp_config_path = f.name
+            
             # Build command to write directly to database
             cmd = [
                 sys.executable,
                 str(self.generator_path),
-                '--config', config_path,
+                '--config', temp_config_path,
                 '--output', 'db',
                 '--table', 'simulation_data',
                 '--run-id', run_id,
@@ -556,12 +570,21 @@ class SimulationRunner:
             ]
             
             # Execute
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
-            )
+            try:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+            finally:
+                # Clean up temporary config file
+                import os
+                if 'temp_config_path' in locals():
+                    try:
+                        os.remove(temp_config_path)
+                    except:
+                        pass  # Ignore cleanup errors
             
             # Load generated data from database
             with sqlite3.connect(self.db_path) as conn:
@@ -580,6 +603,12 @@ class SimulationRunner:
             }
             
         except subprocess.CalledProcessError as e:
+            # Clean up temp file on error
+            if 'temp_config_path' in locals():
+                try:
+                    os.remove(temp_config_path)
+                except:
+                    pass
             raise RuntimeError(f"Simulation subprocess failed: {e.stderr}")
                 
     def _calculate_kpis(

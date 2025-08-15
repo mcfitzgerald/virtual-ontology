@@ -225,6 +225,108 @@ class DatabaseSetupOrchestrator:
             self.logger.error(f"Failed to clean database: {e}")
             return False
     
+    def reset_to_pristine(self, no_backup: bool = False) -> bool:
+        """Reset database to pristine state - complete nuke and rebuild
+        
+        This performs:
+        1. Backup current database (unless no_backup is True)
+        2. Drop all tables
+        3. Recreate all tables with fresh schema
+        4. Initialize essential metadata
+        5. Clear all file-based configs
+        6. Reset query logs
+        
+        Args:
+            no_backup: If True, skip backup creation (useful for CI/CD)
+            
+        Returns:
+            True if reset successful, False otherwise
+        """
+        self.logger.info("=" * 60)
+        self.logger.info(" RESETTING DATABASE TO PRISTINE STATE")
+        self.logger.info("=" * 60)
+        
+        try:
+            # Step 1: Backup if requested
+            if not no_backup and self.backup_on_clean:
+                backup_path = self._backup_database()
+                if backup_path:
+                    self.logger.info(f"Backup created: {backup_path}")
+            
+            # Step 2: Clear file-based configs
+            config_dir = os.path.join(project_root, 'twin', 'configs')
+            if os.path.exists(config_dir):
+                import shutil
+                # Keep only the base config files
+                for file in os.listdir(config_dir):
+                    if file.startswith('sim-') and file.endswith('.json'):
+                        os.remove(os.path.join(config_dir, file))
+                self.logger.info(f"Cleared simulation configs from {config_dir}")
+            
+            # Step 3: Reset query logs
+            query_log_path = os.path.join(project_root, 'learning_history', 'query_logs.json')
+            if os.path.exists(query_log_path):
+                with open(query_log_path, 'w') as f:
+                    f.write('[]')
+                self.logger.info("Reset query logs")
+            
+            # Step 4: Drop and recreate database
+            conn = self._get_database_connection()
+            
+            # Drop all tables
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = cursor.fetchall()
+            for table in tables:
+                if not table[0].startswith('sqlite_'):
+                    cursor.execute(f"DROP TABLE IF EXISTS {table[0]}")
+            conn.commit()
+            self.logger.info(f"Dropped {len(tables)} tables")
+            
+            # Recreate all tables
+            if not self.twin_tables_manager.create_all_tables(conn):
+                self.logger.error("Failed to recreate tables")
+                return False
+            
+            if not self.twin_tables_manager.create_indexes(conn):
+                self.logger.error("Failed to create indexes")
+                return False
+            
+            # Initialize essential metadata
+            if not self.twin_tables_manager.populate_equipment_metadata(conn):
+                self.logger.error("Failed to populate equipment metadata")
+                return False
+            
+            if not self.twin_tables_manager.populate_alert_config(conn):
+                self.logger.error("Failed to populate alert config")
+                return False
+            
+            conn.close()
+            
+            # Step 5: Create fresh MES tables via SQLModel
+            # Need to ensure we're in the right directory context
+            import sys
+            from pathlib import Path
+            
+            # Save current directory and change to API dir for relative imports
+            original_dir = os.getcwd()
+            api_dir = os.path.join(project_root, 'api')
+            os.chdir(api_dir)
+            
+            try:
+                from database import create_db_and_tables
+                create_db_and_tables()
+            finally:
+                # Restore original directory
+                os.chdir(original_dir)
+            
+            self.logger.info("✅ Database reset to pristine state successfully")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to reset database: {e}")
+            return False
+    
     def verify_database(self, detailed: bool = False) -> bool:
         """Verify database state and integrity"""
         
@@ -420,6 +522,8 @@ Examples:
   %(prog)s init                     # Initialize fresh database with sample data
   %(prog)s clean                    # Clean database (preserve structure)  
   %(prog)s clean --drop-tables      # Clean database (drop all tables)
+  %(prog)s reset                    # Reset to pristine state (complete rebuild)
+  %(prog)s reset --no-backup        # Reset without backup (CI/CD)
   %(prog)s verify                   # Verify database state
   %(prog)s verify --detailed        # Verify with detailed checks
   %(prog)s generate --format csv    # Generate sample data to CSV
@@ -427,7 +531,7 @@ Examples:
         """
     )
     
-    parser.add_argument('action', choices=['init', 'clean', 'verify', 'generate'],
+    parser.add_argument('action', choices=['init', 'clean', 'verify', 'generate', 'reset'],
                        help='Action to perform')
     parser.add_argument('--config', type=str, 
                        help='Path to configuration file')
@@ -445,6 +549,8 @@ Examples:
                        help='Perform detailed verification')
     parser.add_argument('--format', choices=['csv', 'db', 'both'], default='csv',
                        help='Output format for generate action')
+    parser.add_argument('--no-backup', action='store_true',
+                       help='Skip backup during reset (useful for CI/CD)')
     
     args = parser.parse_args()
     
@@ -475,6 +581,11 @@ Examples:
                 output_format=args.format,
                 start_date=args.start_date,
                 end_date=args.end_date
+            )
+        
+        elif args.action == 'reset':
+            success = orchestrator.reset_to_pristine(
+                no_backup=args.no_backup
             )
         
     except KeyboardInterrupt:

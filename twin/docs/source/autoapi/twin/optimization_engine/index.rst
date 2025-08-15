@@ -145,13 +145,14 @@ Module Contents
    Implements NSGA-II concepts for Pareto optimization
 
 
-   .. py:attribute:: PARAMETERS
-
-
    .. py:attribute:: loader
 
 
    .. py:attribute:: config
+
+
+   .. py:attribute:: PARAMETERS
+      :type:  Dict[str, ActionableParameter]
 
 
    .. py:attribute:: simulation_runner
@@ -178,7 +179,7 @@ Module Contents
 
 
 
-   .. py:method:: optimize(objectives, constraints = None, population_size = 40, generations = 100, seed = 42, strategy = 'best1bin', mutation = (0.5, 1.0), recombination = 0.7, workers = 1, callback = None, verbose = True)
+   .. py:method:: optimize(objectives, constraints = None, population_size = None, generations = None, seed = None, strategy = 'best1bin', mutation = None, recombination = None, workers = 1, callback = None, verbose = True)
 
       Run multi-objective optimization using differential evolution
       Following VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md lines 283-358
@@ -199,7 +200,7 @@ Module Contents
 
 
 
-   .. py:method:: optimize_multi_objective(objectives, constraints = None, population_size = 100, generations = 200, seed = 42, verbose = True)
+   .. py:method:: optimize_multi_objective(objectives, constraints = None, population_size = None, generations = None, seed = None, verbose = True)
 
       True multi-objective optimization with Pareto front
       Uses multiple differential evolution runs with different weights
@@ -209,7 +210,7 @@ Module Contents
 
 
 
-   .. py:method:: validate_with_monte_carlo(solution, n_simulations = 1000, confidence_level = 0.95)
+   .. py:method:: validate_with_monte_carlo(solution, n_simulations = None, confidence_level = None)
 
       Validate solution with Monte Carlo simulation
       Following VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md lines 351-357

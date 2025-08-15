@@ -71,6 +71,9 @@ Module Contents
    .. py:attribute:: config
 
 
+   .. py:attribute:: module_config
+
+
    .. py:attribute:: db_path
       :type:  str
       :value: None
@@ -93,13 +96,13 @@ Module Contents
 
 
 
-   .. py:method:: calculate_confidence(run_id, n_validation_runs = 10, confidence_level = 0.95)
+   .. py:method:: calculate_confidence(run_id, n_validation_runs = None, confidence_level = None)
 
       Calculate confidence intervals for KPIs using validation runs
 
       :param run_id: Base run to validate
-      :param n_validation_runs: Number of validation runs
-      :param confidence_level: Confidence level (default 95%)
+      :param n_validation_runs: Number of validation runs (uses config if None)
+      :param confidence_level: Confidence level (uses config if None)
 
 
 

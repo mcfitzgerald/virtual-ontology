@@ -11,6 +11,7 @@ The Virtual Twin module provides a comprehensive digital twin framework for manu
 - **Intelligent Recommendations**: Get scenario-based improvement suggestions
 - **Financial Impact Analysis**: Calculate ROI and cost implications
 - **Natural Language Understanding**: Interpret queries using disambiguation patterns
+- **Database Integration**: Pristine reset, config storage, unified schema management (v1.3.0)
 
 ## Architecture
 
@@ -191,12 +192,45 @@ Default configurations stored in database:
 - Database queries optimized with indexes
 - Configuration caching reduces redundant loads
 
+## Database Management (v1.3.0)
+
+### Pristine Reset
+Reset database to clean state for testing:
+```bash
+# With backup
+python api/database_setup.py reset
+
+# Without backup (CI/CD)
+python api/database_setup.py reset --no-backup
+```
+
+### Configuration Storage
+All configs now stored in database, not files:
+```python
+from twin.config_manager import ConfigurationManager
+manager = ConfigurationManager()
+# Configs automatically stored in simulation_configs table
+```
+
+### Schema Management
+```python
+from twin.schema_manager import SchemaManager
+manager = SchemaManager()
+results = manager.verify_schema()  # Validate database integrity
+```
+
+See [Database Integration Guide](docs/DATABASE_INTEGRATION.md) for complete details.
+
 ## Testing
 
 Run tests with:
 ```bash
+# Unit tests
 pytest tests/test_twin_integration.py
 pytest tests/test_complete_workflow.py
+
+# Integration tests (NEW)
+python twin/test_integration.py
 ```
 
 ## Dependencies

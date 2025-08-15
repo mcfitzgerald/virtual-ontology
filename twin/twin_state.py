@@ -43,6 +43,8 @@ class TwinStateManager:
         """
         self.loader = ConfigLoader()
         self.config = self.loader.config
+        # Get module-specific config
+        self.module_config = self.loader.get_module_config('twin_state')
         
         if db_path is None:
             db_path = self.config["database"]["path"]
@@ -192,17 +194,23 @@ class TwinStateManager:
     def calculate_confidence(
         self,
         run_id: str,
-        n_validation_runs: int = 10,  # TODO: HARDCODED - default validation runs
-        confidence_level: float = 0.95  # TODO: HARDCODED - default confidence level
+        n_validation_runs: Optional[int] = None,
+        confidence_level: Optional[float] = None
     ) -> None:
         """Calculate confidence intervals for KPIs using validation runs
         
         Args:
             run_id: Base run to validate
-            n_validation_runs: Number of validation runs
-            confidence_level: Confidence level (default 95%)
+            n_validation_runs: Number of validation runs (uses config if None)
+            confidence_level: Confidence level (uses config if None)
 
         """
+        # Get config values if not provided
+        if n_validation_runs is None:
+            n_validation_runs = self.module_config.get('validation', {}).get('n_runs', 10)
+        if confidence_level is None:
+            confidence_level = self.module_config.get('validation', {}).get('confidence_level', 0.95)
+        
         # This would normally run multiple simulations with different seeds
         # For demonstration, we'll simulate the results
         
@@ -219,9 +227,10 @@ class TwinStateManager:
             base_kpis: Dict[str, float] = json.loads(row[0])
             
             # Simulate validation runs (in reality, would run actual simulations)
+            std_dev_multiplier = self.module_config.get('validation', {}).get('std_dev_multiplier', 0.05)
             for kpi, base_value in base_kpis.items():
                 # Simulate variation
-                std_dev: float = base_value * 0.05  # TODO: HARDCODED - 5% standard deviation
+                std_dev: float = base_value * std_dev_multiplier
                 samples: np.ndarray = np.random.normal(base_value, std_dev, n_validation_runs)
                 
                 # Calculate statistics
@@ -444,7 +453,8 @@ class TwinStateManager:
             report.append("No active recommendations")
         
         # Improvement trends
-        trends: Dict[str, List[float]] = self.get_improvement_trends(5)  # TODO: HARDCODED - last 5 runs
+        window_size = self.module_config.get('trends', {}).get('window_size', 5)
+        trends: Dict[str, List[float]] = self.get_improvement_trends(window_size)
         if trends:
             report.append("")
             report.append("RECENT TRENDS (last 5 runs):")

@@ -58,11 +58,16 @@ Submodules
    /autoapi/twin/config_transformer/index
    /autoapi/twin/config_validator/index
    /autoapi/twin/cost_impact_calculator/index
+   /autoapi/twin/database_cleaner/index
+   /autoapi/twin/generator/index
    /autoapi/twin/line_coupling_model/index
    /autoapi/twin/optimization_engine/index
    /autoapi/twin/recommendation_engine/index
+   /autoapi/twin/schema_manager/index
    /autoapi/twin/simulation_runner/index
    /autoapi/twin/sync_health/index
+   /autoapi/twin/test_integration/index
+   /autoapi/twin/test_system/index
    /autoapi/twin/twin_state/index
    /autoapi/twin/visualization/index
 
@@ -590,6 +595,9 @@ Package Contents
    .. py:attribute:: config
 
 
+   .. py:attribute:: module_config
+
+
    .. py:attribute:: db_path
       :type:  str
       :value: None
@@ -612,13 +620,13 @@ Package Contents
 
 
 
-   .. py:method:: calculate_confidence(run_id, n_validation_runs = 10, confidence_level = 0.95)
+   .. py:method:: calculate_confidence(run_id, n_validation_runs = None, confidence_level = None)
 
       Calculate confidence intervals for KPIs using validation runs
 
       :param run_id: Base run to validate
-      :param n_validation_runs: Number of validation runs
-      :param confidence_level: Confidence level (default 95%)
+      :param n_validation_runs: Number of validation runs (uses config if None)
+      :param confidence_level: Confidence level (uses config if None)
 
 
 
@@ -686,25 +694,31 @@ Package Contents
       :type:  twin.config_manager.ConfigurationManager
 
 
+   .. py:attribute:: baseline_values
+      :type:  Dict[str, Any]
+
+
    .. py:method:: apply_parameters(parameters, save_path = None)
 
-      Apply actionable parameters to create a new configuration
+      Apply scaling parameters to create a new configuration.
 
-      :param parameters: ActionableParameters instance with current values
+      All parameters are treated as multipliers where 1.0 = baseline.
+
+      :param parameters: ActionableParameters instance with scaling values
       :param save_path: Optional path to save the transformed config
 
-      :returns: Transformed configuration dictionary
+      :returns: Transformed configuration dictionary with scaled values
 
 
 
    .. py:method:: create_scenario(scenario_name, parameter_changes)
 
-      Create a specific scenario configuration
+      Create a specific scenario configuration.
 
       :param scenario_name: Name of the scenario
-      :param parameter_changes: Dictionary of parameter names and their new values
+      :param parameter_changes: Dictionary of parameter names and their scaling values
 
-      :returns: Scenario configuration
+      :returns: Scenario configuration with scaled values
 
 
 
@@ -804,13 +818,14 @@ Package Contents
    Implements NSGA-II concepts for Pareto optimization
 
 
-   .. py:attribute:: PARAMETERS
-
-
    .. py:attribute:: loader
 
 
    .. py:attribute:: config
+
+
+   .. py:attribute:: PARAMETERS
+      :type:  Dict[str, ActionableParameter]
 
 
    .. py:attribute:: simulation_runner
@@ -837,7 +852,7 @@ Package Contents
 
 
 
-   .. py:method:: optimize(objectives, constraints = None, population_size = 40, generations = 100, seed = 42, strategy = 'best1bin', mutation = (0.5, 1.0), recombination = 0.7, workers = 1, callback = None, verbose = True)
+   .. py:method:: optimize(objectives, constraints = None, population_size = None, generations = None, seed = None, strategy = 'best1bin', mutation = None, recombination = None, workers = 1, callback = None, verbose = True)
 
       Run multi-objective optimization using differential evolution
       Following VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md lines 283-358
@@ -858,7 +873,7 @@ Package Contents
 
 
 
-   .. py:method:: optimize_multi_objective(objectives, constraints = None, population_size = 100, generations = 200, seed = 42, verbose = True)
+   .. py:method:: optimize_multi_objective(objectives, constraints = None, population_size = None, generations = None, seed = None, verbose = True)
 
       True multi-objective optimization with Pareto front
       Uses multiple differential evolution runs with different weights
@@ -868,7 +883,7 @@ Package Contents
 
 
 
-   .. py:method:: validate_with_monte_carlo(solution, n_simulations = 1000, confidence_level = 0.95)
+   .. py:method:: validate_with_monte_carlo(solution, n_simulations = None, confidence_level = None)
 
       Validate solution with Monte Carlo simulation
       Following VIRTUAL_TWIN_IMPLEMENTATION_PLAN_FINAL.md lines 351-357
@@ -907,7 +922,7 @@ Package Contents
       :type:  twin.twin_state.TwinStateManager
 
 
-   .. py:method:: optimize(objectives, constraints = None, population_size = 50, generations = 100, seed = 42, verbose = True, use_simulation = False)
+   .. py:method:: optimize(objectives, constraints = None, population_size = None, generations = None, seed = None, verbose = True, use_simulation = False)
 
       Run multi-objective optimization using pymoo's NSGA-II
 
@@ -1045,6 +1060,9 @@ Package Contents
 
    .. py:attribute:: cached_evaluations
       :type:  Dict[str, Any]
+
+
+   .. py:attribute:: config
 
 
    .. py:attribute:: param_names
@@ -1327,64 +1345,37 @@ Package Contents
    Models how upstream stops affect downstream equipment
 
 
-   .. py:attribute:: buffer_capacity
-      :type:  int
-      :value: 100
-
-
-
-   .. py:attribute:: initial_buffer_level
-      :type:  int
-      :value: 50
-
-
-
-   .. py:attribute:: depletion_rate
-      :type:  float
-      :value: 10.0
-
-
-
-   .. py:attribute:: refill_rate
-      :type:  float
-      :value: 20.0
-
-
-
-   .. py:attribute:: depletion_noise_std
-      :type:  float
-      :value: 2.0
-
-
-
-   .. py:attribute:: refill_noise_std
-      :type:  float
-      :value: 3.0
-
-
-
-   .. py:attribute:: use_probabilistic
-      :type:  bool
-      :value: True
-
-
-
-   .. py:attribute:: cascade_sensitivity
-      :type:  float
-      :value: 0.5
-
-
-
-   .. py:attribute:: cascade_delay_minutes
-      :type:  int
-      :value: 10
-
-
-
    .. py:attribute:: loader
 
 
    .. py:attribute:: config
+
+
+   .. py:attribute:: buffer_capacity
+
+
+   .. py:attribute:: initial_buffer_level
+
+
+   .. py:attribute:: depletion_rate
+
+
+   .. py:attribute:: refill_rate
+
+
+   .. py:attribute:: depletion_noise_std
+
+
+   .. py:attribute:: refill_noise_std
+
+
+   .. py:attribute:: use_probabilistic
+
+
+   .. py:attribute:: cascade_sensitivity
+
+
+   .. py:attribute:: cascade_delay_minutes
 
 
    .. py:attribute:: buffers
@@ -1407,7 +1398,7 @@ Package Contents
 
 
 
-   .. py:method:: calculate_starvation(downstream_id, upstream_id, upstream_status, time_interval_minutes = 5)
+   .. py:method:: calculate_starvation(downstream_id, upstream_id, upstream_status, time_interval_minutes = None)
 
       Calculate if downstream equipment starves due to upstream stop
 
@@ -1420,7 +1411,7 @@ Package Contents
 
 
 
-   .. py:method:: calculate_blockage(upstream_id, downstream_id, downstream_status, time_interval_minutes = 5)
+   .. py:method:: calculate_blockage(upstream_id, downstream_id, downstream_status, time_interval_minutes = None)
 
       Calculate if upstream equipment blocks due to downstream stop
 
@@ -1433,7 +1424,7 @@ Package Contents
 
 
 
-   .. py:method:: simulate_cascade(equipment_sequence, initial_failure, time_steps = 12)
+   .. py:method:: simulate_cascade(equipment_sequence, initial_failure, time_steps = None)
 
       Simulate cascade effects over time
 

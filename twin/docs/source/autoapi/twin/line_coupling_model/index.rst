@@ -112,64 +112,37 @@ Module Contents
    Models how upstream stops affect downstream equipment
 
 
-   .. py:attribute:: buffer_capacity
-      :type:  int
-      :value: 100
-
-
-
-   .. py:attribute:: initial_buffer_level
-      :type:  int
-      :value: 50
-
-
-
-   .. py:attribute:: depletion_rate
-      :type:  float
-      :value: 10.0
-
-
-
-   .. py:attribute:: refill_rate
-      :type:  float
-      :value: 20.0
-
-
-
-   .. py:attribute:: depletion_noise_std
-      :type:  float
-      :value: 2.0
-
-
-
-   .. py:attribute:: refill_noise_std
-      :type:  float
-      :value: 3.0
-
-
-
-   .. py:attribute:: use_probabilistic
-      :type:  bool
-      :value: True
-
-
-
-   .. py:attribute:: cascade_sensitivity
-      :type:  float
-      :value: 0.5
-
-
-
-   .. py:attribute:: cascade_delay_minutes
-      :type:  int
-      :value: 10
-
-
-
    .. py:attribute:: loader
 
 
    .. py:attribute:: config
+
+
+   .. py:attribute:: buffer_capacity
+
+
+   .. py:attribute:: initial_buffer_level
+
+
+   .. py:attribute:: depletion_rate
+
+
+   .. py:attribute:: refill_rate
+
+
+   .. py:attribute:: depletion_noise_std
+
+
+   .. py:attribute:: refill_noise_std
+
+
+   .. py:attribute:: use_probabilistic
+
+
+   .. py:attribute:: cascade_sensitivity
+
+
+   .. py:attribute:: cascade_delay_minutes
 
 
    .. py:attribute:: buffers
@@ -192,7 +165,7 @@ Module Contents
 
 
 
-   .. py:method:: calculate_starvation(downstream_id, upstream_id, upstream_status, time_interval_minutes = 5)
+   .. py:method:: calculate_starvation(downstream_id, upstream_id, upstream_status, time_interval_minutes = None)
 
       Calculate if downstream equipment starves due to upstream stop
 
@@ -205,7 +178,7 @@ Module Contents
 
 
 
-   .. py:method:: calculate_blockage(upstream_id, downstream_id, downstream_status, time_interval_minutes = 5)
+   .. py:method:: calculate_blockage(upstream_id, downstream_id, downstream_status, time_interval_minutes = None)
 
       Calculate if upstream equipment blocks due to downstream stop
 
@@ -218,7 +191,7 @@ Module Contents
 
 
 
-   .. py:method:: simulate_cascade(equipment_sequence, initial_failure, time_steps = 12)
+   .. py:method:: simulate_cascade(equipment_sequence, initial_failure, time_steps = None)
 
       Simulate cascade effects over time
 

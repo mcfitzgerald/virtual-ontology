@@ -109,22 +109,24 @@ System: [Calculates $450K annual benefit with 95% CI: $400K-$500K]
 - **SyncHealthMonitor**: System health and drift detection
 
 ### Configuration Management
+- **Dual Config Architecture**: Separated generator.yaml and system.yaml for clarity
+- **ConfigLoader**: Enhanced to handle multiple config files with module-specific access
 - **ConfigTransformer**: Maps parameters to simulation configurations
 - **ConfigValidator**: Ensures parameter changes are correctly applied
-- **Custom Config Support**: Generator accepts `--config` and `--seed` parameters
+- **Integrated Generator**: Data generator now part of twin module (v1.2.0)
 - **Reproducible Results**: Fixed seeds ensure deterministic simulations
 
-## 🎮 Actionable Parameters
+## 🎮 Actionable Parameters (Scaling Approach)
 
-The system optimizes five key manufacturing parameters:
+The system optimizes five key manufacturing parameters using a scaling approach where 1.0 = baseline production:
 
-| Parameter | Impact Area | Range | Default |
-|-----------|------------|-------|---------|
-| `micro_stop_probability` | Equipment reliability | 0.05-0.5 | 0.10 |
-| `performance_factor` | Speed & efficiency | 0.5-1.0 | 0.85 |
-| `scrap_multiplier` | Quality control | 0.5-5.0 | 1.00 |
-| `material_reliability` | Supply chain | 0.5-1.0 | 0.85 |
-| `cascade_sensitivity` | Line coupling | 0.0-1.0 | 0.30 |
+| Parameter | Impact Area | Range | Default | Description |
+|-----------|------------|-------|---------|-------------|
+| `micro_stop_probability` | Equipment reliability | 0.3-1.5 | 1.0 | Maintenance effectiveness (lower is better) |
+| `performance_factor` | Speed & efficiency | 0.7-1.3 | 1.0 | Operational excellence multiplier |
+| `scrap_multiplier` | Quality control | 0.5-1.5 | 1.0 | Quality control effectiveness (lower is better) |
+| `material_reliability` | Supply chain | 0.5-1.2 | 1.0 | Supply chain reliability multiplier |
+| `cascade_sensitivity` | Line coupling | 0.5-2.0 | 1.0 | Line decoupling effectiveness (lower is better) |
 
 ## 📊 Progressive Analysis Workflow
 

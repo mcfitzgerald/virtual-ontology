@@ -101,10 +101,11 @@ LLM explains trade-offs to user
 ## Module Architecture
 
 ### Core Orchestration
-- **`twin/__init__.py`**: Module exports and public API (v1.1.0)
+- **`twin/__init__.py`**: Module exports and public API (v1.2.0)
   - Core: SimulationRunner, ActionableParameters, TwinStateManager
   - Analysis: OptimizationEngine, RecommendationEngine, CostImpactCalculator
   - Support: SyncHealthMonitor, LineCoupling
+  - Generator: Integrated data generator module
   - **Enhanced with pymoo and PyMC libraries for robust scientific computing**
 
 ### Simulation & Prediction
@@ -140,12 +141,12 @@ LLM explains trade-offs to user
   - Payback period estimation with confidence bounds
 
 ### Parameters & State
-- **`ActionableParameters`**: 5 tunable parameters
-  1. `micro_stop_probability` (0.05-0.5): Equipment reliability
-  2. `performance_factor` (0.5-1.0): Operator skill/calibration
-  3. `scrap_multiplier` (0.5-5.0): Quality control (< 1.0 improves, > 1.0 worsens)
-  4. `material_reliability` (0.5-1.0): Supply chain quality
-  5. `cascade_sensitivity` (0.0-1.0): Failure propagation
+- **`ActionableParameters`**: 5 tunable parameters (scaling approach, 1.0 = baseline)
+  1. `micro_stop_probability` (0.3-1.5): Maintenance effectiveness multiplier
+  2. `performance_factor` (0.7-1.3): Operational excellence multiplier
+  3. `scrap_multiplier` (0.5-1.5): Quality control effectiveness
+  4. `material_reliability` (0.5-1.2): Supply chain reliability multiplier
+  5. `cascade_sensitivity` (0.5-2.0): Line decoupling effectiveness
 
 - **`TwinStateManager`**: Tracks current configuration
   - Active parameters
@@ -263,10 +264,12 @@ virtual-ontology/
 │   └── simulation_configs/     # Archived config files
 │       └── archive/            # Historical config JSONs
 ├── twin/
-│   ├── __init__.py              # Module exports and API (v1.1.0)
+│   ├── __init__.py              # Module exports and API (v1.2.0)
+│   ├── generator.py             # Integrated data generator (NEW)
 │   ├── simulation_runner.py     # Digital twin simulation + MC wrapper
 │   ├── optimization_engine.py   # scipy-based optimization
 │   ├── recommendation_engine.py # pymoo NSGA-II multi-objective
+│   ├── config_loader.py         # Multi-config loader (ENHANCED)
 │   ├── config_manager.py        # Configuration storage manager
 │   ├── config_transformer.py    # Parameter to config transformer
 │   ├── config_validator.py      # Configuration validation layer
@@ -275,6 +278,10 @@ virtual-ontology/
 │   ├── twin_state.py            # State management
 │   ├── line_coupling_model.py   # Production line interactions
 │   ├── sync_health.py          # Synchronization monitoring
+│   ├── config/                  # Configuration files (NEW)
+│   │   ├── generator.yaml      # Generator configuration
+│   │   ├── system.yaml         # System configuration
+│   │   └── defaults.yaml       # Legacy config (deprecated)
 │   ├── API.md                  # Module API documentation
 │   ├── README.md               # Module overview
 │   ├── docs/                   # Twin documentation
@@ -340,25 +347,31 @@ virtual-ontology/
 
 ## Evolution Path
 
-### Current State (v1.1.0 - Enhanced with pymoo and PyMC)
+### Current State (v1.2.0 - Integrated Generator & Config Separation)
 - LLM-orchestrated Python modules
 - **pymoo** for robust multi-objective optimization (NSGA-II, hypervolume, IGD)
 - **PyMC** for Bayesian probabilistic modeling and MCMC sampling
 - Enhanced Monte Carlo simulation with parallel execution support
-- SQLite database
+- Integrated data generator as part of twin module
+- Dual configuration architecture (generator.yaml, system.yaml)
+- SQLite database with api.sh as primary interface
 - File-based logging
 - Single-machine deployment
 
-### Recent Enhancements (v1.1.0)
+### Recent Enhancements (v1.2.0)
+- ✅ **Integrated data generator into twin module** - No more external script dependency
+- ✅ **Separated configurations** - generator.yaml for data generation, system.yaml for twin settings
+- ✅ **Enhanced ConfigLoader** - Supports multiple config files with module-specific access
+- ✅ **Removed all hardcoded values** - Everything now configurable via YAML
+- ✅ **Scaling parameter approach** - All parameters use 1.0 = baseline for intuitive tuning
+- ✅ **Per-module config sections** - Clear organization in system.yaml
+
+### Previous Enhancements (v1.1.0)
 - ✅ Replaced custom NSGA-II with pymoo's proven implementation
 - ✅ Integrated PyMC for Bayesian uncertainty quantification in ROI
 - ✅ Added parallel Monte Carlo simulation capability
 - ✅ Enhanced parameter sensitivity analysis
 - ✅ Improved convergence diagnostics (R-hat, ESS)
-- ✅ Fixed configuration passing to ensure parameters affect simulations
-- ✅ Added configuration validation layer for parameter verification
-- ✅ Implemented reproducible seeding for deterministic simulations
-- ✅ Made database path configurable via environment variable
 
 ### Potential Future Enhancements
 - Read from twin_operations.jsonl for learning

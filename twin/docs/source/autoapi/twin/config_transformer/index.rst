@@ -6,7 +6,8 @@ twin.config_transformer
 .. autoapi-nested-parse::
 
    Config Transformer Module
-   Maps actionable parameters to mes_data_config.json for simulation
+   Applies scaling parameters to baseline configuration for simulation.
+   All parameters are treated as multipliers where 1.0 = baseline.
 
 
 
@@ -55,25 +56,31 @@ Module Contents
       :type:  twin.config_manager.ConfigurationManager
 
 
+   .. py:attribute:: baseline_values
+      :type:  Dict[str, Any]
+
+
    .. py:method:: apply_parameters(parameters, save_path = None)
 
-      Apply actionable parameters to create a new configuration
+      Apply scaling parameters to create a new configuration.
 
-      :param parameters: ActionableParameters instance with current values
+      All parameters are treated as multipliers where 1.0 = baseline.
+
+      :param parameters: ActionableParameters instance with scaling values
       :param save_path: Optional path to save the transformed config
 
-      :returns: Transformed configuration dictionary
+      :returns: Transformed configuration dictionary with scaled values
 
 
 
    .. py:method:: create_scenario(scenario_name, parameter_changes)
 
-      Create a specific scenario configuration
+      Create a specific scenario configuration.
 
       :param scenario_name: Name of the scenario
-      :param parameter_changes: Dictionary of parameter names and their new values
+      :param parameter_changes: Dictionary of parameter names and their scaling values
 
-      :returns: Scenario configuration
+      :returns: Scenario configuration with scaled values
 
 
 

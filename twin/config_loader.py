@@ -15,16 +15,20 @@ class ConfigLoader:
     """Loads and manages configuration for the Virtual Twin system.
     
     Configuration is loaded in the following priority order:
-    1. defaults.yaml (base configuration)
-    2. Environment-specific config (e.g., production.yaml, development.yaml)
-    3. Environment variables (prefixed with TWIN_)
-    4. Runtime overrides
+    1. system.yaml (system configuration)
+    2. generator.yaml (generator configuration)
+    3. defaults.yaml (legacy, if exists)
+    4. Environment-specific config (e.g., production.yaml, development.yaml)
+    5. Environment variables (prefixed with TWIN_)
+    6. Runtime overrides
     """
     
     def __init__(
         self,
         config_dir: Optional[str] = None,
-        environment: Optional[str] = None
+        environment: Optional[str] = None,
+        load_generator: bool = True,
+        load_system: bool = True
     ) -> None:
         """Initialize the configuration loader.
         
@@ -33,6 +37,8 @@ class ConfigLoader:
                        Defaults to twin/config relative to this file
             environment: Environment name (production, development, test)
                         Defaults to TWIN_ENV environment variable or 'development'
+            load_generator: Whether to load generator.yaml
+            load_system: Whether to load system.yaml
 
         """
         if config_dir is None:
@@ -45,20 +51,51 @@ class ConfigLoader:
         
         self.environment: str = environment
         self.config: Dict[str, Any] = {}
+        self.generator_config: Dict[str, Any] = {}
+        self.system_config: Dict[str, Any] = {}
         
-        # Load configuration
-        self._load_config()
+        # Load configuration files
+        self._load_config(load_generator, load_system)
         
-    def _load_config(self) -> None:
-        """Load configuration from files and environment."""
-        # Load defaults
-        defaults_path = self.config_dir / "defaults.yaml"
-        if defaults_path.exists():
-            with open(defaults_path, 'r') as f:
-                self.config = yaml.safe_load(f) or {}
-                logger.info(f"Loaded default configuration from {defaults_path}")
-        else:
-            logger.warning(f"Default configuration not found at {defaults_path}")
+    def _load_config(self, load_generator: bool = True, load_system: bool = True) -> None:
+        """Load configuration from files and environment.
+        
+        Configuration is loaded from two primary files:
+        1. system.yaml - Twin module settings and operational parameters
+        2. generator.yaml - Data generation and simulation parameters
+        
+        Args:
+            load_generator: Whether to load generator.yaml
+            load_system: Whether to load system.yaml
+        """
+        # Load system configuration
+        if load_system:
+            system_path = self.config_dir / "system.yaml"
+            if system_path.exists():
+                with open(system_path, 'r') as f:
+                    self.system_config = yaml.safe_load(f) or {}
+                    # Merge into main config for unified access
+                    self._deep_merge(self.config, self.system_config)
+                    logger.info(f"Loaded system configuration from {system_path}")
+            else:
+                raise FileNotFoundError(f"System configuration not found at {system_path}")
+        
+        # Load generator configuration
+        if load_generator:
+            generator_path = self.config_dir / "generator.yaml"
+            if generator_path.exists():
+                with open(generator_path, 'r') as f:
+                    self.generator_config = yaml.safe_load(f) or {}
+                    # Merge generator params into main config for unified access
+                    if 'parameters' in self.generator_config:
+                        self.config['parameters'] = self.generator_config['parameters']
+                    # Also merge other generator sections for backward compatibility
+                    for key in ['equipment', 'products', 'anomalies', 'scenarios', 'lines']:
+                        if key in self.generator_config:
+                            self.config[key] = self.generator_config[key]
+                    logger.info(f"Loaded generator configuration from {generator_path}")
+            else:
+                raise FileNotFoundError(f"Generator configuration not found at {generator_path}")
         
         # Load environment-specific config if it exists
         env_config_path = self.config_dir / f"{self.environment}.yaml"
@@ -66,6 +103,8 @@ class ConfigLoader:
             with open(env_config_path, 'r') as f:
                 env_config = yaml.safe_load(f) or {}
                 self._deep_merge(self.config, env_config)
+                self._deep_merge(self.system_config, env_config)
+                self._deep_merge(self.generator_config, env_config)
                 logger.info(f"Loaded {self.environment} configuration from {env_config_path}")
         
         # Apply environment variable overrides
@@ -178,6 +217,42 @@ class ConfigLoader:
 
         """
         return self.get("parameters", {})
+    
+    def get_module_config(self, module_name: str) -> Dict[str, Any]:
+        """Get configuration for a specific twin module.
+        
+        Args:
+            module_name: Name of the module (e.g., 'twin_state', 'optimization_engine')
+            
+        Returns:
+            Dictionary with module-specific configuration
+            
+        Example:
+            >>> config = ConfigLoader()
+            >>> twin_state_config = config.get_module_config('twin_state')
+            >>> validation_runs = twin_state_config['validation']['n_runs']
+        """
+        # First check system config for the module
+        if module_name in self.system_config:
+            return self.system_config[module_name]
+        # Fall back to main config
+        return self.get(module_name, {})
+    
+    def get_generator_config(self) -> Dict[str, Any]:
+        """Get the complete generator configuration.
+        
+        Returns:
+            Dictionary with generator configuration
+        """
+        return self.generator_config
+    
+    def get_system_config(self) -> Dict[str, Any]:
+        """Get the complete system configuration.
+        
+        Returns:
+            Dictionary with system configuration
+        """
+        return self.system_config
         
     def get_scenario(self, scenario_name: str) -> Dict[str, float]:
         """Get a pre-configured scenario.

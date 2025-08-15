@@ -115,6 +115,9 @@ Module Contents
       :type:  Dict[str, Any]
 
 
+   .. py:attribute:: config
+
+
    .. py:attribute:: param_names
       :type:  List[str]
       :value: []
@@ -141,7 +144,7 @@ Module Contents
       :type:  twin.twin_state.TwinStateManager
 
 
-   .. py:method:: optimize(objectives, constraints = None, population_size = 50, generations = 100, seed = 42, verbose = True, use_simulation = False)
+   .. py:method:: optimize(objectives, constraints = None, population_size = None, generations = None, seed = None, verbose = True, use_simulation = False)
 
       Run multi-objective optimization using pymoo's NSGA-II
 

@@ -54,8 +54,11 @@ from .cost_impact_calculator import CostImpactCalculator, CostParameters
 from .sync_health import SyncHealthMonitor, SyncHealthStatus
 from .line_coupling_model import LineCoupling
 
-# Version - Updated for pymoo/PyMC enhancements
-__version__ = "1.1.0"
+# Generator module - Data generation for baseline and simulation
+from . import generator
+
+# Version - Updated for pymoo/PyMC enhancements and generator integration
+__version__ = "1.2.0"
 
 # Public API
 __all__ = [

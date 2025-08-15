@@ -40,15 +40,17 @@ Module Contents
 
 .. py:data:: logger
 
-.. py:class:: ConfigLoader(config_dir = None, environment = None)
+.. py:class:: ConfigLoader(config_dir = None, environment = None, load_generator = True, load_system = True)
 
    Loads and manages configuration for the Virtual Twin system.
 
    Configuration is loaded in the following priority order:
-   1. defaults.yaml (base configuration)
-   2. Environment-specific config (e.g., production.yaml, development.yaml)
-   3. Environment variables (prefixed with TWIN_)
-   4. Runtime overrides
+   1. system.yaml (system configuration)
+   2. generator.yaml (generator configuration)
+   3. defaults.yaml (legacy, if exists)
+   4. Environment-specific config (e.g., production.yaml, development.yaml)
+   5. Environment variables (prefixed with TWIN_)
+   6. Runtime overrides
 
 
    .. py:attribute:: config_dir
@@ -62,6 +64,14 @@ Module Contents
 
 
    .. py:attribute:: config
+      :type:  Dict[str, Any]
+
+
+   .. py:attribute:: generator_config
+      :type:  Dict[str, Any]
+
+
+   .. py:attribute:: system_config
       :type:  Dict[str, Any]
 
 
@@ -100,6 +110,38 @@ Module Contents
       Get all parameter configurations.
 
       :returns: Dictionary of parameter configurations
+
+
+
+   .. py:method:: get_module_config(module_name)
+
+      Get configuration for a specific twin module.
+
+      :param module_name: Name of the module (e.g., 'twin_state', 'optimization_engine')
+
+      :returns: Dictionary with module-specific configuration
+
+      .. admonition:: Example
+
+         >>> config = ConfigLoader()
+         >>> twin_state_config = config.get_module_config('twin_state')
+         >>> validation_runs = twin_state_config['validation']['n_runs']
+
+
+
+   .. py:method:: get_generator_config()
+
+      Get the complete generator configuration.
+
+      :returns: Dictionary with generator configuration
+
+
+
+   .. py:method:: get_system_config()
+
+      Get the complete system configuration.
+
+      :returns: Dictionary with system configuration
 
 
 

@@ -41,6 +41,9 @@ The built documentation will be available at `build/html/index.html`.
     - `migration.rst` - Migration guide
 - `build/` - Built documentation (generated)
 - `Makefile` - Build automation
+- **`DATABASE_INTEGRATION.md`** - Database reset, config storage, and integration guide (v1.3.0)
+- `PATTERNS_REFERENCE.md` - Error-free code patterns
+- `EXAMPLES.md` - Usage examples
 
 ### Key Features
 

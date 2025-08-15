@@ -66,6 +66,15 @@ tables:
         references: "twin_runs.run_id"
     ontology_class: "OptimizationResult"
     
+  - name: "provenance_records"
+    description: "PROV-O compliant provenance tracking for all operations"
+    primary_key: "id"
+    indexes: ["run_id", "activity_id", "activity_type"]
+    foreign_keys:
+      - column: "run_id"
+        references: "twin_runs.run_id"
+    ontology_class: "ProvenanceActivity"
+    
   - name: "recommendations"
     description: "Actionable recommendations generated from simulations"
     primary_key: "recommendation_id"
@@ -74,6 +83,69 @@ tables:
       - column: "run_id"
         references: "twin_runs.run_id"
     ontology_class: "Recommendation"
+    
+  - name: "equipment_metadata"
+    description: "Static metadata about manufacturing equipment"
+    primary_key: "equipment_id"
+    indexes: ["equipment_type", "line"]
+    ontology_class: "Equipment"
+    
+  - name: "quality_data"
+    description: "Quality metrics and defect tracking data"
+    primary_key: "id"
+    indexes: ["run_id", "timestamp", "equipment_id", "batch_id"]
+    foreign_keys:
+      - column: "equipment_id"
+        references: "equipment_metadata.equipment_id"
+    ontology_class: "QualityMeasurement"
+    
+  - name: "sensor_data"
+    description: "Real-time sensor readings from equipment"
+    primary_key: "id"
+    indexes: ["sensor_id", "equipment_id", "timestamp", "observable_property"]
+    foreign_keys:
+      - column: "equipment_id"
+        references: "equipment_metadata.equipment_id"
+    ontology_class: "SensorReading"
+    
+  - name: "alert_config"
+    description: "Alert thresholds and configuration for monitoring"
+    primary_key: "id"
+    indexes: ["alert_name", "metric", "equipment_id", "active"]
+    ontology_class: "AlertConfiguration"
+    
+  - name: "entity_sync_metadata"
+    description: "Tracks synchronization status between virtual and physical entities"
+    primary_key: "entity_id"
+    indexes: ["entity_type", "last_update", "health_status"]
+    ontology_class: "SyncMetadata"
+    
+  - name: "sync_health_log"
+    description: "Logs of synchronization health events and alerts"
+    primary_key: "log_id"
+    indexes: ["entity_id", "timestamp", "alert_raised"]
+    foreign_keys:
+      - column: "entity_id"
+        references: "entity_sync_metadata.entity_id"
+    ontology_class: "SyncHealthEvent"
+    
+  - name: "kpi_results"
+    description: "Calculated KPI results from simulations and operations"
+    primary_key: "kpi_id"
+    indexes: ["run_id", "kpi_name", "timestamp"]
+    foreign_keys:
+      - column: "run_id"
+        references: "twin_runs.run_id"
+    ontology_class: "KPIResult"
+    
+  - name: "confidence_tracking"
+    description: "Tracks confidence intervals and statistical validation of results"
+    primary_key: "tracking_id"
+    indexes: ["run_id", "kpi", "timestamp"]
+    foreign_keys:
+      - column: "run_id"
+        references: "twin_runs.run_id"
+    ontology_class: "ConfidenceMetric"
 
 # ====================================================================================
 # PROPERTIES (Twin table columns with ontology mapping)
