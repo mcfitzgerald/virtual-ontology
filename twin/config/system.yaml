@@ -21,10 +21,10 @@ paths:
   # Generator is now internal to twin module
   generator: "twin/generator.py"
   # Configuration directories
-  config_dir: "twin/configs"
+  config_dir: "twin/config"
   export_dir: "data/simulation_configs"
-  # Legacy config for backward compatibility
-  base_config: "synthetic_data_generator/mes_data_config.json"
+  # Base configuration for generator
+  base_config: "twin/config/generator.yaml"
   # Logging and history
   query_logs: "learning_history/query_logs.json"
   api_log: "logs/api.log"

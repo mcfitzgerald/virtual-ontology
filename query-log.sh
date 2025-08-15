@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# SQL API Query Logger with Smart Truncation
-# Logs all queries and responses, truncates large responses for display
+# Enhanced SQL API Query Logger with Context Awareness
+# Logs all queries with natural language context, intent, and categorization
+# Designed to be orchestrated by LLM agents (Claude Code) for learning
 #
 # IMPORTANT: JSON Escaping Issue
 # Due to shell argument parsing, inline JSON with -d flag often fails.
@@ -19,6 +20,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Generate unique ID
@@ -50,6 +52,61 @@ init_log_file() {
     fi
 }
 
+# Detect query category and domain based on SQL content
+detect_query_context() {
+    local sql="$1"
+    local category="unknown"
+    local domain="unknown"
+    local tables_accessed=""
+    
+    # Convert SQL to lowercase for matching
+    local sql_lower=$(echo "$sql" | tr '[:upper:]' '[:lower:]')
+    
+    # Historical/MES tables
+    if [[ "$sql_lower" =~ (mes_data|equipment_metadata|product_master|downtime_reasons) ]]; then
+        category="historical"
+        domain="mes_production"
+    fi
+    
+    # Twin simulation tables
+    if [[ "$sql_lower" =~ (simulation_data|twin_runs|simulation_configs) ]]; then
+        if [ "$category" = "historical" ]; then
+            category="hybrid"
+            domain="comparison"
+        else
+            category="twin"
+            domain="simulation"
+        fi
+    fi
+    
+    # Twin optimization tables
+    if [[ "$sql_lower" =~ (optimization_results|recommendations) ]]; then
+        if [ "$category" != "unknown" ] && [ "$category" != "twin" ]; then
+            category="hybrid"
+            domain="analysis"
+        else
+            category="twin"
+            domain="optimization"
+        fi
+    fi
+    
+    # Twin state tables
+    if [[ "$sql_lower" =~ (twin_state|parameter_history|confidence_tracking|kpi_results) ]]; then
+        if [ "$category" != "unknown" ] && [ "$category" != "twin" ]; then
+            category="hybrid"
+            domain="analysis"
+        else
+            category="twin"
+            domain="state"
+        fi
+    fi
+    
+    # Extract table names
+    tables_accessed=$(echo "$sql" | grep -oE '(FROM|JOIN|INTO)\s+[a-zA-Z_][a-zA-Z0-9_]*' | sed 's/^[^ ]* //' | sort -u | tr '\n' ',' | sed 's/,$//')
+    
+    echo "$category|$domain|$tables_accessed"
+}
+
 # Show a specific log entry
 show_log_entry() {
     local log_id="$1"
@@ -65,17 +122,62 @@ show_log_entry() {
     fi
 }
 
+# Show analytics summary
+show_analytics() {
+    if [ ! -f "$LOG_FILE" ]; then
+        echo -e "${RED}No log file found${NC}"
+        exit 1
+    fi
+    
+    echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}           Query Log Analytics Summary                 ${NC}"
+    echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
+    echo ""
+    
+    # Total queries
+    local total=$(jq 'length' "$LOG_FILE")
+    echo -e "${GREEN}Total Queries:${NC} $total"
+    echo ""
+    
+    # By category
+    echo -e "${BLUE}Queries by Category:${NC}"
+    jq -r 'group_by(.category) | map({category: .[0].category, count: length}) | .[] | "  \(.category // "unknown"): \(.count)"' "$LOG_FILE"
+    echo ""
+    
+    # By domain
+    echo -e "${BLUE}Queries by Domain:${NC}"
+    jq -r 'group_by(.domain) | map({domain: .[0].domain, count: length}) | .[] | "  \(.domain // "unknown"): \(.count)"' "$LOG_FILE"
+    echo ""
+    
+    # Recent queries with NL
+    echo -e "${BLUE}Recent Queries with Natural Language:${NC}"
+    jq -r '[.[] | select(.natural_language != null)] | reverse | .[0:5] | .[] | "  [\(.timestamp[11:19])] \(.natural_language[0:60])"' "$LOG_FILE" 2>/dev/null || echo "  No NL queries found"
+    echo ""
+    
+    # Most accessed tables
+    echo -e "${BLUE}Most Accessed Tables:${NC}"
+    jq -r '[.[] | select(.tables_accessed != null and .tables_accessed != "") | .tables_accessed | split(",") | .[]] | group_by(.) | map({table: .[0], count: length}) | sort_by(-.count) | .[0:5] | .[] | "  \(.table): \(.count)"' "$LOG_FILE" 2>/dev/null || echo "  No table data"
+    echo ""
+    
+    echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
+}
+
 # Execute query and log
 execute_query() {
     local method="$1"
     local endpoint="$2"
     shift 2
     
-    # Check for --intent parameter
+    # Parse parameters
     local intent=""
+    local natural_language=""
+    local category=""
+    local domain=""
     local new_args=()
-    local skip_next=false
     local next_is_intent=false
+    local next_is_nl=false
+    local next_is_category=false
+    local next_is_domain=false
     
     for arg in "$@"; do
         if [ "$next_is_intent" = true ]; then
@@ -89,12 +191,45 @@ execute_query() {
             continue
         fi
         
-        if [ "$arg" = "--intent" ]; then
-            next_is_intent=true
+        if [ "$next_is_nl" = true ]; then
+            natural_language="$arg"
+            next_is_nl=false
             continue
         fi
         
-        new_args+=("$arg")
+        if [ "$next_is_category" = true ]; then
+            category="$arg"
+            next_is_category=false
+            continue
+        fi
+        
+        if [ "$next_is_domain" = true ]; then
+            domain="$arg"
+            next_is_domain=false
+            continue
+        fi
+        
+        case "$arg" in
+            --intent)
+                next_is_intent=true
+                continue
+                ;;
+            --nl|--natural-language)
+                next_is_nl=true
+                continue
+                ;;
+            --category)
+                next_is_category=true
+                continue
+                ;;
+            --domain)
+                next_is_domain=true
+                continue
+                ;;
+            *)
+                new_args+=("$arg")
+                ;;
+        esac
     done
     
     local curl_args="${new_args[@]}"
@@ -111,6 +246,12 @@ execute_query() {
     local temp_headers=$(mktemp)
     
     echo -e "${BLUE}Executing query (ID: $query_id)...${NC}"
+    if [ -n "$natural_language" ]; then
+        echo -e "${CYAN}Natural Language: $natural_language${NC}"
+    fi
+    if [ -n "$category" ]; then
+        echo -e "${CYAN}Category: $category${NC}"
+    fi
     
     # Execute curl with all arguments
     # KNOWN ISSUE: $curl_args without quotes causes JSON to be mangled
@@ -125,16 +266,58 @@ execute_query() {
     local response=$(cat "$temp_response")
     local response_size=${#response}
     
-    # Extract request body from curl args if present
+    # Extract request body and SQL from curl args if present
     local request_body=""
+    local sql_query=""
     for arg in $curl_args; do
         if [[ "$arg" == -d* ]]; then
             request_body="${arg#-d}"
+            # If it's a file reference, read the file
+            if [[ "$request_body" == @* ]]; then
+                local file_path="${request_body#@}"
+                if [ -f "$file_path" ]; then
+                    request_body=$(cat "$file_path")
+                    # Extract SQL from JSON
+                    sql_query=$(echo "$request_body" | jq -r '.sql // empty' 2>/dev/null)
+                fi
+            else
+                # Try to extract SQL from inline JSON
+                sql_query=$(echo "$request_body" | jq -r '.sql // empty' 2>/dev/null)
+            fi
         elif [[ "$last_arg" == "-d" ]] || [[ "$last_arg" == "--data" ]]; then
             request_body="$arg"
+            # Handle file reference
+            if [[ "$request_body" == @* ]]; then
+                local file_path="${request_body#@}"
+                if [ -f "$file_path" ]; then
+                    request_body=$(cat "$file_path")
+                    sql_query=$(echo "$request_body" | jq -r '.sql // empty' 2>/dev/null)
+                fi
+            else
+                sql_query=$(echo "$request_body" | jq -r '.sql // empty' 2>/dev/null)
+            fi
         fi
         last_arg="$arg"
     done
+    
+    # Auto-detect category and domain if not provided and SQL is available
+    local tables_accessed=""
+    if [ -n "$sql_query" ]; then
+        local detection=$(detect_query_context "$sql_query")
+        local detected_category=$(echo "$detection" | cut -d'|' -f1)
+        local detected_domain=$(echo "$detection" | cut -d'|' -f2)
+        tables_accessed=$(echo "$detection" | cut -d'|' -f3)
+        
+        # Use detected values if not explicitly provided
+        if [ -z "$category" ] && [ "$detected_category" != "unknown" ]; then
+            category="$detected_category"
+            echo -e "${GREEN}Auto-detected category: $category${NC}"
+        fi
+        if [ -z "$domain" ] && [ "$detected_domain" != "unknown" ]; then
+            domain="$detected_domain"
+            echo -e "${GREEN}Auto-detected domain: $domain${NC}"
+        fi
+    fi
     
     # Determine if response should be truncated for display
     local truncated=false
@@ -157,13 +340,18 @@ execute_query() {
         fi
     fi
     
-    # Create log entry
+    # Create log entry with enhanced metadata
     local log_entry=$(jq -n \
         --arg id "$query_id" \
         --arg ts "$timestamp" \
         --arg method "$method" \
         --arg endpoint "$endpoint" \
         --arg intent "$intent" \
+        --arg nl "$natural_language" \
+        --arg category "$category" \
+        --arg domain "$domain" \
+        --arg tables "$tables_accessed" \
+        --arg sql "$sql_query" \
         --arg req_body "$request_body" \
         --arg resp "$response" \
         --arg resp_size "$response_size" \
@@ -175,6 +363,11 @@ execute_query() {
             method: $method,
             endpoint: $endpoint,
             intent: (if $intent != "" then $intent else null end),
+            natural_language: (if $nl != "" then $nl else null end),
+            category: (if $category != "" then $category else null end),
+            domain: (if $domain != "" then $domain else null end),
+            tables_accessed: (if $tables != "" then $tables else null end),
+            sql_query: (if $sql != "" then $sql else null end),
             request_body: $req_body,
             response: $resp,
             response_size: ($resp_size | tonumber),
@@ -204,6 +397,9 @@ execute_query() {
     echo -e "${GREEN}Query ID: $query_id${NC}"
     echo -e "${GREEN}Status: $http_code${NC}"
     echo -e "${GREEN}Response Size: $response_size bytes${NC}"
+    if [ -n "$tables_accessed" ]; then
+        echo -e "${GREEN}Tables: $tables_accessed${NC}"
+    fi
     echo ""
     
     if [ "$truncated" = true ]; then
@@ -236,20 +432,42 @@ main() {
         exit 0
     fi
     
+    if [ "$1" == "--analytics" ] || [ "$1" == "--stats" ]; then
+        show_analytics
+        exit 0
+    fi
+    
     if [ "$1" == "--help" ] || [ -z "$1" ]; then
-        echo "SQL API Query Logger"
+        echo "Enhanced SQL API Query Logger with Context Awareness"
         echo ""
         echo "Usage:"
-        echo "  $0 <METHOD> <ENDPOINT> [--intent \"description\"] [curl options]"
+        echo "  $0 <METHOD> <ENDPOINT> [options] [curl options]"
         echo "  $0 --show-log <log_id>"
+        echo "  $0 --analytics"
         echo "  $0 --example-json"
         echo "  $0 --test"
         echo "  $0 --verify-log"
         echo "  $0 --repair-log"
         echo ""
+        echo "Enhanced Options:"
+        echo "  --intent \"description\"       Business intent (140 char max)"
+        echo "  --nl \"natural language\"      Original natural language query"
+        echo "  --category <type>            Query category: historical|twin|hybrid"
+        echo "  --domain <area>              Domain: mes_production|simulation|optimization|state"
+        echo ""
         echo "Examples:"
-        echo "  $0 GET /tables"
-        echo "  $0 POST /query --intent \"Find bottlenecks\" -d @query.json"
+        echo "  # Historical MES query with context"
+        echo "  $0 POST /query --nl \"Show equipment with lowest OEE\" \\"
+        echo "    --intent \"Identify maintenance priorities\" -d @query.json"
+        echo ""
+        echo "  # Twin simulation query"
+        echo "  $0 POST /query --category twin --domain simulation \\"
+        echo "    --nl \"What were the last 5 simulation results?\" -d @query.json"
+        echo ""
+        echo "  # View analytics"
+        echo "  $0 --analytics"
+        echo ""
+        echo "  # Show specific log entry"
         echo "  $0 --show-log 20250802_143022_a7b3"
         echo ""
         echo -e "${YELLOW}⚠️  IMPORTANT: JSON Escaping Issue${NC}"
@@ -262,11 +480,17 @@ main() {
         echo "  echo '{\"sql\": \"SELECT * FROM mes_data\"}' > /tmp/query.json"
         echo "  $0 POST /query -d @/tmp/query.json"
         echo ""
-        echo "SQLite-Specific Notes:"
-        echo "  - Use double quotes for strings in SQL: WHERE status = \"Running\""
-        echo "  - Date functions: strftime('%H', timestamp), DATE(timestamp)"
-        echo "  - No STDDEV function available"
-        echo "  - No CTEs (WITH clauses) allowed by API"
+        echo "Query Categories:"
+        echo "  historical - Queries against MES production data"
+        echo "  twin       - Queries against simulation/optimization data"
+        echo "  hybrid     - Queries joining both domains"
+        echo ""
+        echo "Domains:"
+        echo "  mes_production - Historical production data"
+        echo "  simulation     - Twin simulation results"
+        echo "  optimization   - Optimization and recommendations"
+        echo "  state         - Twin state and parameters"
+        echo "  comparison    - Comparing historical vs simulated"
         echo ""
         echo "Configuration:"
         echo "  API URL: $API_BASE_URL"
@@ -276,18 +500,29 @@ main() {
         echo "Troubleshooting:"
         echo "  422 error: JSON formatting issue - use file reference"
         echo "  400 error: SQL syntax error or unsupported function"
-        echo "  Empty results: Check date ranges (data is from June 2025)"
+        echo "  Empty results: Check date ranges and table names"
         exit 0
     fi
     
     if [ "$1" == "--example-json" ]; then
-        echo "Example query.json file:"
+        echo "Example query.json files:"
         echo ""
+        echo "Historical Query:"
         echo '{'
         echo '  "sql": "SELECT line_id, AVG(oee_score) as avg_oee FROM mes_data WHERE machine_status = \"Running\" GROUP BY line_id ORDER BY avg_oee DESC"'
         echo '}'
         echo ""
-        echo "Save this to a file and use: $0 POST /query -d @query.json"
+        echo "Twin Query:"
+        echo '{'
+        echo '  "sql": "SELECT * FROM twin_runs ORDER BY created_at DESC LIMIT 5"'
+        echo '}'
+        echo ""
+        echo "Hybrid Query:"
+        echo '{'
+        echo '  "sql": "SELECT t.run_id, t.parameters, s.mean_oee FROM twin_runs t JOIN kpi_results s ON t.run_id = s.run_id"'
+        echo '}'
+        echo ""
+        echo "Save to a file and use: $0 POST /query --nl \"your question\" -d @query.json"
         exit 0
     fi
     
@@ -307,6 +542,12 @@ main() {
             # Check if we can read the entries
             if jq -e '.[0] | has("id", "timestamp", "method")' "$LOG_FILE" >/dev/null 2>&1; then
                 echo -e "${GREEN}✓ Log entries have correct structure${NC}"
+                
+                # Check for enhanced fields
+                local has_nl=$(jq '[.[] | select(.natural_language != null)] | length' "$LOG_FILE")
+                local has_category=$(jq '[.[] | select(.category != null)] | length' "$LOG_FILE")
+                echo -e "${GREEN}  Entries with natural language: $has_nl${NC}"
+                echo -e "${GREEN}  Entries with category: $has_category${NC}"
             elif [ "$count" -eq 0 ]; then
                 echo -e "${YELLOW}  Log is empty but valid${NC}"
             else

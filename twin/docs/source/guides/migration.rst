@@ -1,52 +1,71 @@
-Type Hints and Configuration Migration - COMPLETE
-=================================================
+Configuration Migration Guide
+=============================
 
-🎉 All Major Tasks Completed!
------------------------------
+Overview
+--------
 
-✅ Type Hints Added to ALL Core Modules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The Virtual Twin module has undergone a comprehensive configuration migration to eliminate hardcoded values and centralize all configuration.
 
-Successfully added comprehensive type hints to 12 core twin module
-files:
+Configuration Structure
+-----------------------
 
-1.  **actionable_parameters.py** - Complete with NDArray types
-2.  **sync_health.py** - Full type annotations
-3.  **config_manager.py** - Database operations typed
-4.  **config_transformer.py** - Parameter transformation typed
-5.  **twin_state.py** - State management fully typed
-6.  **simulation_runner.py** - Enhanced existing type hints
-7.  **optimization_engine.py** - Optimization algorithms typed
-8.  **recommendation_engine.py** - Multi-objective optimization typed
-9.  **cost_impact_calculator.py** - Financial calculations typed
-10. **line_coupling_model.py** - Production line model typed
-11. **config_loader.py** - New configuration loader with full types
-12. **init.py** - Package exports properly typed
+The twin module now uses a two-file configuration system:
 
-✅ Hardcoded Values Documented and Centralized
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. **generator.yaml** - Data generation and simulation parameters
+   
+   - Actionable parameters (micro_stop_probability, performance_factor, etc.)
+   - Equipment specifications and efficiency multipliers
+   - Product definitions and scrap rates
+   - Anomaly patterns and scenarios
 
-**200+ hardcoded values** identified and migrated to configuration:
+2. **system.yaml** - Twin module operational settings
+   
+   - Database configuration
+   - Module-specific settings (simulation_runner, optimization_engine, etc.)
+   - Display and visualization settings
+   - System-wide settings
 
-- Created ``twin/config/defaults.yaml`` with all configuration values
-- Added ``TODO: HARDCODED`` comments throughout codebase
-- Documented in ``HARDCODED_VALUES.md``
+Migration Completed
+-------------------
 
-| Major categories centralized: - Parameter bounds and defaults - File
-  paths and directories
-| - Simulation limits and settings - Equipment multipliers - Cost
-  parameters - Statistical defaults - UI/display limits
+✅ **Type Hints Added**
+~~~~~~~~~~~~~~~~~~~~~~~
 
-✅ Configuration System Implemented
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+All core modules now have comprehensive type hints:
 
-Complete configuration management system created:
+- actionable_parameters.py
+- config_manager.py
+- config_transformer.py
+- simulation_runner.py
+- optimization_engine.py
+- recommendation_engine.py
+- cost_impact_calculator.py
+- line_coupling_model.py
+- twin_state.py
+- sync_health.py
 
-**Files Created:** - ``twin/config/defaults.yaml`` - Central
-configuration (250+ lines) - ``twin/config_loader.py`` - Configuration
-loader with environment support - ``twin/CONFIG_USAGE.md`` -
-Comprehensive usage guide - ``twin/TYPE_HINTS_SUMMARY.md`` - Technical
-summary - ``twin/MIGRATION_COMPLETE.md`` - This summary
+✅ **Configuration Centralized**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All hardcoded values have been migrated to the configuration files:
+
+- Parameter bounds and defaults
+- File paths and directories
+- Simulation limits and settings
+- Equipment multipliers
+- Cost parameters
+- Statistical defaults
+- UI/display limits
+
+✅ **Database Integration**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration storage moved from file system to database:
+
+- Simulation configs stored in ``simulation_configs`` table
+- Automatic deduplication via content hashing
+- Full traceability with run IDs
+- Included in database backups
 
 **Features:** - Hierarchical YAML configuration - Environment-specific
 overrides (production, development, test) - Environment variable support

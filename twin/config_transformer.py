@@ -38,7 +38,7 @@ class ConfigTransformer:
         
         if base_config_path is None:
             # Try YAML first, then JSON
-            yaml_path = self.config["paths"].get("base_config", "synthetic_data_generator/mes_baseline_config.yaml")
+            yaml_path = self.config["paths"].get("base_config", "twin/config/generator.yaml")
             if yaml_path.endswith('.json'):
                 yaml_path = yaml_path.replace('.json', '.yaml')
             if Path(yaml_path).exists():
