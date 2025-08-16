@@ -41,7 +41,6 @@ class SchemaManager:
         'quality_data',
         'sensor_data',
         'alert_config',
-        'parameter_history',
         'simulation_configs',
         'twin_state',
         'recommendations',

@@ -128,6 +128,107 @@ class TwinTablesManager:
                 )
             """)
             
+            # 7. Simulation Configs table (for configuration storage)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS simulation_configs (
+                    config_id TEXT PRIMARY KEY,
+                    run_id TEXT REFERENCES twin_runs(run_id),
+                    config_type TEXT CHECK(config_type IN ('full', 'delta', 'base')),
+                    config_json TEXT NOT NULL,
+                    config_hash TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    description TEXT,
+                    is_archived BOOLEAN DEFAULT 0
+                )
+            """)
+            
+            # 8. KPI Results table (for simulation KPIs)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS kpi_results (
+                    kpi_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id TEXT REFERENCES twin_runs(run_id),
+                    entity_id TEXT NOT NULL,
+                    kpi TEXT NOT NULL,
+                    value REAL NOT NULL,
+                    window_start TIMESTAMP NOT NULL,
+                    window_end TIMESTAMP NOT NULL,
+                    confidence REAL,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            # 9. Entity Sync Metadata table (for sync tracking)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS entity_sync_metadata (
+                    entity_id TEXT PRIMARY KEY,
+                    entity_type TEXT NOT NULL,
+                    last_update TIMESTAMP NOT NULL,
+                    sync_interval_minutes INTEGER NOT NULL DEFAULT 5,
+                    source_run_id TEXT,
+                    attributes_json TEXT,
+                    health_status TEXT CHECK(health_status IN ('healthy', 'warning', 'critical', 'offline'))
+                )
+            """)
+            
+            # 10. Sync Health Log table (for sync events)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS sync_health_log (
+                    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    entity_id TEXT NOT NULL,
+                    previous_status TEXT,
+                    new_status TEXT NOT NULL,
+                    alert_raised BOOLEAN DEFAULT 0,
+                    message TEXT,
+                    FOREIGN KEY (entity_id) REFERENCES entity_sync_metadata(entity_id)
+                )
+            """)
+            
+            # 11. Twin State table (for virtual twin state tracking)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS twin_state (
+                    state_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    current_run_id TEXT REFERENCES twin_runs(run_id),
+                    baseline_run_id TEXT REFERENCES twin_runs(run_id),
+                    parameters_json TEXT NOT NULL,
+                    kpis_json TEXT NOT NULL,
+                    sync_status_json TEXT,
+                    notes TEXT
+                )
+            """)
+            
+            # 12. Recommendations table (for optimization recommendations)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS recommendations (
+                    recommendation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    run_id TEXT REFERENCES twin_runs(run_id),
+                    recommendation_type TEXT,
+                    parameters_json TEXT NOT NULL,
+                    expected_improvement_json TEXT,
+                    confidence REAL,
+                    status TEXT CHECK(status IN ('pending', 'accepted', 'rejected', 'implemented')),
+                    notes TEXT
+                )
+            """)
+            
+            # 13. Confidence Tracking table (for statistical validation)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS confidence_tracking (
+                    tracking_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id TEXT REFERENCES twin_runs(run_id),
+                    kpi TEXT NOT NULL,
+                    mean_value REAL NOT NULL,
+                    std_dev REAL NOT NULL,
+                    lower_bound REAL NOT NULL,
+                    upper_bound REAL NOT NULL,
+                    n_samples INTEGER NOT NULL,
+                    confidence_level REAL,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
             conn.commit()
             logger.info("✅ Created/verified all twin tables")
             return True
@@ -226,157 +327,11 @@ class TwinTablesManager:
             logger.error(f"Failed to populate equipment metadata: {e}")
             return False
 
-    def populate_sample_quality_data(self, conn: sqlite3.Connection, days: int = 30) -> bool:
-        """Add sample quality data for testing"""
-        try:
-            cursor = conn.cursor()
-            
-            # Check if already populated
-            cursor.execute("SELECT COUNT(*) FROM quality_data")
-            if cursor.fetchone()[0] > 100:
-                logger.info("ℹ️  Quality data already populated")
-                return True
-            
-            logger.info(f"Generating {days} days of sample quality data...")
-            
-            # Generate quality data for specified period
-            base_date = datetime.now() - timedelta(days=days)
-            quality_records = []
-            batch_counter = 1000
-            
-            for day in range(days):
-                current_date = base_date + timedelta(days=day)
-                
-                for hour in range(24):
-                    timestamp = current_date.replace(hour=hour, minute=0, second=0)
-                    
-                    # Get equipment from configuration
-                    for line_id, line_info in self.equipment_config.get('lines', {}).items():
-                        line_num = int(line_id.replace('LINE', ''))
-                        
-                        for equip_info in line_info.get('equipment_sequence', []):
-                            equipment_id = equip_info['id']
-                            equip_type = equip_info['type']
-                            
-                            # Generate realistic quality scores
-                            base_quality = 0.95 if line_num == 2 else 0.93  # LINE2 performs better
-                            
-                            # Add some variation - Tuesday quality drop simulation
-                            if hour >= 8 and hour <= 10 and day == 7:
-                                quality_score = base_quality - 0.08 if equip_type == 'Packer' else base_quality
-                            else:
-                                quality_score = base_quality + random.uniform(-0.02, 0.02)
-                            
-                            quality_score = max(0.85, min(0.99, quality_score))
-                            
-                            # Defects based on quality
-                            defect_count = int((1 - quality_score) * 100)
-                            defect_type = random.choice(['seal', 'weight', 'label', 'damage', None])
-                            
-                            quality_records.append((
-                                None,  # run_id
-                                timestamp.isoformat(),
-                                equipment_id,
-                                f"BATCH-{batch_counter}",
-                                quality_score,
-                                defect_type,
-                                defect_count if defect_type else 0,
-                                defect_count * 0.5 if defect_type else 0,  # scrap_weight
-                                1 if quality_score < 0.90 else 0,  # rework_needed
-                                None  # notes
-                            ))
-                            
-                            batch_counter += 1
-            
-            # Insert in batches
-            cursor.executemany("""
-                INSERT INTO quality_data 
-                (run_id, timestamp, equipment_id, batch_id, quality_score,
-                 defect_type, defect_count, scrap_weight, rework_needed, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, quality_records)
-            
-            conn.commit()
-            logger.info(f"✅ Populated {len(quality_records)} quality records")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to populate sample quality data: {e}")
-            return False
+    # REMOVED: populate_sample_quality_data method
+    # Sample data generation moved to virtual sensor layer
 
-    def populate_sample_sensor_data(self, conn: sqlite3.Connection, hours: int = 24) -> bool:
-        """Add sample sensor data for real-time monitoring"""
-        try:
-            cursor = conn.cursor()
-            
-            # Check if already populated
-            cursor.execute("SELECT COUNT(*) FROM sensor_data")
-            if cursor.fetchone()[0] > 100:
-                logger.info("ℹ️  Sensor data already populated")
-                return True
-            
-            logger.info(f"Generating {hours} hours of sample sensor data...")
-            
-            # Generate recent sensor data
-            base_time = datetime.now() - timedelta(hours=hours)
-            sensor_records = []
-            
-            for hour in range(hours):
-                for minute in range(0, 60, 5):  # Every 5 minutes
-                    timestamp = base_time + timedelta(hours=hour, minutes=minute)
-                    
-                    # Get equipment from configuration
-                    for line_id, line_info in self.equipment_config.get('lines', {}).items():
-                        for equip_info in line_info.get('equipment_sequence', []):
-                            equipment_id = equip_info['id']
-                            
-                            # Temperature sensor
-                            sensor_records.append((
-                                f"TEMP-{equipment_id}",
-                                equipment_id,
-                                timestamp.isoformat(),
-                                'temperature',
-                                22.0 + random.uniform(-2, 2),
-                                'celsius',
-                                1.0
-                            ))
-                            
-                            # Vibration sensor
-                            sensor_records.append((
-                                f"VIB-{equipment_id}",
-                                equipment_id,
-                                timestamp.isoformat(),
-                                'vibration',
-                                0.5 + random.uniform(-0.2, 0.3),
-                                'mm/s',
-                                0.95
-                            ))
-                            
-                            # Speed sensor
-                            sensor_records.append((
-                                f"SPEED-{equipment_id}",
-                                equipment_id,
-                                timestamp.isoformat(),
-                                'speed',
-                                100.0 + random.uniform(-10, 10),
-                                'units/min',
-                                0.98
-                            ))
-            
-            # Insert sensor data
-            cursor.executemany("""
-                INSERT INTO sensor_data 
-                (sensor_id, equipment_id, timestamp, observable_property, value, unit, quality)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, sensor_records)
-            
-            conn.commit()
-            logger.info(f"✅ Populated {len(sensor_records)} sensor records")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to populate sample sensor data: {e}")
-            return False
+    # REMOVED: populate_sample_sensor_data method  
+    # Sensor data will be derived from production data via virtual sensors
 
     def populate_alert_config(self, conn: sqlite3.Connection) -> bool:
         """Set up default alert configurations"""

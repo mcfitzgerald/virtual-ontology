@@ -128,6 +128,58 @@ class ConfigTransformer:
         # Start with a deep copy of base config
         config: Dict[str, Any] = copy.deepcopy(self.base_config)
         
+        # Normalize config structure for compatibility between YAML and JSON formats
+        
+        # 1. Map products.master to product_master
+        if 'products' in config and 'master' in config.get('products', {}):
+            config['product_master'] = config['products']['master']
+        elif 'product_master' not in config:
+            logger.warning("No product master data found in config")
+        
+        # 2. Map equipment to equipment_configuration
+        if 'equipment' in config and 'equipment_configuration' not in config:
+            config['equipment_configuration'] = config['equipment']
+        
+        # 3. Map downtime_reasons to downtime_reason_mapping if needed
+        if 'downtime_reasons' in config and 'downtime_reason_mapping' not in config:
+            config['downtime_reason_mapping'] = config['downtime_reasons']
+        
+        # 4. Map energy to energy_consumption if needed
+        if 'energy' in config and 'energy_consumption' not in config:
+            config['energy_consumption'] = config['energy']
+        
+        # 5. Map anomalies to anomaly_injection if needed
+        if 'anomalies' in config and 'anomaly_injection' not in config:
+            config['anomaly_injection'] = config['anomalies']
+        
+        # Ensure product_specifications exists with required fields
+        if 'product_specifications' not in config:
+            config['product_specifications'] = {}
+            
+        # Map scrap rates from YAML format
+        if 'products' in config and 'scrap_rates' in config.get('products', {}):
+            config['product_specifications'].update(config['products']['scrap_rates'])
+        
+        # Ensure required fields exist with defaults if not present
+        if 'normal_scrap_rate' not in config['product_specifications']:
+            config['product_specifications']['normal_scrap_rate'] = 0.02
+            
+        if 'equipment_efficiency' not in config['product_specifications']:
+            # Default equipment efficiency ranges
+            config['product_specifications']['equipment_efficiency'] = {
+                'Filler': {'min': 0.75, 'max': 0.92},
+                'Packer': {'min': 0.70, 'max': 0.90},
+                'Palletizer': {'min': 0.72, 'max': 0.88}
+            }
+            
+        if 'performance_variation' not in config['product_specifications']:
+            # Default shift performance variation
+            config['product_specifications']['performance_variation'] = {
+                'shift_1': {'min': 0.90, 'max': 1.00},
+                'shift_2': {'min': 0.95, 'max': 1.00},
+                'shift_3': {'min': 0.85, 'max': 0.95}
+            }
+        
         # Get parameter values (scaling factors)
         values: Dict[str, float] = parameters.get_all_values()
         
@@ -269,6 +321,55 @@ class ConfigTransformer:
                     'equipment_patterns': patterns,
                     'description': f"Material starvation scaled by reliability factor {mat_scale:.2f}"
                 }
+        
+        # GENERIC EVENT PROCESSING - Handle ANY event type from baseline_values
+        # This allows adding new event types without modifying this code
+        event_types_to_process = [
+            'mechanical_failures',
+            'electrical_failures',
+            # Add any new event types here - or better, discover them dynamically
+        ]
+        
+        # Actually, let's be even more generic - process ALL baseline_values that look like event patterns
+        for event_type, event_data in self.baseline_values.items():
+            # Skip already processed types and non-event types
+            if event_type in ['micro_stops', 'material_starvation', 'changeover_schedule', 
+                              'cascade_sensitivity', 'shift_performance', 'scrap_rates',
+                              'equipment_efficiency']:
+                continue
+                
+            # Check if this looks like an event pattern (list of dicts with probability)
+            if isinstance(event_data, list) and event_data:
+                first_item = event_data[0] if event_data else {}
+                if isinstance(first_item, dict) and 'probability_per_5min' in first_item:
+                    # This is an event pattern! Process it
+                    if 'anomaly_injection' not in config:
+                        config['anomaly_injection'] = {}
+                    
+                    # For now, no scaling on these generic events (scale factor = 1.0)
+                    # Could add parameter mapping if needed: event_type -> parameter_name
+                    scale_factor = 1.0
+                    
+                    # Apply any relevant scaling based on event type
+                    if 'failure' in event_type.lower() or 'jam' in event_type.lower():
+                        # These might be affected by maintenance (micro_stop_probability)
+                        scale_factor = micro_stop_scale
+                    
+                    patterns = []
+                    for pattern in event_data:
+                        if isinstance(pattern, dict):
+                            scaled_pattern = pattern.copy()
+                            if 'probability_per_5min' in scaled_pattern:
+                                base_prob = scaled_pattern['probability_per_5min']
+                                scaled_pattern['probability_per_5min'] = base_prob * scale_factor
+                            patterns.append(scaled_pattern)
+                    
+                    if patterns:
+                        config['anomaly_injection'][f'{event_type}_patterns'] = {
+                            'enabled': True,
+                            'equipment_patterns': patterns,
+                            'description': f"{event_type.replace('_', ' ').title()} (scaled by {scale_factor:.2f})"
+                        }
         
         # 5. Apply cascade_sensitivity (now a scaling factor for coupling)
         cascade_scale: float = values.get("cascade_sensitivity", 1.0)

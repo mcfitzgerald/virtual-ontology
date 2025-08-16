@@ -15,6 +15,7 @@
 
 The Virtual Twin is a manufacturing digital twin system that enables:
 - **Predictive Simulation**: Test "what-if" scenarios with different operational parameters
+- **Virtual Sensor Layer**: Derive observations from production data without synthetic generation
 - **Multi-Objective Optimization**: Find optimal parameter configurations using evolutionary algorithms
 - **Intelligent Recommendations**: Get actionable insights for specific business objectives
 - **Financial Impact Analysis**: Calculate ROI and cost implications of changes
@@ -23,6 +24,14 @@ The Virtual Twin is a manufacturing digital twin system that enables:
 ### Key Concepts
 
 **Digital Twin**: A virtual replica of the manufacturing system that mirrors real production behavior and enables predictive analytics.
+
+**Virtual Sensors**: Six sensor types that observe and derive metrics from production data:
+1. `PowerMeterSensor`: Derives energy consumption from production patterns
+2. `ThroughputSensor`: Observes production rate vs target efficiency
+3. `DefectRateSensor`: Observes quality through scrap patterns
+4. `BottleneckDetector`: Identifies production bottlenecks from OEE
+5. `LineCouplingMonitor`: Monitors equipment coupling and cascade effects
+6. `DowntimePatternSensor`: Analyzes downtime patterns and trends
 
 **Actionable Parameters**: Five key tunable parameters that affect manufacturing performance:
 1. `micro_stop_probability` (0.3-1.5): Equipment reliability multiplier
@@ -69,13 +78,13 @@ Virtual Twin System Architecture
 │  │              SIMULATION CORE LAYER                  │  │
 │  │                                                     │  │
 │  │  ┌──────────────┐  ┌──────────────────┐           │  │
-│  │  │Simulation    │  │ Actionable       │           │  │
-│  │  │Runner        │  │ Parameters       │           │  │
+│  │  │Simulation    │  │ Virtual Sensors  │           │  │
+│  │  │Runner        │  │ (6 types)        │           │  │
 │  │  └──────────────┘  └──────────────────┘           │  │
 │  │                                                     │  │
 │  │  ┌──────────────┐  ┌──────────────────┐           │  │
-│  │  │Twin State    │  │ Config           │           │  │
-│  │  │Manager       │  │ Transformer      │           │  │
+│  │  │Actionable    │  │ Config           │           │  │
+│  │  │Parameters    │  │ Transformer      │           │  │
 │  │  └──────────────┘  └──────────────────┘           │  │
 │  └─────────────────────────────────────────────────────┘  │
 │                                                             │
@@ -234,8 +243,30 @@ print(f"OEE Improvement: {improvement:.1f} percentage points")
 
 ## Module Details
 
+### VirtualSensorObserver
+**Purpose**: Orchestrate virtual sensors to derive observations from production data
+
+```python
+from twin.virtual_sensors import VirtualSensorObserver
+
+# Initialize with configuration
+config = load_config()
+observer = VirtualSensorObserver(config)
+
+# Process production data to generate observations
+observations = observer.observe_production(production_df)
+```
+
+**Six Sensor Types**:
+- `PowerMeterSensor`: Energy from production patterns (conf: 0.95)
+- `ThroughputSensor`: Production rate efficiency (conf: 1.0)
+- `DefectRateSensor`: Quality metrics (conf: 1.0)
+- `BottleneckDetector`: OEE bottlenecks (conf: 0.8)
+- `LineCouplingMonitor`: Cascade effects (conf: 0.9)
+- `DowntimePatternSensor`: Downtime analysis (conf: 1.0)
+
 ### SimulationRunner
-**Purpose**: Execute simulations with specified parameters
+**Purpose**: Execute simulations with virtual sensor integration
 
 ```python
 from twin import SimulationRunner, ActionableParameters
@@ -250,11 +281,12 @@ result = runner.run_simulation(
     seed=42,
     notes="Testing maintenance improvements"
 )
+# Virtual sensors automatically process the simulated data
 ```
 
 **Key Methods**:
 - `create_baseline()`: Generate baseline simulation
-- `run_simulation()`: Execute simulation with parameters
+- `run_simulation()`: Execute simulation with virtual sensor processing
 - `run_monte_carlo_simulation()`: Uncertainty analysis
 - `compare_runs()`: Compare two simulation runs
 
@@ -398,6 +430,7 @@ twin_state (independent snapshots)
 2. **`config/system.yaml`** - System operational settings
    - Database configuration
    - Module-specific settings
+   - Virtual sensor confidence levels
    - Optimization parameters
    - Visualization settings
 

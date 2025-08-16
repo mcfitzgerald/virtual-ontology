@@ -274,6 +274,38 @@ config_manager:
     max_config_size_mb: 10
 
 # ----------------------------------------------------------------------------
+# MODULE: virtual_sensors
+# Virtual sensor configuration and confidence settings
+# ----------------------------------------------------------------------------
+virtual_sensors:
+  # Confidence values for different sensor types (0.0 - 1.0)
+  confidence_levels:
+    power_consumption: 0.95      # Energy is estimated, not measured
+    throughput_efficiency: 1.0   # Direct calculation from data
+    defect_rate: 1.0             # Direct calculation from data
+    bottleneck_indicator: 0.8    # Statistical inference
+    line_coupling_strength: 0.9  # Pattern detection
+    downtime_frequency: 1.0      # Direct observation
+  
+  # Sensor-specific configuration
+  power_meter:
+    base_power_kwh:
+      Filler: 85.0
+      Packer: 75.0
+      Palletizer: 65.0
+    idle_power_kwh:
+      Filler: 15.0
+      Packer: 12.0
+      Palletizer: 10.0
+  
+  bottleneck_detector:
+    window_size: 12  # 1 hour (12 x 5-minute intervals)
+    significance_threshold: 0.9  # Must be 90% below average to be bottleneck
+  
+  line_coupling:
+    cascade_threshold: 0.7  # Coupling strength threshold for cascade detection
+
+# ----------------------------------------------------------------------------
 # MODULE: sync_health
 # Synchronization monitoring and health checks
 # ----------------------------------------------------------------------------

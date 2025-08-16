@@ -136,8 +136,7 @@ The system manages two categories of tables:
 - `alert_config` - Alert thresholds
 - `optimization_results` - Optimization outcomes
 - `recommendations` - Generated recommendations
-- `parameter_history` - Parameter changes
-- `simulation_configs` - Configuration storage
+- `simulation_configs` - Configuration storage (tracks parameter changes)
 - `twin_state` - Virtual twin state
 - `confidence_tracking` - Statistical validation
 - `kpi_results` - KPI calculations

@@ -275,11 +275,18 @@ class DatabaseSetupOrchestrator:
             
             # Drop all tables
             cursor = conn.cursor()
+            
+            # Disable foreign key constraints temporarily to allow dropping tables
+            cursor.execute("PRAGMA foreign_keys = OFF")
+            
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = cursor.fetchall()
             for table in tables:
                 if not table[0].startswith('sqlite_'):
                     cursor.execute(f"DROP TABLE IF EXISTS {table[0]}")
+            
+            # Re-enable foreign key constraints
+            cursor.execute("PRAGMA foreign_keys = ON")
             conn.commit()
             self.logger.info(f"Dropped {len(tables)} tables")
             

@@ -76,17 +76,29 @@ System: [Calculates $450K annual benefit with 95% CI: $400K-$500K]
 │   (Virtual Ontology) │         │    Simulation        │
 ├──────────────────────┤         ├──────────────────────┤
 │ • Natural → SQL      │         │ • SimulationRunner   │
-│ • Pattern Learning   │         │ • OptimizationEngine │
-│ • Query Logging      │         │ • RecommendationEngine│
+│ • Pattern Learning   │         │ • Virtual Sensors    │
+│ • Query Logging      │         │ • OptimizationEngine │
 └──────────────────────┘         └──────────────────────┘
           │                                   │
           └─────────────────┬─────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────┐
 │                  SQLite Database                        │
-│            18 tables | 290K+ records                    │
-│     Historical MES Data + Twin Simulation Results       │
+│     MES Data + Twin Results + Virtual Observations      │
+│              Raw Facts → Derived Insights               │
 └─────────────────────────────────────────────────────────┘
+```
+
+### Layered Ontology Design
+
+The Virtual Twin ontology extends (not replaces) the base MES ontology:
+
+```
+Virtual Twin Layer (Extensions)
+    ↓ extends/observes
+Base MES Ontology (Foundation)
+    ↓ describes
+Physical Manufacturing Data
 ```
 
 ## 📦 Key Components
@@ -95,10 +107,20 @@ System: [Calculates $450K annual benefit with 95% CI: $400K-$500K]
 - **Semantic Mapping**: Business concepts → database schema
 - **Pattern Learning**: Captures successful query patterns
 - **Intent Recognition**: Natural language → SQL translation
+- **Layered Architecture**: Twin extends base MES without replacement
+
+### Virtual Sensor Layer
+Six sensor types derive observations from production data (not synthetic generation):
+- **PowerMeterSensor**: Energy consumption from production patterns
+- **ThroughputSensor**: Production rate vs target efficiency
+- **DefectRateSensor**: Quality through scrap patterns
+- **BottleneckDetector**: Production bottlenecks from OEE
+- **LineCouplingMonitor**: Equipment coupling and cascade effects
+- **DowntimePatternSensor**: Downtime patterns and trends
 
 ### Digital Twin Engine
-- **SimulationRunner**: Monte Carlo simulation with parallel execution
-- **ActionableParameters**: 5 key manufacturing levers
+- **SimulationRunner**: Monte Carlo simulation with virtual sensor integration
+- **ActionableParameters**: 5 key manufacturing levers (scaling from baseline)
 - **OptimizationEngine**: scipy differential evolution
 - **RecommendationEngine**: pymoo NSGA-II multi-objective optimization
 - **CostImpactCalculator**: PyMC Bayesian financial analysis
@@ -113,7 +135,8 @@ System: [Calculates $450K annual benefit with 95% CI: $400K-$500K]
 - **ConfigLoader**: Enhanced to handle multiple config files with module-specific access
 - **ConfigTransformer**: Maps parameters to simulation configurations
 - **ConfigValidator**: Ensures parameter changes are correctly applied
-- **Integrated Generator**: Data generator now part of twin module (v1.2.0)
+- **Integrated Generator**: Data generator now part of twin module
+- **Virtual Sensor Config**: Confidence levels configurable in system.yaml
 - **Reproducible Results**: Fixed seeds ensure deterministic simulations
 
 ## 🎮 Actionable Parameters (Scaling Approach)
@@ -152,7 +175,8 @@ Financial modeling with Bayesian credible intervals
 - **scipy**: Numerical optimization and scientific computing
 - **pandas/numpy**: Data manipulation and analysis
 - **SQLite**: Embedded database with full SQL support
-- **Configuration Pipeline**: Robust parameter → config → simulation flow
+- **Virtual Sensors**: Derive observations from production data patterns
+- **Configuration Pipeline**: Robust parameter → config → simulation → observation flow
 
 
 ## 🎬 Demo & Documentation
@@ -171,9 +195,11 @@ Financial modeling with Bayesian credible intervals
 The platform successfully demonstrates:
 - ✅ Natural language → actionable insights
 - ✅ Predictive simulation with uncertainty bounds
+- ✅ Virtual sensors deriving observations from production data
 - ✅ Multi-objective optimization with Pareto fronts
 - ✅ Bayesian ROI calculation with credible intervals
 - ✅ Complete audit trail and reproducibility
+- ✅ Energy derived from patterns, not stored as raw data
 
 ## 🛠️ Technical Requirements
 

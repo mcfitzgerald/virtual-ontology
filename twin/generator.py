@@ -360,6 +360,33 @@ def apply_anomalies(equip_id, current_time, order_info, config, changeover_start
                     downtime_end = current_time + timedelta(minutes=duration)
                     return "Stopped", pattern['downtime_reason'], 0, 0, downtime_end
     
+    # GENERIC PATTERN PROCESSOR - Handle ANY event type ending in '_patterns'
+    # This allows new event types to be added without modifying generator code
+    for config_key, config_value in anomaly_config.items():
+        if config_key.endswith('_patterns') and isinstance(config_value, dict):
+            # Skip already handled patterns
+            if config_key in ['material_starvation_patterns', 'random_sensor_issues']:
+                continue
+                
+            if config_value.get('enabled', False):
+                for pattern in config_value.get('equipment_patterns', []):
+                    if equip_id == pattern['equipment_id']:
+                        # Check if this is time-restricted
+                        if 'hour_range' in pattern:
+                            hour = current_time.hour
+                            hour_range = pattern['hour_range']
+                            if not (hour_range[0] <= hour < hour_range[1]):
+                                continue
+                        
+                        # Roll the dice for this event
+                        if random.random() < pattern.get('probability_per_5min', 0):
+                            duration = random.uniform(
+                                pattern['duration_range_minutes']['min'],
+                                pattern['duration_range_minutes']['max']
+                            )
+                            downtime_end = current_time + timedelta(minutes=duration)
+                            return "Stopped", pattern.get('downtime_reason', 'Unknown'), 0, 0, downtime_end
+    
     # Check filler micro stops
     if anomaly_config.get('filler_micro_stops', {}).get('enabled', False):
         for pattern in anomaly_config['filler_micro_stops'].get('equipment_patterns', []):
@@ -518,6 +545,10 @@ def calculate_energy_consumption(status, equipment_type, product_id, performance
     """
     Calculate energy consumption for 5-minute interval based on equipment status and performance.
     
+    NOTE: This function is preserved for use by the virtual sensor layer.
+    Energy is no longer stored as raw data in MES/simulation tables, but is instead
+    derived as an observation by the PowerMeterSensor in virtual_sensors.py.
+    
     Args:
         status: Machine status (Running/Stopped)
         equipment_type: Type of equipment (Filler/Packer/Palletizer)
@@ -566,6 +597,33 @@ def calculate_energy_consumption(status, equipment_type, product_id, performance
     return round(energy_kwh, 3)
 
 
+def save_to_csv(df, filename=None):
+    """
+    Save DataFrame to CSV file.
+    
+    Args:
+        df: DataFrame to save
+        filename: Optional filename, defaults to timestamped name
+    
+    Returns:
+        str: Path to saved CSV file
+    """
+    import os
+    from datetime import datetime
+    
+    if filename is None:
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'mes_data_{timestamp}.csv'
+    
+    # Ensure data directory exists
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'exports')
+    os.makedirs(data_dir, exist_ok=True)
+    
+    filepath = os.path.join(data_dir, filename)
+    df.to_csv(filepath, index=False)
+    
+    return filepath
+
 def save_to_database(df, table_name, run_id=None):
     """Save DataFrame to database table"""
     from sqlalchemy import create_engine
@@ -599,8 +657,7 @@ def save_to_database(df, table_name, run_id=None):
         'Availability_Score': 'availability_score',
         'Performance_Score': 'performance_score',
         'Quality_Score': 'quality_score',
-        'OEE_Score': 'oee_score',
-        'Energy_Consumption_kWh': 'energy_consumption_kwh'
+        'OEE_Score': 'oee_score'
     }
     df_db.rename(columns=column_mapping, inplace=True)
     
@@ -716,15 +773,8 @@ def generate_mes_data(start_date, end_date, config):
             
             if active_order.empty:
                 # Equipment is idle during changeover
-                # Calculate idle energy consumption
-                idle_energy = calculate_energy_consumption(
-                    status="Stopped",
-                    equipment_type=equip["EquipmentType"],
-                    product_id=None,
-                    performance_score=0,
-                    config=config,
-                    is_micro_stop=False
-                )
+                # Note: Energy consumption is now calculated by virtual sensors
+                # See virtual_sensors.py PowerMeterSensor for energy derivation
                 
                 log_entry = {
                     "Timestamp": current_time,
@@ -744,8 +794,7 @@ def generate_mes_data(start_date, end_date, config):
                     "Availability_Score": 0.0,
                     "Performance_Score": 0.0,
                     "Quality_Score": 0.0,
-                    "OEE_Score": 0.0,
-                    "Energy_Consumption_kWh": idle_energy
+                    "OEE_Score": 0.0
                 }
                 all_logs.append(log_entry)
                 continue
@@ -835,14 +884,8 @@ def generate_mes_data(start_date, end_date, config):
                            equip_id in downtime_tracker and 
                            (downtime_tracker[equip_id]["end"] - current_time).total_seconds() / 60 < 2)
             
-            energy_consumption = calculate_energy_consumption(
-                status=status,
-                equipment_type=equip["EquipmentType"],
-                product_id=order_info["ProductID"],
-                performance_score=kpis['Performance_Score'],
-                config=config,
-                is_micro_stop=is_micro_stop
-            )
+            # Note: Energy consumption is now calculated by virtual sensors
+            # See virtual_sensors.py PowerMeterSensor for energy derivation
             
             # Create log entry
             log_entry = {
@@ -864,9 +907,7 @@ def generate_mes_data(start_date, end_date, config):
                 "Availability_Score": kpis['Availability_Score'],
                 "Performance_Score": kpis['Performance_Score'],
                 "Quality_Score": kpis['Quality_Score'],
-                "OEE_Score": kpis['OEE_Score'],
-                # Energy consumption
-                "Energy_Consumption_kWh": energy_consumption
+                "OEE_Score": kpis['OEE_Score']
             }
             all_logs.append(log_entry)
         
@@ -929,11 +970,8 @@ def main():
     
     # Save to CSV if requested
     if args.output in ['csv', 'both']:
-        output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data")
-        os.makedirs(output_dir, exist_ok=True)
-        output_file = os.path.join(output_dir, "mes_data_with_kpis.csv")
-        mes_data.to_csv(output_file, index=False)
-        print(f"\nData saved to {output_file}")
+        csv_file = save_to_csv(mes_data)
+        print(f"\nData saved to {csv_file}")
     
     # Save to database if requested
     if args.output in ['db', 'both']:

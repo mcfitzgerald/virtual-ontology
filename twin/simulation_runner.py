@@ -23,6 +23,7 @@ from .actionable_parameters import ActionableParameters
 from .config_transformer import ConfigTransformer
 from .sync_health import SyncHealthMonitor
 from .config_manager import ConfigurationManager
+from .virtual_sensors import VirtualSensorObserver
 
 
 @dataclass
@@ -205,7 +206,6 @@ class SimulationRunner:
                     performance_score REAL,
                     quality_score REAL,
                     oee_score REAL,
-                    energy_consumption_kwh REAL,
                     PRIMARY KEY (run_id, timestamp, equipment_id)
                 )
             """)
@@ -253,9 +253,11 @@ class SimulationRunner:
             >>> print(f"Downtime: {result.kpi_summary['downtime_percentage']:.1f}%")
 
         """
-        # Validate duration
-        min_days = self.config.get("simulation.duration_limits.min")
-        max_days = self.config.get("simulation.duration_limits.max")
+        # Validate duration - check multiple possible config paths
+        min_days = (self.config.get("simulation.duration_limits.min") or 
+                   self.config.get("simulation_runner.duration_limits.min") or 1)
+        max_days = (self.config.get("simulation.duration_limits.max") or 
+                   self.config.get("simulation_runner.duration_limits.max") or 30)
         if not min_days <= duration_days <= max_days:
             raise ValueError(f"duration_days must be between {min_days} and {max_days}, got {duration_days}")
             
@@ -267,8 +269,8 @@ class SimulationRunner:
             parent = self._get_run_metadata(parent_run_id)
             seed = parent.seed + 1
         elif seed is None:
-            seed_min = self.config.get("simulation.seed_range.min")
-            seed_max = self.config.get("simulation.seed_range.max")
+            seed_min = self.config.get("simulation.seed_range.min") or 1
+            seed_max = self.config.get("simulation.seed_range.max") or 10000
             seed = np.random.randint(seed_min, seed_max)
         
         # Transform parameters to config
@@ -280,7 +282,7 @@ class SimulationRunner:
         config_id = self.config_manager.store_config(
             run_id=run_id,
             config=config,
-            config_type="generator",
+            config_type="full",
             description=f"Simulation config with parameters: {parameters.get_all_values()}"
         )
         
@@ -419,7 +421,7 @@ class SimulationRunner:
         """
         results: List[SimulationRun] = []
         
-        max_workers = self.config.get("simulation.max_workers")
+        max_workers = self.config.get("simulation.max_workers") or 4  # Default to 4 workers
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = []
             
@@ -564,7 +566,8 @@ class SimulationRunner:
                 '--output', 'db',
                 '--table', 'simulation_data',
                 '--run-id', run_id,
-                '--start-date', self.config.get("simulation.default_start_date"),
+                '--start-date', (self.config.get("simulation.default_start_date") or 
+                                self.config.get("simulation_runner.default_start_date") or "2025-06-01"),
                 '--end-date', f'2025-06-{duration_days:02d}',
                 '--seed', str(seed)
             ]
@@ -593,13 +596,58 @@ class SimulationRunner:
                     conn
                 )
             
+            # Run virtual sensors on the generated data
+            if self.verbose:
+                print(f"Running virtual sensors on {len(df)} data points...")
+                
+            observer = VirtualSensorObserver(config)
+            sensor_observations = observer.observe_production(df)
+            
+            # Store sensor observations in database
+            if not sensor_observations.empty:
+                with sqlite3.connect(self.db_path) as conn:
+                    # Check if sensor_data table has run_id column
+                    cursor = conn.cursor()
+                    cursor.execute("PRAGMA table_info(sensor_data)")
+                    columns = {row[1] for row in cursor.fetchall()}
+                    
+                    # Add run_id if column exists
+                    if 'run_id' in columns:
+                        sensor_observations['run_id'] = run_id
+                    
+                    # Adapt to existing table schema
+                    # Rename 'confidence' to 'quality' to match existing table schema
+                    if 'confidence' in sensor_observations.columns:
+                        sensor_observations = sensor_observations.rename(columns={'confidence': 'quality'})
+                    
+                    # Convert timestamp to string format for SQLite
+                    if 'timestamp' in sensor_observations.columns:
+                        sensor_observations['timestamp'] = sensor_observations['timestamp'].astype(str)
+                    
+                    # Drop columns that don't exist in the table
+                    if 'metadata' in sensor_observations.columns and 'metadata' not in columns:
+                        sensor_observations = sensor_observations.drop(columns=['metadata'])
+                    
+                    if 'run_id' in sensor_observations.columns and 'run_id' not in columns:
+                        sensor_observations = sensor_observations.drop(columns=['run_id'])
+                    
+                    sensor_observations.to_sql(
+                        'sensor_data', 
+                        conn, 
+                        if_exists='append', 
+                        index=False
+                    )
+                if self.verbose:
+                    print(f"Stored {len(sensor_observations)} sensor observations")
+            
             # Calculate hash
             data_hash = hashlib.sha256(df.to_csv(index=False).encode()).hexdigest()
             
             return {
                 'data': df,
                 'hash': data_hash,
-                'output_path': None  # No file path since we're using database
+                'output_path': None,  # No file path since we're using database
+                'sensor_observations': sensor_observations
             }
             
         except subprocess.CalledProcessError as e:
@@ -636,13 +684,14 @@ class SimulationRunner:
             }
         
         # Calculate KPIs (already in percentage form in data)
+        # Note: Availability should be calculated from ALL data, not just running data
         kpis = {
-            'mean_oee': float(running_data['oee_score'].mean()),
-            'p95_oee': float(running_data['oee_score'].quantile(0.95)),
-            'min_oee': float(running_data['oee_score'].min()),
-            'mean_availability': float(running_data['availability_score'].mean()),
-            'mean_performance': float(running_data['performance_score'].mean()),
-            'mean_quality': float(running_data['quality_score'].mean()),
+            'mean_oee': float(data['oee_score'].mean()),  # Use all data for proper weighting
+            'p95_oee': float(data['oee_score'].quantile(0.95)),
+            'min_oee': float(data['oee_score'].min()),
+            'mean_availability': float(data['availability_score'].mean()),  # Use all data
+            'mean_performance': float(data['performance_score'].mean()),  # Use all data
+            'mean_quality': float(data['quality_score'].mean()),  # Use all data
             'total_good_units': int(data['good_units_produced'].sum()),
             'total_scrap_units': int(data['scrap_units_produced'].sum()),
             'scrap_rate': float(data['scrap_units_produced'].sum() / 

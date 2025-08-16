@@ -11,6 +11,8 @@ The Virtual Twin system is an LLM-orchestrated manufacturing intelligence platfo
 3. **Separation of Concerns**: Analysis (read-only) vs Operations (read-write)
 4. **Complete Traceability**: All operations logged for reproducibility
 5. **Virtual Ontology Pattern**: Natural language → SQL/Python → Results → Insights
+6. **Layered Ontology Architecture**: Twin extends base MES without replacement
+7. **Virtual Sensor Abstraction**: Derive observations from production data, not synthetic generation
 
 ## System Layers
 
@@ -33,9 +35,9 @@ The Virtual Twin system is an LLM-orchestrated manufacturing intelligence platfo
 ├──────────────────────────┤   ├──────────────────────────┤
 │   query-log.sh           │   │   Python Modules:        │
 │   ↓                      │   │   - SimulationRunner     │
-│   API Server (api.sh)    │   │   - OptimizationEngine   │
-│   ↓                      │   │   - RecommendationEngine │
-│   SELECT only            │   │   - CostImpactCalculator │
+│   API Server (api.sh)    │   │   - VirtualSensors (6)   │
+│   ↓                      │   │   - OptimizationEngine   │
+│   SELECT only            │   │   - RecommendationEngine │
 └──────────────────────────┘   └──────────────────────────┘
                 │                           │
                 └─────────────┬─────────────┘
@@ -43,8 +45,56 @@ The Virtual Twin system is an LLM-orchestrated manufacturing intelligence platfo
 ┌─────────────────────────────────────────────────────────┐
 │                 SQLite Database                         │
 │               data/mes_database.db                      │
-│                   (18 tables)                           │
+│          MES Tables + Twin Tables + Sensor Data         │
 └─────────────────────────────────────────────────────────┘
+```
+
+## Ontology Architecture
+
+### Layered Design
+
+The system uses a layered ontology architecture where the Virtual Twin layer extends (not replaces) the base MES ontology:
+
+```
+┌─────────────────────────────────────┐
+│     Virtual Twin Layer              │
+│  - VirtualSensors (6 types)         │
+│  - SimulationRuns                   │
+│  - ActionableParameters (5 levers)  │
+│  - TwinState & Sync                 │
+└─────────────────────────────────────┘
+              ↓ extends/observes
+┌─────────────────────────────────────┐
+│     Base MES Layer                  │
+│  - Equipment (Filler, Packer, etc.) │
+│  - Production Data                  │
+│  - Downtime Events                  │
+│  - Products/SKUs                    │
+└─────────────────────────────────────┘
+              ↓ describes
+┌─────────────────────────────────────┐
+│   Physical Manufacturing Data       │
+└─────────────────────────────────────┘
+```
+
+### Virtual Sensor Layer
+
+Virtual sensors observe and derive metrics from MES production data rather than generating synthetic readings:
+
+1. **PowerMeterSensor**: Derives energy consumption from production patterns (confidence: 0.95)
+2. **ThroughputSensor**: Observes production rate vs target efficiency (confidence: 1.0)
+3. **DefectRateSensor**: Observes quality through scrap patterns (confidence: 1.0)
+4. **BottleneckDetector**: Identifies production bottlenecks from OEE patterns (confidence: 0.8)
+5. **LineCouplingMonitor**: Monitors equipment coupling and cascade effects (confidence: 0.9)
+6. **DowntimePatternSensor**: Analyzes downtime patterns and trends (confidence: 1.0)
+
+Confidence levels are configurable in `twin/config/system.yaml` under `virtual_sensors.confidence_levels`.
+
+### Three-Layer Data Architecture
+
+```
+Raw Layer (Facts) → Virtual Layer (Observations) → Analytics Layer (Insights)
+    mes_data     →    sensor_data              →    kpi_results
 ```
 
 ## Data Flow Patterns
@@ -111,11 +161,12 @@ LLM explains trade-offs to user
 ### Simulation & Prediction
 - **`SimulationRunner`**: Manages digital twin simulations
   - Generates synthetic manufacturing data with custom configurations
+  - Integrates virtual sensors to derive observations from simulated data
   - Tracks full provenance (twin_runs table)
   - **Enhanced Monte Carlo wrapper** with parallel simulation support
   - Batch uncertainty analysis with statistical aggregation
   - Parameter sensitivity analysis
-  - Passes configurations and seeds to generator for reproducibility
+  - Uses integrated generator module (no external dependencies)
 
 ### Optimization Modules
 - **`OptimizationEngine`**: scipy-based differential evolution
@@ -147,6 +198,13 @@ LLM explains trade-offs to user
   3. `scrap_multiplier` (0.5-1.5): Quality control effectiveness
   4. `material_reliability` (0.5-1.2): Supply chain reliability multiplier
   5. `cascade_sensitivity` (0.5-2.0): Line decoupling effectiveness
+
+### Virtual Sensors
+- **`VirtualSensorObserver`**: Orchestrates all virtual sensors
+  - Processes production data to generate sensor observations
+  - Stores observations in sensor_data table
+  - Configurable confidence levels per sensor type
+  - No synthetic data generation - only derives from existing data
 
 - **`TwinStateManager`**: Tracks current configuration
   - Active parameters
@@ -264,12 +322,13 @@ virtual-ontology/
 │   └── simulation_configs/     # Archived config files
 │       └── archive/            # Historical config JSONs
 ├── twin/
-│   ├── __init__.py              # Module exports and API (v1.2.0)
-│   ├── generator.py             # Integrated data generator (NEW)
-│   ├── simulation_runner.py     # Digital twin simulation + MC wrapper
+│   ├── __init__.py              # Module exports and API (v1.3.0)
+│   ├── generator.py             # Integrated data generator
+│   ├── virtual_sensors.py       # Virtual sensor layer (6 sensor types)
+│   ├── simulation_runner.py     # Digital twin simulation + virtual sensors
 │   ├── optimization_engine.py   # scipy-based optimization
 │   ├── recommendation_engine.py # pymoo NSGA-II multi-objective
-│   ├── config_loader.py         # Multi-config loader (ENHANCED)
+│   ├── config_loader.py         # Multi-config loader
 │   ├── config_manager.py        # Configuration storage manager
 │   ├── config_transformer.py    # Parameter to config transformer
 │   ├── config_validator.py      # Configuration validation layer
@@ -347,24 +406,29 @@ virtual-ontology/
 
 ## Evolution Path
 
-### Current State (v1.2.0 - Integrated Generator & Config Separation)
+### Current State (v1.3.0 - Virtual Sensor Layer)
 - LLM-orchestrated Python modules
+- **Virtual sensor abstraction** - 6 sensor types deriving observations from production data
 - **pymoo** for robust multi-objective optimization (NSGA-II, hypervolume, IGD)
 - **PyMC** for Bayesian probabilistic modeling and MCMC sampling
 - Enhanced Monte Carlo simulation with parallel execution support
 - Integrated data generator as part of twin module
 - Dual configuration architecture (generator.yaml, system.yaml)
 - SQLite database with api.sh as primary interface
-- File-based logging
+- Energy no longer in raw data tables - derived by virtual sensors
 - Single-machine deployment
 
-### Recent Enhancements (v1.2.0)
+### Recent Enhancements (v1.3.0)
+- ✅ **Virtual sensor layer** - 6 sensor types observe and derive metrics from production data
+- ✅ **Removed energy from raw data** - Energy now derived by PowerMeterSensor
+- ✅ **Configurable confidence levels** - Per-sensor confidence in system.yaml
+- ✅ **Three-layer data architecture** - Raw facts → Virtual observations → Analytics insights
+- ✅ **Database migration support** - Scripts to remove energy columns from existing databases
+
+### Previous Enhancements (v1.2.0)
 - ✅ **Integrated data generator into twin module** - No more external script dependency
 - ✅ **Separated configurations** - generator.yaml for data generation, system.yaml for twin settings
-- ✅ **Enhanced ConfigLoader** - Supports multiple config files with module-specific access
-- ✅ **Removed all hardcoded values** - Everything now configurable via YAML
 - ✅ **Scaling parameter approach** - All parameters use 1.0 = baseline for intuitive tuning
-- ✅ **Per-module config sections** - Clear organization in system.yaml
 
 ### Previous Enhancements (v1.1.0)
 - ✅ Replaced custom NSGA-II with pymoo's proven implementation

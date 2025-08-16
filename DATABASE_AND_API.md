@@ -37,8 +37,7 @@ CREATE TABLE mes_data (
     availability_score FLOAT NOT NULL,
     performance_score FLOAT NOT NULL,
     quality_score FLOAT NOT NULL,
-    oee_score FLOAT NOT NULL,
-    energy_consumption_kwh REAL
+    oee_score FLOAT NOT NULL
 );
 ```
 
@@ -128,8 +127,8 @@ Equipment specifications for LINE1-3 (Filler, Packer, Palletizer)
 **quality_data** (empty - ready for use)
 Quality measurements and defect tracking
 
-**sensor_data** (empty - ready for use)
-IoT sensor readings (temperature, vibration, speed)
+**sensor_data** (populated by virtual sensors)
+Virtual sensor observations derived from production data (power consumption, throughput efficiency, defect rates, etc.)
 
 **alert_config** (6 records)
 Alert thresholds for OEE, energy, quality metrics

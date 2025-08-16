@@ -39,15 +39,6 @@ tables:
     indexes: ["timestamp", "current_run_id"]
     ontology_class: "TwinState"
     
-  - name: "parameter_history"
-    description: "Tracks parameter changes across simulation runs"
-    primary_key: "change_id"
-    indexes: ["run_id", "parameter_name", "timestamp"]
-    foreign_keys:
-      - column: "run_id"
-        references: "twin_runs.run_id"
-    ontology_class: "ActionableParameter"
-    
   - name: "simulation_configs"
     description: "Stores full configuration JSON for each simulation"
     primary_key: "config_id"
@@ -306,45 +297,6 @@ properties:
     business_name: "Sync Status"
     description: "Synchronization health status"
     
-  # === parameter_history table ===
-  changeId:
-    type: "integer"
-    sql_column: "change_id"
-    sql_table: "parameter_history"
-    required: true
-    business_name: "Change ID"
-    
-  parameterName:
-    type: "string"
-    sql_column: "parameter_name"
-    sql_table: "parameter_history"
-    required: true
-    business_name: "Parameter Name"
-    validation:
-      values: ["micro_stop_probability", "performance_factor", "scrap_multiplier", 
-               "material_reliability", "cascade_sensitivity"]
-    
-  oldValue:
-    type: "float"
-    sql_column: "old_value"
-    sql_table: "parameter_history"
-    required: false
-    business_name: "Previous Value"
-    
-  newValue:
-    type: "float"
-    sql_column: "new_value"
-    sql_table: "parameter_history"
-    required: true
-    business_name: "New Value"
-    
-  changeReason:
-    type: "string"
-    sql_column: "change_reason"
-    sql_table: "parameter_history"
-    required: false
-    business_name: "Change Reason"
-    
   # === simulation_configs table ===
   configId:
     type: "string"
@@ -502,14 +454,6 @@ relationships:
     type: "one-to-many"
     description: "Each run generates many simulation data points"
     
-  run_to_parameters:
-    from_table: "twin_runs"
-    from_column: "run_id"
-    to_table: "parameter_history"
-    to_column: "run_id"
-    type: "one-to-many"
-    description: "Each run tracks parameter changes"
-    
   run_to_config:
     from_table: "twin_runs"
     from_column: "run_id"
@@ -562,7 +506,6 @@ mappings:
   table_to_class:
     twin_runs: "SimulationRun"
     twin_state: "TwinState"
-    parameter_history: "ActionableParameter"
     simulation_configs: "SimulationConfig"
     optimization_results: "OptimizationResult"
     recommendations: "Recommendation"

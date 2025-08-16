@@ -634,21 +634,27 @@ class CostImpactCalculator:
                 # Calculate from actual data if run_id not found
                 kpis = self._calculate_kpis_from_data(conn, run_id)
             
-            # Add energy consumption data
-            energy_cursor = conn.execute("""
-                SELECT 
-                    SUM(energy_consumption_kwh) as total_energy,
-                    AVG(energy_consumption_kwh) as avg_energy
-                FROM mes_data 
-                WHERE timestamp >= datetime('now', '-7 days')
-            """)
-            energy_row = energy_cursor.fetchone()
-            
-            if energy_row and energy_row[0]:
-                kpis["weekly_energy_kwh"] = energy_row[0]
-                kpis["avg_energy_per_interval"] = energy_row[1]
-            else:
-                # Use default based on our actual data
+            # Get energy consumption from virtual sensors if available
+            try:
+                energy_cursor = conn.execute("""
+                    SELECT 
+                        SUM(value) as total_energy,
+                        AVG(value) as avg_energy
+                    FROM sensor_data 
+                    WHERE observable_property = 'power_consumption'
+                    AND timestamp >= datetime('now', '-7 days')
+                """)
+                energy_row = energy_cursor.fetchone()
+                
+                if energy_row and energy_row[0]:
+                    kpis["weekly_energy_kwh"] = energy_row[0]
+                    kpis["avg_energy_per_interval"] = energy_row[1]
+                else:
+                    # Use default estimates if no sensor data
+                    kpis["weekly_energy_kwh"] = 25332
+                    kpis["avg_energy_per_interval"] = 0.7
+            except:
+                # Fallback to defaults if sensor_data table doesn't exist
                 kpis["weekly_energy_kwh"] = 25332
                 kpis["avg_energy_per_interval"] = 0.7
             

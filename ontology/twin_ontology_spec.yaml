@@ -36,47 +36,59 @@ classes:
       mes: "Equipment"  # Sensors attached to equipment
     
     subclasses:
+      PowerMeterSensor:
+        description: "Virtual power meter that derives energy consumption from production patterns"
+        conditions:
+          - field: "observable_property"
+            operator: "equals"
+            value: "power_consumption"
+        derives_from: "machine_status, performance_score, equipment_type, product_id"
+        unit: "kWh"
+      
       ThroughputSensor:
-        description: "Observes production rate from good_units_produced"
+        description: "Observes production rate vs target to identify efficiency"
         conditions:
-          - field: "sensor_type"
+          - field: "observable_property"
             operator: "equals"
-            value: "throughput"
+            value: "throughput_efficiency"
+        derives_from: "good_units_produced / target_rate_units_per_5min"
+        unit: "ratio"
             
-      QualityInspector:
-        description: "Observes quality metrics from scrap rate"
+      DefectRateSensor:
+        description: "Observes quality through scrap patterns"
         conditions:
-          - field: "sensor_type"
+          - field: "observable_property"
             operator: "equals"
-            value: "quality"
+            value: "defect_rate"
+        derives_from: "scrap_units_produced / total_units_produced"
+        unit: "ratio"
             
-      PowerMeter:
-        description: "Observes energy consumption (calculated from runtime and performance)"
+      BottleneckDetector:
+        description: "Identifies production bottlenecks from OEE patterns"
         conditions:
-          - field: "sensor_type"
+          - field: "observable_property"
             operator: "equals"
-            value: "power"
+            value: "bottleneck_indicator"
+        derives_from: "OEE analysis across equipment in time windows"
+        unit: "boolean"
             
-      PerformanceSensor:
-        description: "Observes actual vs ideal performance ratio"
+      LineCouplingMonitor:
+        description: "Monitors equipment coupling and cascade effects"
         conditions:
-          - field: "sensor_type"
+          - field: "observable_property"
             operator: "equals"
-            value: "performance"
-            
-      AvailabilitySensor:
-        description: "Observes equipment availability (uptime ratio)"
+            value: "line_coupling_strength"
+        derives_from: "Correlated downtime patterns across equipment"
+        unit: "ratio"
+        
+      DowntimePatternSensor:
+        description: "Analyzes downtime patterns and trends"
         conditions:
-          - field: "sensor_type"
+          - field: "observable_property"
             operator: "equals"
-            value: "availability"
-            
-      OEESensor:
-        description: "Observes Overall Equipment Effectiveness (composite metric)"
-        conditions:
-          - field: "sensor_type"
-            operator: "equals"
-            value: "oee"
+            value: "downtime_frequency"
+        derives_from: "Rolling window analysis of machine_status"
+        unit: "ratio"
   
   # Simulation Entities
   SimulationRun:
@@ -151,55 +163,72 @@ relationships:
 # PROPERTIES (Twin data attributes)
 # ====================================================================================
 properties:
-  # Sensor Observations (mapped to actual MES columns)
-  throughput:
-    class: "ThroughputSensor"
+  # Virtual Sensor Observations (derived from MES data)
+  power_consumption:
+    class: "PowerMeterSensor"
     type: "float"
-    description: "Production rate in units per time period"
-    sql_column: "good_units_produced"
-    sql_table: "mes_data"
-    unit: "units/5min"
-    business_name: "Production Throughput"
-    examples: [42.5, 38.0, 45.2]
-    
-  scrapRate:
-    class: "QualityInspector"
-    type: "float"
-    description: "Percentage of units that are scrapped"
-    sql_column: "scrap_units_produced / NULLIF(good_units_produced + scrap_units_produced, 0)"
-    sql_table: "mes_data"
-    unit: "percent"
-    business_name: "Scrap Rate"
-    validation:
-      min: 0
-      max: 100
-    
-  powerConsumption:
-    class: "PowerMeter"
-    type: "float"
-    description: "Energy consumption (runtime × equipment_type × performance)"
-    sql_column: "energy_consumption_kwh"
-    sql_table: "mes_data"
+    description: "Energy consumption derived from equipment status and performance"
+    sql_column: "value"
+    sql_table: "sensor_data"
+    observable_property: "power_consumption"
     unit: "kWh"
-    business_name: "Energy Usage"
+    business_name: "Derived Energy Usage"
+    derives_from: "machine_status, performance_score, equipment_type, product_id"
     examples: [15.5, 12.3, 18.7]
     
-  performanceScore:
-    class: "PerformanceSensor"
+  throughput_efficiency:
+    class: "ThroughputSensor"
     type: "float"
-    description: "Actual vs ideal performance ratio"
-    sql_column: "performance_score"
-    sql_table: "mes_data"
-    unit: "percent"
+    description: "Actual vs target production rate"
+    sql_column: "value"
+    sql_table: "sensor_data"
+    observable_property: "throughput_efficiency"
+    unit: "ratio"
+    business_name: "Throughput Efficiency"
+    derives_from: "good_units_produced / target_rate_units_per_5min"
+    examples: [0.95, 1.02, 0.88]
+    
+  defect_rate:
+    class: "DefectRateSensor"
+    type: "float"
+    description: "Defect rate observed from scrap patterns"
+    sql_column: "value"
+    sql_table: "sensor_data"
+    observable_property: "defect_rate"
+    unit: "ratio"
+    business_name: "Defect Rate"
+    derives_from: "scrap_units_produced / total_units"
     validation:
       min: 0
-      max: 100
+      max: 1
     
-  availabilityScore:
-    class: "AvailabilitySensor"
+  bottleneck_indicator:
+    class: "BottleneckDetector"
     type: "float"
-    description: "Equipment uptime ratio"
-    sql_column: "availability_score"
+    description: "Bottleneck detection indicator (1.0 = is bottleneck)"
+    sql_column: "value"
+    sql_table: "sensor_data"
+    observable_property: "bottleneck_indicator"
+    unit: "boolean"
+    business_name: "Bottleneck Indicator"
+    derives_from: "OEE analysis across equipment"
+    
+  line_coupling_strength:
+    class: "LineCouplingMonitor"
+    type: "float"
+    description: "Equipment coupling and cascade effect strength"
+    sql_column: "value"
+    sql_table: "sensor_data"
+    observable_property: "line_coupling_strength"
+    unit: "ratio"
+    business_name: "Line Coupling Strength"
+    derives_from: "Correlated downtime patterns"
+    
+  downtime_frequency:
+    class: "DowntimePatternSensor"
+    type: "float"
+    description: "Frequency of downtime events in rolling window"
+    sql_column: "value"
     sql_table: "mes_data"
     unit: "percent"
     validation:
@@ -453,8 +482,8 @@ common_queries:
     question: "What's the energy impact of this simulation?"
     involves: ["PowerMeter", "powerConsumption", "SimulationRun"]
     sql_pattern: |
-      SELECT AVG(energy_consumption_kwh) as avg_energy,
-             SUM(energy_consumption_kwh) as total_energy
+      SELECT AVG(value) as avg_energy,
+             SUM(value) as total_energy
       FROM simulation_data
       WHERE run_id = ?
       

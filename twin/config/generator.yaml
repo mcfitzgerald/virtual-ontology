@@ -178,6 +178,98 @@ shift_performance:
     max_multiplier: 0.95
 
 # ----------------------------------------------------------------------------
+# BASELINE VALUES
+# Realistic production issues for ~65% OEE baseline
+# ----------------------------------------------------------------------------
+baseline_values:
+  # Micro-stops occur frequently in real production
+  micro_stops:
+    frequent:
+      probability_per_5min: 0.08  # ~8% chance every 5 minutes
+      equipment_id: "LINE1-FIL"
+      downtime_reason: "Minor_Stop"
+      duration_range_minutes: {min: 1, max: 3}
+    minor_line1:
+      probability_per_5min: 0.06
+      equipment_id: "LINE1-PCK"
+      downtime_reason: "Minor_Stop"
+      duration_range_minutes: {min: 1, max: 2}
+    jams_line1:
+      probability_per_5min: 0.08  # Increased from 0.05 for more unplanned
+      equipment_id: "LINE1-PAL"
+      downtime_reason: "Product_Jam"
+      duration_range_minutes: {min: 2, max: 8}  # Slightly longer jams
+    filler_stops:
+      probability_per_5min: 0.07
+      equipment_id: "LINE2-FIL"
+      downtime_reason: "Minor_Stop"
+      duration_range_minutes: {min: 1, max: 3}
+    palletizer_stops:
+      probability_per_5min: 0.04
+      equipment_id: "LINE2-PAL"
+      downtime_reason: "Minor_Stop"
+      duration_range_minutes: {min: 2, max: 4}
+  
+  # Material supply issues
+  material_starvation:
+    - equipment_id: "LINE1-FIL"
+      hour_range: [6, 18]
+      probability_per_5min: 0.02
+      downtime_reason: "Material_Shortage"
+      duration_range_minutes: {min: 10, max: 30}
+    - equipment_id: "LINE2-FIL"
+      hour_range: [6, 18]
+      probability_per_5min: 0.015
+      downtime_reason: "Material_Shortage"
+      duration_range_minutes: {min: 10, max: 25}
+  
+  # Unplanned mechanical failures (NEW)
+  mechanical_failures:
+    - equipment_id: "LINE1-FIL"
+      probability_per_5min: 0.025  # ~2.5% chance every 5 minutes
+      downtime_reason: "Mechanical_Failure"
+      duration_range_minutes: {min: 15, max: 45}
+    - equipment_id: "LINE1-PAK"
+      probability_per_5min: 0.02
+      downtime_reason: "Mechanical_Failure"
+      duration_range_minutes: {min: 10, max: 30}
+    - equipment_id: "LINE2-FIL"
+      probability_per_5min: 0.02
+      downtime_reason: "Mechanical_Failure"
+      duration_range_minutes: {min: 15, max: 40}
+  
+  # Unplanned electrical failures (NEW)
+  electrical_failures:
+    - equipment_id: "LINE1-PAL"
+      probability_per_5min: 0.015  # ~1.5% chance every 5 minutes
+      downtime_reason: "Electrical_Failure"
+      duration_range_minutes: {min: 20, max: 60}
+    - equipment_id: "LINE2-PAL"
+      probability_per_5min: 0.01
+      downtime_reason: "Electrical_Failure"
+      duration_range_minutes: {min: 15, max: 45}
+  
+  # Cascade sensitivity baseline
+  cascade_sensitivity: 0.30  # 30% chance of downstream impact
+  
+  # Performance variations by shift
+  shift_performance:
+    shift1: {min: 0.75, max: 0.85}  # Morning shift
+    shift2: {min: 0.70, max: 0.82}  # Afternoon shift
+    shift3: {min: 0.68, max: 0.78}  # Night shift
+  
+  # Scrap rates (realistic for food/beverage industry)
+  scrap_rates:
+    normal:
+      PRD001: 0.03   # 3% normal scrap
+      PRD002: 0.025  # 2.5% normal scrap
+      PRD003: 0.035  # 3.5% normal scrap
+    startup:
+      PRD001: 0.08   # 8% startup scrap
+      PRD002: 0.07   # 7% startup scrap
+      PRD003: 0.09   # 9% startup scrap
+
+# ----------------------------------------------------------------------------
 # ANOMALY PATTERNS
 # Micro-stops, jams, and other production issues
 # ----------------------------------------------------------------------------

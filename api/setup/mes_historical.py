@@ -603,8 +603,7 @@ class MESHistoricalDataGenerator:
                 'Availability_Score': 'availability_score',
                 'Performance_Score': 'performance_score',
                 'Quality_Score': 'quality_score',
-                'OEE_Score': 'oee_score',
-                'Energy_Consumption_kWh': 'energy_consumption_kwh'
+                'OEE_Score': 'oee_score'
             }
             df_db.rename(columns=column_mapping, inplace=True)
             

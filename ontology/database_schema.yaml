@@ -145,15 +145,6 @@ properties:
       min: 0
       max: 100
     unit: percent
-  hasEnergyConsumption:
-    type: float
-    sql_column: energy_consumption_kwh
-    required: true
-    business_name: Energy Consumption
-    validation:
-      min: 0
-    unit: kWh
-    description: Energy consumed during 5-minute interval
 mappings:
   ontology_namespace: mes
   auto_mapped: true
