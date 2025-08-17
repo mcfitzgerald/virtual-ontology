@@ -1,0 +1,453 @@
+# MES Ontology Template
+# Purpose: Semantic layer for MES data that maps to SQL database
+# This ontology enables LLM to understand data meaning AND generate SQL queries
+
+metadata:
+  name: "MES Data Ontology"
+  version: "1.0.0"
+  description: "Semantic specification for manufacturing execution system data"
+  namespace: "mes"
+  author: "<YOUR_NAME>"
+  created: "<YYYY-MM-DD>"
+
+# ====================================================================================
+# CLASSES (Business Entities that map to database tables/views)
+# ====================================================================================
+classes:
+  # Core MES entities that exist in the database
+  ProductionSnapshot:
+    description: "5-minute snapshot of production state"
+    maps_to:
+      sql_table: "mes_data"  # Primary table in database
+      twin_concept: "MESRecord"  # What the twin simulation outputs
+    
+    # Conditions to identify this data
+    conditions:
+      - field: "Timestamp"
+        operator: "exists"
+      - field: "EquipmentID"
+        operator: "exists"
+  
+  Equipment:
+    description: "Manufacturing equipment"
+    maps_to:
+      sql_view: "SELECT DISTINCT EquipmentID, EquipmentType FROM mes_data"
+      twin_concept: "Equipment"  # Twin ontology equipment class
+    
+    subclasses:
+      Filler:
+        conditions:
+          - field: "EquipmentType"
+            operator: "equals"
+            value: "Filler"
+      Packer:
+        conditions:
+          - field: "EquipmentType"
+            operator: "equals"
+            value: "Packer"
+      Palletizer:
+        conditions:
+          - field: "EquipmentType"
+            operator: "equals"
+            value: "Palletizer"
+  
+  ProductionLine:
+    description: "Complete production line"
+    maps_to:
+      sql_view: "SELECT DISTINCT LineID FROM mes_data"
+      twin_concept: "ProductionLine"
+  
+  Product:
+    description: "Manufactured product"
+    maps_to:
+      sql_view: "SELECT DISTINCT ProductID, ProductName FROM mes_data"
+      twin_concept: "Product"
+  
+  ProductionOrder:
+    description: "Manufacturing work order"
+    maps_to:
+      sql_view: "SELECT DISTINCT ProductionOrderID FROM mes_data"
+      twin_concept: "ProductionOrder"
+
+# ====================================================================================
+# RELATIONSHIPS (How entities connect in SQL)
+# ====================================================================================
+relationships:
+  equipment_belongs_to_line:
+    from: "Equipment"
+    to: "ProductionLine"
+    description: "Equipment is part of a production line"
+    type: "many-to-one"
+    sql_join: "mes_data.LineID = lines.LineID"
+    twin_mapping: "ProductionLine.contains(Equipment)"
+  
+  snapshot_measures_equipment:
+    from: "ProductionSnapshot"
+    to: "Equipment"
+    description: "Snapshot captures equipment state"
+    type: "many-to-one"
+    sql_join: "mes_data.EquipmentID = equipment.EquipmentID"
+  
+  order_produces_product:
+    from: "ProductionOrder"
+    to: "Product"
+    description: "Order produces specific product"
+    type: "many-to-one"
+    sql_join: "mes_data.ProductID = products.ProductID"
+
+# ====================================================================================
+# PROPERTIES (Data attributes that map to SQL columns)
+# ====================================================================================
+properties:
+  # Temporal properties
+  Timestamp:
+    class: "ProductionSnapshot"
+    type: "datetime"
+    sql_column: "Timestamp"
+    sql_table: "mes_data"
+    required: true
+    description: "When this snapshot was taken"
+    business_name: "Snapshot Time"
+    examples: ["2025-06-01 00:00:00", "2025-06-01 00:05:00"]
+  
+  # Identity properties
+  EquipmentID:
+    class: "Equipment"
+    type: "string"
+    sql_column: "EquipmentID"
+    sql_table: "mes_data"
+    required: true
+    unique: false  # Not unique in mes_data (many snapshots)
+    description: "Unique equipment identifier"
+    pattern: "^LINE[0-9]-[A-Z]{3}$"
+    examples: ["LINE1-FIL", "LINE2-PCK", "LINE3-PAL"]
+  
+  LineID:
+    class: "ProductionLine"
+    type: "integer"
+    sql_column: "LineID"
+    sql_table: "mes_data"
+    required: true
+    description: "Production line number"
+    validation:
+      min: 1
+      max: 10
+    examples: [1, 2, 3]
+  
+  # State properties
+  MachineStatus:
+    class: "Equipment"
+    type: "string"
+    sql_column: "MachineStatus"
+    sql_table: "mes_data"
+    required: true
+    description: "Current equipment state"
+    validation:
+      values: ["Running", "Stopped", "Idle"]
+    twin_mapping: "Equipment.state via transduction_layer"
+  
+  DowntimeReason:
+    class: "Equipment"
+    type: "string"
+    sql_column: "DowntimeReason"
+    sql_table: "mes_data"
+    required: false
+    description: "Reason for downtime if stopped"
+    validation:
+      values: ["UNP-JAM", "UNP-MECH", "UNP-ELEC", "PL-CLEAN", "PL-SETUP", ""]
+    business_categories:
+      unplanned: ["UNP-JAM", "UNP-MECH", "UNP-ELEC"]
+      planned: ["PL-CLEAN", "PL-SETUP"]
+  
+  # Production metrics
+  GoodUnitsProduced:
+    class: "ProductionSnapshot"
+    type: "integer"
+    sql_column: "GoodUnitsProduced"
+    sql_table: "mes_data"
+    required: true
+    description: "Units produced meeting quality standards in 5-min interval"
+    unit: "units"
+    validation:
+      min: 0
+      max: 1000
+    aggregation: "sum"  # How to aggregate over time
+  
+  ScrapUnitsProduced:
+    class: "ProductionSnapshot"
+    type: "integer"
+    sql_column: "ScrapUnitsProduced"
+    sql_table: "mes_data"
+    required: true
+    description: "Units scrapped in 5-min interval"
+    unit: "units"
+    validation:
+      min: 0
+      max: 100
+    aggregation: "sum"
+  
+  # OEE metrics
+  OEE_Score:
+    class: "ProductionSnapshot"
+    type: "float"
+    sql_column: "OEE_Score"
+    sql_table: "mes_data"
+    required: true
+    description: "Overall Equipment Effectiveness"
+    unit: "percentage"
+    validation:
+      min: 0.0
+      max: 100.0
+    business_interpretation:
+      world_class: ">= 85"
+      good: ">= 75"
+      acceptable: ">= 65"
+      needs_improvement: "< 65"
+    formula: "(Availability * Performance * Quality) / 10000"
+  
+  Availability_Score:
+    class: "ProductionSnapshot"
+    type: "float"
+    sql_column: "Availability_Score"
+    sql_table: "mes_data"
+    required: true
+    description: "Equipment availability in interval"
+    unit: "percentage"
+    validation:
+      min: 0.0
+      max: 100.0
+    formula: "(running_time / planned_time) * 100"
+  
+  Performance_Score:
+    class: "ProductionSnapshot"
+    type: "float"
+    sql_column: "Performance_Score"
+    sql_table: "mes_data"
+    required: true
+    description: "Performance vs ideal rate"
+    unit: "percentage"
+    validation:
+      min: 0.0
+      max: 120.0  # Can exceed 100% briefly
+    formula: "(actual_rate / ideal_rate) * 100"
+  
+  Quality_Score:
+    class: "ProductionSnapshot"
+    type: "float"
+    sql_column: "Quality_Score"
+    sql_table: "mes_data"
+    required: true
+    description: "Product quality rate"
+    unit: "percentage"
+    validation:
+      min: 0.0
+      max: 100.0
+    formula: "(good_units / (good_units + scrap_units)) * 100"
+  
+  # Product properties
+  ProductID:
+    class: "Product"
+    type: "string"
+    sql_column: "ProductID"
+    sql_table: "mes_data"
+    required: true
+    description: "Product SKU"
+    pattern: "^SKU-[0-9]{4}$"
+    examples: ["SKU-2001", "SKU-2002", "SKU-2003"]
+  
+  ProductName:
+    class: "Product"
+    type: "string"
+    sql_column: "ProductName"
+    sql_table: "mes_data"
+    required: true
+    description: "Product description"
+    examples: ["12oz Soda", "16oz Energy Drink", "20oz Sports Drink"]
+  
+  StandardCost_per_unit:
+    class: "Product"
+    type: "float"
+    sql_column: "StandardCost_per_unit"
+    sql_table: "mes_data"
+    required: true
+    description: "Manufacturing cost per unit"
+    unit: "USD"
+    validation:
+      min: 0.0
+      max: 10.0
+  
+  SalePrice_per_unit:
+    class: "Product"
+    type: "float"
+    sql_column: "SalePrice_per_unit"
+    sql_table: "mes_data"
+    required: true
+    description: "Selling price per unit"
+    unit: "USD"
+    validation:
+      min: 0.0
+      max: 20.0
+
+# ====================================================================================
+# BUSINESS RULES (Domain logic for data validation and interpretation)
+# ====================================================================================
+business_rules:
+  no_production_when_stopped:
+    description: "Equipment cannot produce when stopped"
+    when:
+      class: "ProductionSnapshot"
+      condition: "MachineStatus = 'Stopped'"
+    implies: "GoodUnitsProduced = 0 AND ScrapUnitsProduced = 0"
+    sql_check: |
+      SELECT COUNT(*) as violations
+      FROM mes_data
+      WHERE MachineStatus = 'Stopped'
+        AND (GoodUnitsProduced > 0 OR ScrapUnitsProduced > 0)
+  
+  downtime_reason_required:
+    description: "Stopped equipment must have downtime reason"
+    when:
+      class: "ProductionSnapshot"
+      condition: "MachineStatus = 'Stopped'"
+    implies: "DowntimeReason IS NOT NULL AND DowntimeReason != ''"
+    sql_check: |
+      SELECT COUNT(*) as violations
+      FROM mes_data
+      WHERE MachineStatus = 'Stopped'
+        AND (DowntimeReason IS NULL OR DowntimeReason = '')
+  
+  oee_calculation_valid:
+    description: "OEE must equal A*P*Q/10000"
+    when:
+      class: "ProductionSnapshot"
+      condition: "OEE_Score IS NOT NULL"
+    implies: "ABS(OEE_Score - (Availability_Score * Performance_Score * Quality_Score / 10000)) < 0.1"
+    sql_check: |
+      SELECT COUNT(*) as violations
+      FROM mes_data
+      WHERE ABS(OEE_Score - (Availability_Score * Performance_Score * Quality_Score / 10000)) > 0.1
+
+# ====================================================================================
+# COMMON QUERIES (SQL patterns for analysis)
+# ====================================================================================
+common_queries:
+  current_line_performance:
+    description: "Current OEE by production line"
+    natural_language: "What is the current performance of each line?"
+    sql: |
+      SELECT 
+        LineID,
+        AVG(OEE_Score) as avg_oee,
+        AVG(Availability_Score) as avg_availability,
+        AVG(Performance_Score) as avg_performance,
+        AVG(Quality_Score) as avg_quality
+      FROM mes_data
+      WHERE Timestamp >= datetime('now', '-1 hour')
+      GROUP BY LineID
+      ORDER BY LineID
+  
+  equipment_bottlenecks:
+    description: "Identify bottleneck equipment"
+    natural_language: "Which equipment is the bottleneck?"
+    sql: |
+      WITH equipment_oee AS (
+        SELECT 
+          EquipmentID,
+          EquipmentType,
+          AVG(OEE_Score) as avg_oee,
+          COUNT(CASE WHEN MachineStatus = 'Stopped' THEN 1 END) as stop_count
+        FROM mes_data
+        WHERE Timestamp >= datetime('now', '-24 hours')
+        GROUP BY EquipmentID, EquipmentType
+      )
+      SELECT * FROM equipment_oee
+      ORDER BY avg_oee ASC
+      LIMIT 5
+  
+  downtime_pareto:
+    description: "Top downtime reasons"
+    natural_language: "What are the main causes of downtime?"
+    sql: |
+      SELECT 
+        DowntimeReason,
+        COUNT(*) as occurrences,
+        COUNT(*) * 5 as total_minutes,
+        ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as percentage
+      FROM mes_data
+      WHERE MachineStatus = 'Stopped'
+        AND DowntimeReason != ''
+      GROUP BY DowntimeReason
+      ORDER BY occurrences DESC
+  
+  production_by_product:
+    description: "Production summary by product"
+    natural_language: "How much of each product have we produced?"
+    sql: |
+      SELECT 
+        ProductID,
+        ProductName,
+        SUM(GoodUnitsProduced) as total_good,
+        SUM(ScrapUnitsProduced) as total_scrap,
+        ROUND(AVG(Quality_Score), 2) as avg_quality,
+        ROUND(SUM(GoodUnitsProduced) * AVG(StandardCost_per_unit), 2) as total_cost,
+        ROUND(SUM(GoodUnitsProduced) * AVG(SalePrice_per_unit), 2) as total_revenue
+      FROM mes_data
+      WHERE Timestamp >= datetime('now', '-24 hours')
+      GROUP BY ProductID, ProductName
+
+# ====================================================================================
+# TWIN SYSTEM MAPPING (How this maps to simulation)
+# ====================================================================================
+twin_mapping:
+  description: "How MES data relates to twin simulation"
+  
+  data_flow:
+    twin_to_mes: "Twin simulation generates MES records via transduction layer"
+    mes_to_twin: "MES data used for calibration and validation"
+  
+  concept_mappings:
+    - mes_concept: "ProductionSnapshot"
+      twin_concept: "MESRecord"
+      notes: "Each simulation interval produces one snapshot per equipment"
+    
+    - mes_concept: "Equipment.MachineStatus"
+      twin_concept: "Equipment.state"
+      transformation: "Via equipment_state_mapping in transduction layer"
+    
+    - mes_concept: "GoodUnitsProduced"
+      twin_concept: "Equipment.stats.units_produced (interval delta)"
+      notes: "Twin tracks cumulative, MES stores interval"
+    
+    - mes_concept: "ScrapUnitsProduced"
+      twin_concept: "Equipment.stats.units_scrapped (interval delta)"
+      notes: "Twin tracks cumulative, MES stores interval"
+
+# ====================================================================================
+# GLOSSARY (Business terminology)
+# ====================================================================================
+glossary:
+  OEE:
+    definition: "Overall Equipment Effectiveness - composite metric of availability, performance, and quality"
+    formula: "Availability × Performance × Quality ÷ 10000"
+    also_known_as: ["Overall Equipment Efficiency"]
+    see_also: ["Availability_Score", "Performance_Score", "Quality_Score"]
+  
+  Bottleneck:
+    definition: "Equipment with lowest OEE that constrains line throughput"
+    also_known_as: ["Constraint", "Limiting factor"]
+    see_also: ["OEE", "Line efficiency"]
+  
+  Scrap:
+    definition: "Units that don't meet quality standards"
+    also_known_as: ["Waste", "Defects", "Rejects"]
+    see_also: ["Quality_Score", "First Pass Yield"]
+  
+  MTBF:
+    definition: "Mean Time Between Failures - average operating time between failures"
+    unit: "minutes"
+    see_also: ["MTTR", "Availability"]
+  
+  MTTR:
+    definition: "Mean Time To Repair - average time to fix equipment after failure"
+    unit: "minutes"
+    see_also: ["MTBF", "Availability"]

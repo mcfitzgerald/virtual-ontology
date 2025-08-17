@@ -1,0 +1,130 @@
+# Twin Ontology
+# Purpose: Declarative specification for SimPy manufacturing model generation
+# This ontology IS the model - not configuration
+
+metadata:
+  name: "Manufacturing Twin Ontology"
+  version: "1.0.0"
+  description: "Declarative specification for SimPy discrete event simulation model"
+  namespace: "twin"
+  imports:
+    - namespace: "mes"
+      description: "Base MES ontology we generate data for"
+      path: "./mes_ontology.yaml"
+  author: "Virtual Twin System"
+  created: "2025-01-17"
+
+# TBox - Terminological Box (Classes and Hierarchies)
+tbox:
+  classes:
+    Equipment:
+      description: "Production equipment that processes materials"
+      parent: "SimulationEntity"
+      attributes:
+        - id: string
+        - type: EquipmentType
+        - state: EquipmentState
+        
+    Buffer:
+      description: "Storage location between equipment"
+      parent: "SimulationEntity"
+      attributes:
+        - id: string
+        - capacity: integer
+        - current_level: integer
+        
+  enumerations:
+    EquipmentType:
+      values: ["FILLER", "PACKER", "PALLETIZER"]
+      
+    EquipmentState:
+      values: ["RUNNING", "STOPPED_FAILURE", "STOPPED_MAINTENANCE", "STARVED", "BLOCKED", "IDLE"]
+
+# RBox - Relational Box (Relationships)
+rbox:
+  relationships:
+    feeds_into:
+      domain: Equipment
+      range: Buffer
+      cardinality: "1:1"
+      description: "Equipment outputs to buffer"
+
+# Properties - Attributes and Constraints
+properties:
+  Equipment:
+    base_rate:
+      type: float
+      unit: "units/minute"
+      constraints:
+        min: 1.0
+        max: 1000.0
+      description: "Nominal production rate"
+      
+    mtbf:
+      type: float
+      unit: "minutes"
+      constraints:
+        min: 60.0
+        max: 10080.0
+      description: "Mean time between failures"
+      
+    mttr:
+      type: float
+      unit: "minutes"
+      constraints:
+        min: 1.0
+        max: 480.0
+      description: "Mean time to repair"
+
+# Model Definition - How to build the SimPy model
+model_definition:
+  lines:
+    - line_id: "LINE1"
+      equipment_sequence:
+        - {id: "LINE1-FIL", type: "FILLER", base_rate: 60.0, mtbf: 480.0, mttr: 30.0, base_scrap_rate: 0.02}
+        - {id: "LINE1-PCK", type: "PACKER", base_rate: 55.0, mtbf: 600.0, mttr: 20.0, base_scrap_rate: 0.01}
+        - {id: "LINE1-PAL", type: "PALLETIZER", base_rate: 50.0, mtbf: 720.0, mttr: 15.0, base_scrap_rate: 0.005}
+      buffer_capacities: [200, 150, 100, 50]
+      source_arrival_rate: 65.0
+
+# Behavioral Rules - How components behave
+behavioral_rules:
+  equipment_state_transitions:
+    RUNNING:
+      on_failure: STOPPED_FAILURE
+      on_maintenance: STOPPED_MAINTENANCE
+      on_no_input: STARVED
+      on_output_full: BLOCKED
+
+# Control Parameters - What operators can adjust
+control_parameters:
+  line_speed_setting:
+    type: float
+    range: [0.7, 1.2]
+    default: 1.0
+    description: "Equipment speed dial"
+
+# Parameter Effects - How control parameters affect the model
+parameter_effects:
+  line_speed_setting:
+    affects:
+      - target: "equipment.production_rate"
+        formula: "base_rate * line_speed_setting"
+
+# Transduction Layer - How SimPy model maps to MES data
+transduction_layer:
+  mes_snapshot_interval: 5
+  equipment_state_mapping:
+    RUNNING: "Running"
+    STOPPED_FAILURE: "Stopped"
+    STOPPED_MAINTENANCE: "Stopped"
+    STARVED: "Stopped"
+    BLOCKED: "Stopped"
+    IDLE: "Idle"
+  mes_record_structure:
+    fields:
+      - Timestamp: "datetime"
+      - EquipmentID: "string"
+      - MachineStatus: "string"
+      - GoodUnitsProduced: "integer"
+      - OEE_Score: "float"

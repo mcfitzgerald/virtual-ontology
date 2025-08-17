@@ -435,69 +435,6 @@ business_rules:
       lineDecouplingFactor < 1.0 → reduces cascade effects (better isolation)
       lineDecouplingFactor > 1.0 → increases cascade effects (worse isolation)
 
-# ====================================================================================
-# COMMON QUERIES (Help LLM understand twin usage)
-# ====================================================================================
-common_queries:
-  - name: "Get current twin state"
-    question: "What's the current state of the virtual twin?"
-    involves: ["TwinState", "syncHealth", "lastSync"]
-    sql_pattern: |
-      SELECT * FROM twin_state 
-      ORDER BY timestamp DESC 
-      LIMIT 1
-      
-  - name: "Compare simulation runs"
-    question: "How do these simulation runs compare?"
-    involves: ["SimulationRun", "kpiSummary", "configDelta"]
-    sql_pattern: |
-      SELECT run_id, run_type, 
-             json_extract(kpi_summary_json, '$.mean_oee') as oee,
-             json_extract(config_delta_json, '$.micro_stop_probability') as micro_stops
-      FROM twin_runs
-      WHERE run_id IN (?, ?)
-      
-  - name: "Get simulation lineage"
-    question: "Show the lineage of this simulation run"
-    involves: ["SimulationRun", "hasParentRun", "parentRunId"]
-    sql_pattern: |
-      WITH RECURSIVE lineage AS (
-        SELECT * FROM twin_runs WHERE run_id = ?
-        UNION ALL
-        SELECT t.* FROM twin_runs t
-        JOIN lineage l ON t.run_id = l.parent_run_id
-      )
-      SELECT * FROM lineage ORDER BY started_at
-      
-  - name: "Track parameter changes"
-    question: "How have parameters changed across runs?"
-    involves: ["ActionableParameter", "SimulationRun", "usesParameters"]
-    sql_pattern: |
-      SELECT run_id, parameter_name, old_value, new_value, change_reason
-      FROM parameter_history
-      WHERE run_id = ?
-      ORDER BY parameter_name
-      
-  - name: "Energy impact analysis"
-    question: "What's the energy impact of this simulation?"
-    involves: ["PowerMeter", "powerConsumption", "SimulationRun"]
-    sql_pattern: |
-      SELECT AVG(value) as avg_energy,
-             SUM(value) as total_energy
-      FROM simulation_data
-      WHERE run_id = ?
-      
-  - name: "Best parameters for OEE"
-    question: "Which parameters give the best OEE?"
-    involves: ["OptimizationRun", "oeeScore", "configDelta"]
-    sql_pattern: |
-      SELECT run_id, 
-             json_extract(kpi_summary_json, '$.mean_oee') as oee,
-             config_delta_json
-      FROM twin_runs
-      WHERE run_type = 'optimization'
-      ORDER BY json_extract(kpi_summary_json, '$.mean_oee') DESC
-      LIMIT 10
 
 # ====================================================================================
 # CROSS-SYSTEM MAPPINGS

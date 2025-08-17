@@ -11,12 +11,13 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from twin import (
-    SimulationRunner,
-    ActionableParameters,
-    RecommendationEngine,
-    TwinStateManager
-)
+# TODO: Update imports when twin_model is fully ready
+# For now, comment out old imports that no longer exist
+# from twin_model import (
+#     SimulationRunner,
+#     ActionableParameters
+# )
+# Note: RecommendationEngine and TwinStateManager need to be reimplemented
 
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
 

@@ -449,40 +449,6 @@ system_mappings:
         notes: "Calculate from their inspection results"
 
 # ====================================================================================
-# COMMON QUERIES
-# ====================================================================================
-common_queries:
-  - name: "Current OEE by Line"
-    question: "What is the OEE for each production line?"
-    involves: ["ProductionLine", "Equipment", "hasOEEScore"]
-    sql_pattern: |
-      SELECT line_id, AVG(oee_score) as avg_oee
-      FROM mes_data
-      WHERE machine_status = 'Running'
-        AND timestamp >= NOW() - INTERVAL '1 hour'
-      GROUP BY line_id
-      
-  - name: "Bottleneck Analysis"
-    question: "Which equipment limits production on each line?"
-    involves: ["Equipment", "hasPerformanceScore", "belongsToLine"]
-    sql_pattern: |
-      SELECT line_id, equipment_id, MIN(performance_score)
-      FROM mes_data
-      WHERE machine_status = 'Running'
-      GROUP BY line_id
-      
-  - name: "Downtime Pareto"
-    question: "What are the top causes of unplanned downtime?"
-    involves: ["UnplannedDowntime", "hasDowntimeReason"]
-    sql_pattern: |
-      SELECT downtime_reason, COUNT(*) as occurrences
-      FROM mes_data
-      WHERE machine_status = 'Stopped'
-        AND downtime_reason LIKE 'UNP-%'
-      GROUP BY downtime_reason
-      ORDER BY occurrences DESC
-
-# ====================================================================================
 # GLOSSARY
 # ====================================================================================
 glossary:

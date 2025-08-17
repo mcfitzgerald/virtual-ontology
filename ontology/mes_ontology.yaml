@@ -1,0 +1,193 @@
+# MES Ontology
+# Purpose: Semantic layer for MES data that maps to SQL database
+# This ontology enables LLM to understand data meaning AND generate SQL queries
+
+metadata:
+  name: "MES Data Ontology"
+  version: "1.0.0"
+  description: "Semantic specification for manufacturing execution system data"
+  namespace: "mes"
+  author: "Virtual Twin System"
+  created: "2025-01-17"
+
+# ====================================================================================
+# CLASSES (Business Entities that map to database tables/views)
+# ====================================================================================
+classes:
+  ProductionSnapshot:
+    description: "5-minute snapshot of production state"
+    maps_to:
+      sql_table: "mes_data"
+      twin_concept: "MESRecord"
+    conditions:
+      - field: "Timestamp"
+        operator: "exists"
+      - field: "EquipmentID"
+        operator: "exists"
+  
+  Equipment:
+    description: "Manufacturing equipment"
+    maps_to:
+      sql_view: "SELECT DISTINCT EquipmentID, EquipmentType FROM mes_data"
+      twin_concept: "Equipment"
+    subclasses:
+      Filler:
+        conditions:
+          - field: "EquipmentType"
+            operator: "equals"
+            value: "Filler"
+      Packer:
+        conditions:
+          - field: "EquipmentType"
+            operator: "equals"
+            value: "Packer"
+      Palletizer:
+        conditions:
+          - field: "EquipmentType"
+            operator: "equals"
+            value: "Palletizer"
+  
+  ProductionLine:
+    description: "Complete production line"
+    maps_to:
+      sql_view: "SELECT DISTINCT LineID FROM mes_data"
+      twin_concept: "ProductionLine"
+  
+  Product:
+    description: "Manufactured product"
+    maps_to:
+      sql_view: "SELECT DISTINCT ProductID, ProductName FROM mes_data"
+      twin_concept: "Product"
+
+# ====================================================================================
+# RELATIONSHIPS (How entities connect in SQL)
+# ====================================================================================
+relationships:
+  equipment_belongs_to_line:
+    from: "Equipment"
+    to: "ProductionLine"
+    description: "Equipment is part of a production line"
+    type: "many-to-one"
+    sql_join: "mes_data.LineID = lines.LineID"
+    twin_mapping: "ProductionLine.contains(Equipment)"
+
+# ====================================================================================
+# PROPERTIES (Data attributes that map to SQL columns)
+# ====================================================================================
+properties:
+  Timestamp:
+    class: "ProductionSnapshot"
+    type: "datetime"
+    sql_column: "Timestamp"
+    sql_table: "mes_data"
+    required: true
+    description: "When this snapshot was taken"
+    business_name: "Snapshot Time"
+    examples: ["2025-06-01 00:00:00", "2025-06-01 00:05:00"]
+  
+  EquipmentID:
+    class: "Equipment"
+    type: "string"
+    sql_column: "EquipmentID"
+    sql_table: "mes_data"
+    required: true
+    description: "Unique equipment identifier"
+    pattern: "^LINE[0-9]-[A-Z]{3}$"
+    examples: ["LINE1-FIL", "LINE2-PCK", "LINE3-PAL"]
+  
+  LineID:
+    class: "ProductionLine"
+    type: "integer"
+    sql_column: "LineID"
+    sql_table: "mes_data"
+    required: true
+    description: "Production line number"
+    validation:
+      min: 1
+      max: 10
+    examples: [1, 2, 3]
+  
+  MachineStatus:
+    class: "Equipment"
+    type: "string"
+    sql_column: "MachineStatus"
+    sql_table: "mes_data"
+    required: true
+    description: "Current equipment state"
+    validation:
+      values: ["Running", "Stopped", "Idle"]
+  
+  GoodUnitsProduced:
+    class: "ProductionSnapshot"
+    type: "integer"
+    sql_column: "GoodUnitsProduced"
+    sql_table: "mes_data"
+    required: true
+    description: "Units produced meeting quality standards in 5-min interval"
+    unit: "units"
+    validation:
+      min: 0
+      max: 1000
+  
+  OEE_Score:
+    class: "ProductionSnapshot"
+    type: "float"
+    sql_column: "OEE_Score"
+    sql_table: "mes_data"
+    required: true
+    description: "Overall Equipment Effectiveness"
+    unit: "percentage"
+    validation:
+      min: 0.0
+      max: 100.0
+    formula: "(Availability * Performance * Quality) / 10000"
+
+# ====================================================================================
+# BUSINESS RULES (Domain logic for data validation and interpretation)
+# ====================================================================================
+business_rules:
+  no_production_when_stopped:
+    description: "Equipment cannot produce when stopped"
+    when:
+      class: "ProductionSnapshot"
+      condition: "MachineStatus = 'Stopped'"
+    implies: "GoodUnitsProduced = 0 AND ScrapUnitsProduced = 0"
+    sql_check: |
+      SELECT COUNT(*) as violations
+      FROM mes_data
+      WHERE MachineStatus = 'Stopped'
+        AND (GoodUnitsProduced > 0 OR ScrapUnitsProduced > 0)
+
+# ====================================================================================
+# COMMON QUERIES (SQL patterns for analysis)
+# ====================================================================================
+common_queries:
+  current_line_performance:
+    description: "Current OEE by production line"
+    natural_language: "What is the current performance of each line?"
+    sql: |
+      SELECT 
+        LineID,
+        AVG(OEE_Score) as avg_oee
+      FROM mes_data
+      WHERE Timestamp >= datetime('now', '-1 hour')
+      GROUP BY LineID
+      ORDER BY LineID
+
+# ====================================================================================
+# TWIN SYSTEM MAPPING (How this maps to simulation)
+# ====================================================================================
+twin_mapping:
+  description: "How MES data relates to twin simulation"
+  data_flow:
+    twin_to_mes: "Twin simulation generates MES records via transduction layer"
+    mes_to_twin: "MES data used for calibration and validation"
+
+# ====================================================================================
+# GLOSSARY (Business terminology)
+# ====================================================================================
+glossary:
+  OEE:
+    definition: "Overall Equipment Effectiveness - composite metric"
+    formula: "Availability × Performance × Quality ÷ 10000"
+    also_known_as: ["Overall Equipment Efficiency"]

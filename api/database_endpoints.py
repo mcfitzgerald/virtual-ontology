@@ -10,7 +10,8 @@ import sqlite3
 import os
 
 from database import SessionDep
-from twin import ConfigurationManager
+# TODO: ConfigurationManager needs to be reimplemented
+# from twin_model import ConfigurationManager
 
 router = APIRouter(prefix="/api/database", tags=["database"])
 

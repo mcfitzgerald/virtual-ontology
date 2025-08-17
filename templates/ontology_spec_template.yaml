@@ -132,18 +132,6 @@ system_mappings:
         join_key: "<FIELD_NAME>"  # How to join data
         notes: "<ANY_TRANSFORMATION_NEEDED>"
 
-# ====================================================================================
-# COMMON QUERIES (Help LLM understand usage)
-# ====================================================================================
-common_queries:
-  - name: "<QUERY_NAME>"
-    question: "<NATURAL_LANGUAGE_QUESTION>"
-    involves: ["<Class1>", "<Property1>", "<Relationship1>"]  # Concepts used
-    sql_pattern: |
-      -- Typical SQL structure for this query
-      SELECT ...
-      FROM <table>
-      WHERE ...
 
 # ====================================================================================
 # GLOSSARY (Business terminology)
