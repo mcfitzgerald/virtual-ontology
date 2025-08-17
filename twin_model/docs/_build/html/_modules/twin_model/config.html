@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.config &mdash; SimPy Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SimPy Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/modules.html">twin_model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SimPy Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.config</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.config</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Configuration classes for the SimPy twin model.</span>
+
+<span class="sd">Defines configuration structures for equipment, production lines, and simulations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+
+
+<div class="viewcode-block" id="EquipmentType">
+<a class="viewcode-back" href="../../twin_model.html#twin_model.config.EquipmentType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EquipmentType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Types of equipment in production lines.&quot;&quot;&quot;</span>
+
+    <span class="n">FILLER</span> <span class="o">=</span> <span class="s2">&quot;FILLER&quot;</span>
+    <span class="n">PACKER</span> <span class="o">=</span> <span class="s2">&quot;PACKER&quot;</span>
+    <span class="n">PALLETIZER</span> <span class="o">=</span> <span class="s2">&quot;PALLETIZER&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="EquipmentConfig">
+<a class="viewcode-back" href="../../twin_model.html#twin_model.config.EquipmentConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">EquipmentConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for a single piece of equipment.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        equipment_id: Unique identifier for the equipment</span>
+<span class="sd">        equipment_type: Type of equipment (FILLER, PACKER, PALLETIZER)</span>
+<span class="sd">        base_rate: Base production rate in units per minute</span>
+<span class="sd">        mtbf: Mean time between failures in minutes</span>
+<span class="sd">        mttr: Mean time to repair in minutes</span>
+<span class="sd">        base_scrap_rate: Base probability of producing scrap (0-1)</span>
+<span class="sd">        upstream_buffer_capacity: Capacity of upstream buffer</span>
+<span class="sd">        downstream_buffer_capacity: Capacity of downstream buffer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">equipment_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">equipment_type</span><span class="p">:</span> <span class="n">EquipmentType</span>
+    <span class="n">base_rate</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># units per minute</span>
+    <span class="n">mtbf</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># minutes</span>
+    <span class="n">mttr</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># minutes</span>
+    <span class="n">base_scrap_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span>  <span class="c1"># 1% default scrap rate</span>
+    <span class="n">upstream_buffer_capacity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">downstream_buffer_capacity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span></div>
+
+
+
+<div class="viewcode-block" id="LineConfig">
+<a class="viewcode-back" href="../../twin_model.html#twin_model.config.LineConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LineConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for a production line.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        line_id: Unique identifier for the line (LINE1, LINE2, LINE3)</span>
+<span class="sd">        equipment_configs: List of equipment configurations in sequence</span>
+<span class="sd">        source_arrival_rate: Raw material arrival rate (units per minute)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">equipment_configs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">EquipmentConfig</span><span class="p">]</span>
+    <span class="n">source_arrival_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">100.0</span>  <span class="c1"># units per minute</span></div>
+
+
+
+<div class="viewcode-block" id="ActionableParameters">
+<a class="viewcode-back" href="../../twin_model.html#twin_model.config.ActionableParameters">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActionableParameters</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The 5 actionable parameters that can be adjusted.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        micro_stop_probability: Scales MTBF (higher = more frequent stops)</span>
+<span class="sd">        performance_factor: Scales production rate (1.0 = normal speed)</span>
+<span class="sd">        scrap_multiplier: Scales scrap probability (1.0 = normal quality)</span>
+<span class="sd">        material_reliability: Controls material availability (1.0 = normal)</span>
+<span class="sd">        cascade_sensitivity: Controls buffer sizes (higher = smaller buffers = tighter coupling)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">micro_stop_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">performance_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">scrap_multiplier</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">material_reliability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">cascade_sensitivity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="SimulationConfig">
+<a class="viewcode-back" href="../../twin_model.html#twin_model.config.SimulationConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Overall simulation configuration.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        duration_days: Simulation duration in days</span>
+<span class="sd">        mes_logging_interval: MES data logging interval in minutes</span>
+<span class="sd">        line_configs: Configuration for each production line</span>
+<span class="sd">        parameters: Actionable parameters</span>
+<span class="sd">        random_seed: Random seed for reproducibility</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">duration_days</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">mes_logging_interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span>  <span class="c1"># minutes</span>
+    <span class="n">line_configs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">LineConfig</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">ActionableParameters</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">ActionableParameters</span><span class="p">)</span>
+    <span class="n">random_seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SimulationConfig.create_default_config">
+<a class="viewcode-back" href="../../twin_model.html#twin_model.config.SimulationConfig.create_default_config">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_default_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="s2">&quot;SimulationConfig&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a default configuration with 3 production lines.&quot;&quot;&quot;</span>
+        <span class="c1"># LINE1: Base configuration</span>
+        <span class="n">line1_equipment</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE1_FILLER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">FILLER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>  <span class="c1"># 60 units/min</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">480.0</span><span class="p">,</span>  <span class="c1"># 8 hours</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>  <span class="c1"># 30 minutes</span>
+                <span class="n">downstream_buffer_capacity</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE1_PACKER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">PACKER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">55.0</span><span class="p">,</span>  <span class="c1"># slightly slower</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">600.0</span><span class="p">,</span>  <span class="c1"># 10 hours</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>  <span class="c1"># 20 minutes</span>
+                <span class="n">upstream_buffer_capacity</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                <span class="n">downstream_buffer_capacity</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE1_PALLETIZER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">PALLETIZER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>  <span class="c1"># slowest (potential bottleneck)</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">720.0</span><span class="p">,</span>  <span class="c1"># 12 hours</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span>  <span class="c1"># 15 minutes</span>
+                <span class="n">upstream_buffer_capacity</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="c1"># LINE2: Faster but less reliable</span>
+        <span class="n">line2_equipment</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE2_FILLER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">FILLER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>  <span class="c1"># faster</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">360.0</span><span class="p">,</span>  <span class="c1"># less reliable</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span>
+                <span class="n">downstream_buffer_capacity</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE2_PACKER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">PACKER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">75.0</span><span class="p">,</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">420.0</span><span class="p">,</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">35.0</span><span class="p">,</span>
+                <span class="n">upstream_buffer_capacity</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+                <span class="n">downstream_buffer_capacity</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE2_PALLETIZER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">PALLETIZER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">70.0</span><span class="p">,</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">500.0</span><span class="p">,</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>
+                <span class="n">upstream_buffer_capacity</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="c1"># LINE3: Slower but more reliable</span>
+        <span class="n">line3_equipment</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE3_FILLER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">FILLER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">45.0</span><span class="p">,</span>  <span class="c1"># slower</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">960.0</span><span class="p">,</span>  <span class="c1"># very reliable</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>  <span class="c1"># quick repairs</span>
+                <span class="n">downstream_buffer_capacity</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE3_PACKER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">PACKER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">42.0</span><span class="p">,</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">1200.0</span><span class="p">,</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+                <span class="n">upstream_buffer_capacity</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+                <span class="n">downstream_buffer_capacity</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">EquipmentConfig</span><span class="p">(</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="s2">&quot;LINE3_PALLETIZER&quot;</span><span class="p">,</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">EquipmentType</span><span class="o">.</span><span class="n">PALLETIZER</span><span class="p">,</span>
+                <span class="n">base_rate</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span>
+                <span class="n">mtbf</span><span class="o">=</span><span class="mf">1440.0</span><span class="p">,</span>  <span class="c1"># 24 hours</span>
+                <span class="n">mttr</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+                <span class="n">upstream_buffer_capacity</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">SimulationConfig</span><span class="p">(</span>
+            <span class="n">line_configs</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">LineConfig</span><span class="p">(</span><span class="s2">&quot;LINE1&quot;</span><span class="p">,</span> <span class="n">line1_equipment</span><span class="p">),</span>
+                <span class="n">LineConfig</span><span class="p">(</span><span class="s2">&quot;LINE2&quot;</span><span class="p">,</span> <span class="n">line2_equipment</span><span class="p">),</span>
+                <span class="n">LineConfig</span><span class="p">(</span><span class="s2">&quot;LINE3&quot;</span><span class="p">,</span> <span class="n">line3_equipment</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
