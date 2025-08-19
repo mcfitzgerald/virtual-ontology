@@ -1,0 +1,44 @@
+============================================================
+STATISTICAL VALIDATION REPORT
+============================================================
+
+1. STRUCTURE VALIDATION
+------------------------------
+✓ columns_match: True
+✓ has_data: True
+✓ has_all_lines: True
+✓ has_all_equipment_types: True
+
+2. OEE DISTRIBUTION
+------------------------------
+Generated OEE: 8.4% ± 25.4%
+Reference OEE: 47.1% ± 32.9%
+Mean difference: 38.7%
+✓ Within 2 standard deviations: True
+
+3. SCRAP RATE
+------------------------------
+Generated: 1.47%
+Reference: 8.88%
+✗ Within tolerance (5%): False
+
+4. PRODUCTION PATTERNS
+------------------------------
+  has_downtime: 1.0%
+  has_quality_issues: 1.0%
+  has_performance_variation: 1.0%
+  running_percentage: 18.0%
+  stopped_percentage: 3.6%
+
+5. STATISTICAL TESTS
+------------------------------
+Kolmogorov-Smirnov Test:
+  ✗ Similar distribution (p>0.05): p=0.0000
+Chi-Square Test (Machine Status):
+  ✗ Similar distribution (p>0.05): p=0.0000
+
+OVERALL ASSESSMENT
+------------------------------
+Validation Score: 3/4 (75%)
+✓ VALIDATION PASSED
+============================================================

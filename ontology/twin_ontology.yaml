@@ -1,130 +1,345 @@
 # Twin Ontology
-# Purpose: Declarative specification for SimPy manufacturing model generation
-# This ontology IS the model - not configuration
+# Purpose: Defines the STRUCTURE of the virtual twin system (not values)
+# This ontology IS the model - manifests provide the configuration
 
 metadata:
   name: "Manufacturing Twin Ontology"
-  version: "1.0.0"
-  description: "Declarative specification for SimPy discrete event simulation model"
+  version: "2.0.0"
+  description: "Structure for discovery-based virtual twin - no prescriptive mappings"
   namespace: "twin"
-  imports:
-    - namespace: "mes"
-      description: "Base MES ontology we generate data for"
-      path: "./mes_ontology.yaml"
   author: "Virtual Twin System"
-  created: "2025-01-17"
+  created: "2025-01-18"
 
-# TBox - Terminological Box (Classes and Hierarchies)
+# TBox - Terminological Box (Class definitions and hierarchy)
 tbox:
   classes:
+    # Base class for all simulation entities
+    SimulationEntity:
+      description: "Base class for all entities in the simulation"
+      abstract: true
+      primitive: null  # Abstract classes don't map to primitives
+      
+    # Equipment hierarchy
     Equipment:
       description: "Production equipment that processes materials"
       parent: "SimulationEntity"
-      attributes:
-        - id: string
-        - type: EquipmentType
-        - state: EquipmentState
+      primitive: "EquipmentPrimitive"  # Maps to SimPy primitive type
+      properties:
+        - "base_rate"
+        - "mtbf"
+        - "mttr"
+        - "energy_consumption_rate"
         
-    Buffer:
-      description: "Storage location between equipment"
-      parent: "SimulationEntity"
-      attributes:
-        - id: string
-        - capacity: integer
-        - current_level: integer
-        
-  enumerations:
-    EquipmentType:
-      values: ["FILLER", "PACKER", "PALLETIZER"]
+    Filler:
+      description: "Equipment that fills containers"
+      parent: "Equipment"
+      isa: "Equipment"  # Ontologically correct inheritance
       
-    EquipmentState:
-      values: ["RUNNING", "STOPPED_FAILURE", "STOPPED_MAINTENANCE", "STARVED", "BLOCKED", "IDLE"]
+    Packer:
+      description: "Equipment that packages products"
+      parent: "Equipment"
+      isa: "Equipment"
+      
+    Palletizer:
+      description: "Equipment that stacks products on pallets"
+      parent: "Equipment"
+      isa: "Equipment"
+      
+    # Storage entities
+    Buffer:
+      description: "Material storage location"
+      parent: "SimulationEntity"
+      primitive: "BufferPrimitive"
+      properties:
+        - "capacity"
+        - "buffer_type"  # FIFO, LIFO, priority
+        - "min_level"
+        - "max_dwell_time"
+        
+    # Flow control entities
+    Source:
+      description: "Material generation point"
+      parent: "SimulationEntity"
+      primitive: "SourcePrimitive"
+      properties:
+        - "arrival_pattern"
+        - "arrival_rate"
+        - "quality_rate"
+        
+    Sink:
+      description: "Product collection point"
+      parent: "SimulationEntity"
+      primitive: "SinkPrimitive"
+      properties:
+        - "collection_rate"
+        - "quality_threshold"
+        - "target_throughput"
+        
+    # Organizational entities
+    ProductionLine:
+      description: "Collection of equipment in sequence"
+      parent: "SimulationEntity"
+      primitive: null  # Composite entity, not a primitive
+      composition:
+        - source: Source
+        - equipment: Equipment[]
+        - buffers: Buffer[]
+        - sink: Sink
+        
+    ProductionOrder:
+      description: "Scheduled production run"
+      parent: "SimulationEntity"
+      primitive: null  # Managed by scheduler
+      properties:
+        - "order_id"
+        - "product_id"
+        - "target_quantity"
+        - "due_time"
+        - "priority"
+        
+    Product:
+      description: "Item being produced"
+      parent: "SimulationEntity"
+      primitive: null  # Information entity
+      properties:
+        - "product_id"
+        - "name"
+        - "target_rate"
+        - "standard_cost"
+        - "sale_price"
 
-# RBox - Relational Box (Relationships)
+# RBox - Relational Box (Relationships between entities)
 rbox:
   relationships:
+    # Material flow relationships
     feeds_into:
-      domain: Equipment
-      range: Buffer
+      domain: "Equipment"
+      range: "Equipment | Buffer"
+      transitivity: true
+      description: "Material flow relationship"
+      semantic: "directional_flow"
+      
+    draws_from:
+      domain: "Equipment"
+      range: "Buffer | Source"
+      inverse_of: "feeds_into"
+      description: "Material source relationship"
+      
+    # Production relationships
+    processes_product:
+      domain: "ProductionOrder"
+      range: "Product"
       cardinality: "1:1"
-      description: "Equipment outputs to buffer"
-
-# Properties - Attributes and Constraints
-properties:
-  Equipment:
-    base_rate:
-      type: float
-      unit: "units/minute"
-      constraints:
-        min: 1.0
-        max: 1000.0
-      description: "Nominal production rate"
+      description: "Order specifies product to produce"
       
-    mtbf:
-      type: float
-      unit: "minutes"
-      constraints:
-        min: 60.0
-        max: 10080.0
-      description: "Mean time between failures"
+    scheduled_on:
+      domain: "ProductionOrder"
+      range: "ProductionLine"
+      cardinality: "N:1"
+      description: "Order assigned to production line"
       
-    mttr:
-      type: float
-      unit: "minutes"
-      constraints:
-        min: 1.0
-        max: 480.0
-      description: "Mean time to repair"
+    # Organizational relationships
+    part_of:
+      domain: "Equipment | Buffer"
+      range: "ProductionLine"
+      cardinality: "N:1"
+      description: "Component belongs to line"
+      
+    controls:
+      domain: "SchedulerPrimitive"
+      range: "Equipment"
+      cardinality: "1:N"
+      description: "Scheduler controls equipment"
+      
+    monitors:
+      domain: "MonitorPrimitive"
+      range: "SimulationEntity"
+      cardinality: "1:N"
+      description: "Monitor tracks entity metrics"
 
-# Model Definition - How to build the SimPy model
-model_definition:
-  lines:
-    - line_id: "LINE1"
-      equipment_sequence:
-        - {id: "LINE1-FIL", type: "FILLER", base_rate: 60.0, mtbf: 480.0, mttr: 30.0, base_scrap_rate: 0.02}
-        - {id: "LINE1-PCK", type: "PACKER", base_rate: 55.0, mtbf: 600.0, mttr: 20.0, base_scrap_rate: 0.01}
-        - {id: "LINE1-PAL", type: "PALLETIZER", base_rate: 50.0, mtbf: 720.0, mttr: 15.0, base_scrap_rate: 0.005}
-      buffer_capacities: [200, 150, 100, 50]
-      source_arrival_rate: 65.0
+# Observable Properties (what can be measured/observed)
+observables:
+  # Equipment observables
+  equipment_state:
+    source: "Equipment.state"
+    type: "categorical"
+    values: ["RUNNING", "STOPPED_FAILURE", "STOPPED_MAINTENANCE", "STARVED", "BLOCKED", "IDLE", "CHANGEOVER"]
+    
+  production_count:
+    source: "Equipment.units_produced"
+    type: "numeric"
+    aggregation: "sum"
+    
+  scrap_count:
+    source: "Equipment.units_scrapped"
+    type: "numeric"
+    aggregation: "sum"
+    
+  downtime_events:
+    source: "Equipment.failure_events"
+    type: "event_stream"
+    
+  energy_consumption:
+    source: "Equipment.energy_consumed"
+    type: "numeric"
+    unit: "kWh"
+    aggregation: "sum"
+    
+  # Buffer observables
+  buffer_level:
+    source: "Buffer.level"
+    type: "numeric"
+    aggregation: "current"
+    
+  buffer_utilization:
+    source: "Buffer.utilization"
+    type: "percentage"
+    aggregation: "avg"
+    
+  dwell_time:
+    source: "Buffer.dwell_times"
+    type: "numeric"
+    unit: "minutes"
+    aggregation: "avg"
+    
+  # Flow observables
+  throughput:
+    source: "Sink.collection_rate"
+    type: "numeric"
+    unit: "units/minute"
+    aggregation: "avg"
+    
+  material_flow:
+    source: "feeds_into"
+    type: "relationship_metric"
+    
+  # KPI observables
+  oee_score:
+    source: "Equipment.calculate_oee()"
+    type: "percentage"
+    aggregation: "avg"
+    
+  availability:
+    source: "Monitor.availability"
+    type: "percentage"
+    aggregation: "avg"
+    
+  performance:
+    source: "Monitor.performance"
+    type: "percentage"
+    aggregation: "avg"
+    
+  quality:
+    source: "Monitor.quality"
+    type: "percentage"
+    aggregation: "avg"
 
-# Behavioral Rules - How components behave
-behavioral_rules:
-  equipment_state_transitions:
-    RUNNING:
-      on_failure: STOPPED_FAILURE
-      on_maintenance: STOPPED_MAINTENANCE
-      on_no_input: STARVED
-      on_output_full: BLOCKED
-
-# Control Parameters - What operators can adjust
-control_parameters:
-  line_speed_setting:
-    type: float
-    range: [0.7, 1.2]
+# Controllable Parameters (knobs to turn - no prescribed effects!)
+controllables:
+  # These are exposed for the LLM to experiment with
+  # The ontology does NOT specify what they do
+  micro_stop_probability:
+    description: "Affects equipment reliability somehow"
+    bounds: [0.3, 1.5]
     default: 1.0
-    description: "Equipment speed dial"
+    
+  performance_factor:
+    description: "Affects production speed somehow"
+    bounds: [0.7, 1.3]
+    default: 1.0
+    
+  scrap_multiplier:
+    description: "Affects quality somehow"
+    bounds: [0.5, 2.0]
+    default: 1.0
+    
+  material_reliability:
+    description: "Affects supply chain somehow"
+    bounds: [0.8, 1.2]
+    default: 1.0
+    
+  cascade_sensitivity:
+    description: "Affects failure propagation somehow"
+    bounds: [0.0, 2.0]
+    default: 1.0
+    
+  buffer_management:
+    description: "Affects buffer behavior somehow"
+    bounds: [0.5, 1.5]
+    default: 1.0
 
-# Parameter Effects - How control parameters affect the model
-parameter_effects:
-  line_speed_setting:
-    affects:
-      - target: "equipment.production_rate"
-        formula: "base_rate * line_speed_setting"
+# Primitive Mapping Rules
+primitive_mapping:
+  # How ontology classes map to SimPy primitives
+  default_mappings:
+    Equipment: "EquipmentPrimitive"
+    Buffer: "BufferPrimitive"
+    Source: "SourcePrimitive"
+    Sink: "SinkPrimitive"
+    
+  # Special handling for composite entities
+  composition_rules:
+    ProductionLine:
+      pattern: "Source -> Buffer -> Equipment* -> Buffer -> Sink"
+      wire_method: "sequential_flow"
 
-# Transduction Layer - How SimPy model maps to MES data
-transduction_layer:
-  mes_snapshot_interval: 5
-  equipment_state_mapping:
-    RUNNING: "Running"
-    STOPPED_FAILURE: "Stopped"
-    STOPPED_MAINTENANCE: "Stopped"
-    STARVED: "Stopped"
-    BLOCKED: "Stopped"
-    IDLE: "Idle"
-  mes_record_structure:
-    fields:
-      - Timestamp: "datetime"
-      - EquipmentID: "string"
-      - MachineStatus: "string"
-      - GoodUnitsProduced: "integer"
-      - OEE_Score: "float"
+# Event Types (for observable emission)
+event_types:
+  # State events
+  - state_change
+  - equipment_failure
+  - equipment_recovery
+  - maintenance_start
+  - maintenance_complete
+  
+  # Production events
+  - unit_produced
+  - unit_scrapped
+  - batch_complete
+  - order_started
+  - order_completed
+  
+  # Flow events
+  - material_generated
+  - material_consumed
+  - buffer_overflow
+  - buffer_underflow
+  - equipment_starved
+  - equipment_blocked
+  
+  # Schedule events
+  - changeover_started
+  - changeover_completed
+  - shift_change
+  - break_started
+  - break_ended
+  
+  # Performance events
+  - kpi_update
+  - alert_created
+  - alert_resolved
+  - target_missed
+  - efficiency_degraded
+
+# Discovery Hints (optional guidance for LLM exploration)
+discovery_hints:
+  relationships_to_explore:
+    - "How does micro_stop_probability affect different equipment types?"
+    - "What is the relationship between buffer levels and OEE?"
+    - "How do cascade failures propagate through the line?"
+    - "What patterns exist in shift performance variations?"
+    - "How does product mix affect overall efficiency?"
+    
+  patterns_to_detect:
+    - "Equipment-specific failure signatures"
+    - "Optimal buffer levels for different products"
+    - "Changeover time patterns"
+    - "Quality degradation over time"
+    - "Energy consumption profiles"
+    
+  experiments_to_try:
+    - "Vary one parameter while holding others constant"
+    - "Test parameter combinations"
+    - "Measure response times to changes"
+    - "Identify tipping points and thresholds"
+    - "Discover emergent behaviors"

@@ -1,0 +1,32 @@
+{
+  "equipment": {
+    "mtbf": 480,
+    "mttr": 30,
+    "base_rate": 70,
+    "quality_rate": 0.9,
+    "performance_factors": {
+      "shift_1": 1.0,
+      "shift_2": 0.95,
+      "shift_3": 0.9
+    }
+  },
+  "downtime": {
+    "failure_probability": 0.02,
+    "average_duration": 30,
+    "reasons": {
+      "UNP-MECH": 0.3,
+      "UNP-JAM": 0.25,
+      "UNP-SENS": 0.2,
+      "UNP-QC": 0.15,
+      "UNP-OPR": 0.1
+    }
+  },
+  "production": {
+    "changeover_time": 15,
+    "buffer_sizes": {
+      "input": 100,
+      "intermediate": 50,
+      "output": 100
+    }
+  }
+}

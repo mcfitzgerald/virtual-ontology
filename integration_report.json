@@ -1,0 +1,63 @@
+{
+  "timestamp": "2025-08-18T13:42:15.199889",
+  "data_summary": {
+    "total_records": 194,
+    "time_range": {
+      "start": "2025-06-01 00:00:00",
+      "end": "2025-06-01 01:55:00"
+    },
+    "unique_equipment": 9,
+    "unique_products": 2
+  },
+  "overall_kpis": {
+    "oee": 8.404123711340205,
+    "availability": 97.31958762886597,
+    "performance": 10.655154639175258,
+    "quality": 98.63608247422681,
+    "total_good_units": "42687",
+    "total_scrap": "635",
+    "scrap_rate": 1.4657679700844837,
+    "total_energy": "0"
+  },
+  "line_performance": {
+    "1": {
+      "oee": 6.088709677419356,
+      "good_units": "15023",
+      "scrap_units": "149",
+      "records": 62
+    },
+    "2": {
+      "oee": 10.624615384615385,
+      "good_units": "14269",
+      "scrap_units": "226",
+      "records": 65
+    },
+    "3": {
+      "oee": 8.392537313432834,
+      "good_units": "13395",
+      "scrap_units": "260",
+      "records": 67
+    }
+  },
+  "top_products": {
+    "SKU-1001": {
+      "good_units": "42687",
+      "scrap_units": "635",
+      "quality_rate": 98.53423202991551,
+      "avg_oee": 8.718716577540107
+    },
+    "UNKNOWN": {
+      "good_units": "0",
+      "scrap_units": "0",
+      "quality_rate": 0,
+      "avg_oee": 0.0
+    }
+  },
+  "downtime_summary": {
+    "total_events": 7,
+    "top_reasons": {
+      "major_failure": 7
+    },
+    "equipment_count": 6
+  }
+}

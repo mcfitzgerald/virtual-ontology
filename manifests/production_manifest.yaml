@@ -1,0 +1,391 @@
+# Production Manifest
+# Purpose: Provides CONFIGURATION VALUES for products and production orders
+# This is separate from the ontology which defines structure
+
+metadata:
+  name: "Production Configuration"
+  version: "1.0.0"
+  description: "Product definitions and production schedule for virtual twin"
+  created: "2025-01-18"
+
+# Products - 6 different SKUs with varied characteristics
+products:
+  SKU-1001:
+    name: "12oz Sparkling Water"
+    product_family: "Beverages"
+    container_type: "Bottle"
+    target_rate_units_per_5min: 500
+    standard_cost_per_unit: 0.15
+    sale_price_per_unit: 0.50
+    margin: 0.35
+    scrap_rates:
+      normal: 0.02
+      startup: 0.05
+      changeover: 0.08
+    quality_requirements:
+      min_fill_level: 11.8
+      max_fill_level: 12.2
+      cap_torque: 15
+    changeover_group: "A"  # Products in same group have shorter changeovers
+    
+  SKU-1002:
+    name: "16oz Energy Drink"
+    product_family: "Beverages"
+    container_type: "Can"
+    target_rate_units_per_5min: 450
+    standard_cost_per_unit: 0.35
+    sale_price_per_unit: 1.50
+    margin: 1.15
+    scrap_rates:
+      normal: 0.025
+      startup: 0.06
+      changeover: 0.10
+    quality_requirements:
+      min_fill_level: 15.9
+      max_fill_level: 16.1
+      seal_integrity: 98
+    changeover_group: "B"
+    
+  SKU-2001:
+    name: "32oz Premium Juice"
+    product_family: "Juices"
+    container_type: "Bottle"
+    target_rate_units_per_5min: 350
+    standard_cost_per_unit: 0.45
+    sale_price_per_unit: 1.95
+    margin: 1.50
+    scrap_rates:
+      normal: 0.018
+      startup: 0.04
+      changeover: 0.07
+      quality_issue: 0.08
+    quality_requirements:
+      min_fill_level: 31.8
+      max_fill_level: 32.2
+      preservative_level: 0.1
+    changeover_group: "A"
+    
+  SKU-2002:
+    name: "64oz Family Juice"
+    product_family: "Juices"
+    container_type: "Jug"
+    target_rate_units_per_5min: 250
+    standard_cost_per_unit: 0.75
+    sale_price_per_unit: 3.50
+    margin: 2.75
+    scrap_rates:
+      normal: 0.015
+      startup: 0.03
+      changeover: 0.06
+    quality_requirements:
+      min_fill_level: 63.5
+      max_fill_level: 64.5
+      seal_pressure: 25
+    changeover_group: "C"
+    
+  SKU-3001:
+    name: "8oz Kids Drink"
+    product_family: "Kids"
+    container_type: "Pouch"
+    target_rate_units_per_5min: 600
+    standard_cost_per_unit: 0.10
+    sale_price_per_unit: 0.35
+    margin: 0.25
+    scrap_rates:
+      normal: 0.03
+      startup: 0.07
+      changeover: 0.12
+      seal_failure: 0.05
+    quality_requirements:
+      min_fill_level: 7.9
+      max_fill_level: 8.1
+      pouch_seal: 99
+    changeover_group: "D"
+    
+  SKU-3002:
+    name: "12oz Sports Drink"
+    product_family: "Sports"
+    container_type: "Bottle"
+    target_rate_units_per_5min: 480
+    standard_cost_per_unit: 0.25
+    sale_price_per_unit: 0.85
+    margin: 0.60
+    scrap_rates:
+      normal: 0.022
+      startup: 0.055
+      changeover: 0.09
+    quality_requirements:
+      min_fill_level: 11.9
+      max_fill_level: 12.1
+      electrolyte_level: 2.5
+    changeover_group: "A"
+
+# Changeover matrix - time in minutes between product groups
+changeover_matrix:
+  A:
+    A: 0     # Same group, no changeover
+    B: 30    # Bottle to can
+    C: 45    # Bottle to jug
+    D: 60    # Bottle to pouch
+  B:
+    A: 30
+    B: 0
+    C: 40
+    D: 55
+  C:
+    A: 45
+    B: 40
+    C: 0
+    D: 50
+  D:
+    A: 60
+    B: 55
+    C: 50
+    D: 0
+
+# Production schedule - 7 days of orders
+production_orders:
+  # Day 1 - Monday
+  - order_id: "ORD-1001"
+    product_id: "SKU-1001"
+    line_id: "LINE1"
+    start_time: 0  # 6:00 AM
+    duration: 240  # 4 hours
+    target_quantity: 10000
+    priority: 1
+    
+  - order_id: "ORD-1002"
+    product_id: "SKU-2001"
+    line_id: "LINE1"
+    start_time: 285  # After changeover
+    duration: 180
+    target_quantity: 6000
+    priority: 2
+    
+  - order_id: "ORD-1003"
+    product_id: "SKU-1002"
+    line_id: "LINE2"
+    start_time: 0
+    duration: 300
+    target_quantity: 8000
+    priority: 1
+    
+  - order_id: "ORD-1004"
+    product_id: "SKU-3001"
+    line_id: "LINE3"
+    start_time: 0
+    duration: 360
+    target_quantity: 15000
+    priority: 1
+    
+  # Day 2 - Tuesday
+  - order_id: "ORD-2001"
+    product_id: "SKU-2002"
+    line_id: "LINE1"
+    start_time: 1440  # Day 2 start
+    duration: 240
+    target_quantity: 5000
+    priority: 1
+    
+  - order_id: "ORD-2002"
+    product_id: "SKU-3002"
+    line_id: "LINE1"
+    start_time: 1725
+    duration: 200
+    target_quantity: 8500
+    priority: 2
+    
+  - order_id: "ORD-2003"
+    product_id: "SKU-1001"
+    line_id: "LINE2"
+    start_time: 1440
+    duration: 360
+    target_quantity: 12000
+    priority: 1
+    
+  - order_id: "ORD-2004"
+    product_id: "SKU-2001"
+    line_id: "LINE3"
+    start_time: 1440
+    duration: 300
+    target_quantity: 7500
+    priority: 1
+    
+  # Day 3 - Wednesday
+  - order_id: "ORD-3001"
+    product_id: "SKU-1002"
+    line_id: "LINE1"
+    start_time: 2880  # Day 3 start
+    duration: 280
+    target_quantity: 9000
+    priority: 1
+    
+  - order_id: "ORD-3002"
+    product_id: "SKU-3001"
+    line_id: "LINE2"
+    start_time: 2880
+    duration: 320
+    target_quantity: 14000
+    priority: 1
+    
+  - order_id: "ORD-3003"
+    product_id: "SKU-2002"
+    line_id: "LINE3"
+    start_time: 2880
+    duration: 200
+    target_quantity: 4500
+    priority: 2
+    
+  # Day 4 - Thursday
+  - order_id: "ORD-4001"
+    product_id: "SKU-1001"
+    line_id: "LINE1"
+    start_time: 4320  # Day 4 start
+    duration: 300
+    target_quantity: 11000
+    priority: 1
+    
+  - order_id: "ORD-4002"
+    product_id: "SKU-3002"
+    line_id: "LINE2"
+    start_time: 4320
+    duration: 240
+    target_quantity: 9000
+    priority: 1
+    
+  - order_id: "ORD-4003"
+    product_id: "SKU-2001"
+    line_id: "LINE3"
+    start_time: 4320
+    duration: 280
+    target_quantity: 7000
+    priority: 1
+    
+  # Day 5 - Friday
+  - order_id: "ORD-5001"
+    product_id: "SKU-1002"
+    line_id: "LINE1"
+    start_time: 5760  # Day 5 start
+    duration: 260
+    target_quantity: 8500
+    priority: 1
+    
+  - order_id: "ORD-5002"
+    product_id: "SKU-2002"
+    line_id: "LINE2"
+    start_time: 5760
+    duration: 220
+    target_quantity: 4000
+    priority: 2
+    
+  - order_id: "ORD-5003"
+    product_id: "SKU-3001"
+    line_id: "LINE3"
+    start_time: 5760
+    duration: 340
+    target_quantity: 16000
+    priority: 1
+    
+  # Weekend - reduced schedule
+  # Day 6 - Saturday
+  - order_id: "ORD-6001"
+    product_id: "SKU-1001"
+    line_id: "LINE1"
+    start_time: 7200  # Day 6 start
+    duration: 180
+    target_quantity: 6000
+    priority: 3
+    
+  - order_id: "ORD-6002"
+    product_id: "SKU-2001"
+    line_id: "LINE2"
+    start_time: 7200
+    duration: 180
+    target_quantity: 5000
+    priority: 3
+    
+  # Day 7 - Sunday (maintenance day)
+  - order_id: "ORD-7001"
+    product_id: "SKU-3002"
+    line_id: "LINE3"
+    start_time: 8640  # Day 7 start
+    duration: 120
+    target_quantity: 4000
+    priority: 4
+
+# Scheduled events (changeovers are automatic between orders)
+scheduled_events:
+  changeovers:
+    - type: "CHANGEOVER"
+      from_product: "SKU-1001"
+      to_product: "SKU-2001"
+      line_id: "LINE1"
+      start_time: 240
+      duration: 45  # A to A group, but different family
+      
+    - type: "CHANGEOVER"
+      from_product: "SKU-2002"
+      to_product: "SKU-3002"
+      line_id: "LINE1"
+      start_time: 1680
+      duration: 45  # C to A group
+      
+  maintenance:
+    - type: "PLANNED_MAINTENANCE"
+      line_id: "LINE1"
+      start_time: 8640  # Sunday morning
+      duration: 240  # 4 hours
+      description: "Weekly preventive maintenance"
+      
+    - type: "PLANNED_MAINTENANCE"
+      line_id: "LINE2"
+      start_time: 8880  # Sunday afternoon
+      duration: 180  # 3 hours
+      description: "Weekly cleaning"
+      
+  breaks:
+    - type: "BREAK"
+      shift: "shift1"
+      start_time: 240  # 10 AM
+      duration: 15
+      recurring: true
+      interval: 1440  # Daily
+      
+    - type: "BREAK"
+      shift: "shift1"
+      start_time: 360  # 12 PM lunch
+      duration: 30
+      recurring: true
+      interval: 1440
+
+# Demand patterns (for future dynamic scheduling)
+demand_forecast:
+  SKU-1001:
+    weekly_demand: 65000
+    peak_days: ["Monday", "Friday"]
+    seasonality_factor: 1.2  # Summer peak
+    
+  SKU-1002:
+    weekly_demand: 45000
+    peak_days: ["Tuesday", "Thursday"]
+    seasonality_factor: 1.0
+    
+  SKU-2001:
+    weekly_demand: 35000
+    peak_days: ["Wednesday", "Saturday"]
+    seasonality_factor: 1.1
+    
+  SKU-2002:
+    weekly_demand: 20000
+    peak_days: ["Sunday"]
+    seasonality_factor: 0.9
+    
+  SKU-3001:
+    weekly_demand: 75000
+    peak_days: ["Monday", "Wednesday", "Friday"]
+    seasonality_factor: 1.3  # Kids drinks peak
+    
+  SKU-3002:
+    weekly_demand: 40000
+    peak_days: ["Tuesday", "Saturday"]
+    seasonality_factor: 1.15
