@@ -111,10 +111,17 @@ class TwinDatabaseManager:
                 existing = session.get(EquipmentConfig, eq_id)
                 
                 if existing:
-                    # Update existing
+                    # Update existing - skip computed properties
                     for key, value in eq_data.items():
-                        if hasattr(existing, key):
-                            setattr(existing, key, value)
+                        # Skip properties that are computed from JSON fields
+                        if key in ['failure_patterns', 'performance_by_product']:
+                            continue
+                        if hasattr(existing, key) and not key.startswith('_'):
+                            try:
+                                setattr(existing, key, value)
+                            except AttributeError:
+                                # Skip read-only properties
+                                pass
                     existing.updated_at = datetime.utcnow()
                 else:
                     # Create new
