@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import random
 import simpy
 
-from .base import BasePrimitive, PrimitiveConfig
+from .base import BasePrimitive, PrimitiveConfig, SamplingConfig
 
 
 class EquipmentState(str, Enum):
@@ -68,8 +68,9 @@ class EquipmentPrimitive(BasePrimitive):
         config: PrimitiveConfig,
         upstream: Optional[Any] = None,  # Will be BufferPrimitive
         downstream: Optional[Any] = None,
+        sampling_config: Optional[SamplingConfig] = None
     ) -> None:  # Will be BufferPrimitive
-        """Initialize equipment with buffers.
+        """Initialize equipment with buffers and performance optimization.
 
         Args:
             env: SimPy environment
@@ -80,8 +81,9 @@ class EquipmentPrimitive(BasePrimitive):
                 - energy_consumption_rate: kWh per minute when running
             upstream: Input buffer (None for source equipment)
             downstream: Output buffer (None for sink equipment)
+            sampling_config: Optional sampling configuration for performance
         """
-        super().__init__(env, config)
+        super().__init__(env, config, sampling_config)
 
         # Buffer connections
         self.upstream = upstream

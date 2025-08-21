@@ -77,11 +77,17 @@ class SimulationDataRepository:
                              run_id: str,
                              mes_data: pd.DataFrame):
         """Store simulation output in MES format"""
+        from datetime import datetime
         
         for _, row in mes_data.iterrows():
+            # Convert timestamp string to datetime if needed
+            timestamp = row['Timestamp']
+            if isinstance(timestamp, str):
+                timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+            
             record = SimulationData(
                 run_id=run_id,
-                timestamp=row['Timestamp'],
+                timestamp=timestamp,
                 production_order_id=row.get('ProductionOrderID'),
                 line_id=row['LineID'],
                 equipment_id=row['EquipmentID'],
@@ -104,6 +110,210 @@ class SimulationDataRepository:
             self.session.add(record)
         
         self.session.commit()
+    
+    def batch_insert_events(self,
+                           run_id: str,
+                           events: List[Dict[str, Any]],
+                           batch_size: int = 1000) -> int:
+        """Batch insert simulation events for performance.
+        
+        Efficiently inserts large numbers of events in batches
+        to minimize database round-trips and transaction overhead.
+        
+        Args:
+            run_id: Simulation run identifier
+            events: List of event dictionaries to insert
+            batch_size: Number of records per batch (default 1000)
+            
+        Returns:
+            Number of events inserted
+        """
+        from datetime import datetime
+        
+        total_inserted = 0
+        batch_records = []
+        
+        for event in events:
+            # Convert event to SimulationData format
+            # Handle different event structures flexibly
+            timestamp = event.get('timestamp', 0)
+            if isinstance(timestamp, (int, float)):
+                # Convert simulation time to datetime
+                base_time = datetime.utcnow()
+                timestamp = base_time + timedelta(minutes=timestamp)
+            elif isinstance(timestamp, str):
+                timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+            
+            # Map event fields to database columns
+            record = SimulationData(
+                run_id=run_id,
+                timestamp=timestamp,
+                production_order_id=event.get('production_order_id'),
+                line_id=event.get('line_id', 'LINE-001'),
+                equipment_id=event.get('primitive_id', event.get('equipment_id', 'UNKNOWN')),
+                equipment_type=event.get('equipment_type', event.get('event_type', 'Equipment')),
+                product_id=event.get('product_id'),
+                product_name=event.get('product_name'),
+                machine_status=event.get('state', event.get('machine_status', 'UNKNOWN')),
+                downtime_reason=event.get('downtime_reason'),
+                good_units_produced=event.get('good_units', event.get('good_units_produced', 0)),
+                scrap_units_produced=event.get('scrap_units', event.get('scrap_units_produced', 0)),
+                target_rate_units_per_5min=event.get('target_rate', 0),
+                standard_cost_per_unit=event.get('standard_cost', 0),
+                sale_price_per_unit=event.get('sale_price', 0),
+                availability_score=event.get('availability', 0),
+                performance_score=event.get('performance', 0),
+                quality_score=event.get('quality', 0),
+                oee_score=event.get('oee', 0),
+                energy_consumption_kwh=event.get('energy_consumption', 0)
+            )
+            
+            batch_records.append(record)
+            
+            # Flush batch when it reaches the size limit
+            if len(batch_records) >= batch_size:
+                self.session.bulk_save_objects(batch_records)
+                self.session.commit()
+                total_inserted += len(batch_records)
+                batch_records = []
+        
+        # Insert remaining records
+        if batch_records:
+            self.session.bulk_save_objects(batch_records)
+            self.session.commit()
+            total_inserted += len(batch_records)
+        
+        return total_inserted
+    
+    def flush_cache_to_database(self,
+                               run_id: str,
+                               cache_path: str,
+                               batch_size: int = 5000) -> Dict[str, Any]:
+        """Flush events from cache to database in batches.
+        
+        Reads events from the ObservableCache and efficiently
+        inserts them into the database using batch operations.
+        This enables persisting simulation data without keeping
+        everything in memory.
+        
+        Args:
+            run_id: Simulation run identifier
+            cache_path: Path to cache directory
+            batch_size: Number of records per database batch
+            
+        Returns:
+            Dictionary with flush statistics
+        """
+        from pathlib import Path
+        import time
+        import json
+        import numpy as np
+        
+        start_time = time.time()
+        
+        # Load cache metadata to find files
+        cache_dir = Path(cache_path)
+        metadata_file = cache_dir / "metadata.json"
+        
+        if not metadata_file.exists():
+            return {
+                'events_in_cache': 0,
+                'events_processed': 0,
+                'events_inserted': 0,
+                'flush_time_seconds': 0,
+                'events_per_second': 0,
+                'cache_size_mb': 0
+            }
+        
+        with open(metadata_file, 'r') as f:
+            metadata = json.load(f)
+        
+        total_events = metadata.get('total_events', 0)
+        
+        # Calculate total size
+        total_size_mb = 0
+        for file_info in metadata.get('files', []):
+            file_path = cache_dir / file_info['filename']
+            if file_path.exists():
+                total_size_mb += file_path.stat().st_size / (1024 * 1024)
+        
+        # Process events in chunks
+        events_processed = 0
+        events_inserted = 0
+        chunk_size = 10000  # Read chunks from cache
+        
+        print(f"  Flushing {total_events:,} events to database...")
+        
+        # Read events from cache files directly
+        all_events = []
+        
+        for file_info in metadata.get('files', []):
+            file_path = cache_dir / file_info['filename']
+            if not file_path.exists():
+                continue
+            
+            # Open memory-mapped file for reading
+            # Reconstruct dtype from first file
+            dtype = np.dtype([
+                ('timestamp', np.float64),
+                ('event_type', 'U32'),
+                ('primitive_id', 'U32'),
+                ('data', np.uint8, (1024,))  # Default size
+            ])
+            
+            mmap = np.memmap(
+                file_path,
+                dtype=dtype,
+                mode='r',
+                shape=(file_info['max_events'],)
+            )
+            
+            # Read only populated entries
+            num_events = file_info['current_events']
+            data = mmap[:num_events]
+            
+            # Convert to events
+            for row in data:
+                # Reconstruct event
+                json_bytes = row['data'].tobytes()
+                json_str = json_bytes.rstrip(b'\0').decode('utf-8')
+                
+                event = json.loads(json_str) if json_str else {}
+                event["timestamp"] = float(row['timestamp'])
+                event["event_type"] = str(row['event_type'])
+                event["primitive_id"] = str(row['primitive_id'])
+                
+                all_events.append(event)
+                
+                # Process in batches
+                if len(all_events) >= chunk_size:
+                    inserted = self.batch_insert_events(run_id, all_events[:chunk_size], batch_size)
+                    events_inserted += inserted
+                    events_processed += len(all_events[:chunk_size])
+                    all_events = all_events[chunk_size:]
+                    
+                    # Progress update
+                    if events_processed % 50000 == 0:
+                        print(f"    Processed {events_processed:,}/{total_events:,} events...")
+            
+            del mmap  # Close memory map
+        
+        # Insert remaining events
+        if all_events:
+            inserted = self.batch_insert_events(run_id, all_events, batch_size)
+            events_inserted += inserted
+            events_processed += len(all_events)
+        
+        elapsed_time = time.time() - start_time
+        
+        return {
+            'events_in_cache': total_events,
+            'events_processed': events_processed,
+            'events_inserted': events_inserted,
+            'flush_time_seconds': elapsed_time,
+            'events_per_second': events_inserted / elapsed_time if elapsed_time > 0 else 0,
+            'cache_size_mb': total_size_mb
+        }
     
     def calculate_kpi_snapshot(self, run_id: str) -> Dict[str, Any]:
         """Calculate KPI summary for a run"""

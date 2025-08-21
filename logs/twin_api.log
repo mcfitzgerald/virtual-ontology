@@ -1,6 +1,6 @@
 INFO:     Will watch for changes in these directories: ['/Users/michael/github/virtual-ontology']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [36305] using WatchFiles
+INFO:     Started reloader process [71142] using WatchFiles
 
 ╔══════════════════════════════════════════════════════════════════╗
 ║           Virtual Twin Database API Server v4.0.0               ║
@@ -16,95 +16,7 @@ API Documentation will be available at:
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
     
-Process SpawnProcess-1:
-Traceback (most recent call last):
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
-    self.run()
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/server.py", line 65, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py", line 195, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/server.py", line 69, in serve
-    await self._serve(sockets)
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/server.py", line 76, in _serve
-    config.load()
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/config.py", line 434, in load
-    self.loaded_app = import_from_string(self.app)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py", line 90, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/Users/michael/github/virtual-ontology/database/app.py", line 135, in <module>
-    from database.routers import query, simulation, experiment, database
-  File "/Users/michael/github/virtual-ontology/database/routers/database.py", line 174
-    manager: ManagerDep
-    ^^^^^^^^^^^^^^^^^^^
-SyntaxError: parameter without a default follows parameter with a default
-WARNING:  WatchFiles detected changes in 'database/routers/database.py'. Reloading...
-Process SpawnProcess-2:
-Traceback (most recent call last):
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
-    self.run()
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/_subprocess.py", line 80, in subprocess_started
-    target(sockets=sockets)
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/server.py", line 65, in run
-    return asyncio.run(self.serve(sockets=sockets))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py", line 195, in run
-    return runner.run(main)
-           ^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/runners.py", line 118, in run
-    return self._loop.run_until_complete(task)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/server.py", line 69, in serve
-    await self._serve(sockets)
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/server.py", line 76, in _serve
-    config.load()
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/config.py", line 434, in load
-    self.loaded_app = import_from_string(self.app)
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/michael/.venvs/ont/lib/python3.12/site-packages/uvicorn/importer.py", line 19, in import_from_string
-    module = importlib.import_module(module_str)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py", line 90, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
-  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
-  File "<frozen importlib._bootstrap_external>", line 999, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "/Users/michael/github/virtual-ontology/database/app.py", line 135, in <module>
-    from database.routers import query, simulation, experiment, database
-  File "/Users/michael/github/virtual-ontology/database/routers/database.py", line 267
-    manager: ManagerDep
-    ^^^^^^^^^^^^^^^^^^^
-SyntaxError: parameter without a default follows parameter with a default
-WARNING:  WatchFiles detected changes in 'database/routers/database.py'. Reloading...
-INFO:     Started server process [37144]
+INFO:     Started server process [71145]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 🚀 Starting Virtual Twin Database API...
@@ -115,12 +27,390 @@ INFO:     Application startup complete.
 ✓ Ontology version: 2.0.0
 ✓ Manifest version: 48fea46c
 ✓ API ready at http://localhost:8000
-INFO:     127.0.0.1:61216 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61218 - "GET /database/stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61234 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61253 - "GET /query/tables HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62607 - "GET /health HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'database/integration.py'. Reloading...
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [37144]
-INFO:     Stopping reloader process [36305]
+INFO:     Finished server process [71145]
+INFO:     Started server process [71308]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'database/integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [71308]
+INFO:     Started server process [71368]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'database/repositories.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [71368]
+INFO:     Started server process [75810]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+🚀 Starting Virtual Twin Database API...
+✓ Created tables in data/twin_database.db
+✓ Database tables initialized
+✓ Synced configurations from manifests
+✓ Configurations synced from manifests
+✓ Ontology version: 2.0.0
+✓ Manifest version: 48fea46c
+✓ API ready at http://localhost:8000
+INFO:     127.0.0.1:63584 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63586 - "GET /database/stats HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [75810]
+INFO:     Started server process [96651]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96651]
+INFO:     Started server process [96758]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96758]
+INFO:     Started server process [96797]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96797]
+INFO:     Started server process [96834]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96834]
+INFO:     Started server process [96869]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96869]
+INFO:     Started server process [96905]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96905]
+INFO:     Started server process [96940]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/equipment.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96940]
+INFO:     Started server process [96999]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/equipment.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [96999]
+INFO:     Started server process [97034]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase1_performance.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97034]
+INFO:     Started server process [97164]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase1_performance.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97164]
+INFO:     Started server process [97250]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97250]
+INFO:     Started server process [97503]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97503]
+INFO:     Started server process [97566]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97566]
+INFO:     Started server process [97603]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97603]
+INFO:     Started server process [97679]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase2_processing.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97679]
+INFO:     Started server process [97793]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/storage/cache.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [97793]
+INFO:     Started server process [98211]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'database/repositories.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [98211]
+INFO:     Started server process [98344]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase3_storage.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [98344]
+INFO:     Started server process [98487]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'database/repositories.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [98487]
+INFO:     Started server process [98604]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'database/repositories.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [98604]
+INFO:     Started server process [98674]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/storage/cache.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [98674]
+INFO:     Started server process [98742]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [98742]
+INFO:     Started server process [99190]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/state_manager.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99190]
+INFO:     Started server process [99322]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase4_progress_state.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99322]
+INFO:     Started server process [99467]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/state_manager.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99467]
+INFO:     Started server process [99553]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase4_progress_state.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99553]
+INFO:     Started server process [99625]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase4_progress_state.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99625]
+INFO:     Started server process [99697]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/state_manager.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99697]
+INFO:     Started server process [99767]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [99767]
+INFO:     Started server process [10376]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_performance.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10376]
+INFO:     Started server process [10534]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase5_config_perf.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10534]
+INFO:     Started server process [10590]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10590]
+INFO:     Started server process [10716]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10716]
+INFO:     Started server process [10797]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10797]
+INFO:     Started server process [10906]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase5_config_perf.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10906]
+INFO:     Started server process [11030]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'database/integration_optimized.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [11030]
+INFO:     Started server process [21438]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'tools/profile_simulation.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21438]
+INFO:     Started server process [21510]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase6_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21510]
+INFO:     Started server process [21618]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase6_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21618]
+INFO:     Started server process [21696]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase6_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21696]
+INFO:     Started server process [21733]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'tools/profile_simulation.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21733]
+INFO:     Started server process [21890]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'database/integration_optimized.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [21890]
+INFO:     Started server process [22070]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_phase6_integration.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [22070]
+INFO:     Started server process [22247]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

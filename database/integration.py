@@ -48,13 +48,14 @@ class TwinDatabaseIntegration:
                 run_repo.update_run_status(run.run_id, "running")
                 
                 # Build and run model
+                from pathlib import Path
                 builder = OntologyDrivenModelBuilder(
-                    str(self.db_manager.ontology_path),
-                    str(self.db_manager.manifest_dir)
+                    Path(self.db_manager.ontology_path),
+                    Path(self.db_manager.manifest_dir)
                 )
                 
                 env = simpy.Environment()
-                model = builder.build_model(env, parameters)
+                model = builder.build_model(env)
                 
                 # Run simulation
                 env.run(until=days * 24 * 60)
