@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin.cost_impact_calculator &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="twin.generator" href="../generator/index.html" />
+    <link rel="prev" title="twin.config_validator" href="../config_validator/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../app/index.html">app</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">twin</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../actionable_parameters/index.html">twin.actionable_parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_loader/index.html">twin.config_loader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_manager/index.html">twin.config_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_transformer/index.html">twin.config_transformer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_validator/index.html">twin.config_validator</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">twin.cost_impact_calculator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generator/index.html">twin.generator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../line_coupling_model/index.html">twin.line_coupling_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../optimization_engine/index.html">twin.optimization_engine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../recommendation_engine/index.html">twin.recommendation_engine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../schema_manager/index.html">twin.schema_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../simulation_runner/index.html">twin.simulation_runner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sync_health/index.html">twin.sync_health</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../twin_state/index.html">twin.twin_state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../virtual_sensors/index.html">twin.virtual_sensors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../visualization/index.html">twin.visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cache/index.html">cache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../database/index.html">database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../twin_model/index.html">twin_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../export_utils/index.html">export_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../detail_panel/index.html">detail_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../graph_builder/index.html">graph_builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../control_panel/index.html">control_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ontology_parser/index.html">ontology_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cytoscape_styles/index.html">cytoscape_styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../profile_simulation/index.html">profile_simulation</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">twin</a></li>
+      <li class="breadcrumb-item active">twin.cost_impact_calculator</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/api/twin/cost_impact_calculator/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin.cost_impact_calculator">
+<span id="twin-cost-impact-calculator"></span><h1>twin.cost_impact_calculator<a class="headerlink" href="#module-twin.cost_impact_calculator" title="Link to this heading"></a></h1>
+<p>Cost Impact Calculator with PyMC for Bayesian Monte Carlo ROI Simulation
+Provides probabilistic financial validation for virtual twin recommendations</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin.cost_impact_calculator.CostParameters" title="twin.cost_impact_calculator.CostParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CostParameters</span></code></a></p></td>
+<td><p>Financial parameters for ROI calculation - no defaults, all required</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin.cost_impact_calculator.CostImpactCalculator" title="twin.cost_impact_calculator.CostImpactCalculator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CostImpactCalculator</span></code></a></p></td>
+<td><p>Calculates financial impact of virtual twin recommendations</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin.cost_impact_calculator.</span></span><span class="sig-name descname"><span class="pre">CostParameters</span></span><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters" title="Link to this definition"></a></dt>
+<dd><p>Financial parameters for ROI calculation - no defaults, all required</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.labor_cost_per_hour">
+<span class="sig-name descname"><span class="pre">labor_cost_per_hour</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.labor_cost_per_hour" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.energy_cost_per_kwh">
+<span class="sig-name descname"><span class="pre">energy_cost_per_kwh</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.energy_cost_per_kwh" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.material_cost_per_unit">
+<span class="sig-name descname"><span class="pre">material_cost_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.material_cost_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.downtime_cost_per_hour">
+<span class="sig-name descname"><span class="pre">downtime_cost_per_hour</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.downtime_cost_per_hour" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.scrap_cost_per_unit">
+<span class="sig-name descname"><span class="pre">scrap_cost_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.scrap_cost_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.rework_cost_per_unit">
+<span class="sig-name descname"><span class="pre">rework_cost_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.rework_cost_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.parameter_change_cost">
+<span class="sig-name descname"><span class="pre">parameter_change_cost</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.parameter_change_cost" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.training_cost">
+<span class="sig-name descname"><span class="pre">training_cost</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.training_cost" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.monitoring_cost_per_week">
+<span class="sig-name descname"><span class="pre">monitoring_cost_per_week</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.monitoring_cost_per_week" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.discount_rate">
+<span class="sig-name descname"><span class="pre">discount_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.discount_rate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostParameters.confidence_level">
+<span class="sig-name descname"><span class="pre">confidence_level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#twin.cost_impact_calculator.CostParameters.confidence_level" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostImpactCalculator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin.cost_impact_calculator.</span></span><span class="sig-name descname"><span class="pre">CostImpactCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cost_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#twin.cost_impact_calculator.CostParameters" title="twin.cost_impact_calculator.CostParameters"><span class="pre">CostParameters</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#twin.cost_impact_calculator.CostImpactCalculator" title="Link to this definition"></a></dt>
+<dd><p>Calculates financial impact of virtual twin recommendations
+using PyMC for Bayesian Monte Carlo simulation with proper uncertainty quantification</p>
+<p>Configuration is REQUIRED - all cost parameters must come from config</p>
+<p>Initialize CostImpactCalculator.
+Configuration is required - will raise error if not available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db_path</strong> – Path to SQLite database (uses config if None)</p></li>
+<li><p><strong>cost_params</strong> – Optional CostParameters (uses config if None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.13)"><strong>RuntimeError</strong></a> – If configuration is not available</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If required config values are missing</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostImpactCalculator.config">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin.cost_impact_calculator.CostImpactCalculator.config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostImpactCalculator.db_path">
+<span class="sig-name descname"><span class="pre">db_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin.cost_impact_calculator.CostImpactCalculator.db_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostImpactCalculator.cost_params">
+<span class="sig-name descname"><span class="pre">cost_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#twin.cost_impact_calculator.CostParameters" title="twin.cost_impact_calculator.CostParameters"><span class="pre">CostParameters</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin.cost_impact_calculator.CostImpactCalculator.cost_params" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostImpactCalculator.calculate_roi">
+<span class="sig-name descname"><span class="pre">calculate_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">baseline_run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">improved_run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_simulations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_horizon_weeks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_uncertainty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#twin.cost_impact_calculator.CostImpactCalculator.calculate_roi" title="Link to this definition"></a></dt>
+<dd><p>Calculate ROI using PyMC Bayesian Monte Carlo simulation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>baseline_run_id</strong> – Run ID for baseline scenario</p></li>
+<li><p><strong>improved_run_id</strong> – Run ID for improved scenario</p></li>
+<li><p><strong>n_simulations</strong> – Number of Monte Carlo simulations (uses config default if None)</p></li>
+<li><p><strong>time_horizon_weeks</strong> – Time horizon for ROI calculation (uses config default if None)</p></li>
+<li><p><strong>include_uncertainty</strong> – Whether to add uncertainty to parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with ROI metrics and credible intervals</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostImpactCalculator.calculate_scenario_impact">
+<span class="sig-name descname"><span class="pre">calculate_scenario_impact</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scenario</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_kpis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter_changes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_simulations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#twin.cost_impact_calculator.CostImpactCalculator.calculate_scenario_impact" title="Link to this definition"></a></dt>
+<dd><p>Calculate financial impact of a specific scenario using PyMC</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scenario</strong> – Scenario name (e.g., “reduce_micro_stops_30%”)</p></li>
+<li><p><strong>baseline_kpis</strong> – Baseline KPI values</p></li>
+<li><p><strong>parameter_changes</strong> – Parameter changes for scenario</p></li>
+<li><p><strong>n_simulations</strong> – Number of simulations</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Financial impact with credible intervals</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.cost_impact_calculator.CostImpactCalculator.format_roi_report">
+<span class="sig-name descname"><span class="pre">format_roi_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_summary</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#twin.cost_impact_calculator.CostImpactCalculator.format_roi_report" title="Link to this definition"></a></dt>
+<dd><p>Format ROI summary as a readable report with Bayesian credible intervals</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../config_validator/index.html" class="btn btn-neutral float-left" title="twin.config_validator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../generator/index.html" class="btn btn-neutral float-right" title="twin.generator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>profile_simulation &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="cytoscape_styles" href="../cytoscape_styles/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../app/index.html">app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../twin/index.html">twin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cache/index.html">cache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../database/index.html">database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../twin_model/index.html">twin_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../export_utils/index.html">export_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../detail_panel/index.html">detail_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../graph_builder/index.html">graph_builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../control_panel/index.html">control_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ontology_parser/index.html">ontology_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cytoscape_styles/index.html">cytoscape_styles</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">profile_simulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#profile_simulation.ProfileResult"><code class="docutils literal notranslate"><span class="pre">ProfileResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#profile_simulation.SimulationProfiler"><code class="docutils literal notranslate"><span class="pre">SimulationProfiler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#profile_simulation.profile_quick_simulation"><code class="docutils literal notranslate"><span class="pre">profile_quick_simulation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">profile_simulation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/profile_simulation/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-profile_simulation">
+<span id="profile-simulation"></span><h1>profile_simulation<a class="headerlink" href="#module-profile_simulation" title="Link to this heading"></a></h1>
+<p>Profiling tool for simulation performance analysis.</p>
+<p>This module provides profiling capabilities to identify bottlenecks
+and optimize simulation performance.</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#profile_simulation.ProfileResult" title="profile_simulation.ProfileResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProfileResult</span></code></a></p></td>
+<td><p>Results from profiling a simulation run.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#profile_simulation.SimulationProfiler" title="profile_simulation.SimulationProfiler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationProfiler</span></code></a></p></td>
+<td><p>Profile simulation performance and identify bottlenecks.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#profile_simulation.profile_quick_simulation" title="profile_simulation.profile_quick_simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">profile_quick_simulation</span></code></a>()</p></td>
+<td><p>Quick profiling example.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">profile_simulation.</span></span><span class="sig-name descname"><span class="pre">ProfileResult</span></span><a class="headerlink" href="#profile_simulation.ProfileResult" title="Link to this definition"></a></dt>
+<dd><p>Results from profiling a simulation run.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.name" title="Link to this definition"></a></dt>
+<dd><p>Name of the profiled run</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.total_time">
+<span class="sig-name descname"><span class="pre">total_time</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.total_time" title="Link to this definition"></a></dt>
+<dd><p>Total execution time</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.cpu_time">
+<span class="sig-name descname"><span class="pre">cpu_time</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.cpu_time" title="Link to this definition"></a></dt>
+<dd><p>Total CPU time</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.memory_peak_mb">
+<span class="sig-name descname"><span class="pre">memory_peak_mb</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.memory_peak_mb" title="Link to this definition"></a></dt>
+<dd><p>Peak memory usage</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.memory_growth_mb">
+<span class="sig-name descname"><span class="pre">memory_growth_mb</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.memory_growth_mb" title="Link to this definition"></a></dt>
+<dd><p>Memory growth during execution</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.top_functions">
+<span class="sig-name descname"><span class="pre">top_functions</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.top_functions" title="Link to this definition"></a></dt>
+<dd><p>Top time-consuming functions</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.top_memory">
+<span class="sig-name descname"><span class="pre">top_memory</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.top_memory" title="Link to this definition"></a></dt>
+<dd><p>Top memory-consuming operations</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.bottlenecks">
+<span class="sig-name descname"><span class="pre">bottlenecks</span></span><a class="headerlink" href="#profile_simulation.ProfileResult.bottlenecks" title="Link to this definition"></a></dt>
+<dd><p>Identified performance bottlenecks</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">total_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">cpu_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">memory_peak_mb</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">memory_growth_mb</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">top_functions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">top_memory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">bottlenecks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profile_simulation.ProfileResult.print_summary">
+<span class="sig-name descname"><span class="pre">print_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#profile_simulation.ProfileResult.print_summary" title="Link to this definition"></a></dt>
+<dd><p>Print human-readable summary of profile results.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">profile_simulation.</span></span><span class="sig-name descname"><span class="pre">SimulationProfiler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'profile_results'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#profile_simulation.SimulationProfiler" title="Link to this definition"></a></dt>
+<dd><p>Profile simulation performance and identify bottlenecks.</p>
+<p>Provides CPU profiling, memory profiling, and bottleneck analysis
+for simulation runs.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.profile_dir">
+<span class="sig-name descname"><span class="pre">profile_dir</span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.profile_dir" title="Link to this definition"></a></dt>
+<dd><p>Directory for storing profile results</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.cpu_profiler">
+<span class="sig-name descname"><span class="pre">cpu_profiler</span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.cpu_profiler" title="Link to this definition"></a></dt>
+<dd><p>cProfile instance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.memory_snapshots">
+<span class="sig-name descname"><span class="pre">memory_snapshots</span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.memory_snapshots" title="Link to this definition"></a></dt>
+<dd><p>Memory usage snapshots</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.results">
+<span class="sig-name descname"><span class="pre">results</span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.results" title="Link to this definition"></a></dt>
+<dd><p>List of profile results</p>
+</dd></dl>
+
+<p>Initialize profiler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>profile_dir</strong> – Directory for storing results</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">profile_dir</span></span><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">cpu_profiler</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">cProfile.Profile</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">memory_snapshots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/tracemalloc.html#tracemalloc.Snapshot" title="(in Python v3.13)"><span class="pre">tracemalloc.Snapshot</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">results</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#profile_simulation.ProfileResult" title="profile_simulation.ProfileResult"><span class="pre">ProfileResult</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.profile_function">
+<span class="sig-name descname"><span class="pre">profile_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'unnamed'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#profile_simulation.ProfileResult" title="profile_simulation.ProfileResult"><span class="pre">ProfileResult</span></a></span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.profile_function" title="Link to this definition"></a></dt>
+<dd><p>Profile a function execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> – Function to profile</p></li>
+<li><p><strong>args</strong> – Function arguments</p></li>
+<li><p><strong>kwargs</strong> – Function keyword arguments</p></li>
+<li><p><strong>name</strong> – Name for this profile run</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Profile results</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.profile_simulation">
+<span class="sig-name descname"><span class="pre">profile_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#profile_simulation.ProfileResult" title="profile_simulation.ProfileResult"><span class="pre">ProfileResult</span></a></span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.profile_simulation" title="Link to this definition"></a></dt>
+<dd><p>Profile a simulation run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation_func</strong> – Simulation function to profile</p></li>
+<li><p><strong>config_name</strong> – Name of configuration being tested</p></li>
+<li><p><strong>**kwargs</strong> – Arguments for simulation function</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Profile results</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.compare_profiles">
+<span class="sig-name descname"><span class="pre">compare_profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">profile_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.compare_profiles" title="Link to this definition"></a></dt>
+<dd><p>Compare multiple profile results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>*profile_names</strong> – Names of profiles to compare</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Comparison dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.generate_flame_graph">
+<span class="sig-name descname"><span class="pre">generate_flame_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.generate_flame_graph" title="Link to this definition"></a></dt>
+<dd><p>Generate flame graph visualization.</p>
+<p>Note: Requires py-spy or flamegraph tools installed separately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – Profile name for the graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="profile_simulation.SimulationProfiler.plot_performance_trends">
+<span class="sig-name descname"><span class="pre">plot_performance_trends</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#profile_simulation.SimulationProfiler.plot_performance_trends" title="Link to this definition"></a></dt>
+<dd><p>Plot performance trends across multiple profiles.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="profile_simulation.profile_quick_simulation">
+<span class="sig-prename descclassname"><span class="pre">profile_simulation.</span></span><span class="sig-name descname"><span class="pre">profile_quick_simulation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#profile_simulation.profile_quick_simulation" title="Link to this definition"></a></dt>
+<dd><p>Quick profiling example.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../cytoscape_styles/index.html" class="btn btn-neutral float-left" title="cytoscape_styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,788 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_phase5_integration &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_phase5_integration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.tests.test_phase5_integration</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Phase 5: Full Integration Test for MES Generation.</span>
+
+<span class="sd">This test validates the complete pipeline from ontology-driven model</span>
+<span class="sd">to MES data generation, ensuring the output matches the expected format</span>
+<span class="sd">and contains realistic production patterns.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.model_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.transduction.mes_transducer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MESTransducer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProductionOrder</span>
+
+
+<div class="viewcode-block" id="run_full_integration_test">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.run_full_integration_test">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_full_integration_test</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run complete integration test from ontology to MES data.&quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 5: FULL INTEGRATION TEST&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ontology → SimPy Model → Simulation → Observables → MES Data&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Configuration</span>
+    <span class="n">simulation_hours</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># Run for 2 hours initially for faster testing</span>
+    <span class="n">simulation_minutes</span> <span class="o">=</span> <span class="n">simulation_hours</span> <span class="o">*</span> <span class="mi">60</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Configuration:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;  Simulation duration: </span><span class="si">{</span><span class="n">simulation_hours</span><span class="si">}</span><span class="s2"> hour(s) (</span><span class="si">{</span><span class="n">simulation_minutes</span><span class="si">}</span><span class="s2"> minutes)&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Target OEE: ~65%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Products: 6 SKUs&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Lines: 3 production lines&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Equipment: 9 main equipment (3 per line)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span>
+
+    <span class="c1"># 1. SETUP PHASE</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;1. SETUP PHASE&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Initialize environment</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+
+    <span class="c1"># Load ontology and manifests</span>
+    <span class="n">ontology_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">)</span>
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create model builder</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span><span class="n">ontology_path</span><span class="p">,</span> <span class="n">manifest_dir</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Ontology loaded&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Manifests loaded&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Model built: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;primitives&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> primitives&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Count equipment by type</span>
+    <span class="n">equipment_count</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">prim_id</span><span class="p">,</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">prim_type</span> <span class="o">=</span> <span class="n">primitive</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">type</span>
+        <span class="k">if</span> <span class="n">prim_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Filler&quot;</span><span class="p">,</span> <span class="s2">&quot;Packer&quot;</span><span class="p">,</span> <span class="s2">&quot;Palletizer&quot;</span><span class="p">]:</span>
+            <span class="n">equipment_count</span><span class="p">[</span><span class="n">prim_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">equipment_count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prim_type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">for</span> <span class="n">eq_type</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">equipment_count</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">eq_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 2. SCHEDULE PRODUCTION</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">2. PRODUCTION SCHEDULING&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Load production orders from manifest</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">prod_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Schedule orders for simulation period</span>
+    <span class="n">scheduled_orders</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">order_count_by_product</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">order_data</span> <span class="ow">in</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;production_orders&quot;</span><span class="p">]:</span>
+        <span class="c1"># Only schedule orders within our simulation window</span>
+        <span class="k">if</span> <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">simulation_minutes</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">ProductionOrder</span><span class="p">(</span>
+                <span class="n">order_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;order_id&quot;</span><span class="p">],</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;product_id&quot;</span><span class="p">],</span>
+                <span class="n">target_quantity</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;target_quantity&quot;</span><span class="p">],</span>
+                <span class="n">due_time</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span>
+                    <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">],</span>
+                    <span class="n">simulation_minutes</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;line_id&quot;</span><span class="p">],</span>
+                <span class="n">priority</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;priority&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]:</span>
+                <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">add_order</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+            <span class="n">scheduled_orders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+            <span class="c1"># Track by product</span>
+            <span class="n">product_id</span> <span class="o">=</span> <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;product_id&quot;</span><span class="p">]</span>
+            <span class="n">order_count_by_product</span><span class="p">[</span><span class="n">product_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">order_count_by_product</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Scheduled </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">scheduled_orders</span><span class="p">)</span><span class="si">}</span><span class="s2"> production orders&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Show order distribution</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Orders by product:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">product_id</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">order_count_by_product</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">product_name</span> <span class="o">=</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;products&quot;</span><span class="p">][</span><span class="n">product_id</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">product_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> orders (</span><span class="si">{</span><span class="n">product_name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 3. RUN SIMULATION</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">3. SIMULATION EXECUTION&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting simulation for </span><span class="si">{</span><span class="n">simulation_minutes</span><span class="si">}</span><span class="s2"> minutes...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Run simulation (check if already started)</span>
+    <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">&lt;</span> <span class="n">simulation_minutes</span><span class="p">:</span>
+        <span class="c1"># Run in chunks to show progress</span>
+        <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">60</span>  <span class="c1"># 1 hour chunks</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span>
+        <span class="n">target_time</span> <span class="o">=</span> <span class="n">simulation_minutes</span>
+
+        <span class="k">while</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">&lt;</span> <span class="n">target_time</span><span class="p">:</span>
+            <span class="n">next_time</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">+</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">target_time</span><span class="p">)</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">next_time</span><span class="p">)</span>
+
+            <span class="c1"># Progress indicator</span>
+            <span class="n">hours_done</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">/</span> <span class="mi">60</span>
+            <span class="k">if</span> <span class="n">hours_done</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">hours_done</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> hours simulated...&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Simulation completed at t=</span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 4. COLLECT OBSERVABLES</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">4. OBSERVABLE COLLECTION&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="n">all_observables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">observable_counts</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">primitive_id</span><span class="p">,</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s2">&quot;observables&quot;</span><span class="p">):</span>
+            <span class="n">obs_list</span> <span class="o">=</span> <span class="n">primitive</span><span class="o">.</span><span class="n">observables</span>
+            <span class="n">all_observables</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">obs_list</span><span class="p">)</span>
+
+            <span class="c1"># Count by primitive type</span>
+            <span class="n">prim_type</span> <span class="o">=</span> <span class="n">primitive</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">type</span>
+            <span class="n">observable_counts</span><span class="p">[</span><span class="n">prim_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">observable_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prim_type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">obs_list</span>
+            <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Collected </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_observables</span><span class="p">)</span><span class="si">}</span><span class="s2"> total observables&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Show distribution</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Observables by primitive type:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">prim_type</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">observable_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">prim_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Analyze event types</span>
+    <span class="n">event_type_counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">product_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">all_observables</span><span class="p">:</span>
+        <span class="n">event_type</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;event_type&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
+        <span class="n">event_type_counts</span><span class="p">[</span><span class="n">event_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">event_type_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">event_type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># Track product IDs</span>
+        <span class="k">if</span> <span class="s2">&quot;product_id&quot;</span> <span class="ow">in</span> <span class="n">obs</span><span class="p">:</span>
+            <span class="n">product_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;product_id&quot;</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Top 10 event types:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">event_type_counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)[:</span><span class="mi">10</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">event_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Product IDs in observables: </span><span class="si">{</span><span class="n">product_ids</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">product_ids</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;None found&#39;</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># 5. TRANSDUCTION TO MES</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">5. MES TRANSDUCTION&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Create transducer</span>
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">(</span><span class="n">time_bucket</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Prepare manifests for transduction</span>
+    <span class="n">manifests</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;equipment_manifest&quot;</span><span class="p">:</span> <span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;equipment_manifest.yaml&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;production_manifest&quot;</span><span class="p">:</span> <span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;production_manifest.yaml&quot;</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Process observables to MES format</span>
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">process_observables</span><span class="p">(</span><span class="n">all_observables</span><span class="p">,</span> <span class="n">manifests</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> MES records&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Time buckets: </span><span class="si">{</span><span class="n">mes_df</span><span class="p">[</span><span class="s1">&#39;Timestamp&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2"> unique timestamps&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Equipment tracked: </span><span class="si">{</span><span class="n">mes_df</span><span class="p">[</span><span class="s1">&#39;EquipmentID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2"> unique equipment&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Products produced: </span><span class="si">{</span><span class="n">mes_df</span><span class="p">[</span><span class="s1">&#39;ProductID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span><span class="si">}</span><span class="s2"> unique products&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 6. VALIDATE MES DATA</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">6. MES DATA VALIDATION&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="n">validation_results</span> <span class="o">=</span> <span class="n">validate_mes_data</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">check</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">validation_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;passed&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">check</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 7. CALCULATE KPIs</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">7. KEY PERFORMANCE INDICATORS&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Overall KPIs</span>
+    <span class="n">overall_kpis</span> <span class="o">=</span> <span class="n">calculate_overall_kpis</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Overall Performance:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  OEE: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Availability: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;availability&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Performance: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;performance&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Quality: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;quality&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Production Summary:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Good Units: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;total_good_units&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Scrap: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;total_scrap&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Scrap Rate: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;scrap_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Line-level KPIs</span>
+    <span class="n">line_kpis</span> <span class="o">=</span> <span class="n">calculate_line_kpis</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Line Performance:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">line_id</span><span class="p">,</span> <span class="n">kpis</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">line_kpis</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  LINE</span><span class="si">{</span><span class="n">line_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    OEE: </span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Good Units: </span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;good_units&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Product performance</span>
+    <span class="n">product_kpis</span> <span class="o">=</span> <span class="n">calculate_product_kpis</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Product Performance:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">product_id</span><span class="p">,</span> <span class="n">kpis</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">product_kpis</span><span class="o">.</span><span class="n">items</span><span class="p">())[:</span><span class="mi">5</span><span class="p">]:</span>  <span class="c1"># Top 5</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">product_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Units Produced: </span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;good_units&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Quality Rate: </span><span class="si">{</span><span class="n">kpis</span><span class="p">[</span><span class="s1">&#39;quality_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 8. DOWNTIME ANALYSIS</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">8. DOWNTIME ANALYSIS&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="n">downtime_analysis</span> <span class="o">=</span> <span class="n">analyze_downtime</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total Downtime Events: </span><span class="si">{</span><span class="n">downtime_analysis</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">downtime_analysis</span><span class="p">[</span><span class="s2">&quot;reasons&quot;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Downtime by Reason:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">reason</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">downtime_analysis</span><span class="p">[</span><span class="s2">&quot;reasons&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">reason</span><span class="p">:</span>  <span class="c1"># Skip empty reasons</span>
+                <span class="n">percentage</span> <span class="o">=</span> <span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="n">downtime_analysis</span><span class="p">[</span><span class="s2">&quot;total_events&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> events (</span><span class="si">{</span><span class="n">percentage</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 9. SAVE OUTPUT</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">9. OUTPUT GENERATION&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Save MES data</span>
+    <span class="n">output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;mes_output_integration.csv&quot;</span><span class="p">)</span>
+    <span class="n">mes_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ MES data saved to </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Save summary report</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">generate_summary_report</span><span class="p">(</span>
+        <span class="n">mes_df</span><span class="p">,</span> <span class="n">overall_kpis</span><span class="p">,</span> <span class="n">line_kpis</span><span class="p">,</span> <span class="n">product_kpis</span><span class="p">,</span> <span class="n">downtime_analysis</span>
+    <span class="p">)</span>
+
+    <span class="n">report_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;integration_report.json&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">report_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Summary report saved to </span><span class="si">{</span><span class="n">report_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 10. COMPARISON WITH REFERENCE</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">10. REFERENCE COMPARISON&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="n">reference_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;archive/misc/data/mes_data_with_kpis.csv&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">reference_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">reference_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">reference_path</span><span class="p">)</span>
+
+        <span class="n">comparison</span> <span class="o">=</span> <span class="n">compare_with_reference</span><span class="p">(</span><span class="n">mes_df</span><span class="p">,</span> <span class="n">reference_df</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Structure Comparison:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Columns match: </span><span class="si">{</span><span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;columns_match&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Data types compatible: </span><span class="si">{</span><span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;dtypes_compatible&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Statistical Comparison:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  OEE Range:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Generated: </span><span class="si">{</span><span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;oee_range_generated&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Reference: </span><span class="si">{</span><span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;oee_range_reference&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scrap Rate:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Generated: </span><span class="si">{</span><span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;scrap_rate_generated&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Reference: </span><span class="si">{</span><span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;scrap_rate_reference&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mes_df</span><span class="p">,</span> <span class="n">overall_kpis</span></div>
+
+
+
+<div class="viewcode-block" id="validate_mes_data">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.validate_mes_data">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">validate_mes_data</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate MES data structure and content.&quot;&quot;&quot;</span>
+    <span class="n">validation_results</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Check required columns</span>
+    <span class="n">required_columns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Timestamp&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ProductionOrderID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;LineID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;EquipmentID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ProductID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;MachineStatus&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;OEE_Score&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">missing_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">required_columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;required_columns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;passed&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_columns</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;All required columns present&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">missing_columns</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Missing columns: </span><span class="si">{</span><span class="n">missing_columns</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Check data types</span>
+    <span class="n">numeric_columns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;OEE_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Availability_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Performance_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Quality_Score&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">non_numeric</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">numeric_columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+            <span class="n">non_numeric</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+    <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;data_types&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;passed&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_numeric</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;All numeric columns have correct type&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_numeric</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;Non-numeric columns: </span><span class="si">{</span><span class="n">non_numeric</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Check value ranges</span>
+    <span class="k">if</span> <span class="s2">&quot;OEE_Score&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">oee_valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">110</span><span class="p">)</span>
+        <span class="n">invalid_oee</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">oee_valid</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;oee_range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;passed&quot;</span><span class="p">:</span> <span class="n">invalid_oee</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;OEE scores in valid range (0-110)&quot;</span>
+            <span class="k">if</span> <span class="n">invalid_oee</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">invalid_oee</span><span class="si">}</span><span class="s2"> OEE scores out of range&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Check timestamp format</span>
+    <span class="k">if</span> <span class="s2">&quot;Timestamp&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Timestamp&quot;</span><span class="p">])</span>
+            <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;timestamp_format&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;passed&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Timestamps in valid datetime format&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;timestamp_format&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;passed&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Invalid timestamp format&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+
+    <span class="c1"># Check for data presence</span>
+    <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;data_presence&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;passed&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2"> records generated&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="s2">&quot;No data generated&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">validation_results</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_overall_kpis">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.calculate_overall_kpis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_overall_kpis</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate overall KPIs from MES data.&quot;&quot;&quot;</span>
+    <span class="n">kpis</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># OEE components</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;oee&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;OEE_Score&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;availability&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Availability_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;Availability_Score&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;performance&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Performance_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;Performance_Score&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;quality&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Quality_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;Quality_Score&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="c1"># Production metrics</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_good_units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;GoodUnitsProduced&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_scrap&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;ScrapUnitsProduced&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+
+    <span class="n">total_produced</span> <span class="o">=</span> <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_good_units&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_scrap&quot;</span><span class="p">]</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;scrap_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_scrap&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">total_produced</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">total_produced</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Energy</span>
+    <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_energy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Energy_Consumption_kWh&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;Energy_Consumption_kWh&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+        <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kpis</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_line_kpis">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.calculate_line_kpis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_line_kpis</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate KPIs by production line.&quot;&quot;&quot;</span>
+    <span class="n">line_kpis</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="s2">&quot;LineID&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_id</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;LineID&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">line_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;LineID&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">line_id</span><span class="p">]</span>
+
+            <span class="n">line_kpis</span><span class="p">[</span><span class="n">line_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="n">line_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s2">&quot;OEE_Score&quot;</span> <span class="ow">in</span> <span class="n">line_df</span><span class="o">.</span><span class="n">columns</span>
+                <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;good_units&quot;</span><span class="p">:</span> <span class="n">line_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s2">&quot;GoodUnitsProduced&quot;</span> <span class="ow">in</span> <span class="n">line_df</span><span class="o">.</span><span class="n">columns</span>
+                <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;scrap_units&quot;</span><span class="p">:</span> <span class="n">line_df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s2">&quot;ScrapUnitsProduced&quot;</span> <span class="ow">in</span> <span class="n">line_df</span><span class="o">.</span><span class="n">columns</span>
+                <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;records&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_df</span><span class="p">),</span>
+            <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">line_kpis</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_product_kpis">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.calculate_product_kpis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_product_kpis</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate KPIs by product.&quot;&quot;&quot;</span>
+    <span class="n">product_kpis</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="s2">&quot;ProductID&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">product_id</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;ProductID&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">product_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;ProductID&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">product_id</span><span class="p">]</span>
+
+            <span class="n">good_units</span> <span class="o">=</span> <span class="n">product_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">scrap_units</span> <span class="o">=</span> <span class="n">product_df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">total_units</span> <span class="o">=</span> <span class="n">good_units</span> <span class="o">+</span> <span class="n">scrap_units</span>
+
+            <span class="n">product_kpis</span><span class="p">[</span><span class="n">product_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;good_units&quot;</span><span class="p">:</span> <span class="n">good_units</span><span class="p">,</span>
+                <span class="s2">&quot;scrap_units&quot;</span><span class="p">:</span> <span class="n">scrap_units</span><span class="p">,</span>
+                <span class="s2">&quot;quality_rate&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">good_units</span> <span class="o">/</span> <span class="n">total_units</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">total_units</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;avg_oee&quot;</span><span class="p">:</span> <span class="n">product_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s2">&quot;OEE_Score&quot;</span> <span class="ow">in</span> <span class="n">product_df</span><span class="o">.</span><span class="n">columns</span>
+                <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">product_kpis</span></div>
+
+
+
+<div class="viewcode-block" id="analyze_downtime">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.analyze_downtime">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_downtime</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Analyze downtime patterns.&quot;&quot;&quot;</span>
+    <span class="n">analysis</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;total_events&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;reasons&quot;</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">&quot;equipment_affected&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="s2">&quot;MachineStatus&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="c1"># Find downtime records</span>
+        <span class="n">downtime_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="s2">&quot;Stopped&quot;</span><span class="p">,</span> <span class="s2">&quot;Maintenance&quot;</span><span class="p">,</span> <span class="s2">&quot;Changeover&quot;</span><span class="p">])</span>
+        <span class="p">]</span>
+
+        <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;total_events&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">downtime_df</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;DowntimeReason&quot;</span> <span class="ow">in</span> <span class="n">downtime_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="c1"># Count by reason</span>
+            <span class="n">reason_counts</span> <span class="o">=</span> <span class="n">downtime_df</span><span class="p">[</span><span class="s2">&quot;DowntimeReason&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+            <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;reasons&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">reason_counts</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="s2">&quot;EquipmentID&quot;</span> <span class="ow">in</span> <span class="n">downtime_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">analysis</span><span class="p">[</span><span class="s2">&quot;equipment_affected&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">downtime_df</span><span class="p">[</span><span class="s2">&quot;EquipmentID&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">analysis</span></div>
+
+
+
+<div class="viewcode-block" id="generate_summary_report">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.generate_summary_report">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_summary_report</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="n">overall_kpis</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+    <span class="n">line_kpis</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="n">product_kpis</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="n">downtime_analysis</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate comprehensive summary report.&quot;&quot;&quot;</span>
+
+    <span class="n">report</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="s2">&quot;data_summary&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;total_records&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span>
+            <span class="s2">&quot;time_range&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Timestamp&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;Timestamp&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Timestamp&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;Timestamp&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;unique_equipment&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;EquipmentID&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;EquipmentID&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+            <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;unique_products&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;ProductID&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;ProductID&quot;</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+            <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;overall_kpis&quot;</span><span class="p">:</span> <span class="n">overall_kpis</span><span class="p">,</span>
+        <span class="s2">&quot;line_performance&quot;</span><span class="p">:</span> <span class="n">line_kpis</span><span class="p">,</span>
+        <span class="s2">&quot;top_products&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="nb">sorted</span><span class="p">(</span>
+                <span class="n">product_kpis</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;good_units&quot;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)[:</span><span class="mi">5</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="s2">&quot;downtime_summary&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;total_events&quot;</span><span class="p">:</span> <span class="n">downtime_analysis</span><span class="p">[</span><span class="s2">&quot;total_events&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;top_reasons&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">downtime_analysis</span><span class="p">[</span><span class="s2">&quot;reasons&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">())[:</span><span class="mi">5</span><span class="p">]),</span>
+            <span class="s2">&quot;equipment_count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">downtime_analysis</span><span class="p">[</span><span class="s2">&quot;equipment_affected&quot;</span><span class="p">]),</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">report</span></div>
+
+
+
+<div class="viewcode-block" id="compare_with_reference">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.compare_with_reference">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compare_with_reference</span><span class="p">(</span>
+    <span class="n">generated_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">reference_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare generated data with reference MES data.&quot;&quot;&quot;</span>
+
+    <span class="n">comparison</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Structure comparison</span>
+    <span class="n">comparison</span><span class="p">[</span><span class="s2">&quot;columns_match&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">generated_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="n">reference_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">comparison</span><span class="p">[</span><span class="s2">&quot;dtypes_compatible&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Simplified for now</span>
+
+    <span class="c1"># Statistical comparison</span>
+    <span class="k">if</span> <span class="s2">&quot;OEE_Score&quot;</span> <span class="ow">in</span> <span class="n">generated_df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="s2">&quot;OEE_Score&quot;</span> <span class="ow">in</span> <span class="n">reference_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">comparison</span><span class="p">[</span><span class="s2">&quot;oee_range_generated&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">generated_df</span><span class="p">[</span><span class="s1">&#39;OEE_Score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">generated_df</span><span class="p">[</span><span class="s1">&#39;OEE_Score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="n">comparison</span><span class="p">[</span><span class="s2">&quot;oee_range_reference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">reference_df</span><span class="p">[</span><span class="s1">&#39;OEE_Score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">reference_df</span><span class="p">[</span><span class="s1">&#39;OEE_Score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Scrap rate comparison</span>
+    <span class="k">if</span> <span class="s2">&quot;GoodUnitsProduced&quot;</span> <span class="ow">in</span> <span class="n">generated_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">gen_good</span> <span class="o">=</span> <span class="n">generated_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">gen_scrap</span> <span class="o">=</span> <span class="n">generated_df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">gen_total</span> <span class="o">=</span> <span class="n">gen_good</span> <span class="o">+</span> <span class="n">gen_scrap</span>
+        <span class="n">comparison</span><span class="p">[</span><span class="s2">&quot;scrap_rate_generated&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">gen_scrap</span> <span class="o">/</span> <span class="n">gen_total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">gen_total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;GoodUnitsProduced&quot;</span> <span class="ow">in</span> <span class="n">reference_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">ref_good</span> <span class="o">=</span> <span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">ref_scrap</span> <span class="o">=</span> <span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">ref_total</span> <span class="o">=</span> <span class="n">ref_good</span> <span class="o">+</span> <span class="n">ref_scrap</span>
+        <span class="n">comparison</span><span class="p">[</span><span class="s2">&quot;scrap_rate_reference&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">ref_scrap</span> <span class="o">/</span> <span class="n">ref_total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">ref_total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">comparison</span></div>
+
+
+
+<div class="viewcode-block" id="test_realistic_patterns">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase5_integration.html#twin_model.tests.test_phase5_integration.test_realistic_patterns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_realistic_patterns</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that generated data shows realistic production patterns.&quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Realistic Production Patterns...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Run short simulation</span>
+    <span class="n">mes_df</span><span class="p">,</span> <span class="n">kpis</span> <span class="o">=</span> <span class="n">run_full_integration_test</span><span class="p">()</span>
+
+    <span class="c1"># Check OEE is in realistic range</span>
+    <span class="n">oee</span> <span class="o">=</span> <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;oee&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="mi">20</span> <span class="o">&lt;=</span> <span class="n">oee</span> <span class="o">&lt;=</span> <span class="mi">85</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;OEE </span><span class="si">{</span><span class="n">oee</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% outside realistic range (20-85%)&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ OEE in realistic range: </span><span class="si">{</span><span class="n">oee</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check scrap rate is realistic</span>
+    <span class="n">scrap_rate</span> <span class="o">=</span> <span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;scrap_rate&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="mf">0.5</span> <span class="o">&lt;=</span> <span class="n">scrap_rate</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Scrap rate </span><span class="si">{</span><span class="n">scrap_rate</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">% outside realistic range&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Scrap rate realistic: </span><span class="si">{</span><span class="n">scrap_rate</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check we have varied machine states</span>
+    <span class="k">if</span> <span class="s2">&quot;MachineStatus&quot;</span> <span class="ow">in</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">unique_states</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">unique_states</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Should have multiple machine states&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Multiple machine states: </span><span class="si">{</span><span class="n">unique_states</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check we have downtime events</span>
+    <span class="k">if</span> <span class="s2">&quot;DowntimeReason&quot;</span> <span class="ow">in</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">downtime_events</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;DowntimeReason&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">downtime_events</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Should have downtime events&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Downtime events present: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">downtime_events</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Realistic patterns test passed!&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Run main integration test</span>
+        <span class="n">mes_df</span><span class="p">,</span> <span class="n">overall_kpis</span> <span class="o">=</span> <span class="n">run_full_integration_test</span><span class="p">()</span>
+
+        <span class="c1"># Run pattern validation</span>
+        <span class="n">test_realistic_patterns</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 5 INTEGRATION TEST COMPLETE! ✓&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Summary:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> MES records&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Overall OEE: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Total Production: </span><span class="si">{</span><span class="n">overall_kpis</span><span class="p">[</span><span class="s1">&#39;total_good_units&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> units&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Files created:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    • mes_output_integration.csv&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    • integration_report.json&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The ontology-driven virtual twin successfully generates&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MES data matching the expected format with realistic patterns!&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ Integration test failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

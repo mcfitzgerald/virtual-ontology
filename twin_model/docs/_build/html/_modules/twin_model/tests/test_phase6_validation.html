@@ -1,0 +1,872 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_phase6_validation &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_phase6_validation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.tests.test_phase6_validation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Phase 6: Statistical Validation and Documentation.</span>
+
+<span class="sd">This module validates that the ontology-driven virtual twin generates</span>
+<span class="sd">statistically realistic MES data matching the reference patterns.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.model_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.transduction.mes_transducer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MESTransducer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProductionOrder</span>
+
+
+<div class="viewcode-block" id="StatisticalValidator">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.StatisticalValidator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StatisticalValidator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validates generated MES data against reference patterns.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StatisticalValidator.__init__">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.StatisticalValidator.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize validator with reference data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            reference_path: Path to reference MES CSV</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">reference_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference_stats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_reference_stats</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_reference_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate statistical metrics from reference data.&quot;&quot;&quot;</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span>
+                <span class="s2">&quot;median&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">(),</span>
+                <span class="s2">&quot;q25&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.25</span><span class="p">),</span>
+                <span class="s2">&quot;q75&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.75</span><span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;availability&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;Availability_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;Availability_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;performance&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;Performance_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;Performance_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;Quality_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;Quality_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;scrap_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_scrap_rate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">),</span>
+            <span class="s2">&quot;downtime_distribution&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_downtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">),</span>
+            <span class="s2">&quot;production_variance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_production_variance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">stats</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_scrap_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate overall scrap rate.&quot;&quot;&quot;</span>
+        <span class="n">total_good</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">total_scrap</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">total_good</span> <span class="o">+</span> <span class="n">total_scrap</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">total_scrap</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_downtime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze downtime distribution.&quot;&quot;&quot;</span>
+        <span class="n">downtime_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Stopped&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">downtime_df</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="n">reasons</span> <span class="o">=</span> <span class="n">downtime_df</span><span class="p">[</span><span class="s2">&quot;DowntimeReason&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reasons</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_production_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze production variance by equipment type.&quot;&quot;&quot;</span>
+        <span class="n">variance</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">eq_type</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;EquipmentType&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">eq_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;EquipmentType&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">eq_type</span><span class="p">]</span>
+            <span class="n">variance</span><span class="p">[</span><span class="n">eq_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;mean_production&quot;</span><span class="p">:</span> <span class="n">eq_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                <span class="s2">&quot;std_production&quot;</span><span class="p">:</span> <span class="n">eq_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span>
+                <span class="s2">&quot;cv&quot;</span><span class="p">:</span> <span class="n">eq_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+                <span class="o">/</span> <span class="n">eq_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">eq_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">return</span> <span class="n">variance</span>
+
+<div class="viewcode-block" id="StatisticalValidator.validate">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.StatisticalValidator.validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">generated_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate generated data against reference.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            generated_df: Generated MES DataFrame</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Validation results with statistical tests</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># 1. Structure validation</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_structure</span><span class="p">(</span><span class="n">generated_df</span><span class="p">)</span>
+
+        <span class="c1"># 2. OEE distribution validation</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;oee_distribution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_oee_distribution</span><span class="p">(</span><span class="n">generated_df</span><span class="p">)</span>
+
+        <span class="c1"># 3. Scrap rate validation</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;scrap_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_scrap_rate</span><span class="p">(</span><span class="n">generated_df</span><span class="p">)</span>
+
+        <span class="c1"># 4. Production patterns validation</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;production_patterns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_production_patterns</span><span class="p">(</span>
+            <span class="n">generated_df</span>
+        <span class="p">)</span>
+
+        <span class="c1"># 5. Statistical tests</span>
+        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;statistical_tests&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_statistical_tests</span><span class="p">(</span><span class="n">generated_df</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate data structure.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;columns_match&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span>
+            <span class="s2">&quot;has_data&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;has_all_lines&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;LineID&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;has_all_equipment_types&quot;</span><span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;Filler&quot;</span><span class="p">,</span> <span class="s2">&quot;Packer&quot;</span><span class="p">,</span> <span class="s2">&quot;Palletizer&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span>
+                <span class="nb">set</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;EquipmentType&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+            <span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_oee_distribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate OEE distribution matches reference.&quot;&quot;&quot;</span>
+        <span class="n">gen_oee</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span>
+        <span class="n">ref_oee</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_stats</span><span class="p">[</span><span class="s2">&quot;oee&quot;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;mean_difference&quot;</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gen_oee</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">-</span> <span class="n">ref_oee</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]),</span>
+            <span class="s2">&quot;within_1_std&quot;</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gen_oee</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">-</span> <span class="n">ref_oee</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">ref_oee</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;within_2_std&quot;</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gen_oee</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">-</span> <span class="n">ref_oee</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ref_oee</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;generated_mean&quot;</span><span class="p">:</span> <span class="n">gen_oee</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+            <span class="s2">&quot;reference_mean&quot;</span><span class="p">:</span> <span class="n">ref_oee</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;generated_std&quot;</span><span class="p">:</span> <span class="n">gen_oee</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span>
+            <span class="s2">&quot;reference_std&quot;</span><span class="p">:</span> <span class="n">ref_oee</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_scrap_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate scrap rate.&quot;&quot;&quot;</span>
+        <span class="n">gen_scrap_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_scrap_rate</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">ref_scrap_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_stats</span><span class="p">[</span><span class="s2">&quot;scrap_rate&quot;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;generated&quot;</span><span class="p">:</span> <span class="n">gen_scrap_rate</span><span class="p">,</span>
+            <span class="s2">&quot;reference&quot;</span><span class="p">:</span> <span class="n">ref_scrap_rate</span><span class="p">,</span>
+            <span class="s2">&quot;difference&quot;</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gen_scrap_rate</span> <span class="o">-</span> <span class="n">ref_scrap_rate</span><span class="p">),</span>
+            <span class="s2">&quot;within_tolerance&quot;</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">gen_scrap_rate</span> <span class="o">-</span> <span class="n">ref_scrap_rate</span><span class="p">)</span>
+            <span class="o">&lt;</span> <span class="mi">5</span><span class="p">,</span>  <span class="c1"># 5% tolerance</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_production_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate production patterns.&quot;&quot;&quot;</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Check for realistic variations</span>
+        <span class="n">patterns</span><span class="p">[</span><span class="s2">&quot;has_downtime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Stopped&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+        <span class="n">patterns</span><span class="p">[</span><span class="s2">&quot;has_quality_issues&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">patterns</span><span class="p">[</span><span class="s2">&quot;has_performance_variation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Performance_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">5</span>
+
+        <span class="c1"># Check state distribution</span>
+        <span class="n">state_dist</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">patterns</span><span class="p">[</span><span class="s2">&quot;running_percentage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state_dist</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Running&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="n">patterns</span><span class="p">[</span><span class="s2">&quot;stopped_percentage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state_dist</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Stopped&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+
+        <span class="k">return</span> <span class="n">patterns</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_statistical_tests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run statistical tests comparing distributions.&quot;&quot;&quot;</span>
+        <span class="n">tests</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Kolmogorov-Smirnov test for OEE distribution</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ks_stat</span><span class="p">,</span> <span class="n">ks_pvalue</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">ks_2samp</span><span class="p">(</span>
+                <span class="n">df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">tests</span><span class="p">[</span><span class="s2">&quot;ks_test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;statistic&quot;</span><span class="p">:</span> <span class="n">ks_stat</span><span class="p">,</span>
+                <span class="s2">&quot;p_value&quot;</span><span class="p">:</span> <span class="n">ks_pvalue</span><span class="p">,</span>
+                <span class="s2">&quot;similar_distribution&quot;</span><span class="p">:</span> <span class="n">ks_pvalue</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="c1"># Chi-square test for machine status distribution</span>
+        <span class="n">gen_status</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+        <span class="n">ref_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+
+        <span class="c1"># Align categories</span>
+        <span class="n">all_status</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">gen_status</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">ref_status</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">gen_aligned</span> <span class="o">=</span> <span class="p">[</span><span class="n">gen_status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">all_status</span><span class="p">]</span>
+        <span class="n">ref_aligned</span> <span class="o">=</span> <span class="p">[</span><span class="n">ref_status</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">all_status</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gen_aligned</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ref_aligned</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">chi2</span><span class="p">,</span> <span class="n">chi_pvalue</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">chisquare</span><span class="p">(</span>
+                <span class="n">gen_aligned</span><span class="p">,</span>
+                <span class="n">f_exp</span><span class="o">=</span><span class="p">[</span><span class="n">x</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="n">gen_aligned</span><span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ref_aligned</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">ref_aligned</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">tests</span><span class="p">[</span><span class="s2">&quot;chi_square&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;statistic&quot;</span><span class="p">:</span> <span class="n">chi2</span><span class="p">,</span>
+                <span class="s2">&quot;p_value&quot;</span><span class="p">:</span> <span class="n">chi_pvalue</span><span class="p">,</span>
+                <span class="s2">&quot;similar_distribution&quot;</span><span class="p">:</span> <span class="n">chi_pvalue</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">tests</span>
+
+<div class="viewcode-block" id="StatisticalValidator.generate_report">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.StatisticalValidator.generate_report">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">validation_results</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate validation report.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            validation_results: Results from validate()</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Formatted report string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;STATISTICAL VALIDATION REPORT&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Structure validation</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;1. STRUCTURE VALIDATION&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># OEE validation</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;2. OEE DISTRIBUTION&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">oee</span> <span class="o">=</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;oee_distribution&quot;</span><span class="p">]</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Generated OEE: </span><span class="si">{</span><span class="n">oee</span><span class="p">[</span><span class="s1">&#39;generated_mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% ± </span><span class="si">{</span><span class="n">oee</span><span class="p">[</span><span class="s1">&#39;generated_std&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span>
+        <span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Reference OEE: </span><span class="si">{</span><span class="n">oee</span><span class="p">[</span><span class="s1">&#39;reference_mean&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% ± </span><span class="si">{</span><span class="n">oee</span><span class="p">[</span><span class="s1">&#39;reference_std&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span>
+        <span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean difference: </span><span class="si">{</span><span class="n">oee</span><span class="p">[</span><span class="s1">&#39;mean_difference&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">oee</span><span class="p">[</span><span class="s2">&quot;within_2_std&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> Within 2 standard deviations: </span><span class="si">{</span><span class="n">oee</span><span class="p">[</span><span class="s1">&#39;within_2_std&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Scrap rate</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;3. SCRAP RATE&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">scrap</span> <span class="o">=</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;scrap_rate&quot;</span><span class="p">]</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated: </span><span class="si">{</span><span class="n">scrap</span><span class="p">[</span><span class="s1">&#39;generated&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reference: </span><span class="si">{</span><span class="n">scrap</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">scrap</span><span class="p">[</span><span class="s2">&quot;within_tolerance&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> Within tolerance (5%): </span><span class="si">{</span><span class="n">scrap</span><span class="p">[</span><span class="s1">&#39;within_tolerance&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Production patterns</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;4. PRODUCTION PATTERNS&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">patterns</span> <span class="o">=</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;production_patterns&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Statistical tests</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;5. STATISTICAL TESTS&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">tests</span> <span class="o">=</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;statistical_tests&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;ks_test&quot;</span> <span class="ow">in</span> <span class="n">tests</span><span class="p">:</span>
+            <span class="n">ks</span> <span class="o">=</span> <span class="n">tests</span><span class="p">[</span><span class="s2">&quot;ks_test&quot;</span><span class="p">]</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">ks</span><span class="p">[</span><span class="s2">&quot;similar_distribution&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Kolmogorov-Smirnov Test:&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> Similar distribution (p&gt;</span><span class="si">{</span><span class="mf">0.05</span><span class="si">}</span><span class="s2">): p=</span><span class="si">{</span><span class="n">ks</span><span class="p">[</span><span class="s1">&#39;p_value&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;chi_square&quot;</span> <span class="ow">in</span> <span class="n">tests</span><span class="p">:</span>
+            <span class="n">chi</span> <span class="o">=</span> <span class="n">tests</span><span class="p">[</span><span class="s2">&quot;chi_square&quot;</span><span class="p">]</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;✓&quot;</span> <span class="k">if</span> <span class="n">chi</span><span class="p">[</span><span class="s2">&quot;similar_distribution&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;✗&quot;</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Chi-Square Test (Machine Status):&quot;</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2"> Similar distribution (p&gt;</span><span class="si">{</span><span class="mf">0.05</span><span class="si">}</span><span class="s2">): p=</span><span class="si">{</span><span class="n">chi</span><span class="p">[</span><span class="s1">&#39;p_value&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Overall assessment</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;OVERALL ASSESSMENT&quot;</span><span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
+
+        <span class="c1"># Count passes</span>
+        <span class="n">passes</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;structure&quot;</span><span class="p">][</span><span class="s2">&quot;columns_match&quot;</span><span class="p">]:</span>
+            <span class="n">passes</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;oee_distribution&quot;</span><span class="p">][</span><span class="s2">&quot;within_2_std&quot;</span><span class="p">]:</span>
+            <span class="n">passes</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;scrap_rate&quot;</span><span class="p">][</span><span class="s2">&quot;within_tolerance&quot;</span><span class="p">]:</span>
+            <span class="n">passes</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">validation_results</span><span class="p">[</span><span class="s2">&quot;production_patterns&quot;</span><span class="p">][</span><span class="s2">&quot;has_downtime&quot;</span><span class="p">]:</span>
+            <span class="n">passes</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">success_rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">passes</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation Score: </span><span class="si">{</span><span class="n">passes</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">success_rate</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">success_rate</span> <span class="o">&gt;=</span> <span class="mi">75</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;✓ VALIDATION PASSED&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;✗ VALIDATION FAILED - Tuning required&quot;</span><span class="p">)</span>
+
+        <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">report</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="tune_parameters_for_target_oee">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.tune_parameters_for_target_oee">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tune_parameters_for_target_oee</span><span class="p">(</span><span class="n">target_oee</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">65.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tune simulation parameters to achieve target OEE.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        target_oee: Target OEE percentage</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuned parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tuning parameters for target OEE: </span><span class="si">{</span><span class="n">target_oee</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Calculate required component scores for target OEE</span>
+    <span class="c1"># OEE = Availability × Performance × Quality</span>
+    <span class="c1"># For 65% OEE, we might target: 85% × 85% × 90% ≈ 65%</span>
+
+    <span class="n">target_availability</span> <span class="o">=</span> <span class="mf">85.0</span>
+    <span class="n">target_performance</span> <span class="o">=</span> <span class="mf">85.0</span>
+    <span class="n">target_quality</span> <span class="o">=</span> <span class="mf">90.0</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Target components:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Availability: </span><span class="si">{</span><span class="n">target_availability</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Performance: </span><span class="si">{</span><span class="n">target_performance</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Quality: </span><span class="si">{</span><span class="n">target_quality</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Calculate required parameters</span>
+    <span class="n">tuned_params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;equipment&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;mtbf&quot;</span><span class="p">:</span> <span class="mi">480</span><span class="p">,</span>  <span class="c1"># Mean time between failures (minutes)</span>
+            <span class="s2">&quot;mttr&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>  <span class="c1"># Mean time to repair (minutes)</span>
+            <span class="s2">&quot;base_rate&quot;</span><span class="p">:</span> <span class="mi">70</span><span class="p">,</span>  <span class="c1"># Units per minute when running</span>
+            <span class="s2">&quot;quality_rate&quot;</span><span class="p">:</span> <span class="n">target_quality</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s2">&quot;performance_factors&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;shift_1&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;shift_2&quot;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span> <span class="s2">&quot;shift_3&quot;</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">},</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;downtime&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;failure_probability&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span>  <span class="c1"># 2% chance per hour</span>
+            <span class="s2">&quot;average_duration&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>  <span class="c1"># Minutes</span>
+            <span class="s2">&quot;reasons&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;UNP-MECH&quot;</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span>
+                <span class="s2">&quot;UNP-JAM&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span>
+                <span class="s2">&quot;UNP-SENS&quot;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span>
+                <span class="s2">&quot;UNP-QC&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+                <span class="s2">&quot;UNP-OPR&quot;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;production&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;changeover_time&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>  <span class="c1"># Minutes</span>
+            <span class="s2">&quot;buffer_sizes&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;intermediate&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tuned parameters calculated.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tuned_params</span></div>
+
+
+
+<div class="viewcode-block" id="apply_tuned_parameters">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.apply_tuned_parameters">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_tuned_parameters</span><span class="p">(</span><span class="n">manifest_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">tuned_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply tuned parameters to manifests.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        manifest_dir: Directory containing manifests</span>
+<span class="sd">        tuned_params: Tuned parameter values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Applying tuned parameters to manifests...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Update equipment manifest</span>
+    <span class="n">equipment_manifest_path</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;equipment_manifest.yaml&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">equipment_manifest_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">equipment_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Apply tuned equipment parameters</span>
+    <span class="k">for</span> <span class="n">eq_id</span><span class="p">,</span> <span class="n">eq_data</span> <span class="ow">in</span> <span class="n">equipment_manifest</span><span class="p">[</span><span class="s2">&quot;equipment&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">eq_data</span><span class="p">[</span><span class="s2">&quot;base_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuned_params</span><span class="p">[</span><span class="s2">&quot;equipment&quot;</span><span class="p">][</span><span class="s2">&quot;base_rate&quot;</span><span class="p">]</span>
+        <span class="n">eq_data</span><span class="p">[</span><span class="s2">&quot;mtbf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuned_params</span><span class="p">[</span><span class="s2">&quot;equipment&quot;</span><span class="p">][</span><span class="s2">&quot;mtbf&quot;</span><span class="p">]</span>
+        <span class="n">eq_data</span><span class="p">[</span><span class="s2">&quot;mttr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuned_params</span><span class="p">[</span><span class="s2">&quot;equipment&quot;</span><span class="p">][</span><span class="s2">&quot;mttr&quot;</span><span class="p">]</span>
+        <span class="n">eq_data</span><span class="p">[</span><span class="s2">&quot;quality_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tuned_params</span><span class="p">[</span><span class="s2">&quot;equipment&quot;</span><span class="p">][</span><span class="s2">&quot;quality_rate&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Save updated manifest</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">equipment_manifest_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">equipment_manifest</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Equipment manifest updated with tuned parameters&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_tuned_simulation">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.run_tuned_simulation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_tuned_simulation</span><span class="p">(</span><span class="n">duration_hours</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run simulation with tuned parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        duration_hours: Simulation duration in hours</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Generated MES DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Running tuned simulation for </span><span class="si">{</span><span class="n">duration_hours</span><span class="si">}</span><span class="s2"> hours...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="c1"># Setup simulation</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+    <span class="n">ontology_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">)</span>
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build model</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span><span class="n">ontology_path</span><span class="p">,</span> <span class="n">manifest_dir</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="c1"># Load and schedule production orders</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">prod_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">simulation_minutes</span> <span class="o">=</span> <span class="n">duration_hours</span> <span class="o">*</span> <span class="mi">60</span>
+    <span class="n">scheduled_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">order_data</span> <span class="ow">in</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;production_orders&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">simulation_minutes</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">ProductionOrder</span><span class="p">(</span>
+                <span class="n">order_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;order_id&quot;</span><span class="p">],</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;product_id&quot;</span><span class="p">],</span>
+                <span class="n">target_quantity</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;target_quantity&quot;</span><span class="p">],</span>
+                <span class="n">due_time</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span>
+                    <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">],</span>
+                    <span class="n">simulation_minutes</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;line_id&quot;</span><span class="p">],</span>
+                <span class="n">priority</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;priority&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]:</span>
+                <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">add_order</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+            <span class="n">scheduled_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Scheduled </span><span class="si">{</span><span class="n">scheduled_count</span><span class="si">}</span><span class="s2"> production orders&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Run simulation</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">simulation_minutes</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Simulation completed at t=</span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Collect observables</span>
+    <span class="n">all_observables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s2">&quot;observables&quot;</span><span class="p">):</span>
+            <span class="n">all_observables</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">primitive</span><span class="o">.</span><span class="n">observables</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Collected </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_observables</span><span class="p">)</span><span class="si">}</span><span class="s2"> observables&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Convert to MES format</span>
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">(</span><span class="n">time_bucket</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="n">manifests</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">manifest_name</span><span class="p">,</span> <span class="n">manifest_data</span> <span class="ow">in</span> <span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;equipment&quot;</span> <span class="ow">in</span> <span class="n">manifest_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">manifests</span><span class="p">[</span><span class="s2">&quot;equipment_manifest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest_data</span>
+            <span class="k">elif</span> <span class="s2">&quot;production&quot;</span> <span class="ow">in</span> <span class="n">manifest_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">manifests</span><span class="p">[</span><span class="s2">&quot;production_manifest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest_data</span>
+
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">process_observables</span><span class="p">(</span><span class="n">all_observables</span><span class="p">,</span> <span class="n">manifests</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> MES records&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Calculate achieved OEE</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">achieved_oee</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Achieved OEE: </span><span class="si">{</span><span class="n">achieved_oee</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mes_df</span></div>
+
+
+
+<div class="viewcode-block" id="generate_documentation">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase6_validation.html#twin_model.tests.test_phase6_validation.generate_documentation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_documentation</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate comprehensive documentation.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Generating documentation...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+
+    <span class="n">doc_content</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;# Ontology-Driven Virtual Twin System</span>
+
+<span class="s2">## Overview</span>
+<span class="s2">This system implements an ontology-driven virtual twin that generates synthetic MES (Manufacturing Execution System) data matching real production patterns.</span>
+
+<span class="s2">## Architecture</span>
+
+<span class="s2">### 1. Ontology Layer (`ontology/twin_ontology.yaml`)</span>
+<span class="s2">- Defines system structure using TBox (terminology) and RBox (relationships)</span>
+<span class="s2">- No hardcoded values - pure structural definition</span>
+<span class="s2">- Key entities: Equipment, Buffer, Source, Sink, Product, ProductionOrder</span>
+
+<span class="s2">### 2. Primitives Layer (`twin_model/primitives/`)</span>
+<span class="s2">- **BasePrimitive**: Foundation class with observable emission</span>
+<span class="s2">- **Equipment**: Production equipment with states, failures, OEE tracking</span>
+<span class="s2">- **Buffer**: Material storage with FIFO/LIFO support</span>
+<span class="s2">- **Source**: Material generation with various patterns</span>
+<span class="s2">- **Sink**: Material consumption and disposal</span>
+<span class="s2">- **Scheduler**: Production order management</span>
+<span class="s2">- **Monitor**: System monitoring and alerting</span>
+
+<span class="s2">### 3. Model Builder (`twin_model/model_builder.py`)</span>
+<span class="s2">- Interprets ontology to build SimPy simulation models</span>
+<span class="s2">- Wires relationships between primitives</span>
+<span class="s2">- Creates production lines from equipment chains</span>
+
+<span class="s2">### 4. Manifests (`manifests/`)</span>
+<span class="s2">- **production_manifest.yaml**: Products, orders, schedules</span>
+<span class="s2">- **equipment_manifest.yaml**: Equipment configurations, failure patterns</span>
+
+<span class="s2">### 5. Transduction Layer (`twin_model/transduction/`)</span>
+<span class="s2">- Converts rich SimPy observables to MES format</span>
+<span class="s2">- Extracts MES-visible subset of events</span>
+<span class="s2">- Calculates KPIs (OEE, Availability, Performance, Quality)</span>
+
+<span class="s2">## Key Features</span>
+
+<span class="s2">### Discovery-Based Learning</span>
+<span class="s2">- No prescriptive cause-effect mappings</span>
+<span class="s2">- LLM discovers relationships through observation</span>
+<span class="s2">- Rich observables enable pattern discovery</span>
+
+<span class="s2">### Separation of Concerns</span>
+<span class="s2">- Structure (ontology) vs Configuration (manifests)</span>
+<span class="s2">- Generic primitives as building blocks</span>
+<span class="s2">- Controllable parameters without prescribed effects</span>
+
+<span class="s2">### Realistic Production Patterns</span>
+<span class="s2">- 6 product SKUs across 3 families</span>
+<span class="s2">- 3 production lines with 9 equipment</span>
+<span class="s2">- 8 downtime reason codes</span>
+<span class="s2">- Shift-based performance variations</span>
+<span class="s2">- Product-specific changeover times</span>
+
+<span class="s2">## Usage</span>
+
+<span class="s2">### Basic Simulation</span>
+<span class="s2">```python</span>
+<span class="s2">from twin_model.model_builder import OntologyDrivenModelBuilder</span>
+<span class="s2">from twin_model.transduction.mes_transducer import MESTransducer</span>
+
+<span class="s2"># Build model</span>
+<span class="s2">builder = OntologyDrivenModelBuilder(&#39;ontology/twin_ontology.yaml&#39;, &#39;manifests/&#39;)</span>
+<span class="s2">model = builder.build_model(env)</span>
+
+<span class="s2"># Run simulation</span>
+<span class="s2">env.run(until=480)  # 8 hours</span>
+
+<span class="s2"># Generate MES data</span>
+<span class="s2">transducer = MESTransducer()</span>
+<span class="s2">mes_df = transducer.process_observables(observables, manifests)</span>
+<span class="s2">```</span>
+
+<span class="s2">### Testing</span>
+<span class="s2">- `test_phase1_*.py`: Primitive validation</span>
+<span class="s2">- `test_phase2_*.py`: Model builder validation  </span>
+<span class="s2">- `test_phase3_*.py`: Manifest validation</span>
+<span class="s2">- `test_phase4_*.py`: Transduction validation</span>
+<span class="s2">- `test_phase5_*.py`: Integration testing</span>
+<span class="s2">- `test_phase6_*.py`: Statistical validation</span>
+
+<span class="s2">## Output Format</span>
+<span class="s2">Generates CSV matching `mes_data_with_kpis.csv`:</span>
+<span class="s2">- Timestamp, ProductionOrderID, LineID, EquipmentID</span>
+<span class="s2">- ProductID, ProductName, MachineStatus, DowntimeReason</span>
+<span class="s2">- GoodUnitsProduced, ScrapUnitsProduced</span>
+<span class="s2">- OEE_Score, Availability_Score, Performance_Score, Quality_Score</span>
+<span class="s2">- Energy_Consumption_kWh</span>
+
+<span class="s2">## Performance Metrics</span>
+<span class="s2">- Target OEE: 65% (85% Availability × 85% Performance × 90% Quality)</span>
+<span class="s2">- Scrap Rate: 1-3% typical</span>
+<span class="s2">- Downtime: 15</span><span class="si">% o</span><span class="s2">f production time</span>
+<span class="s2">- Changeover: 15-45 minutes depending on product family</span>
+
+<span class="s2">## Future Enhancements</span>
+<span class="s2">1. Multi-line coordination</span>
+<span class="s2">2. Predictive maintenance patterns</span>
+<span class="s2">3. Supply chain integration</span>
+<span class="s2">4. Energy optimization</span>
+<span class="s2">5. Real-time adaptation</span>
+
+<span class="s2">## References</span>
+<span class="s2">- SimPy Documentation: https://simpy.readthedocs.io/</span>
+<span class="s2">- OEE Standards: https://www.oee.com/</span>
+<span class="s2">- ISA-95 MES Standards</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="c1"># Save documentation</span>
+    <span class="n">doc_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;SYSTEM_DOCUMENTATION.md&quot;</span><span class="p">)</span>
+    <span class="n">doc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">doc_content</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Documentation saved to </span><span class="si">{</span><span class="n">doc_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Generate API documentation</span>
+    <span class="n">api_doc</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;# API Reference</span>
+
+<span class="s2">## Primitives</span>
+
+<span class="s2">### BasePrimitive</span>
+<span class="s2">Base class for all simulation primitives.</span>
+
+<span class="s2">**Methods:**</span>
+<span class="s2">- `start()`: Start the primitive&#39;s processes</span>
+<span class="s2">- `emit_observable(event_type, details, severity)`: Emit observable event</span>
+<span class="s2">- `stop()`: Stop the primitive</span>
+
+<span class="s2">### Equipment</span>
+<span class="s2">Production equipment with state management.</span>
+
+<span class="s2">**States:**</span>
+<span class="s2">- IDLE, RUNNING, STOPPED_FAILURE, STOPPED_MATERIAL, STARVED, BLOCKED, CHANGEOVER, MAINTENANCE</span>
+
+<span class="s2">**Methods:**</span>
+<span class="s2">- `process_unit()`: Process single unit</span>
+<span class="s2">- `configure_for_product(product_id, order_id)`: Configure for product</span>
+<span class="s2">- `perform_changeover(new_product)`: Execute changeover</span>
+
+<span class="s2">### Buffer</span>
+<span class="s2">Material storage primitive.</span>
+
+<span class="s2">**Methods:**</span>
+<span class="s2">- `put(quantity, product_id)`: Add items to buffer</span>
+<span class="s2">- `get(quantity)`: Remove items from buffer</span>
+<span class="s2">- `peek()`: Check next item without removing</span>
+
+<span class="s2">## Transduction</span>
+
+<span class="s2">### MESTransducer</span>
+<span class="s2">Converts observables to MES format.</span>
+
+<span class="s2">**Methods:**</span>
+<span class="s2">- `process_observables(observables, manifests)`: Convert to MES DataFrame</span>
+<span class="s2">- `save_to_csv(df, filepath)`: Save MES data</span>
+<span class="s2">- `generate_summary_statistics(df)`: Calculate summary stats</span>
+
+<span class="s2">## Model Builder</span>
+
+<span class="s2">### OntologyDrivenModelBuilder</span>
+<span class="s2">Builds simulation models from ontology.</span>
+
+<span class="s2">**Methods:**</span>
+<span class="s2">- `build_model(env)`: Build complete simulation model</span>
+<span class="s2">- `load_ontology()`: Load ontology definition</span>
+<span class="s2">- `load_manifests()`: Load configuration manifests</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+    <span class="n">api_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;API_REFERENCE.md&quot;</span><span class="p">)</span>
+    <span class="n">api_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">api_doc</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ API reference saved to </span><span class="si">{</span><span class="n">api_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 6: STATISTICAL VALIDATION AND DOCUMENTATION&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+
+    <span class="c1"># Update todo</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[Phase 6.1: Statistical validation against reference data]&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load reference data</span>
+    <span class="n">reference_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;archive/misc/data/mes_data_with_kpis.csv&quot;</span><span class="p">)</span>
+    <span class="n">validator</span> <span class="o">=</span> <span class="n">StatisticalValidator</span><span class="p">(</span><span class="n">reference_path</span><span class="p">)</span>
+
+    <span class="c1"># Load generated data from Phase 5</span>
+    <span class="n">generated_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;mes_output_integration.csv&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">generated_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">generated_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">generated_path</span><span class="p">)</span>
+
+        <span class="c1"># Run validation</span>
+        <span class="n">validation_results</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">generated_df</span><span class="p">)</span>
+
+        <span class="c1"># Generate report</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="n">validation_results</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">report</span><span class="p">)</span>
+
+        <span class="c1"># Save report</span>
+        <span class="n">report_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;validation_report.txt&quot;</span><span class="p">)</span>
+        <span class="n">report_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Validation report saved to </span><span class="si">{</span><span class="n">report_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Phase 6.2: Parameter tuning</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[Phase 6.2: Parameter tuning for target OEE]&quot;</span><span class="p">)</span>
+
+    <span class="n">tuned_params</span> <span class="o">=</span> <span class="n">tune_parameters_for_target_oee</span><span class="p">(</span><span class="n">target_oee</span><span class="o">=</span><span class="mf">65.0</span><span class="p">)</span>
+
+    <span class="c1"># Save tuned parameters</span>
+    <span class="n">params_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;tuned_parameters.json&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">params_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">tuned_params</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tuned parameters saved to </span><span class="si">{</span><span class="n">params_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Apply tuned parameters and run simulation</span>
+    <span class="n">apply_tuned_parameters</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">),</span> <span class="n">tuned_params</span><span class="p">)</span>
+
+    <span class="c1"># Run tuned simulation</span>
+    <span class="n">tuned_df</span> <span class="o">=</span> <span class="n">run_tuned_simulation</span><span class="p">(</span><span class="n">duration_hours</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="c1"># Save tuned results</span>
+    <span class="n">tuned_output_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;mes_output_tuned.csv&quot;</span><span class="p">)</span>
+    <span class="n">tuned_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">tuned_output_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Tuned MES data saved to </span><span class="si">{</span><span class="n">tuned_output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Validate tuned results</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tuned_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">tuned_validation</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">tuned_df</span><span class="p">)</span>
+        <span class="n">tuned_report</span> <span class="o">=</span> <span class="n">validator</span><span class="o">.</span><span class="n">generate_report</span><span class="p">(</span><span class="n">tuned_validation</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">TUNED SIMULATION VALIDATION:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">tuned_report</span><span class="p">)</span>
+
+    <span class="c1"># Phase 6.3: Generate documentation</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[Phase 6.3: Generate comprehensive documentation]&quot;</span><span class="p">)</span>
+    <span class="n">generate_documentation</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 6 COMPLETE! ✓&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">80</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Deliverables:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  1. Statistical validation report&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  2. Tuned parameters for target OEE&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  3. System documentation&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  4. API reference&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The ontology-driven virtual twin is fully validated and documented!&quot;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

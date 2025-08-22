@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.manager &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">database.manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for database.manager</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Database manager using SQLModel with YAML ontologies&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">SQLModel</span><span class="p">,</span> <span class="n">Session</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="TwinDatabaseManager">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TwinDatabaseManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manage twin database with YAML ontologies&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">db_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">ontology_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">manifest_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        
+        <span class="c1"># Database setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_path</span> <span class="o">=</span> <span class="n">db_path</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/twin_database.db&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Ensure database directory exists</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;sqlite:///</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_url</span><span class="p">,</span>
+            <span class="n">connect_args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_same_thread&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># YAML file paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ontology_path</span> <span class="o">=</span> <span class="n">ontology_path</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests/&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Cache for YAML data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ontology_cache</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_manifest_cache</span> <span class="o">=</span> <span class="p">{}</span>
+        
+<div class="viewcode-block" id="TwinDatabaseManager.create_all_tables">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager.create_all_tables">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_all_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create all database tables&quot;&quot;&quot;</span>
+        <span class="n">SQLModel</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Created tables in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="TwinDatabaseManager.load_ontology">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager.load_ontology">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_ontology</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load ontology from YAML file (cached)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ontology_cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ontology_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ontology_cache</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ontology_cache</span></div>
+
+    
+<div class="viewcode-block" id="TwinDatabaseManager.load_manifest">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager.load_manifest">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_manifest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manifest_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load manifest from YAML file (cached)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">manifest_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manifest_cache</span><span class="p">:</span>
+            <span class="n">manifest_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manifest_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">manifest_name</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_manifest_cache</span><span class="p">[</span><span class="n">manifest_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_manifest_cache</span><span class="p">[</span><span class="n">manifest_name</span><span class="p">]</span></div>
+
+    
+<div class="viewcode-block" id="TwinDatabaseManager.import_historical_data">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager.import_historical_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">import_historical_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Import historical MES data from CSV&quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="c1"># Check if already imported</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">HistoricalMESData</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Historical data already imported&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+            
+            <span class="c1"># Import records</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="n">record</span> <span class="o">=</span> <span class="n">HistoricalMESData</span><span class="p">(</span>
+                    <span class="n">timestamp</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Timestamp&#39;</span><span class="p">]),</span>
+                    <span class="n">production_order_id</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ProductionOrderID&#39;</span><span class="p">),</span>
+                    <span class="n">line_id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;LineID&#39;</span><span class="p">]),</span>
+                    <span class="n">equipment_id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;EquipmentID&#39;</span><span class="p">],</span>
+                    <span class="n">equipment_type</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;EquipmentType&#39;</span><span class="p">],</span>
+                    <span class="n">product_id</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ProductID&#39;</span><span class="p">),</span>
+                    <span class="n">product_name</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ProductName&#39;</span><span class="p">),</span>
+                    <span class="n">machine_status</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;MachineStatus&#39;</span><span class="p">],</span>
+                    <span class="n">downtime_reason</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;DowntimeReason&#39;</span><span class="p">),</span>
+                    <span class="n">good_units_produced</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;GoodUnitsProduced&#39;</span><span class="p">]),</span>
+                    <span class="n">scrap_units_produced</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;ScrapUnitsProduced&#39;</span><span class="p">]),</span>
+                    <span class="n">target_rate_units_per_5min</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;TargetRate_units_per_5min&#39;</span><span class="p">]),</span>
+                    <span class="n">standard_cost_per_unit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;StandardCost_per_unit&#39;</span><span class="p">]),</span>
+                    <span class="n">sale_price_per_unit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;SalePrice_per_unit&#39;</span><span class="p">]),</span>
+                    <span class="n">availability_score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Availability_Score&#39;</span><span class="p">]),</span>
+                    <span class="n">performance_score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Performance_Score&#39;</span><span class="p">]),</span>
+                    <span class="n">quality_score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;Quality_Score&#39;</span><span class="p">]),</span>
+                    <span class="n">oee_score</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;OEE_Score&#39;</span><span class="p">]),</span>
+                    <span class="n">energy_consumption_kwh</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Energy_Consumption_kWh&#39;</span><span class="p">),</span>
+                    <span class="n">source</span><span class="o">=</span><span class="s2">&quot;historical&quot;</span>
+                <span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+            
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Imported </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2"> historical records&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="TwinDatabaseManager.sync_configurations_from_manifests">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager.sync_configurations_from_manifests">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sync_configurations_from_manifests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sync equipment and product configs from manifest YAMLs&quot;&quot;&quot;</span>
+        
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="c1"># Load and sync equipment manifest</span>
+            <span class="n">equipment_manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_manifest</span><span class="p">(</span><span class="s2">&quot;equipment_manifest&quot;</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">eq_id</span><span class="p">,</span> <span class="n">eq_data</span> <span class="ow">in</span> <span class="n">equipment_manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;equipment&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Check if exists</span>
+                <span class="n">existing</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">EquipmentConfig</span><span class="p">,</span> <span class="n">eq_id</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="n">existing</span><span class="p">:</span>
+                    <span class="c1"># Update existing - skip computed properties</span>
+                    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">eq_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="c1"># Skip properties that are computed from JSON fields</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;failure_patterns&#39;</span><span class="p">,</span> <span class="s1">&#39;performance_by_product&#39;</span><span class="p">]:</span>
+                            <span class="k">continue</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="nb">setattr</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                                <span class="c1"># Skip read-only properties</span>
+                                <span class="k">pass</span>
+                    <span class="n">existing</span><span class="o">.</span><span class="n">updated_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Create new</span>
+                    <span class="n">config</span> <span class="o">=</span> <span class="n">EquipmentConfig</span><span class="p">(</span>
+                        <span class="n">equipment_id</span><span class="o">=</span><span class="n">eq_id</span><span class="p">,</span>
+                        <span class="n">equipment_type</span><span class="o">=</span><span class="n">eq_data</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+                        <span class="n">line_id</span><span class="o">=</span><span class="n">eq_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="s1">&#39;LINE1&#39;</span><span class="p">),</span>
+                        <span class="n">position</span><span class="o">=</span><span class="n">eq_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;position&#39;</span><span class="p">),</span>
+                        <span class="n">base_rate</span><span class="o">=</span><span class="n">eq_data</span><span class="p">[</span><span class="s1">&#39;base_rate&#39;</span><span class="p">],</span>
+                        <span class="n">mtbf</span><span class="o">=</span><span class="n">eq_data</span><span class="p">[</span><span class="s1">&#39;mtbf&#39;</span><span class="p">],</span>
+                        <span class="n">mttr</span><span class="o">=</span><span class="n">eq_data</span><span class="p">[</span><span class="s1">&#39;mttr&#39;</span><span class="p">],</span>
+                        <span class="n">energy_consumption_rate</span><span class="o">=</span><span class="n">eq_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;energy_consumption_rate&#39;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span>
+                        <span class="n">failure_patterns_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                            <span class="n">eq_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;failure_patterns&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                        <span class="p">),</span>
+                        <span class="n">performance_by_product_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                            <span class="n">eq_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;performance_by_product&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            
+            <span class="c1"># Load and sync production manifest</span>
+            <span class="n">production_manifest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_manifest</span><span class="p">(</span><span class="s2">&quot;production_manifest&quot;</span><span class="p">)</span>
+            
+            <span class="k">for</span> <span class="n">prod_id</span><span class="p">,</span> <span class="n">prod_data</span> <span class="ow">in</span> <span class="n">production_manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;products&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">existing</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ProductConfig</span><span class="p">,</span> <span class="n">prod_id</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">existing</span><span class="p">:</span>
+                    <span class="n">config</span> <span class="o">=</span> <span class="n">ProductConfig</span><span class="p">(</span>
+                        <span class="n">product_id</span><span class="o">=</span><span class="n">prod_id</span><span class="p">,</span>
+                        <span class="n">product_name</span><span class="o">=</span><span class="n">prod_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                        <span class="n">target_rate_units_per_5min</span><span class="o">=</span><span class="n">prod_data</span><span class="p">[</span><span class="s1">&#39;target_rate_units_per_5min&#39;</span><span class="p">],</span>
+                        <span class="n">standard_cost_per_unit</span><span class="o">=</span><span class="n">prod_data</span><span class="p">[</span><span class="s1">&#39;standard_cost_per_unit&#39;</span><span class="p">],</span>
+                        <span class="n">sale_price_per_unit</span><span class="o">=</span><span class="n">prod_data</span><span class="p">[</span><span class="s1">&#39;sale_price_per_unit&#39;</span><span class="p">],</span>
+                        <span class="n">scrap_rate_normal</span><span class="o">=</span><span class="n">prod_data</span><span class="p">[</span><span class="s1">&#39;scrap_rates&#39;</span><span class="p">][</span><span class="s1">&#39;normal&#39;</span><span class="p">],</span>
+                        <span class="n">scrap_rate_startup</span><span class="o">=</span><span class="n">prod_data</span><span class="p">[</span><span class="s1">&#39;scrap_rates&#39;</span><span class="p">][</span><span class="s1">&#39;startup&#39;</span><span class="p">],</span>
+                        <span class="n">scrap_rate_quality_issue</span><span class="o">=</span><span class="n">prod_data</span><span class="p">[</span><span class="s1">&#39;scrap_rates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;quality_issue&#39;</span><span class="p">),</span>
+                        <span class="n">properties_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">prod_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;properties&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+                    <span class="p">)</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Synced configurations from manifests&quot;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="TwinDatabaseManager.get_ontology_version">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager.get_ontology_version">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ontology_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get version of current ontology&quot;&quot;&quot;</span>
+        <span class="n">ontology</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_ontology</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">ontology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;version&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="TwinDatabaseManager.get_manifest_version">
+<a class="viewcode-back" href="../../api/database/manager/index.html#database.TwinDatabaseManager.get_manifest_version">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_manifest_version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get combined version hash of manifests&quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">manifest_file</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">manifest_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.yaml&quot;</span><span class="p">)):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">combined</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">combined</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">8</span><span class="p">]</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Performance Optimization" href="performance.html" />
+    <link rel="prev" title="Quick Start Guide" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#system-design">System Design</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#core-design-principles">Core Design Principles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#component-architecture">Component Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ontology-layer">Ontology Layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#primitive-layer">Primitive Layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-builder">Model Builder</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#memory-management">Memory Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#event-processing">Event Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#storage-optimization">Storage Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-flow-architecture">Data Flow Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#event-system">Event System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#event-types">Event Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#event-structure">Event Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-system">Configuration System</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#three-level-configuration">Three-Level Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-presets">Performance Presets</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#extensibility">Extensibility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adding-new-primitives">Adding New Primitives</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#custom-transducers">Custom Transducers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-points">Integration Points</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h1>
+<section id="system-design">
+<h2>System Design<a class="headerlink" href="#system-design" title="Link to this heading"></a></h2>
+<p>The Twin Model framework follows an ontology-driven architecture that separates structure from configuration.</p>
+<section id="core-design-principles">
+<h3>Core Design Principles<a class="headerlink" href="#core-design-principles" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Separation of Concerns</strong>
+- Ontology defines structure (classes, relationships)
+- Manifests provide configuration (values, parameters)
+- Primitives implement behavior (simulation logic)</p></li>
+<li><p><strong>Discovery-Based Learning</strong>
+- No prescribed parameter-effect mappings
+- Rich observables for pattern discovery
+- Controllable parameters for experimentation</p></li>
+<li><p><strong>Event-Driven Simulation</strong>
+- All state changes emit observable events
+- Comprehensive event streams for analysis
+- Time-stamped events for reconstruction</p></li>
+</ol>
+</section>
+</section>
+<section id="component-architecture">
+<h2>Component Architecture<a class="headerlink" href="#component-architecture" title="Link to this heading"></a></h2>
+<section id="ontology-layer">
+<h3>Ontology Layer<a class="headerlink" href="#ontology-layer" title="Link to this heading"></a></h3>
+<p>The ontology (<cite>twin_ontology.yaml</cite>) defines:</p>
+<dl class="simple">
+<dt><strong>TBox (Terminological Box)</strong></dt><dd><ul class="simple">
+<li><p>Class hierarchy (Equipment, Buffer, Source, etc.)</p></li>
+<li><p>Properties for each class</p></li>
+<li><p>Primitive mappings</p></li>
+</ul>
+</dd>
+<dt><strong>RBox (Relational Box)</strong></dt><dd><ul class="simple">
+<li><p>Relationships between entities (feeds_into, draws_from)</p></li>
+<li><p>Cardinality constraints</p></li>
+<li><p>Transitive properties</p></li>
+</ul>
+</dd>
+<dt><strong>Observables</strong></dt><dd><ul class="simple">
+<li><p>Measurable properties (equipment_state, buffer_level)</p></li>
+<li><p>Aggregation methods (sum, avg, current)</p></li>
+<li><p>Event types (state_change, unit_produced)</p></li>
+</ul>
+</dd>
+<dt><strong>Controllables</strong></dt><dd><ul class="simple">
+<li><p>Adjustable parameters (performance_factor, scrap_multiplier)</p></li>
+<li><p>Bounds and defaults</p></li>
+<li><p>No prescribed effects</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="primitive-layer">
+<h3>Primitive Layer<a class="headerlink" href="#primitive-layer" title="Link to this heading"></a></h3>
+<p>Base primitives that implement simulation behavior:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BasePrimitive</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Foundation for all simulation primitives&quot;&quot;&quot;</span>
+    <span class="o">-</span> <span class="n">Event</span> <span class="n">emission</span>
+    <span class="o">-</span> <span class="n">State</span> <span class="n">management</span>
+    <span class="o">-</span> <span class="n">Observable</span> <span class="n">collection</span>
+    <span class="o">-</span> <span class="n">Performance</span> <span class="n">optimization</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EquipmentPrimitive</span><span class="p">(</span><span class="n">BasePrimitive</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manufacturing equipment simulation&quot;&quot;&quot;</span>
+    <span class="o">-</span> <span class="n">Production</span> <span class="n">processing</span>
+    <span class="o">-</span> <span class="n">Failure</span> <span class="n">modeling</span>
+    <span class="o">-</span> <span class="n">Quality</span> <span class="n">control</span>
+    <span class="o">-</span> <span class="n">Energy</span> <span class="n">consumption</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BufferPrimitive</span><span class="p">(</span><span class="n">BasePrimitive</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Material storage simulation&quot;&quot;&quot;</span>
+    <span class="o">-</span> <span class="n">FIFO</span><span class="o">/</span><span class="n">LIFO</span> <span class="n">policies</span>
+    <span class="o">-</span> <span class="n">Capacity</span> <span class="n">management</span>
+    <span class="o">-</span> <span class="n">Dwell</span> <span class="n">time</span> <span class="n">tracking</span>
+</pre></div>
+</div>
+</section>
+<section id="model-builder">
+<h3>Model Builder<a class="headerlink" href="#model-builder" title="Link to this heading"></a></h3>
+<p>The <cite>OntologyDrivenModelBuilder</cite> orchestrates model construction:</p>
+<ol class="arabic simple">
+<li><p><strong>Parse Ontology</strong>: Load structure definitions</p></li>
+<li><p><strong>Load Manifests</strong>: Apply configuration values</p></li>
+<li><p><strong>Instantiate Primitives</strong>: Create simulation objects</p></li>
+<li><p><strong>Wire Relationships</strong>: Connect primitives</p></li>
+<li><p><strong>Start Simulation</strong>: Initialize all components</p></li>
+</ol>
+</section>
+</section>
+<section id="performance-optimization">
+<h2>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading"></a></h2>
+<section id="memory-management">
+<h3>Memory Management<a class="headerlink" href="#memory-management" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><strong>Circular Buffers</strong></dt><dd><ul class="simple">
+<li><p>Fixed-size buffers with automatic overflow</p></li>
+<li><p><cite>collections.deque</cite> with maxlen parameter</p></li>
+<li><p>Prevents unbounded memory growth</p></li>
+</ul>
+</dd>
+<dt><strong>Sampling Strategies</strong></dt><dd><ul class="simple">
+<li><p>DETAILED: Full event capture</p></li>
+<li><p>PRODUCTION: Balanced sampling</p></li>
+<li><p>FAST: Aggressive filtering</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="event-processing">
+<h3>Event Processing<a class="headerlink" href="#event-processing" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><strong>Batching</strong></dt><dd><ul class="simple">
+<li><p>Group events by type and time window</p></li>
+<li><p>Reduce processing overhead by 99%</p></li>
+<li><p>Configurable batch sizes</p></li>
+</ul>
+</dd>
+<dt><strong>Incremental Aggregation</strong></dt><dd><ul class="simple">
+<li><p>Welford’s algorithm for stable statistics</p></li>
+<li><p>Running averages without storing all values</p></li>
+<li><p>Memory-efficient metric calculation</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="storage-optimization">
+<h3>Storage Optimization<a class="headerlink" href="#storage-optimization" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><strong>Write-Through Cache</strong></dt><dd><ul class="simple">
+<li><p>Memory-mapped files for disk backing</p></li>
+<li><p>Automatic flushing at thresholds</p></li>
+<li><p>numpy arrays for efficient storage</p></li>
+</ul>
+</dd>
+<dt><strong>Database Integration</strong></dt><dd><ul class="simple">
+<li><p>Batch inserts (20,000+ events/second)</p></li>
+<li><p>Async processing pipelines</p></li>
+<li><p>Compressed storage formats</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="data-flow-architecture">
+<h2>Data Flow Architecture<a class="headerlink" href="#data-flow-architecture" title="Link to this heading"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>┌──────────────┐
+│   Ontology   │──────┐
+└──────────────┘      │
+                      ▼
+┌──────────────┐  ┌──────────────┐
+│  Manifests   │─▶│Model Builder │
+└──────────────┘  └──────────────┘
+                      │
+                      ▼
+                ┌──────────────┐
+                │  Primitives  │
+                └──────────────┘
+                      │
+                 ┌────┴────┐
+                 ▼         ▼
+         ┌──────────┐ ┌──────────┐
+         │Observable│ │  SimPy   │
+         │ Buffer   │ │  Events  │
+         └──────────┘ └──────────┘
+                 │         │
+                 └────┬────┘
+                      ▼
+              ┌──────────────┐
+              │ Transducer   │
+              └──────────────┘
+                      │
+                      ▼
+              ┌──────────────┐
+              │  MES Format  │
+              └──────────────┘
+                      │
+                      ▼
+              ┌──────────────┐
+              │   Database   │
+              └──────────────┘
+</pre></div>
+</div>
+</section>
+<section id="event-system">
+<h2>Event System<a class="headerlink" href="#event-system" title="Link to this heading"></a></h2>
+<section id="event-types">
+<h3>Event Types<a class="headerlink" href="#event-types" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt><strong>State Events</strong></dt><dd><ul class="simple">
+<li><p>state_change: Equipment state transitions</p></li>
+<li><p>equipment_failure: Failure occurrences</p></li>
+<li><p>maintenance_start/complete: Maintenance activities</p></li>
+</ul>
+</dd>
+<dt><strong>Production Events</strong></dt><dd><ul class="simple">
+<li><p>unit_produced: Successful production</p></li>
+<li><p>unit_scrapped: Quality failures</p></li>
+<li><p>batch_complete: Batch completions</p></li>
+</ul>
+</dd>
+<dt><strong>Flow Events</strong></dt><dd><ul class="simple">
+<li><p>material_consumed: Input consumption</p></li>
+<li><p>buffer_level: Storage changes</p></li>
+<li><p>equipment_blocked/starved: Flow constraints</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="event-structure">
+<h3>Event Structure<a class="headerlink" href="#event-structure" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="mf">1234.5</span><span class="p">,</span>           <span class="c1"># Simulation time</span>
+    <span class="s1">&#39;event_type&#39;</span><span class="p">:</span> <span class="s1">&#39;unit_produced&#39;</span><span class="p">,</span>  <span class="c1"># Event category</span>
+    <span class="s1">&#39;primitive_id&#39;</span><span class="p">:</span> <span class="s1">&#39;LINE1-FIL&#39;</span><span class="p">,</span>    <span class="c1"># Source primitive</span>
+    <span class="s1">&#39;primitive_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Equipment&#39;</span><span class="p">,</span>  <span class="c1"># Primitive class</span>
+    <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="s1">&#39;RUNNING&#39;</span><span class="p">,</span>             <span class="c1"># Current state</span>
+    <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>                     <span class="c1"># Event value</span>
+    <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{</span>                   <span class="c1"># Additional data</span>
+        <span class="s1">&#39;product_id&#39;</span><span class="p">:</span> <span class="s1">&#39;SKU-1001&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;order_id&#39;</span><span class="p">:</span> <span class="s1">&#39;ORD-1000&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;quality&#39;</span><span class="p">:</span> <span class="mf">0.98</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-system">
+<h2>Configuration System<a class="headerlink" href="#configuration-system" title="Link to this heading"></a></h2>
+<section id="three-level-configuration">
+<h3>Three-Level Configuration<a class="headerlink" href="#three-level-configuration" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Ontology Level</strong>: Structure and relationships</p></li>
+<li><p><strong>Manifest Level</strong>: Instance-specific values</p></li>
+<li><p><strong>Runtime Level</strong>: Dynamic adjustments</p></li>
+</ol>
+</section>
+<section id="performance-presets">
+<h3>Performance Presets<a class="headerlink" href="#performance-presets" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEVELOPMENT</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;buffer_size&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+    <span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="n">DETAILED</span>
+<span class="p">}</span>
+
+<span class="n">PRODUCTION</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;buffer_size&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="n">PRODUCTION</span>
+<span class="p">}</span>
+
+<span class="n">LONG_RUNNING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;buffer_size&#39;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="n">PRODUCTION</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="extensibility">
+<h2>Extensibility<a class="headerlink" href="#extensibility" title="Link to this heading"></a></h2>
+<section id="adding-new-primitives">
+<h3>Adding New Primitives<a class="headerlink" href="#adding-new-primitives" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Inherit from <cite>BasePrimitive</cite></p></li>
+<li><p>Implement required methods (<cite>run</cite>, <cite>start</cite>)</p></li>
+<li><p>Define observable events</p></li>
+<li><p>Register in model builder</p></li>
+</ol>
+</section>
+<section id="custom-transducers">
+<h3>Custom Transducers<a class="headerlink" href="#custom-transducers" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Process observable stream</p></li>
+<li><p>Extract domain-specific metrics</p></li>
+<li><p>Format for target system</p></li>
+<li><p>Implement aggregation logic</p></li>
+</ol>
+</section>
+<section id="integration-points">
+<h3>Integration Points<a class="headerlink" href="#integration-points" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Input</strong>: Ontology, manifests, parameters</p></li>
+<li><p><strong>Processing</strong>: SimPy events, observables</p></li>
+<li><p><strong>Output</strong>: MES data, KPIs, patterns</p></li>
+<li><p><strong>Storage</strong>: Database, files, streams</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="performance.html" class="btn btn-neutral float-right" title="Performance Optimization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

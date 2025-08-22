@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.model_builder &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="twin_model.primitives" href="../primitives/index.html" />
+    <link rel="prev" title="twin_model.config" href="../config/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../app/index.html">app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../twin/index.html">twin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cache/index.html">cache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../database/index.html">database</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">twin_model</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../config/index.html">twin_model.config</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">twin_model.model_builder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primitives/index.html">twin_model.primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../state_manager/index.html">twin_model.state_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../transduction/index.html">twin_model.transduction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../export_utils/index.html">export_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../detail_panel/index.html">detail_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../graph_builder/index.html">graph_builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../control_panel/index.html">control_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ontology_parser/index.html">ontology_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cytoscape_styles/index.html">cytoscape_styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../profile_simulation/index.html">profile_simulation</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">twin_model</a></li>
+      <li class="breadcrumb-item active">twin_model.model_builder</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/api/twin_model/model_builder/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin_model.model_builder">
+<span id="twin-model-model-builder"></span><h1>twin_model.model_builder<a class="headerlink" href="#module-twin_model.model_builder" title="Link to this heading"></a></h1>
+<p>Ontology-driven model builder for SimPy simulations.</p>
+<p>This module builds SimPy models from the twin ontology structure and manifests.
+It interprets the ontology to instantiate primitives, wire relationships,
+and configure values from manifests.</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../../twin_model.model_builder.html#twin_model.model_builder.ModelEntity" title="twin_model.model_builder.ModelEntity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModelEntity</span></code></a></p></td>
+<td><p>Represents an entity to be instantiated in the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../../twin_model.model_builder.html#twin_model.model_builder.OntologyDrivenModelBuilder" title="twin_model.model_builder.OntologyDrivenModelBuilder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OntologyDrivenModelBuilder</span></code></a></p></td>
+<td><p>Builds SimPy models from ontology structure and manifests.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.model_builder.ModelEntity">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.model_builder.</span></span><span class="sig-name descname"><span class="pre">ModelEntity</span></span><a class="reference internal" href="../../../_modules/twin_model/model_builder.html#ModelEntity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.model_builder.ModelEntity" title="Link to this definition"></a></dt>
+<dd><p>Represents an entity to be instantiated in the model.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.ModelEntity.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#twin_model.model_builder.ModelEntity.id" title="Link to this definition"></a></dt>
+<dd><p>Unique identifier</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.ModelEntity.ontology_class">
+<span class="sig-name descname"><span class="pre">ontology_class</span></span><a class="headerlink" href="#twin_model.model_builder.ModelEntity.ontology_class" title="Link to this definition"></a></dt>
+<dd><p>Class name from ontology</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.ModelEntity.primitive_type">
+<span class="sig-name descname"><span class="pre">primitive_type</span></span><a class="headerlink" href="#twin_model.model_builder.ModelEntity.primitive_type" title="Link to this definition"></a></dt>
+<dd><p>Primitive class to instantiate</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.ModelEntity.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><a class="headerlink" href="#twin_model.model_builder.ModelEntity.properties" title="Link to this definition"></a></dt>
+<dd><p>Configuration properties</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.ModelEntity.relationships">
+<span class="sig-name descname"><span class="pre">relationships</span></span><a class="headerlink" href="#twin_model.model_builder.ModelEntity.relationships" title="Link to this definition"></a></dt>
+<dd><p>Entity relationships</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">ontology_class</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">primitive_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">relationships</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.model_builder.</span></span><span class="sig-name descname"><span class="pre">OntologyDrivenModelBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ontology_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">manifest_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/twin_model/model_builder.html#OntologyDrivenModelBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder" title="Link to this definition"></a></dt>
+<dd><p>Builds SimPy models from ontology structure and manifests.</p>
+<p>This builder interprets the twin ontology to construct a simulation model,
+then configures it with values from manifests. It maintains separation
+between structure (ontology) and configuration (manifests).</p>
+<p>Initialize builder with ontology and manifest directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ontology_path</strong> – Path to twin_ontology.yaml</p></li>
+<li><p><strong>manifest_dir</strong> – Directory containing manifest files (optional)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.PRIMITIVE_CLASSES">
+<span class="sig-name descname"><span class="pre">PRIMITIVE_CLASSES</span></span><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.PRIMITIVE_CLASSES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.ontology_path">
+<span class="sig-name descname"><span class="pre">ontology_path</span></span><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.ontology_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.manifest_dir">
+<span class="sig-name descname"><span class="pre">manifest_dir</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.manifest_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.ontology">
+<span class="sig-name descname"><span class="pre">ontology</span></span><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.ontology" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.manifests">
+<span class="sig-name descname"><span class="pre">manifests</span></span><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.manifests" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.entities">
+<span class="sig-name descname"><span class="pre">entities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../../twin_model.model_builder.html#twin_model.model_builder.ModelEntity" title="twin_model.model_builder.ModelEntity"><span class="pre">ModelEntity</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.entities" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.primitives">
+<span class="sig-name descname"><span class="pre">primitives</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../../twin_model.primitives.html#twin_model.primitives.BasePrimitive" title="twin_model.primitives.BasePrimitive"><span class="pre">twin_model.primitives.BasePrimitive</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.primitives" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.production_lines">
+<span class="sig-name descname"><span class="pre">production_lines</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.production_lines" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.build_model">
+<span class="sig-name descname"><span class="pre">build_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">simpy.Environment</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/model_builder.html#OntologyDrivenModelBuilder.build_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.build_model" title="Link to this definition"></a></dt>
+<dd><p>Build complete simulation model from ontology.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>env</strong> – SimPy environment for the model</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>primitives: Instantiated primitive objects</p></li>
+<li><p>lines: Production line configurations</p></li>
+<li><p>scheduler: Scheduler primitive if created</p></li>
+<li><p>monitor: Monitor primitive if created</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.get_controllable_parameters">
+<span class="sig-name descname"><span class="pre">get_controllable_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/model_builder.html#OntologyDrivenModelBuilder.get_controllable_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.get_controllable_parameters" title="Link to this definition"></a></dt>
+<dd><p>Get controllable parameters from ontology.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of parameter names to definitions</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.apply_parameter_changes">
+<span class="sig-name descname"><span class="pre">apply_parameter_changes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../_modules/twin_model/model_builder.html#OntologyDrivenModelBuilder.apply_parameter_changes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.apply_parameter_changes" title="Link to this definition"></a></dt>
+<dd><p>Apply parameter changes to running model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parameters</strong> – Dictionary of parameter name to value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.get_observables">
+<span class="sig-name descname"><span class="pre">get_observables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/model_builder.html#OntologyDrivenModelBuilder.get_observables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.get_observables" title="Link to this definition"></a></dt>
+<dd><p>Get all observables from primitives.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of primitive ID to observable list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.model_builder.OntologyDrivenModelBuilder.get_model_structure">
+<span class="sig-name descname"><span class="pre">get_model_structure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/model_builder.html#OntologyDrivenModelBuilder.get_model_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.model_builder.OntologyDrivenModelBuilder.get_model_structure" title="Link to this definition"></a></dt>
+<dd><p>Get model structure for analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary describing model structure</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../config/index.html" class="btn btn-neutral float-left" title="twin_model.config" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../primitives/index.html" class="btn btn-neutral float-right" title="twin_model.primitives" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

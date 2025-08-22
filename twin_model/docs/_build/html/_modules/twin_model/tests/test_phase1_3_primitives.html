@@ -1,0 +1,505 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_phase1_3_primitives &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_phase1_3_primitives</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.tests.test_phase1_3_primitives</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Test Phase 1.3: Validate Buffer, Source, and Sink primitives.</span>
+
+<span class="sd">This test validates that the Buffer, Source, and Sink primitives</span>
+<span class="sd">work correctly with SimPy and can be connected together.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PrimitiveConfig</span><span class="p">,</span>
+    <span class="n">BufferPrimitive</span><span class="p">,</span>
+    <span class="n">SourcePrimitive</span><span class="p">,</span>
+    <span class="n">SinkPrimitive</span><span class="p">,</span>
+    <span class="n">EquipmentPrimitive</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="test_buffer_primitive">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase1_3_primitives.html#twin_model.tests.test_phase1_3_primitives.test_buffer_primitive">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_buffer_primitive</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test buffer primitive functionality.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Buffer Primitive...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+
+    <span class="c1"># Create buffer configuration</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;BUF-001&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Buffer&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+            <span class="s2">&quot;initial_level&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;buffer_type&quot;</span><span class="p">:</span> <span class="s2">&quot;FIFO&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;min_level&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">&quot;max_dwell_time&quot;</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create buffer</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">BufferPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="n">buffer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="c1"># Check initial state</span>
+    <span class="k">assert</span> <span class="n">buffer</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="mi">10</span>
+    <span class="k">assert</span> <span class="n">buffer</span><span class="o">.</span><span class="n">capacity</span> <span class="o">==</span> <span class="mi">50</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Buffer initialized with correct parameters&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test put/get operations</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_operations</span><span class="p">():</span>
+        <span class="c1"># Put items</span>
+        <span class="k">yield from</span> <span class="n">buffer</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">product_id</span><span class="o">=</span><span class="s2">&quot;SKU-001&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">buffer</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="mi">15</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Put operation working&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Get items</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="k">yield from</span> <span class="n">buffer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">buffer</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="mi">12</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Get operation working&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check statistics</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">get_statistics</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;total_throughput&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Statistics tracking working&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">test_operations</span><span class="p">())</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Check monitoring observables</span>
+    <span class="n">monitor_events</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">buffer</span><span class="o">.</span><span class="n">observables</span> <span class="k">if</span> <span class="n">o</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;buffer_monitor&quot;</span>
+    <span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">monitor_events</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span>  <span class="c1"># Should have ~5 monitoring events</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Buffer monitoring active (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">monitor_events</span><span class="p">)</span><span class="si">}</span><span class="s2"> events)&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Buffer Primitive tests passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_source_primitive">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase1_3_primitives.html#twin_model.tests.test_phase1_3_primitives.test_source_primitive">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_source_primitive</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test source primitive functionality.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Source Primitive...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+
+    <span class="c1"># Create source configuration</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;SRC-001&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Source&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;arrival_pattern&quot;</span><span class="p">:</span> <span class="s2">&quot;EXPONENTIAL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;arrival_rate&quot;</span><span class="p">:</span> <span class="mf">120.0</span><span class="p">,</span>  <span class="c1"># 2 per minute</span>
+            <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;product_mix&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;SKU-A&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span> <span class="s2">&quot;SKU-B&quot;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">},</span>
+            <span class="s2">&quot;quality_rate&quot;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+            <span class="s2">&quot;disruption_probability&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="c1"># No disruptions for test</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create a dummy buffer for source to send to</span>
+    <span class="n">dummy_buffer</span> <span class="o">=</span> <span class="n">BufferPrimitive</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span>
+        <span class="n">PrimitiveConfig</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;DUMMY-BUF&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Buffer&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">}),</span>
+    <span class="p">)</span>
+    <span class="n">dummy_buffer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="c1"># Create source with downstream</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">SourcePrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="n">dummy_buffer</span><span class="p">)</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="c1"># Run for 10 minutes</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Check generation</span>
+    <span class="k">assert</span> <span class="n">source</span><span class="o">.</span><span class="n">total_generated</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Source generated </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">total_generated</span><span class="si">}</span><span class="s2"> units&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check product mix</span>
+    <span class="n">generation_events</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">observables</span> <span class="k">if</span> <span class="n">o</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;material_generated&quot;</span>
+    <span class="p">]</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;product&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">generation_events</span><span class="p">]</span>
+    <span class="n">sku_a_count</span> <span class="o">=</span> <span class="n">products</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;SKU-A&quot;</span><span class="p">)</span>
+    <span class="n">sku_b_count</span> <span class="o">=</span> <span class="n">products</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;SKU-B&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">products</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>  <span class="c1"># Only check mix if we have enough samples</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="n">sku_a_count</span> <span class="o">/</span> <span class="p">(</span><span class="n">sku_a_count</span> <span class="o">+</span> <span class="n">sku_b_count</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="mf">0.4</span> <span class="o">&lt;</span> <span class="n">ratio</span> <span class="o">&lt;</span> <span class="mf">0.8</span>  <span class="c1"># Should be roughly 60/40</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Product mix working (A:</span><span class="si">{</span><span class="n">sku_a_count</span><span class="si">}</span><span class="s2">, B:</span><span class="si">{</span><span class="n">sku_b_count</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check statistics</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">get_statistics</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;total_generated&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;efficiency&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Source efficiency: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;efficiency&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Source Primitive tests passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_sink_primitive">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase1_3_primitives.html#twin_model.tests.test_phase1_3_primitives.test_sink_primitive">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_sink_primitive</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test sink primitive functionality.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Sink Primitive...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+
+    <span class="c1"># Create sink configuration</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;SINK-001&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Sink&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;collection_rate&quot;</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span>
+            <span class="s2">&quot;quality_threshold&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+            <span class="s2">&quot;target_throughput&quot;</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">,</span>
+            <span class="s2">&quot;order_tracking&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create sink</span>
+    <span class="n">sink</span> <span class="o">=</span> <span class="n">SinkPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+    <span class="c1"># Simulate collection process</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">simulate_collection</span><span class="p">():</span>
+        <span class="n">sink</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="c1"># Simulate collecting products</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+            <span class="k">yield from</span> <span class="n">sink</span><span class="o">.</span><span class="n">_process_product</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;SKU-</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">3</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;ORD-</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">3</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;quality_score&quot;</span><span class="p">:</span> <span class="mf">0.9</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.3</span><span class="p">,</span>  <span class="c1"># Some low quality</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+    <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">simulate_collection</span><span class="p">())</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Check collection</span>
+    <span class="k">assert</span> <span class="n">sink</span><span class="o">.</span><span class="n">total_collected</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">sink</span><span class="o">.</span><span class="n">total_rejected</span> <span class="o">&gt;</span> <span class="mi">0</span>  <span class="c1"># Should have some rejections</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Sink collected </span><span class="si">{</span><span class="n">sink</span><span class="o">.</span><span class="n">total_collected</span><span class="si">}</span><span class="s2">, rejected </span><span class="si">{</span><span class="n">sink</span><span class="o">.</span><span class="n">total_rejected</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check order tracking</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">completed_orders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">pending_orders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;✓ Order tracking: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">completed_orders</span><span class="p">)</span><span class="si">}</span><span class="s2"> completed, </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">pending_orders</span><span class="p">)</span><span class="si">}</span><span class="s2"> pending&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Check statistics</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">get_statistics</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="s2">&quot;acceptance_rate&quot;</span> <span class="ow">in</span> <span class="n">stats</span>
+    <span class="k">assert</span> <span class="s2">&quot;current_throughput&quot;</span> <span class="ow">in</span> <span class="n">stats</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Acceptance rate: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;acceptance_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sink Primitive tests passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_source_buffer_sink_integration">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase1_3_primitives.html#twin_model.tests.test_phase1_3_primitives.test_source_buffer_sink_integration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_source_buffer_sink_integration</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test integration of Source -&gt; Buffer -&gt; Sink.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Source -&gt; Buffer -&gt; Sink Integration...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">global_observables</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Create buffer</span>
+    <span class="n">buffer_config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;BUF-INT&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Buffer&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s2">&quot;initial_level&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">BufferPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">buffer_config</span><span class="p">)</span>
+
+    <span class="c1"># Create source feeding into buffer</span>
+    <span class="n">source_config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;SRC-INT&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Source&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;arrival_pattern&quot;</span><span class="p">:</span> <span class="s2">&quot;CONSTANT&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;arrival_rate&quot;</span><span class="p">:</span> <span class="mf">60.0</span><span class="p">,</span>  <span class="c1"># 1 per minute</span>
+            <span class="s2">&quot;product_mix&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;PROD-1&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+            <span class="s2">&quot;quality_rate&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># All good quality</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">SourcePrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">source_config</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="n">buffer</span><span class="p">)</span>
+
+    <span class="c1"># Create sink pulling from buffer</span>
+    <span class="n">sink_config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;SINK-INT&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Sink&quot;</span><span class="p">,</span>
+        <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;collection_rate&quot;</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">,</span>  <span class="c1"># Slightly slower than source</span>
+            <span class="s2">&quot;target_throughput&quot;</span><span class="p">:</span> <span class="mf">45.0</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">sink</span> <span class="o">=</span> <span class="n">SinkPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">sink_config</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="n">buffer</span><span class="p">)</span>
+
+    <span class="c1"># Start all primitives</span>
+    <span class="n">buffer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">sink</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="c1"># Run simulation</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Source generated: </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">total_generated</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Buffer level: </span><span class="si">{</span><span class="n">buffer</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">buffer</span><span class="o">.</span><span class="n">capacity</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Sink collected: </span><span class="si">{</span><span class="n">sink</span><span class="o">.</span><span class="n">total_collected</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Buffer should have accumulated some inventory</span>
+    <span class="k">assert</span> <span class="n">buffer</span><span class="o">.</span><span class="n">level</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Buffer is accumulating inventory (source faster than sink)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check flow consistency</span>
+    <span class="k">assert</span> <span class="n">source</span><span class="o">.</span><span class="n">total_generated</span> <span class="o">==</span> <span class="n">sink</span><span class="o">.</span><span class="n">total_collected</span> <span class="o">+</span> <span class="n">buffer</span><span class="o">.</span><span class="n">level</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Material flow is conserved&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check observables</span>
+    <span class="n">total_observables</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">observables</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">buffer</span><span class="o">.</span><span class="n">observables</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">observables</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Total observables emitted: </span><span class="si">{</span><span class="n">total_observables</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Integration test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_complete_production_line">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase1_3_primitives.html#twin_model.tests.test_phase1_3_primitives.test_complete_production_line">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_complete_production_line</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test complete production line: Source -&gt; Buffer -&gt; Equipment -&gt; Buffer -&gt; Sink.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Complete Production Line...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+
+    <span class="c1"># Create input buffer</span>
+    <span class="n">input_buffer</span> <span class="o">=</span> <span class="n">BufferPrimitive</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span>
+        <span class="n">PrimitiveConfig</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;BUF-IN&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Buffer&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;initial_level&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">}</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create output buffer</span>
+    <span class="n">output_buffer</span> <span class="o">=</span> <span class="n">BufferPrimitive</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span>
+        <span class="n">PrimitiveConfig</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;BUF-OUT&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Buffer&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">&quot;initial_level&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create source</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">SourcePrimitive</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span>
+        <span class="n">PrimitiveConfig</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;SRC-LINE&quot;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Source&quot;</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;arrival_pattern&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;arrival_rate&quot;</span><span class="p">:</span> <span class="mf">65.0</span><span class="p">,</span>
+                <span class="s2">&quot;product_mix&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;SKU-1&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;SKU-2&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
+                <span class="s2">&quot;supply_variability&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">),</span>
+        <span class="n">downstream</span><span class="o">=</span><span class="n">input_buffer</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create equipment</span>
+    <span class="n">equipment</span> <span class="o">=</span> <span class="n">EquipmentPrimitive</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span>
+        <span class="n">PrimitiveConfig</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;EQ-LINE&quot;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;base_rate&quot;</span><span class="p">:</span> <span class="mf">60.0</span><span class="p">,</span>
+                <span class="s2">&quot;mtbf&quot;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
+                <span class="s2">&quot;mttr&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span>
+                <span class="s2">&quot;base_scrap_rate&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">),</span>
+        <span class="n">upstream</span><span class="o">=</span><span class="n">input_buffer</span><span class="p">,</span>
+        <span class="n">downstream</span><span class="o">=</span><span class="n">output_buffer</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create sink</span>
+    <span class="n">sink</span> <span class="o">=</span> <span class="n">SinkPrimitive</span><span class="p">(</span>
+        <span class="n">env</span><span class="p">,</span>
+        <span class="n">PrimitiveConfig</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;SINK-LINE&quot;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Sink&quot;</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;collection_rate&quot;</span><span class="p">:</span> <span class="mf">55.0</span><span class="p">,</span> <span class="s2">&quot;target_throughput&quot;</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">},</span>
+        <span class="p">),</span>
+        <span class="n">upstream</span><span class="o">=</span><span class="n">output_buffer</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Start all components</span>
+    <span class="n">input_buffer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">output_buffer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">source</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">equipment</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">equipment</span><span class="o">.</span><span class="n">set_product</span><span class="p">(</span><span class="s2">&quot;SKU-1&quot;</span><span class="p">,</span> <span class="s2">&quot;ORD-001&quot;</span><span class="p">)</span>
+    <span class="n">sink</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="c1"># Run for 60 minutes</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+
+    <span class="c1"># Print results</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Source generated: </span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">total_generated</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Input buffer: </span><span class="si">{</span><span class="n">input_buffer</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">input_buffer</span><span class="o">.</span><span class="n">capacity</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;✓ Equipment produced: </span><span class="si">{</span><span class="n">equipment</span><span class="o">.</span><span class="n">units_produced</span><span class="si">}</span><span class="s2">, scrapped: </span><span class="si">{</span><span class="n">equipment</span><span class="o">.</span><span class="n">units_scrapped</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Output buffer: </span><span class="si">{</span><span class="n">output_buffer</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">output_buffer</span><span class="o">.</span><span class="n">capacity</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Sink collected: </span><span class="si">{</span><span class="n">sink</span><span class="o">.</span><span class="n">total_collected</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Equipment OEE: </span><span class="si">{</span><span class="n">equipment</span><span class="o">.</span><span class="n">calculate_oee</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check that material is flowing through the system</span>
+    <span class="k">assert</span> <span class="n">source</span><span class="o">.</span><span class="n">total_generated</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">equipment</span><span class="o">.</span><span class="n">units_produced</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">sink</span><span class="o">.</span><span class="n">total_collected</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="c1"># Check buffer utilization</span>
+    <span class="n">input_util</span> <span class="o">=</span> <span class="n">input_buffer</span><span class="o">.</span><span class="n">get_utilization</span><span class="p">()</span>
+    <span class="n">output_util</span> <span class="o">=</span> <span class="n">output_buffer</span><span class="o">.</span><span class="n">get_utilization</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;✓ Buffer utilization - Input: </span><span class="si">{</span><span class="n">input_util</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%, Output: </span><span class="si">{</span><span class="n">output_util</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Complete production line test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 1.3 BUFFER, SOURCE, SINK PRIMITIVES TEST&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">test_buffer_primitive</span><span class="p">()</span>
+        <span class="n">test_source_primitive</span><span class="p">()</span>
+        <span class="n">test_sink_primitive</span><span class="p">()</span>
+        <span class="n">test_source_buffer_sink_integration</span><span class="p">()</span>
+        <span class="n">test_complete_production_line</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ALL TESTS PASSED! ✓&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phase 1.3 Buffer, Source, and Sink primitives are working correctly.&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ Test failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

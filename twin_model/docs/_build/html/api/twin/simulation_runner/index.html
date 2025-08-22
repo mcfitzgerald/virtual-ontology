@@ -1,0 +1,569 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin.simulation_runner &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="twin.sync_health" href="../sync_health/index.html" />
+    <link rel="prev" title="twin.schema_manager" href="../schema_manager/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../app/index.html">app</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">twin</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../actionable_parameters/index.html">twin.actionable_parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_loader/index.html">twin.config_loader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_manager/index.html">twin.config_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_transformer/index.html">twin.config_transformer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../config_validator/index.html">twin.config_validator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cost_impact_calculator/index.html">twin.cost_impact_calculator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generator/index.html">twin.generator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../line_coupling_model/index.html">twin.line_coupling_model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../optimization_engine/index.html">twin.optimization_engine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../recommendation_engine/index.html">twin.recommendation_engine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../schema_manager/index.html">twin.schema_manager</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">twin.simulation_runner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sync_health/index.html">twin.sync_health</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../twin_state/index.html">twin.twin_state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../virtual_sensors/index.html">twin.virtual_sensors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../visualization/index.html">twin.visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cache/index.html">cache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../database/index.html">database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../twin_model/index.html">twin_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../export_utils/index.html">export_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../detail_panel/index.html">detail_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../graph_builder/index.html">graph_builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../control_panel/index.html">control_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ontology_parser/index.html">ontology_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cytoscape_styles/index.html">cytoscape_styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../profile_simulation/index.html">profile_simulation</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">twin</a></li>
+      <li class="breadcrumb-item active">twin.simulation_runner</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/api/twin/simulation_runner/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin.simulation_runner">
+<span id="twin-simulation-runner"></span><h1>twin.simulation_runner<a class="headerlink" href="#module-twin.simulation_runner" title="Link to this heading"></a></h1>
+<p>Simulation Runner with Provenance Tracking and Monte Carlo Support
+Manages simulation runs with complete reproducibility, provenance, and uncertainty analysis</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin.simulation_runner.SimulationRun" title="twin.simulation_runner.SimulationRun"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationRun</span></code></a></p></td>
+<td><p>Metadata for a simulation run with full provenance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin.simulation_runner.SimulationRunner" title="twin.simulation_runner.SimulationRunner"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationRunner</span></code></a></p></td>
+<td><p>Manages virtual twin simulations with complete provenance tracking.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin.simulation_runner.</span></span><span class="sig-name descname"><span class="pre">SimulationRun</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun" title="Link to this definition"></a></dt>
+<dd><p>Metadata for a simulation run with full provenance.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.run_id">
+<span class="sig-name descname"><span class="pre">run_id</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.run_id" title="Link to this definition"></a></dt>
+<dd><p>Unique identifier for this simulation run</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.run_type">
+<span class="sig-name descname"><span class="pre">run_type</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.run_type" title="Link to this definition"></a></dt>
+<dd><p>Type of run (baseline, simulation, recommendation, optimization)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.seed" title="Link to this definition"></a></dt>
+<dd><p>Random seed used for reproducibility</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.generator_version">
+<span class="sig-name descname"><span class="pre">generator_version</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.generator_version" title="Link to this definition"></a></dt>
+<dd><p>Version of the data generator used</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.parent_run_id">
+<span class="sig-name descname"><span class="pre">parent_run_id</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.parent_run_id" title="Link to this definition"></a></dt>
+<dd><p>Optional ID of the parent run for lineage tracking</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.started_at">
+<span class="sig-name descname"><span class="pre">started_at</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.started_at" title="Link to this definition"></a></dt>
+<dd><p>Timestamp when the simulation started</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.finished_at">
+<span class="sig-name descname"><span class="pre">finished_at</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.finished_at" title="Link to this definition"></a></dt>
+<dd><p>Timestamp when the simulation completed (None if still running)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.config_delta">
+<span class="sig-name descname"><span class="pre">config_delta</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.config_delta" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of parameter changes from baseline</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.data_hash">
+<span class="sig-name descname"><span class="pre">data_hash</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.data_hash" title="Link to this definition"></a></dt>
+<dd><p>Hash of the generated data for verification</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.output_path">
+<span class="sig-name descname"><span class="pre">output_path</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.output_path" title="Link to this definition"></a></dt>
+<dd><p>Path to the output data file</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.kpi_summary">
+<span class="sig-name descname"><span class="pre">kpi_summary</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.kpi_summary" title="Link to this definition"></a></dt>
+<dd><p>Summary of KPI results (OEE, availability, etc.)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.notes">
+<span class="sig-name descname"><span class="pre">notes</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.notes" title="Link to this definition"></a></dt>
+<dd><p>Optional description or notes about the run</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRun.status">
+<span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRun.status" title="Link to this definition"></a></dt>
+<dd><p>Current status (pending, running, completed, failed)</p>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">run</span> <span class="o">=</span> <span class="n">SimulationRun</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">run_id</span><span class="o">=</span><span class="s2">&quot;sim-20240101-120000-abc123&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">run_type</span><span class="o">=</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">generator_version</span><span class="o">=</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">parent_run_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">started_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="n">finished_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">config_delta</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;micro_stop_probability&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="n">data_hash</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">output_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">kpi_summary</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Testing reduced micro-stops&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">status</span><span class="o">=</span><span class="s2">&quot;running&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">run_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">generator_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">parent_run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">started_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">finished_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">config_delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">data_hash</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">output_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">kpi_summary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">notes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin.simulation_runner.</span></span><span class="sig-name descname"><span class="pre">SimulationRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generator_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generator_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#twin.simulation_runner.SimulationRunner" title="Link to this definition"></a></dt>
+<dd><p>Manages virtual twin simulations with complete provenance tracking.
+Ensures reproducibility and traceability of all simulation runs.</p>
+<p>This class provides methods to:
+- Run what-if scenario simulations
+- Create baseline simulations
+- Run Monte Carlo uncertainty analysis
+- Compare simulation results
+- Track simulation lineage</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">SimulationRunner</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="n">ActionableParameters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;micro_stop_probability&quot;</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">duration_days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OEE: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">kpi_summary</span><span class="p">[</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Initialize the SimulationRunner.
+Configuration is required - will raise error if not available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db_path</strong> – Path to the SQLite database file (uses config if None)</p></li>
+<li><p><strong>generator_path</strong> – Path to the MES data generation script (uses config if None)</p></li>
+<li><p><strong>generator_version</strong> – Version identifier for the generator (uses config if None)</p></li>
+<li><p><strong>verbose</strong> – If True, print progress messages; if False, run quietly</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.13)"><strong>RuntimeError</strong></a> – If configuration is not available</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#FileNotFoundError" title="(in Python v3.13)"><strong>FileNotFoundError</strong></a> – If generator_path does not exist</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/sqlite3.html#sqlite3.Error" title="(in Python v3.13)"><strong>sqlite3.Error</strong></a> – If database connection fails</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.config">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.db_path">
+<span class="sig-name descname"><span class="pre">db_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.db_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.generator_path">
+<span class="sig-name descname"><span class="pre">generator_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></em><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.generator_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.generator_version">
+<span class="sig-name descname"><span class="pre">generator_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.generator_version" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.verbose" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.sync_monitor">
+<span class="sig-name descname"><span class="pre">sync_monitor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../sync_health/index.html#twin.sync_health.SyncHealthMonitor" title="twin.sync_health.SyncHealthMonitor"><span class="pre">twin.sync_health.SyncHealthMonitor</span></a></em><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.sync_monitor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.config_manager">
+<span class="sig-name descname"><span class="pre">config_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../config_manager/index.html#twin.config_manager.ConfigurationManager" title="twin.config_manager.ConfigurationManager"><span class="pre">twin.config_manager.ConfigurationManager</span></a></em><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.config_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../actionable_parameters/index.html#twin.actionable_parameters.ActionableParameters" title="twin.actionable_parameters.ActionableParameters"><span class="pre">twin.actionable_parameters.ActionableParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#twin.simulation_runner.SimulationRun" title="twin.simulation_runner.SimulationRun"><span class="pre">SimulationRun</span></a></span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.run_simulation" title="Link to this definition"></a></dt>
+<dd><p>Run a simulation with specific parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameters</strong> – ActionableParameters instance with values to test</p></li>
+<li><p><strong>parent_run_id</strong> – Optional parent run for lineage tracking</p></li>
+<li><p><strong>seed</strong> – Random seed for reproducibility (uses parent seed + 1 if not provided)</p></li>
+<li><p><strong>duration_days</strong> – Simulation duration in days (1-30)</p></li>
+<li><p><strong>notes</strong> – Optional description or notes about this run</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>run_id: Unique identifier</p></li>
+<li><p>kpi_summary: Dict with KPIs (mean_oee, availability, etc.) as percentages (0-100)</p></li>
+<li><p>status: ‘completed’ or ‘failed’</p></li>
+<li><p>Other metadata fields</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>SimulationRun object containing</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If duration_days is outside valid range (1-30)</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.13)"><strong>RuntimeError</strong></a> – If simulation execution fails</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">SimulationRunner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="n">ActionableParameters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="s2">&quot;micro_stop_probability&quot;</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">duration_days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean OEE: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">kpi_summary</span><span class="p">[</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Downtime: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">kpi_summary</span><span class="p">[</span><span class="s1">&#39;downtime_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.create_baseline">
+<span class="sig-name descname"><span class="pre">create_baseline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#twin.simulation_runner.SimulationRun" title="twin.simulation_runner.SimulationRun"><span class="pre">SimulationRun</span></a></span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.create_baseline" title="Link to this definition"></a></dt>
+<dd><p>Create a baseline simulation with default parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed</strong> – Random seed for reproducibility</p></li>
+<li><p><strong>duration_days</strong> – Simulation duration in days (1-30)</p></li>
+<li><p><strong>notes</strong> – Optional description</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SimulationRun object with baseline results</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">SimulationRunner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">baseline</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">create_baseline</span><span class="p">(</span><span class="n">duration_days</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Baseline OEE: </span><span class="si">{</span><span class="n">baseline</span><span class="o">.</span><span class="n">kpi_summary</span><span class="p">[</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.run_monte_carlo_simulation">
+<span class="sig-name descname"><span class="pre">run_monte_carlo_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../actionable_parameters/index.html#twin.actionable_parameters.ActionableParameters" title="twin.actionable_parameters.ActionableParameters"><span class="pre">twin.actionable_parameters.ActionableParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainty_ranges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_simulations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.run_monte_carlo_simulation" title="Link to this definition"></a></dt>
+<dd><p>Run Monte Carlo simulation with parameter uncertainty.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameters</strong> – Base parameters</p></li>
+<li><p><strong>uncertainty_ranges</strong> – Dict mapping parameter names to (min_delta, max_delta) tuples</p></li>
+<li><p><strong>n_simulations</strong> – Number of Monte Carlo iterations</p></li>
+<li><p><strong>duration_days</strong> – Duration for each simulation</p></li>
+<li><p><strong>parent_run_id</strong> – Optional parent run for lineage</p></li>
+<li><p><strong>notes</strong> – Optional description</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>‘results’: List of SimulationRun objects</p></li>
+<li><p>’statistics’: Summary statistics (mean, std, percentiles)</p></li>
+<li><p>’confidence_intervals’: 95% CI for each KPI</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">SimulationRunner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="n">ActionableParameters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uncertainty</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;micro_stop_probability&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)}</span>  <span class="c1"># ±2%</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mc_results</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run_monte_carlo_simulation</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">params</span><span class="p">,</span> <span class="n">uncertainty</span><span class="p">,</span> <span class="n">n_simulations</span><span class="o">=</span><span class="mi">50</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean OEE: </span><span class="si">{</span><span class="n">mc_results</span><span class="p">[</span><span class="s1">&#39;statistics&#39;</span><span class="p">][</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;95% CI: </span><span class="si">{</span><span class="n">mc_results</span><span class="p">[</span><span class="s1">&#39;confidence_intervals&#39;</span><span class="p">][</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.compare_runs">
+<span class="sig-name descname"><span class="pre">compare_runs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.compare_runs" title="Link to this definition"></a></dt>
+<dd><p>Compare multiple simulation runs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>run_ids</strong> – List of run IDs to compare</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>‘runs’: List of SimulationRun objects</p></li>
+<li><p>’kpi_comparison’: DataFrame comparing KPIs</p></li>
+<li><p>’parameter_differences’: Dict of parameter variations</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">comparison</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">compare_runs</span><span class="p">([</span><span class="s2">&quot;sim-001&quot;</span><span class="p">,</span> <span class="s2">&quot;sim-002&quot;</span><span class="p">,</span> <span class="s2">&quot;sim-003&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">comparison</span><span class="p">[</span><span class="s1">&#39;kpi_comparison&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin.simulation_runner.SimulationRunner.get_run_lineage">
+<span class="sig-name descname"><span class="pre">get_run_lineage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#twin.simulation_runner.SimulationRun" title="twin.simulation_runner.SimulationRun"><span class="pre">SimulationRun</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#twin.simulation_runner.SimulationRunner.get_run_lineage" title="Link to this definition"></a></dt>
+<dd><p>Get complete lineage (ancestors and descendants) of a run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>run_id</strong> – Run ID to trace lineage for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of SimulationRun objects in chronological order</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lineage</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">get_run_lineage</span><span class="p">(</span><span class="s2">&quot;sim-20240101-120000-abc123&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">lineage</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">run_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../schema_manager/index.html" class="btn btn-neutral float-left" title="twin.schema_manager" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../sync_health/index.html" class="btn btn-neutral float-right" title="twin.sync_health" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

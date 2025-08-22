@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.state_manager &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="twin_model.transduction" href="../transduction/index.html" />
+    <link rel="prev" title="twin_model.primitives.source" href="../primitives/source/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../app/index.html">app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../twin/index.html">twin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cache/index.html">cache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../database/index.html">database</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">twin_model</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../config/index.html">twin_model.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../model_builder/index.html">twin_model.model_builder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primitives/index.html">twin_model.primitives</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">twin_model.state_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../transduction/index.html">twin_model.transduction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../export_utils/index.html">export_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../detail_panel/index.html">detail_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../graph_builder/index.html">graph_builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../control_panel/index.html">control_panel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../ontology_parser/index.html">ontology_parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cytoscape_styles/index.html">cytoscape_styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../profile_simulation/index.html">profile_simulation</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">twin_model</a></li>
+      <li class="breadcrumb-item active">twin_model.state_manager</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/api/twin_model/state_manager/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin_model.state_manager">
+<span id="twin-model-state-manager"></span><h1>twin_model.state_manager<a class="headerlink" href="#module-twin_model.state_manager" title="Link to this heading"></a></h1>
+<p>State persistence and management for simulation pause/resume.</p>
+<p>This module provides functionality to save and restore simulation state,
+enabling pause/resume capabilities and recovery from interruptions.</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../../twin_model.state_manager.html#twin_model.state_manager.SimulationCheckpoint" title="twin_model.state_manager.SimulationCheckpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationCheckpoint</span></code></a></p></td>
+<td><p>Represents a saved simulation state checkpoint.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../../twin_model.state_manager.html#twin_model.state_manager.StateManager" title="twin_model.state_manager.StateManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StateManager</span></code></a></p></td>
+<td><p>Manages simulation state persistence and recovery.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../../twin_model.state_manager.html#twin_model.state_manager.SimulationRunner" title="twin_model.state_manager.SimulationRunner"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationRunner</span></code></a></p></td>
+<td><p>Enhanced simulation runner with chunking and state management.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.state_manager.</span></span><span class="sig-name descname"><span class="pre">SimulationCheckpoint</span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#SimulationCheckpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint" title="Link to this definition"></a></dt>
+<dd><p>Represents a saved simulation state checkpoint.</p>
+<p>Stores all necessary information to restore a simulation
+from a specific point in time.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.checkpoint_id">
+<span class="sig-name descname"><span class="pre">checkpoint_id</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.checkpoint_id" title="Link to this definition"></a></dt>
+<dd><p>Unique identifier for this checkpoint</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.simulation_time">
+<span class="sig-name descname"><span class="pre">simulation_time</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.simulation_time" title="Link to this definition"></a></dt>
+<dd><p>Current simulation time when saved</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.real_time">
+<span class="sig-name descname"><span class="pre">real_time</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.real_time" title="Link to this definition"></a></dt>
+<dd><p>Real-world timestamp when saved</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.primitives_state">
+<span class="sig-name descname"><span class="pre">primitives_state</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.primitives_state" title="Link to this definition"></a></dt>
+<dd><p>Serialized state of all primitives</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.environment_state">
+<span class="sig-name descname"><span class="pre">environment_state</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.environment_state" title="Link to this definition"></a></dt>
+<dd><p>SimPy environment state</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.cache_path">
+<span class="sig-name descname"><span class="pre">cache_path</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.cache_path" title="Link to this definition"></a></dt>
+<dd><p>Path to associated event cache</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.metadata" title="Link to this definition"></a></dt>
+<dd><p>Additional checkpoint metadata</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">checkpoint_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">simulation_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">real_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">primitives_state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">environment_state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">cache_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.to_file">
+<span class="sig-name descname"><span class="pre">to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#SimulationCheckpoint.to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.to_file" title="Link to this definition"></a></dt>
+<dd><p>Save checkpoint to file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> – Path to save checkpoint file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.from_file">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../../twin_model.state_manager.html#twin_model.state_manager.SimulationCheckpoint" title="twin_model.state_manager.SimulationCheckpoint"><span class="pre">SimulationCheckpoint</span></a></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#SimulationCheckpoint.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.from_file" title="Link to this definition"></a></dt>
+<dd><p>Load checkpoint from file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> – Path to checkpoint file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Loaded checkpoint instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationCheckpoint.get_summary">
+<span class="sig-name descname"><span class="pre">get_summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#SimulationCheckpoint.get_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.SimulationCheckpoint.get_summary" title="Link to this definition"></a></dt>
+<dd><p>Get human-readable checkpoint summary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with checkpoint summary information</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.state_manager.</span></span><span class="sig-name descname"><span class="pre">StateManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'checkpoints'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_checkpoints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compression</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#StateManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.StateManager" title="Link to this definition"></a></dt>
+<dd><p>Manages simulation state persistence and recovery.</p>
+<p>Provides methods to save simulation state at checkpoints,
+restore from saved states, and manage checkpoint lifecycle.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.checkpoint_dir">
+<span class="sig-name descname"><span class="pre">checkpoint_dir</span></span><a class="headerlink" href="#twin_model.state_manager.StateManager.checkpoint_dir" title="Link to this definition"></a></dt>
+<dd><p>Directory for storing checkpoints</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.max_checkpoints">
+<span class="sig-name descname"><span class="pre">max_checkpoints</span></span><a class="headerlink" href="#twin_model.state_manager.StateManager.max_checkpoints" title="Link to this definition"></a></dt>
+<dd><p>Maximum number of checkpoints to retain</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.compression">
+<span class="sig-name descname"><span class="pre">compression</span></span><a class="headerlink" href="#twin_model.state_manager.StateManager.compression" title="Link to this definition"></a></dt>
+<dd><p>Whether to compress checkpoint files</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.checkpoints">
+<span class="sig-name descname"><span class="pre">checkpoints</span></span><a class="headerlink" href="#twin_model.state_manager.StateManager.checkpoints" title="Link to this definition"></a></dt>
+<dd><p>List of available checkpoints</p>
+</dd></dl>
+
+<p>Initialize state manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>checkpoint_dir</strong> – Directory for checkpoint storage</p></li>
+<li><p><strong>max_checkpoints</strong> – Maximum checkpoints to retain</p></li>
+<li><p><strong>compression</strong> – Enable checkpoint compression</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">checkpoint_dir</span></span><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">max_checkpoints</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">compression</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">checkpoints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.save_checkpoint">
+<span class="sig-name descname"><span class="pre">save_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">simpy.Environment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#StateManager.save_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.StateManager.save_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Save current simulation state as checkpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> – SimPy environment</p></li>
+<li><p><strong>primitives</strong> – Dictionary of primitive instances</p></li>
+<li><p><strong>cache_path</strong> – Optional path to event cache</p></li>
+<li><p><strong>metadata</strong> – Optional checkpoint metadata</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Checkpoint ID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.load_checkpoint">
+<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../../twin_model.state_manager.html#twin_model.state_manager.SimulationCheckpoint" title="twin_model.state_manager.SimulationCheckpoint"><span class="pre">SimulationCheckpoint</span></a></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#StateManager.load_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.StateManager.load_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Load checkpoint by ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoint_id</strong> – ID of checkpoint to load</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Loaded checkpoint</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If checkpoint not found</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.restore_simulation">
+<span class="sig-name descname"><span class="pre">restore_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitive_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">simpy.Environment</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#StateManager.restore_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.StateManager.restore_simulation" title="Link to this definition"></a></dt>
+<dd><p>Restore simulation from checkpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>checkpoint_id</strong> – ID of checkpoint to restore</p></li>
+<li><p><strong>primitive_classes</strong> – Mapping of type names to primitive classes</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (environment, primitives dictionary)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.list_checkpoints">
+<span class="sig-name descname"><span class="pre">list_checkpoints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#StateManager.list_checkpoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.StateManager.list_checkpoints" title="Link to this definition"></a></dt>
+<dd><p>List all available checkpoints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of checkpoint summaries</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.StateManager.delete_checkpoint">
+<span class="sig-name descname"><span class="pre">delete_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#StateManager.delete_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.StateManager.delete_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Delete a checkpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoint_id</strong> – ID of checkpoint to delete</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.state_manager.</span></span><span class="sig-name descname"><span class="pre">SimulationRunner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">simpy.Environment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'checkpoints'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_monitoring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#SimulationRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.SimulationRunner" title="Link to this definition"></a></dt>
+<dd><p>Enhanced simulation runner with chunking and state management.</p>
+<p>Provides chunked execution with automatic checkpointing,
+progress reporting, and pause/resume capabilities.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner.env">
+<span class="sig-name descname"><span class="pre">env</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationRunner.env" title="Link to this definition"></a></dt>
+<dd><p>SimPy environment</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner.primitives">
+<span class="sig-name descname"><span class="pre">primitives</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationRunner.primitives" title="Link to this definition"></a></dt>
+<dd><p>Dictionary of simulation primitives</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner.state_manager">
+<span class="sig-name descname"><span class="pre">state_manager</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationRunner.state_manager" title="Link to this definition"></a></dt>
+<dd><p>State persistence manager</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner.monitor">
+<span class="sig-name descname"><span class="pre">monitor</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationRunner.monitor" title="Link to this definition"></a></dt>
+<dd><p>Optional simulation monitor</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner.cache_path">
+<span class="sig-name descname"><span class="pre">cache_path</span></span><a class="headerlink" href="#twin_model.state_manager.SimulationRunner.cache_path" title="Link to this definition"></a></dt>
+<dd><p>Path to event cache</p>
+</dd></dl>
+
+<p>Initialize simulation runner.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> – SimPy environment</p></li>
+<li><p><strong>primitives</strong> – Dictionary of primitives</p></li>
+<li><p><strong>checkpoint_dir</strong> – Directory for checkpoints</p></li>
+<li><p><strong>enable_monitoring</strong> – Enable performance monitoring</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">env</span></span><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">primitives</span></span><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">state_manager</span></span><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">cache_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner.run_chunked">
+<span class="sig-name descname"><span class="pre">run_chunked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">total_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size_days</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#SimulationRunner.run_chunked"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.SimulationRunner.run_chunked" title="Link to this definition"></a></dt>
+<dd><p>Run simulation in chunks with progress reporting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>total_days</strong> – Total simulation duration in days</p></li>
+<li><p><strong>chunk_size_days</strong> – Size of each execution chunk</p></li>
+<li><p><strong>progress_callback</strong> – Optional progress reporter</p></li>
+<li><p><strong>checkpoint_interval</strong> – Days between auto checkpoints</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Simulation results and metrics</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.state_manager.SimulationRunner.resume_from_checkpoint">
+<span class="sig-name descname"><span class="pre">resume_from_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitive_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Type</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../../../_modules/twin_model/state_manager.html#SimulationRunner.resume_from_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.state_manager.SimulationRunner.resume_from_checkpoint" title="Link to this definition"></a></dt>
+<dd><p>Resume simulation from checkpoint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>checkpoint_id</strong> – ID of checkpoint to resume from</p></li>
+<li><p><strong>primitive_classes</strong> – Mapping of type names to classes</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../primitives/source/index.html" class="btn btn-neutral float-left" title="twin_model.primitives.source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../transduction/index.html" class="btn btn-neutral float-right" title="twin_model.transduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

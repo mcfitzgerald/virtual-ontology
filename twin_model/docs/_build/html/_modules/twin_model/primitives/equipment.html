@@ -1,0 +1,779 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.primitives.equipment &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.primitives.equipment</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.primitives.equipment</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Equipment primitive for processing materials in manufacturing.</span>
+
+<span class="sd">This module provides a generic equipment primitive that can represent</span>
+<span class="sd">any type of processing equipment (Filler, Packer, Palletizer, etc.).</span>
+<span class="sd">It emits rich observables for pattern discovery including state transitions,</span>
+<span class="sd">production events, failures, and performance variations.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePrimitive</span><span class="p">,</span> <span class="n">PrimitiveConfig</span><span class="p">,</span> <span class="n">SamplingConfig</span>
+
+
+<div class="viewcode-block" id="EquipmentState">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentState">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EquipmentState</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Possible equipment states with detailed categorization.&quot;&quot;&quot;</span>
+
+    <span class="n">RUNNING</span> <span class="o">=</span> <span class="s2">&quot;RUNNING&quot;</span>
+    <span class="n">STOPPED_FAILURE</span> <span class="o">=</span> <span class="s2">&quot;STOPPED_FAILURE&quot;</span>
+    <span class="n">STOPPED_MAINTENANCE</span> <span class="o">=</span> <span class="s2">&quot;STOPPED_MAINTENANCE&quot;</span>
+    <span class="n">STARVED</span> <span class="o">=</span> <span class="s2">&quot;STARVED&quot;</span>
+    <span class="n">BLOCKED</span> <span class="o">=</span> <span class="s2">&quot;BLOCKED&quot;</span>
+    <span class="n">IDLE</span> <span class="o">=</span> <span class="s2">&quot;IDLE&quot;</span>
+    <span class="n">CHANGEOVER</span> <span class="o">=</span> <span class="s2">&quot;CHANGEOVER&quot;</span>
+    <span class="n">STARTUP</span> <span class="o">=</span> <span class="s2">&quot;STARTUP&quot;</span>
+    <span class="n">SHUTDOWN</span> <span class="o">=</span> <span class="s2">&quot;SHUTDOWN&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="FailureMode">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.FailureMode">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FailureMode</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Definition of a failure mode for equipment.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        name: Failure mode identifier (micro_stop, major_failure, etc.)</span>
+<span class="sd">        probability_per_5min: Probability of occurrence per time interval</span>
+<span class="sd">        duration_range: Min and max duration in minutes</span>
+<span class="sd">        downtime_code: Associated downtime reason code</span>
+<span class="sd">        cascade_probability: Probability of causing downstream failures</span>
+<span class="sd">        recovery_time_factor: Multiplier for recovery time based on context</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">probability_per_5min</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">duration_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">downtime_code</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">cascade_probability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">recovery_time_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="EquipmentPrimitive">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EquipmentPrimitive</span><span class="p">(</span><span class="n">BasePrimitive</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generic equipment that processes materials.</span>
+
+<span class="sd">    Emits rich observables for pattern discovery including:</span>
+<span class="sd">    - State transitions with context (buffer levels, runtime, product)</span>
+<span class="sd">    - Production events with quality metrics</span>
+<span class="sd">    - Failure events with contributing factors</span>
+<span class="sd">    - Performance variations by shift/product</span>
+<span class="sd">    - Energy consumption patterns</span>
+<span class="sd">    - Cascade failure propagation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EquipmentPrimitive.__init__">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">env</span><span class="p">:</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">PrimitiveConfig</span><span class="p">,</span>
+        <span class="n">upstream</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Will be BufferPrimitive</span>
+        <span class="n">downstream</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sampling_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SamplingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Will be BufferPrimitive</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize equipment with buffers and performance optimization.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            env: SimPy environment</span>
+<span class="sd">            config: Equipment configuration containing:</span>
+<span class="sd">                - base_rate: Units per minute nominal capacity</span>
+<span class="sd">                - mtbf: Mean time between failures in minutes</span>
+<span class="sd">                - mttr: Mean time to repair in minutes</span>
+<span class="sd">                - energy_consumption_rate: kWh per minute when running</span>
+<span class="sd">            upstream: Input buffer (None for source equipment)</span>
+<span class="sd">            downstream: Output buffer (None for sink equipment)</span>
+<span class="sd">            sampling_config: Optional sampling configuration for performance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">sampling_config</span><span class="p">)</span>
+
+        <span class="c1"># Buffer connections</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span> <span class="o">=</span> <span class="n">upstream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span> <span class="o">=</span> <span class="n">downstream</span>
+
+        <span class="c1"># Equipment parameters from config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_rate</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;base_rate&quot;</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mtbf</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;mtbf&quot;</span><span class="p">,</span> <span class="mf">480.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mttr</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;mttr&quot;</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_rate</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;energy_consumption_rate&quot;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>
+
+        <span class="c1"># State tracking</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">EquipmentState</span><span class="o">.</span><span class="n">IDLE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous_state</span> <span class="o">=</span> <span class="n">EquipmentState</span><span class="o">.</span><span class="n">IDLE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_start_time</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_runtime</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cycles_since_maintenance</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Production tracking</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units_produced</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units_scrapped</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Default to first configured product if available</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;default_product&quot;</span><span class="p">,</span> <span class="s2">&quot;SKU-1001&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;default_order&quot;</span><span class="p">,</span> <span class="s2">&quot;ORD-DEFAULT&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Performance factors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_factor</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quality_factor</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="c1"># Failure modes from config or defaults</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failure_modes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_failure_modes</span><span class="p">()</span>
+
+        <span class="c1"># Energy tracking</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_consumed</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Rich context for observables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context_history</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_failure_modes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FailureMode</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize failure modes from config or use defaults.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of configured failure modes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">modes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Check for configured failure patterns</span>
+        <span class="n">failure_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;failure_patterns&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">if</span> <span class="n">failure_config</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mode_name</span><span class="p">,</span> <span class="n">mode_data</span> <span class="ow">in</span> <span class="n">failure_config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">modes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">FailureMode</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="n">mode_name</span><span class="p">,</span>
+                        <span class="n">probability_per_5min</span><span class="o">=</span><span class="n">mode_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                            <span class="s2">&quot;probability_per_5min&quot;</span><span class="p">,</span> <span class="mf">0.05</span>
+                        <span class="p">),</span>
+                        <span class="n">duration_range</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">mode_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_range&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">])),</span>
+                        <span class="n">downtime_code</span><span class="o">=</span><span class="n">mode_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;downtime_reason&quot;</span><span class="p">,</span> <span class="s2">&quot;UNP-UNKNOWN&quot;</span><span class="p">),</span>
+                        <span class="n">cascade_probability</span><span class="o">=</span><span class="n">mode_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cascade_probability&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                        <span class="n">recovery_time_factor</span><span class="o">=</span><span class="n">mode_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;recovery_factor&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Default failure modes</span>
+            <span class="n">modes</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">FailureMode</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;micro_stop&quot;</span><span class="p">,</span>
+                    <span class="n">probability_per_5min</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span>
+                    <span class="n">duration_range</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+                    <span class="n">downtime_code</span><span class="o">=</span><span class="s2">&quot;UNP-SENS&quot;</span><span class="p">,</span>
+                    <span class="n">cascade_probability</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">FailureMode</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;major_failure&quot;</span><span class="p">,</span>
+                    <span class="n">probability_per_5min</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+                    <span class="n">duration_range</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">45</span><span class="p">),</span>
+                    <span class="n">downtime_code</span><span class="o">=</span><span class="s2">&quot;UNP-MECH&quot;</span><span class="p">,</span>
+                    <span class="n">cascade_probability</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="n">FailureMode</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;quality_issue&quot;</span><span class="p">,</span>
+                    <span class="n">probability_per_5min</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                    <span class="n">duration_range</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+                    <span class="n">downtime_code</span><span class="o">=</span><span class="s2">&quot;UNP-QC&quot;</span><span class="p">,</span>
+                    <span class="n">cascade_probability</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">modes</span>
+
+<div class="viewcode-block" id="EquipmentPrimitive.start">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.start">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start the equipment process and failure process.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failure_process</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">monitor_process</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;equipment_started&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;base_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_rate</span><span class="p">,</span>
+                <span class="s2">&quot;mtbf&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mtbf</span><span class="p">,</span>
+                <span class="s2">&quot;mttr&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mttr</span><span class="p">,</span>
+                <span class="s2">&quot;failure_modes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">failure_modes</span><span class="p">],</span>
+            <span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EquipmentPrimitive.run">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Main equipment process for production.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Check for material availability</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span>
+                    <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="mi">0</span>
+                <span class="p">):</span>
+                    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_starved</span><span class="p">()</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Check for downstream capacity</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span>
+                    <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="p">,</span> <span class="s2">&quot;is_full&quot;</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">is_full</span><span class="p">()</span>
+                <span class="p">):</span>
+                    <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_blocked</span><span class="p">()</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Process one unit</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_unit</span><span class="p">()</span>
+
+            <span class="k">except</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Interrupt</span> <span class="k">as</span> <span class="n">interrupt</span><span class="p">:</span>
+                <span class="c1"># Handle interruptions (failures, maintenance, changeover)</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_interrupt</span><span class="p">(</span><span class="n">interrupt</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a single unit of material.</span>
+
+<span class="sd">        Yields:</span>
+<span class="sd">            Timeout for processing duration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">)</span>
+
+        <span class="c1"># Calculate actual processing time with performance variations</span>
+        <span class="n">cycle_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_cycle_time</span><span class="p">()</span>
+
+        <span class="c1"># Get material from upstream if available</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="p">,</span> <span class="s2">&quot;get&quot;</span><span class="p">):</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Processing time</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">cycle_time</span><span class="p">)</span>
+
+        <span class="c1"># Quality check</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quality_check</span><span class="p">():</span>
+            <span class="c1"># Good unit - send downstream</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="p">,</span> <span class="s2">&quot;put&quot;</span><span class="p">):</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">units_produced</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;unit_produced&quot;</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">,</span>
+                    <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_order</span><span class="p">,</span>
+                    <span class="s2">&quot;cycle_time&quot;</span><span class="p">:</span> <span class="n">cycle_time</span><span class="p">,</span>
+                    <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">,</span>
+                    <span class="s2">&quot;performance_factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_factor</span><span class="p">,</span>
+                    <span class="s2">&quot;upstream_level&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="o">.</span><span class="n">level</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;downstream_level&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">level</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Scrap unit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">units_scrapped</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;unit_scrapped&quot;</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">,</span>
+                    <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_order</span><span class="p">,</span>
+                    <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;quality_failure&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">,</span>
+                    <span class="s2">&quot;cycles_since_maintenance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycles_since_maintenance</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Update counters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cycles_since_maintenance</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_runtime</span> <span class="o">+=</span> <span class="n">cycle_time</span>
+
+        <span class="c1"># Energy consumption</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_consumed</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy_rate</span> <span class="o">*</span> <span class="p">(</span><span class="n">cycle_time</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_cycle_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate actual cycle time with variations.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Cycle time in minutes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">base_cycle</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_rate</span>  <span class="c1"># minutes per unit</span>
+
+        <span class="c1"># Apply performance factor</span>
+        <span class="n">actual_cycle</span> <span class="o">=</span> <span class="n">base_cycle</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_factor</span>
+
+        <span class="c1"># Add random variation (±10%)</span>
+        <span class="n">variation</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)</span>
+
+        <span class="c1"># Apply shift performance if configured</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">:</span>
+            <span class="n">shift_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_shift_factor</span><span class="p">()</span>
+            <span class="n">actual_cycle</span> <span class="o">*=</span> <span class="n">shift_factor</span>
+
+        <span class="c1"># Apply product-specific factor if configured</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">:</span>
+            <span class="n">product_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_product_factor</span><span class="p">()</span>
+            <span class="n">actual_cycle</span> <span class="o">*=</span> <span class="n">product_factor</span>
+
+        <span class="k">return</span> <span class="n">actual_cycle</span> <span class="o">*</span> <span class="n">variation</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_quality_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine if produced unit passes quality check.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if unit is good quality, False if scrapped</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Base scrap rate</span>
+        <span class="n">scrap_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;base_scrap_rate&quot;</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)</span>
+
+        <span class="c1"># Adjust for quality factor</span>
+        <span class="n">adjusted_rate</span> <span class="o">=</span> <span class="n">scrap_rate</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">quality_factor</span>
+
+        <span class="c1"># Increase scrap rate based on runtime since maintenance</span>
+        <span class="n">maintenance_factor</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cycles_since_maintenance</span> <span class="o">/</span> <span class="mf">10000.0</span><span class="p">)</span>
+        <span class="n">adjusted_rate</span> <span class="o">*=</span> <span class="n">maintenance_factor</span>
+
+        <span class="c1"># Product-specific scrap rate</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">:</span>
+            <span class="n">product_scrap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;scrap_rate_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">scrap_rate</span>
+            <span class="p">)</span>
+            <span class="n">adjusted_rate</span> <span class="o">=</span> <span class="n">product_scrap</span>
+
+        <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">adjusted_rate</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_starved</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle starved state when no input material available.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">STARVED</span><span class="p">)</span>
+
+        <span class="c1"># Wait for material to become available</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Check every 0.1 minutes</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;equipment_starved&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+                <span class="s2">&quot;upstream_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;upstream_level&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_blocked</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle blocked state when downstream is full.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">BLOCKED</span><span class="p">)</span>
+
+        <span class="c1"># Wait for downstream space</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Check every 0.1 minutes</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;equipment_blocked&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+                <span class="s2">&quot;downstream_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;downstream_level&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">capacity</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">)</span>
+                <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_interrupt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interrupt</span><span class="p">:</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Interrupt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle process interruption.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            interrupt: SimPy interrupt with cause information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cause</span> <span class="o">=</span> <span class="n">interrupt</span><span class="o">.</span><span class="n">cause</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cause</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">interrupt_type</span> <span class="o">=</span> <span class="n">cause</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">interrupt_type</span> <span class="o">==</span> <span class="s2">&quot;failure&quot;</span><span class="p">:</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_failure</span><span class="p">(</span><span class="n">cause</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">interrupt_type</span> <span class="o">==</span> <span class="s2">&quot;maintenance&quot;</span><span class="p">:</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_maintenance</span><span class="p">(</span><span class="n">cause</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">interrupt_type</span> <span class="o">==</span> <span class="s2">&quot;changeover&quot;</span><span class="p">:</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_changeover</span><span class="p">(</span><span class="n">cause</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">failure_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle equipment failure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            failure_info: Information about the failure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">STOPPED_FAILURE</span><span class="p">)</span>
+
+        <span class="n">failure_mode</span> <span class="o">=</span> <span class="n">failure_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">failure_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;equipment_failure&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;failure_mode&quot;</span><span class="p">:</span> <span class="n">failure_mode</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">failure_mode</span> <span class="k">else</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;downtime_code&quot;</span><span class="p">:</span> <span class="n">failure_mode</span><span class="o">.</span><span class="n">downtime_code</span>
+                <span class="k">if</span> <span class="n">failure_mode</span>
+                <span class="k">else</span> <span class="s2">&quot;UNP-UNKNOWN&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;expected_duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+                <span class="s2">&quot;cycles_since_maintenance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycles_since_maintenance</span><span class="p">,</span>
+                <span class="s2">&quot;total_runtime&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_runtime</span><span class="p">,</span>
+                <span class="s2">&quot;cascade_probability&quot;</span><span class="p">:</span> <span class="n">failure_mode</span><span class="o">.</span><span class="n">cascade_probability</span>
+                <span class="k">if</span> <span class="n">failure_mode</span>
+                <span class="k">else</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Failure duration</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+
+        <span class="c1"># Check for cascade failure</span>
+        <span class="k">if</span> <span class="n">failure_mode</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">failure_mode</span><span class="o">.</span><span class="n">cascade_probability</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_cascade_failure</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_maintenance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maintenance_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle planned maintenance.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">STOPPED_MAINTENANCE</span><span class="p">)</span>
+
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">maintenance_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;planned_maintenance&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+                <span class="s2">&quot;cycles_before&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cycles_since_maintenance</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+
+        <span class="c1"># Reset maintenance counter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cycles_since_maintenance</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_changeover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">changeover_info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle product changeover.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">CHANGEOVER</span><span class="p">)</span>
+
+        <span class="n">old_product</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span>
+        <span class="n">new_product</span> <span class="o">=</span> <span class="n">changeover_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;new_product&quot;</span><span class="p">)</span>
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">changeover_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="mf">45.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;changeover&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;old_product&quot;</span><span class="p">:</span> <span class="n">old_product</span><span class="p">,</span>
+                <span class="s2">&quot;new_product&quot;</span><span class="p">:</span> <span class="n">new_product</span><span class="p">,</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+                <span class="s2">&quot;downtime_code&quot;</span><span class="p">:</span> <span class="s2">&quot;PLN-CO&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">duration</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span> <span class="o">=</span> <span class="n">new_product</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_change_state</span><span class="p">(</span><span class="n">EquipmentState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EquipmentPrimitive.failure_process">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.failure_process">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">failure_process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Background process for random failures.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="c1"># Wait for next check interval (5 minutes)</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+
+            <span class="c1"># Only fail if running</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">EquipmentState</span><span class="o">.</span><span class="n">RUNNING</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">failure_modes</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">mode</span><span class="o">.</span><span class="n">probability_per_5min</span><span class="p">:</span>
+                        <span class="c1"># Trigger failure</span>
+                        <span class="n">duration</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">*</span><span class="n">mode</span><span class="o">.</span><span class="n">duration_range</span><span class="p">)</span>
+
+                        <span class="c1"># Apply contextual factors</span>
+                        <span class="n">duration</span> <span class="o">*=</span> <span class="n">mode</span><span class="o">.</span><span class="n">recovery_time_factor</span>
+
+                        <span class="c1"># Interrupt main process</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">triggered</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">interrupt</span><span class="p">(</span>
+                                <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;failure&quot;</span><span class="p">,</span> <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">}</span>
+                            <span class="p">)</span>
+                        <span class="k">break</span>  <span class="c1"># Only one failure at a time</span></div>
+
+
+<div class="viewcode-block" id="EquipmentPrimitive.monitor_process">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.monitor_process">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">monitor_process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Background process for periodic monitoring.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="c1"># Monitor every minute</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+
+            <span class="c1"># Emit monitoring observable</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;equipment_monitor&quot;</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                    <span class="s2">&quot;units_produced&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_produced</span><span class="p">,</span>
+                    <span class="s2">&quot;units_scrapped&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_scrapped</span><span class="p">,</span>
+                    <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_oee</span><span class="p">(),</span>
+                    <span class="s2">&quot;energy_consumed&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy_consumed</span><span class="p">,</span>
+                    <span class="s2">&quot;upstream_level&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="o">.</span><span class="n">level</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upstream</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;downstream_level&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">level</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_change_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_state</span><span class="p">:</span> <span class="n">EquipmentState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Change equipment state and emit observable.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            new_state: New equipment state</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">new_state</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">:</span>
+            <span class="n">old_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+            <span class="n">state_duration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_start_time</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">previous_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">new_state</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;old_state&quot;</span><span class="p">:</span> <span class="n">old_state</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                    <span class="s2">&quot;new_state&quot;</span><span class="p">:</span> <span class="n">new_state</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                    <span class="s2">&quot;duration_in_old_state&quot;</span><span class="p">:</span> <span class="n">state_duration</span><span class="p">,</span>
+                    <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">,</span>
+                    <span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_shift_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get performance factor for current shift.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Performance multiplier for shift</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># This would be configured in manifest</span>
+        <span class="n">shift_factors</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;shift1&quot;</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.95</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">),</span>
+            <span class="s2">&quot;shift2&quot;</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.90</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">),</span>
+            <span class="s2">&quot;shift3&quot;</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">0.85</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">shift_factors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span> <span class="k">else</span> <span class="mf">1.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_product_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get performance factor for current product.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Performance multiplier for product</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Product-specific performance from config</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;performance_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_trigger_cascade_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trigger cascade failure in downstream equipment.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;cascade_failure_triggered&quot;</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">id</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">downstream</span><span class="p">,</span> <span class="s2">&quot;config&quot;</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="EquipmentPrimitive.calculate_oee">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.calculate_oee">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_oee</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate Overall Equipment Effectiveness.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            OEE percentage (0-100)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Availability</span>
+        <span class="n">running_time</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">o</span><span class="p">[</span><span class="s2">&quot;duration_in_old_state&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_observables</span><span class="p">(</span><span class="s2">&quot;state_change&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">o</span><span class="p">[</span><span class="s2">&quot;old_state&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">EquipmentState</span><span class="o">.</span><span class="n">RUNNING</span><span class="o">.</span><span class="n">value</span>
+        <span class="p">)</span>
+        <span class="n">availability</span> <span class="o">=</span> <span class="n">running_time</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="c1"># Performance</span>
+        <span class="n">theoretical_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_rate</span> <span class="o">*</span> <span class="n">running_time</span>
+        <span class="n">actual_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_produced</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_scrapped</span>
+        <span class="n">performance</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">actual_output</span> <span class="o">/</span> <span class="n">theoretical_output</span> <span class="k">if</span> <span class="n">theoretical_output</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Quality</span>
+        <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_produced</span> <span class="o">/</span> <span class="n">actual_output</span> <span class="k">if</span> <span class="n">actual_output</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">availability</span> <span class="o">*</span> <span class="n">performance</span> <span class="o">*</span> <span class="n">quality</span> <span class="o">*</span> <span class="mi">100</span></div>
+
+
+<div class="viewcode-block" id="EquipmentPrimitive.set_product">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.set_product">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set current product being processed.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            product_id: Product identifier</span>
+<span class="sd">            order_id: Production order identifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span> <span class="o">=</span> <span class="n">product_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_order</span> <span class="o">=</span> <span class="n">order_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;product_assigned&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="n">product_id</span><span class="p">,</span> <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="n">order_id</span><span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EquipmentPrimitive.set_shift">
+<a class="viewcode-back" href="../../../twin_model.primitives.equipment.html#twin_model.EquipmentPrimitive.set_shift">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shift_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set current shift.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            shift_id: Shift identifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">shift_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">shift_id</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;shift_change&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;shift&quot;</span><span class="p">:</span> <span class="n">shift_id</span><span class="p">,</span> <span class="s2">&quot;performance_factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_shift_factor</span><span class="p">()},</span>
+        <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

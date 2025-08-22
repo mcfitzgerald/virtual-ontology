@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Performance Optimization &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="Architecture" href="architecture.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Performance Optimization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#performance-achievements">Performance Achievements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optimization-phases">Optimization Phases</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#phase-1-memory-optimization">Phase 1: Memory Optimization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-2-event-processing">Phase 2: Event Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-3-storage-optimization">Phase 3: Storage Optimization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-4-progress-state">Phase 4: Progress &amp; State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-5-configuration-system">Phase 5: Configuration System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-6-integration">Phase 6: Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#choosing-the-right-configuration">Choosing the Right Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-management-tips">Memory Management Tips</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-monitoring">Performance Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#optimization-checklist">Optimization Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#benchmarks">Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting-performance">Troubleshooting Performance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Performance Optimization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/performance.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="performance-optimization">
+<h1>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading"></a></h1>
+<p>The Twin Model framework has been optimized through 6 comprehensive phases to achieve production-scale performance.</p>
+<section id="performance-achievements">
+<h2>Performance Achievements<a class="headerlink" href="#performance-achievements" title="Link to this heading"></a></h2>
+<p>After optimization:</p>
+<ul class="simple">
+<li><p><strong>Memory</strong>: 90%+ reduction (5.5MB → 0.5MB)</p></li>
+<li><p><strong>30-Day Simulations</strong>: &lt;500MB memory, &lt;5 minutes</p></li>
+<li><p><strong>Event Processing</strong>: 99% reduction through batching</p></li>
+<li><p><strong>Database</strong>: 20,000+ events/second insertion</p></li>
+</ul>
+</section>
+<section id="optimization-phases">
+<h2>Optimization Phases<a class="headerlink" href="#optimization-phases" title="Link to this heading"></a></h2>
+<section id="phase-1-memory-optimization">
+<h3>Phase 1: Memory Optimization<a class="headerlink" href="#phase-1-memory-optimization" title="Link to this heading"></a></h3>
+<p><strong>Circular Buffers</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ObservableBuffer</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="n">buffer_size</span><span class="p">)</span>
+        <span class="c1"># Automatically discards oldest when full</span>
+</pre></div>
+</div>
+<p><strong>Sampling Strategies</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SamplingConfig</span><span class="p">:</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">SimulationMode</span>
+    <span class="n">sampling_rate</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Keep 1 in N events</span>
+    <span class="n">buffer_size</span><span class="p">:</span> <span class="nb">int</span>
+
+<span class="c1"># Example: Keep 1% of events</span>
+<span class="n">sampling</span> <span class="o">=</span> <span class="n">SamplingConfig</span><span class="p">(</span>
+    <span class="n">mode</span><span class="o">=</span><span class="n">SimulationMode</span><span class="o">.</span><span class="n">FAST</span><span class="p">,</span>
+    <span class="n">sampling_rate</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">buffer_size</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="phase-2-event-processing">
+<h3>Phase 2: Event Processing<a class="headerlink" href="#phase-2-event-processing" title="Link to this heading"></a></h3>
+<p><strong>Event Batching</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">EventBatcher</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">batch_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Group events by type and time window&quot;&quot;&quot;</span>
+        <span class="n">batches</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">//</span> <span class="n">window</span><span class="p">)</span>
+            <span class="n">batches</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">batches</span>
+</pre></div>
+</div>
+<p><strong>Incremental Aggregation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">IncrementalAggregator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Welford&#39;s algorithm for stable statistics&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">+=</span> <span class="n">delta</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m2</span> <span class="o">+=</span> <span class="n">delta</span> <span class="o">*</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="phase-3-storage-optimization">
+<h3>Phase 3: Storage Optimization<a class="headerlink" href="#phase-3-storage-optimization" title="Link to this heading"></a></h3>
+<p><strong>Write-Through Cache</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ObservableCache</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">1_000_000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mmap_file</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span>
+            <span class="n">cache_path</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w+&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">max_size</span><span class="p">,</span> <span class="n">dtype_size</span><span class="p">)</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Batch Database Operations</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">batch_insert_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert events in batches&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+        <span class="n">batch</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">batch_size</span><span class="p">]</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">bulk_insert_mappings</span><span class="p">(</span><span class="n">SimulationData</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span>
+        <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="phase-4-progress-state">
+<h3>Phase 4: Progress &amp; State<a class="headerlink" href="#phase-4-progress-state" title="Link to this heading"></a></h3>
+<p><strong>State Persistence</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationCheckpoint</span><span class="p">:</span>
+    <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">simulation_time</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">primitives_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checkpoint_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">.pkl&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">dill</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Progress Monitoring</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConsoleProgressReporter</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">memory_mb</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Progress: </span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory: </span><span class="si">{</span><span class="n">memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">MB&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="phase-5-configuration-system">
+<h3>Phase 5: Configuration System<a class="headerlink" href="#phase-5-configuration-system" title="Link to this heading"></a></h3>
+<p><strong>Performance Presets</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConfigPreset</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">DEVELOPMENT</span> <span class="o">=</span> <span class="s2">&quot;development&quot;</span>     <span class="c1"># Full data</span>
+    <span class="n">PRODUCTION</span> <span class="o">=</span> <span class="s2">&quot;production&quot;</span>       <span class="c1"># Balanced</span>
+    <span class="n">FAST</span> <span class="o">=</span> <span class="s2">&quot;fast&quot;</span>                  <span class="c1"># Maximum speed</span>
+    <span class="n">MEMORY_OPTIMIZED</span> <span class="o">=</span> <span class="s2">&quot;memory&quot;</span>    <span class="c1"># Minimal memory</span>
+    <span class="n">LONG_RUNNING</span> <span class="o">=</span> <span class="s2">&quot;long_running&quot;</span>  <span class="c1"># 30+ days</span>
+    <span class="n">REAL_TIME</span> <span class="o">=</span> <span class="s2">&quot;real_time&quot;</span>        <span class="c1"># Live monitoring</span>
+</pre></div>
+</div>
+<p><strong>Memory Estimation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">estimate_memory_usage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_primitives</span><span class="p">,</span> <span class="n">days</span><span class="p">):</span>
+    <span class="n">events_per_day</span> <span class="o">=</span> <span class="n">num_primitives</span> <span class="o">*</span> <span class="mi">1440</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span>
+    <span class="n">buffer_mb</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_size</span> <span class="o">*</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">num_primitives</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1_048_576</span>
+    <span class="n">cache_mb</span> <span class="o">=</span> <span class="p">(</span><span class="n">events_per_day</span> <span class="o">*</span> <span class="n">days</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1_048_576</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;buffer_mb&#39;</span><span class="p">:</span> <span class="n">buffer_mb</span><span class="p">,</span> <span class="s1">&#39;cache_mb&#39;</span><span class="p">:</span> <span class="n">cache_mb</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="phase-6-integration">
+<h3>Phase 6: Integration<a class="headerlink" href="#phase-6-integration" title="Link to this heading"></a></h3>
+<p><strong>Adaptive Optimization</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">adaptive_mode_switch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Switch modes based on memory pressure&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_memory_usage</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_memory_mb</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">switch_to_fast_mode</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Profiling Integration</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SimulationProfiler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+        <span class="n">profiler</span> <span class="o">=</span> <span class="n">cProfile</span><span class="o">.</span><span class="n">Profile</span><span class="p">()</span>
+        <span class="n">profiler</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">()</span>
+        <span class="n">profiler</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">analyze_profile</span><span class="p">(</span><span class="n">profiler</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<section id="choosing-the-right-configuration">
+<h3>Choosing the Right Configuration<a class="headerlink" href="#choosing-the-right-configuration" title="Link to this heading"></a></h3>
+<p><strong>For Development/Debugging</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">PerformanceConfig</span><span class="o">.</span><span class="n">from_preset</span><span class="p">(</span><span class="n">ConfigPreset</span><span class="o">.</span><span class="n">DEVELOPMENT</span><span class="p">)</span>
+<span class="c1"># Full observables, no sampling</span>
+</pre></div>
+</div>
+<p><strong>For Production (7-day runs)</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">PerformanceConfig</span><span class="o">.</span><span class="n">from_preset</span><span class="p">(</span><span class="n">ConfigPreset</span><span class="o">.</span><span class="n">PRODUCTION</span><span class="p">)</span>
+<span class="c1"># Balanced performance, 10% sampling</span>
+</pre></div>
+</div>
+<p><strong>For Long Simulations (30+ days)</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">PerformanceConfig</span><span class="o">.</span><span class="n">from_preset</span><span class="p">(</span><span class="n">ConfigPreset</span><span class="o">.</span><span class="n">LONG_RUNNING</span><span class="p">)</span>
+<span class="c1"># Aggressive sampling, checkpointing enabled</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-management-tips">
+<h3>Memory Management Tips<a class="headerlink" href="#memory-management-tips" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Use Circular Buffers</strong>: Prevent unbounded growth</p></li>
+<li><p><strong>Enable Sampling</strong>: Reduce data volume</p></li>
+<li><p><strong>Batch Processing</strong>: Group operations</p></li>
+<li><p><strong>Clear Unused Data</strong>: Explicitly delete large objects</p></li>
+<li><p><strong>Monitor Memory</strong>: Track usage during runs</p></li>
+</ol>
+</section>
+<section id="performance-monitoring">
+<h3>Performance Monitoring<a class="headerlink" href="#performance-monitoring" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tracemalloc</span>
+
+<span class="c1"># Start monitoring</span>
+<span class="n">tracemalloc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+
+<span class="c1"># Get peak memory</span>
+<span class="n">current</span><span class="p">,</span> <span class="n">peak</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">get_traced_memory</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Peak memory: </span><span class="si">{</span><span class="n">peak</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1_048_576</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">MB&quot;</span><span class="p">)</span>
+<span class="n">tracemalloc</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="optimization-checklist">
+<h2>Optimization Checklist<a class="headerlink" href="#optimization-checklist" title="Link to this heading"></a></h2>
+<p>Before running large simulations:</p>
+<p>☐ Choose appropriate performance preset
+☐ Configure sampling rate based on needs
+☐ Set reasonable buffer sizes
+☐ Enable checkpointing for very long runs
+☐ Monitor memory usage during development
+☐ Use batch operations for database writes
+☐ Profile code to identify bottlenecks
+☐ Clear observables after processing</p>
+</section>
+<section id="benchmarks">
+<h2>Benchmarks<a class="headerlink" href="#benchmarks" title="Link to this heading"></a></h2>
+<p><strong>Standard 7-Day Simulation</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Configuration</p></th>
+<th class="head"><p>Memory (MB)</p></th>
+<th class="head"><p>Time (sec)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DEVELOPMENT</p></td>
+<td><p>250</p></td>
+<td><p>45</p></td>
+</tr>
+<tr class="row-odd"><td><p>PRODUCTION</p></td>
+<td><p>50</p></td>
+<td><p>30</p></td>
+</tr>
+<tr class="row-even"><td><p>FAST</p></td>
+<td><p>15</p></td>
+<td><p>20</p></td>
+</tr>
+<tr class="row-odd"><td><p>MEMORY_OPTIMIZED</p></td>
+<td><p>10</p></td>
+<td><p>35</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>30-Day Simulation</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Configuration</p></th>
+<th class="head"><p>Memory (MB)</p></th>
+<th class="head"><p>Time (sec)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>LONG_RUNNING</p></td>
+<td><p>450</p></td>
+<td><p>240</p></td>
+</tr>
+<tr class="row-odd"><td><p>FAST</p></td>
+<td><p>200</p></td>
+<td><p>180</p></td>
+</tr>
+<tr class="row-even"><td><p>MEMORY_OPTIMIZED</p></td>
+<td><p>150</p></td>
+<td><p>300</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="troubleshooting-performance">
+<h2>Troubleshooting Performance<a class="headerlink" href="#troubleshooting-performance" title="Link to this heading"></a></h2>
+<dl class="simple">
+<dt><strong>High Memory Usage</strong></dt><dd><ul class="simple">
+<li><p>Reduce buffer sizes</p></li>
+<li><p>Increase sampling rate</p></li>
+<li><p>Enable more aggressive mode</p></li>
+<li><p>Check for memory leaks in custom code</p></li>
+</ul>
+</dd>
+<dt><strong>Slow Execution</strong></dt><dd><ul class="simple">
+<li><p>Use FAST preset</p></li>
+<li><p>Reduce observable emissions</p></li>
+<li><p>Batch database operations</p></li>
+<li><p>Profile to find bottlenecks</p></li>
+</ul>
+</dd>
+<dt><strong>Database Bottlenecks</strong></dt><dd><ul class="simple">
+<li><p>Increase batch size</p></li>
+<li><p>Use async inserts</p></li>
+<li><p>Consider write-through cache</p></li>
+<li><p>Optimize indexes</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="architecture.html" class="btn btn-neutral float-left" title="Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

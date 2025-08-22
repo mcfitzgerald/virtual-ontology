@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.schemas &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">database.schemas</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for database.schemas</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Pydantic schemas for API request/response models</span>
+
+<span class="sd">These models define the structure of data sent to and from the API,</span>
+<span class="sd">separate from the SQLModel database models</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+
+
+<span class="c1"># ============= Enums =============</span>
+
+<div class="viewcode-block" id="RunType">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.RunType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RunType</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Types of simulation runs&quot;&quot;&quot;</span>
+    <span class="n">BASELINE</span> <span class="o">=</span> <span class="s2">&quot;baseline&quot;</span>
+    <span class="n">EXPERIMENT</span> <span class="o">=</span> <span class="s2">&quot;experiment&quot;</span>
+    <span class="n">OPTIMIZATION</span> <span class="o">=</span> <span class="s2">&quot;optimization&quot;</span>
+    <span class="n">RECOMMENDATION</span> <span class="o">=</span> <span class="s2">&quot;recommendation&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="RunStatus">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.RunStatus">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RunStatus</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Status of a simulation run&quot;&quot;&quot;</span>
+    <span class="n">PENDING</span> <span class="o">=</span> <span class="s2">&quot;pending&quot;</span>
+    <span class="n">RUNNING</span> <span class="o">=</span> <span class="s2">&quot;running&quot;</span>
+    <span class="n">COMPLETED</span> <span class="o">=</span> <span class="s2">&quot;completed&quot;</span>
+    <span class="n">FAILED</span> <span class="o">=</span> <span class="s2">&quot;failed&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PatternType">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.PatternType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatternType</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Types of discovered patterns&quot;&quot;&quot;</span>
+    <span class="n">CORRELATION</span> <span class="o">=</span> <span class="s2">&quot;correlation&quot;</span>
+    <span class="n">CAUSATION</span> <span class="o">=</span> <span class="s2">&quot;causation&quot;</span>
+    <span class="n">THRESHOLD</span> <span class="o">=</span> <span class="s2">&quot;threshold&quot;</span>
+    <span class="n">ANOMALY</span> <span class="o">=</span> <span class="s2">&quot;anomaly&quot;</span></div>
+
+
+
+<span class="c1"># ============= Request Models =============</span>
+
+<div class="viewcode-block" id="SimulationRequest">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.SimulationRequest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to run a simulation&quot;&quot;&quot;</span>
+    <span class="n">run_type</span><span class="p">:</span> <span class="n">RunType</span> <span class="o">=</span> <span class="n">RunType</span><span class="o">.</span><span class="n">EXPERIMENT</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Simulation parameters&quot;</span><span class="p">)</span>
+    <span class="n">days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Days to simulate&quot;</span><span class="p">)</span>
+    <span class="n">parent_run_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Parent run for lineage&quot;</span><span class="p">)</span>
+    <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Notes about this run&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ExperimentRequest">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.ExperimentRequest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExperimentRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to create and run an experiment&quot;&quot;&quot;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Experiment name&quot;</span><span class="p">)</span>
+    <span class="n">hypothesis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Experiment hypothesis&quot;</span><span class="p">)</span>
+    <span class="n">parameter_changes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Parameters to modify&quot;</span><span class="p">)</span>
+    <span class="n">days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Days per simulation&quot;</span><span class="p">)</span>
+    <span class="n">num_runs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Number of test runs&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SQLQueryRequest">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.SQLQueryRequest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SQLQueryRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to execute SQL query&quot;&quot;&quot;</span>
+    <span class="n">sql</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;SQL query to execute&quot;</span><span class="p">)</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum rows to return&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CleanupRequest">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.CleanupRequest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CleanupRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to clean database&quot;&quot;&quot;</span>
+    <span class="n">category</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> 
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Category to clean: historical, simulation, optimization, monitoring, metadata, logs&quot;</span>
+    <span class="p">)</span>
+    <span class="n">tables</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Specific tables to clean&quot;</span><span class="p">)</span>
+    <span class="n">older_than_days</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Remove data older than N days&quot;</span><span class="p">)</span>
+    <span class="n">preserve</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Tables to preserve&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="BackupRequest">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.BackupRequest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BackupRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request to create database backup&quot;&quot;&quot;</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Backup description&quot;</span><span class="p">)</span>
+    <span class="n">compress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Compress backup file&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ============= Response Models =============</span>
+
+<div class="viewcode-block" id="DatabaseStats">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.DatabaseStats">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DatabaseStats</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Database statistics&quot;&quot;&quot;</span>
+    <span class="n">database_path</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">file_size_mb</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">total_tables</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">total_records</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">tables</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+    <span class="n">ontology_version</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">manifest_version</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">categories</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span></div>
+
+
+
+<div class="viewcode-block" id="TableInfo">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.TableInfo">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TableInfo</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Information about a database table&quot;&quot;&quot;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">record_count</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">indexes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">sample_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="SimulationResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.SimulationResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Response from simulation run&quot;&quot;&quot;</span>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">status</span><span class="p">:</span> <span class="n">RunStatus</span>
+    <span class="n">started_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">finished_at</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span>
+    <span class="n">kpi_summary</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>
+    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<div class="viewcode-block" id="ExperimentResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.ExperimentResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExperimentResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Response from experiment creation&quot;&quot;&quot;</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">baseline_run_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">test_run_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">results_summary</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">conclusion</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="PatternResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.PatternResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatternResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discovered pattern information&quot;&quot;&quot;</span>
+    <span class="n">pattern_id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">pattern_type</span><span class="p">:</span> <span class="n">PatternType</span>
+    <span class="n">pattern_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">confidence_score</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">validated</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">discovered_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">evidence</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="RecommendationResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.RecommendationResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecommendationResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parameter recommendation&quot;&quot;&quot;</span>
+    <span class="n">recommendation_id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">recommendation_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">parameter_adjustments</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">expected_improvement</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">applied</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span></div>
+
+
+
+<div class="viewcode-block" id="KPISummary">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.KPISummary">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">KPISummary</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;KPI summary data&quot;&quot;&quot;</span>
+    <span class="n">mean_oee</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">mean_availability</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">mean_performance</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">mean_quality</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">total_good_units</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">total_scrap_units</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">scrap_rate</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">total_downtime_minutes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="ComparisonResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.ComparisonResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ComparisonResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Comparison between two runs&quot;&quot;&quot;</span>
+    <span class="n">baseline_run_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">comparison_run_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">oee_delta</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">availability_delta</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">performance_delta</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">quality_delta</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">production_delta</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">is_significant</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">analysis</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="SQLQueryResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.SQLQueryResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SQLQueryResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Response from SQL query&quot;&quot;&quot;</span>
+    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">row_count</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">limited</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">execution_time_ms</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+
+<div class="viewcode-block" id="BackupResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.BackupResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BackupResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Response from backup operation&quot;&quot;&quot;</span>
+    <span class="n">backup_path</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">size_mb</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">tables_backed_up</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">records_backed_up</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">compressed</span><span class="p">:</span> <span class="nb">bool</span></div>
+
+
+
+<div class="viewcode-block" id="OperationResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.OperationResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OperationResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generic operation response&quot;&quot;&quot;</span>
+    <span class="n">success</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">details</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># ============= List Response Models =============</span>
+
+<div class="viewcode-block" id="SimulationListResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.SimulationListResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationListResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List of simulation runs&quot;&quot;&quot;</span>
+    <span class="n">runs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">SimulationResponse</span><span class="p">]</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">page</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span></div>
+
+
+
+<div class="viewcode-block" id="ExperimentListResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.ExperimentListResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExperimentListResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List of experiments&quot;&quot;&quot;</span>
+    <span class="n">experiments</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ExperimentResponse</span><span class="p">]</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span></div>
+
+
+
+<div class="viewcode-block" id="PatternListResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.PatternListResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatternListResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List of discovered patterns&quot;&quot;&quot;</span>
+    <span class="n">patterns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PatternResponse</span><span class="p">]</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span></div>
+
+
+
+<div class="viewcode-block" id="RecommendationListResponse">
+<a class="viewcode-back" href="../../api/database/schemas/index.html#database.schemas.RecommendationListResponse">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecommendationListResponse</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List of recommendations&quot;&quot;&quot;</span>
+    <span class="n">recommendations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RecommendationResponse</span><span class="p">]</span>
+    <span class="n">total</span><span class="p">:</span> <span class="nb">int</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

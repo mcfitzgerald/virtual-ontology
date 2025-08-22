@@ -1,0 +1,176 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_phase2_integration module &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_phase2_integration module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/twin_model.tests.test_phase2_integration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin_model.tests.test_phase2_integration">
+<span id="twin-model-tests-test-phase2-integration-module"></span><h1>twin_model.tests.test_phase2_integration module<a class="headerlink" href="#module-twin_model.tests.test_phase2_integration" title="Link to this heading"></a></h1>
+<p>Comprehensive integration test for Phase 2 implementation.</p>
+<p>This test validates that the ontology-driven model builder correctly:
+1. Interprets the ontology structure
+2. Creates proper primitive instances
+3. Wires relationships correctly
+4. Produces expected observables
+5. Supports discovery-based learning</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_ontology_structure_compliance">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_ontology_structure_compliance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_ontology_structure_compliance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_ontology_structure_compliance" title="Link to this definition"></a></dt>
+<dd><p>Test that our ontology follows proper TBox/RBox structure.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_primitive_instantiation_from_ontology">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_primitive_instantiation_from_ontology</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_primitive_instantiation_from_ontology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_primitive_instantiation_from_ontology" title="Link to this definition"></a></dt>
+<dd><p>Test that primitives are correctly instantiated from ontology classes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_relationship_wiring">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_relationship_wiring</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_relationship_wiring"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_relationship_wiring" title="Link to this definition"></a></dt>
+<dd><p>Test that relationships from RBox are correctly wired.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_observable_emission">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_observable_emission</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_observable_emission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_observable_emission" title="Link to this definition"></a></dt>
+<dd><p>Test that primitives emit observables as defined in ontology.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_controllable_parameters">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_controllable_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_controllable_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_controllable_parameters" title="Link to this definition"></a></dt>
+<dd><p>Test that controllable parameters are exposed correctly.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_monitor_kpi_tracking">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_monitor_kpi_tracking</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_monitor_kpi_tracking"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_monitor_kpi_tracking" title="Link to this definition"></a></dt>
+<dd><p>Test that monitor tracks KPIs defined in ontology observables.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_scheduler_order_management">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_scheduler_order_management</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_scheduler_order_management"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_scheduler_order_management" title="Link to this definition"></a></dt>
+<dd><p>Test that scheduler can manage orders as defined in ontology.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_discovery_based_learning_support">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_discovery_based_learning_support</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_discovery_based_learning_support"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_discovery_based_learning_support" title="Link to this definition"></a></dt>
+<dd><p>Test that the system supports discovery-based learning.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_production_line_composition">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_production_line_composition</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_production_line_composition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_production_line_composition" title="Link to this definition"></a></dt>
+<dd><p>Test that production lines are correctly composed from ontology.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_phase2_integration.test_model_structure_analysis">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_phase2_integration.</span></span><span class="sig-name descname"><span class="pre">test_model_structure_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_phase2_integration.html#test_model_structure_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_phase2_integration.test_model_structure_analysis" title="Link to this definition"></a></dt>
+<dd><p>Test model structure extraction for analysis.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

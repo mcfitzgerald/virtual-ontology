@@ -1,0 +1,651 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_phase3_storage &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_phase3_storage</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.tests.test_phase3_storage</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Test Phase 3 Storage and Persistence Optimizations.</span>
+
+<span class="sd">This test validates the write-through cache and database flushing</span>
+<span class="sd">features for efficient storage of simulation events.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BasePrimitive</span><span class="p">,</span>
+    <span class="n">PrimitiveConfig</span><span class="p">,</span>
+    <span class="n">SamplingConfig</span><span class="p">,</span>
+    <span class="n">SimulationMode</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives.equipment</span><span class="w"> </span><span class="kn">import</span> <span class="n">EquipmentPrimitive</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.storage.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObservableCache</span>
+
+
+<div class="viewcode-block" id="test_cache_basic_operations">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.test_cache_basic_operations">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_cache_basic_operations</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test basic cache read/write operations.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Cache Basic Operations...&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Create temporary directory for cache</span>
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">())</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Create cache</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">ObservableCache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">dtype_size</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+        
+        <span class="c1"># Test single write</span>
+        <span class="n">event1</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mf">10.5</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;EQ-001&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;additional_data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="mf">85.5</span><span class="p">}</span>
+        <span class="p">}</span>
+        
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">write_event</span><span class="p">(</span><span class="n">event1</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;First event should have index 0, got </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># Test read</span>
+        <span class="n">read_event</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">read_event</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">read_event</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Should be able to read event&quot;</span>
+        <span class="k">assert</span> <span class="n">read_event</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">10.5</span>
+        <span class="k">assert</span> <span class="n">read_event</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;state_change&quot;</span>
+        <span class="k">assert</span> <span class="n">read_event</span><span class="p">[</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;EQ-001&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Single event write/read working&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Test batch write</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">):</span>
+            <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;EQ-</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;units_produced&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">10</span>
+            <span class="p">})</span>
+        
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">write_batch</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">50</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Should have written 50 events, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;First batch event should have index 1&quot;</span>
+        <span class="k">assert</span> <span class="n">indices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">50</span><span class="p">,</span> <span class="s2">&quot;Last batch event should have index 50&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Batch write working&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Test range read</span>
+        <span class="n">range_events</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">read_range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">range_events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Should read 10 events, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">range_events</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">range_events</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;EQ-009&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Range read working&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Test statistics</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;total_events&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">51</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Should have 51 events, got </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;total_files&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Should have 1 cache file&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Cache stats: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> events, </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_size_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+        
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Cleanup</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_cache_file_rotation">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.test_cache_file_rotation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_cache_file_rotation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test cache file rotation when max size is reached.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Cache File Rotation...&quot;</span><span class="p">)</span>
+    
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">())</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Create cache with small max size</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">ObservableCache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dtype_size</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
+        
+        <span class="c1"># Write more events than max_size</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">25</span><span class="p">):</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;TEST-</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">i</span>
+            <span class="p">}</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">write_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        
+        <span class="c1"># Check that multiple files were created</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;total_files&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Should have 3 files, got </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_files&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;total_events&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">25</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Should have 25 events, got </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ File rotation working: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_files&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> files created&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Verify we can still read all events</span>
+        <span class="n">event_0</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">read_event</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">event_0</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Should read first event&quot;</span>
+        
+        <span class="n">event_24</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">read_event</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">event_24</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">24</span><span class="p">,</span> <span class="s2">&quot;Should read last event&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Can read events across multiple files&quot;</span><span class="p">)</span>
+        
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_cache_query">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.test_cache_query">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_cache_query</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test cache querying capabilities.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Cache Query...&quot;</span><span class="p">)</span>
+    
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">())</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">ObservableCache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span>
+        
+        <span class="c1"># Add diverse events</span>
+        <span class="k">for</span> <span class="n">minute</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">eq_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="c1"># State change events</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">write_event</span><span class="p">({</span>
+                    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">minute</span><span class="p">),</span>
+                    <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;EQ-</span><span class="si">{</span><span class="n">eq_num</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span> <span class="k">if</span> <span class="n">minute</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;IDLE&quot;</span>
+                <span class="p">})</span>
+                
+                <span class="c1"># Production events</span>
+                <span class="k">if</span> <span class="n">minute</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">cache</span><span class="o">.</span><span class="n">write_event</span><span class="p">({</span>
+                        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">minute</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;EQ-</span><span class="si">{</span><span class="n">eq_num</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="mi">100</span>
+                    <span class="p">})</span>
+        
+        <span class="c1"># Query by event type</span>
+        <span class="n">state_events</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">query_events</span><span class="p">(</span><span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;state_change&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">state_events</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;Should respect limit&quot;</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;state_change&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">state_events</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Query by event_type found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">state_events</span><span class="p">)</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Query by primitive_id</span>
+        <span class="n">eq1_events</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">query_events</span><span class="p">(</span><span class="n">primitive_id</span><span class="o">=</span><span class="s2">&quot;EQ-001&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;EQ-001&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">eq1_events</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Query by primitive_id found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">eq1_events</span><span class="p">)</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Query by time range</span>
+        <span class="n">time_events</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">query_events</span><span class="p">(</span><span class="n">start_time</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="mf">5.0</span> <span class="o">&lt;=</span> <span class="n">e</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">10.0</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">time_events</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Query by time range found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">time_events</span><span class="p">)</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Combined query</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">query_events</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">,</span>
+            <span class="n">primitive_id</span><span class="o">=</span><span class="s2">&quot;EQ-002&quot;</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">end_time</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span>
+            <span class="n">limit</span><span class="o">=</span><span class="mi">5</span>
+        <span class="p">)</span>
+        
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;production&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">combined</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;EQ-002&quot;</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">combined</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">5</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Combined query found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">combined</span><span class="p">)</span><span class="si">}</span><span class="s2"> events&quot;</span><span class="p">)</span>
+        
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_database_batch_insert">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.test_database_batch_insert">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_database_batch_insert</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test batch insertion into database.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Database Batch Insert...&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Import database components</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">Session</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationDataRepository</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ⚠️  Database dependencies not available, skipping database tests&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    
+    <span class="c1"># Create in-memory database for testing</span>
+    <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s2">&quot;sqlite:///:memory:&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Create tables (simplified for testing)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationData</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLModel</span>
+    <span class="n">SQLModel</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">SimulationDataRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        
+        <span class="c1"># Create test events</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000</span><span class="p">):</span>
+            <span class="n">events</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;EQ-</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">10</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;good_units&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s2">&quot;scrap_units&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="mf">75.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">20</span><span class="p">),</span>
+                <span class="s2">&quot;availability&quot;</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
+                <span class="s2">&quot;performance&quot;</span><span class="p">:</span> <span class="mf">85.0</span><span class="p">,</span>
+                <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="mf">95.0</span>
+            <span class="p">})</span>
+        
+        <span class="c1"># Test batch insert</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">inserted</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">batch_insert_events</span><span class="p">(</span><span class="s2">&quot;TEST_RUN_001&quot;</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        
+        <span class="k">assert</span> <span class="n">inserted</span> <span class="o">==</span> <span class="mi">1000</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Should insert 1000 events, got </span><span class="si">{</span><span class="n">inserted</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Batch inserted </span><span class="si">{</span><span class="n">inserted</span><span class="si">}</span><span class="s2"> events in </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Rate: </span><span class="si">{</span><span class="n">inserted</span><span class="o">/</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> events/second&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Verify data in database</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">select</span>
+        <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">SimulationData</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">SimulationData</span><span class="o">.</span><span class="n">run_id</span> <span class="o">==</span> <span class="s2">&quot;TEST_RUN_001&quot;</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1000</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Should have 1000 records, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ All events successfully stored in database&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_cache_to_database_flush">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.test_cache_to_database_flush">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_cache_to_database_flush</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test flushing cache to database.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Cache to Database Flush...&quot;</span><span class="p">)</span>
+    
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">())</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Create and populate cache</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">ObservableCache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Populating cache with events...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">):</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">60</span><span class="p">),</span>  <span class="c1"># Convert to hours</span>
+                <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;monitoring&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;EQ-</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="mi">5</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="mi">70</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">30</span><span class="p">),</span>
+                <span class="s2">&quot;good_units&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s2">&quot;scrap_units&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">10</span>
+            <span class="p">}</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">write_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        
+        <span class="n">cache</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Cache populated: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> events in </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_files&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> files&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Cache size: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_size_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Test database flush</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">Session</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationDataRepository</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationData</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLModel</span>
+            
+            <span class="c1"># Create in-memory database</span>
+            <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s2">&quot;sqlite:///:memory:&quot;</span><span class="p">)</span>
+            <span class="n">SQLModel</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+            
+            <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+                <span class="n">repo</span> <span class="o">=</span> <span class="n">SimulationDataRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+                
+                <span class="c1"># Flush cache to database</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Flushing cache to database...&quot;</span><span class="p">)</span>
+                <span class="n">flush_stats</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">flush_cache_to_database</span><span class="p">(</span>
+                    <span class="n">run_id</span><span class="o">=</span><span class="s2">&quot;FLUSH_TEST_001&quot;</span><span class="p">,</span>
+                    <span class="n">cache_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">),</span>
+                    <span class="n">batch_size</span><span class="o">=</span><span class="mi">250</span>
+                <span class="p">)</span>
+                
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Cache flushed to database:&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Events processed: </span><span class="si">{</span><span class="n">flush_stats</span><span class="p">[</span><span class="s1">&#39;events_processed&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Events inserted: </span><span class="si">{</span><span class="n">flush_stats</span><span class="p">[</span><span class="s1">&#39;events_inserted&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Time: </span><span class="si">{</span><span class="n">flush_stats</span><span class="p">[</span><span class="s1">&#39;flush_time_seconds&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Rate: </span><span class="si">{</span><span class="n">flush_stats</span><span class="p">[</span><span class="s1">&#39;events_per_second&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> events/s&quot;</span><span class="p">)</span>
+                
+                <span class="k">assert</span> <span class="n">flush_stats</span><span class="p">[</span><span class="s1">&#39;events_inserted&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2000</span><span class="p">,</span> <span class="s2">&quot;Should insert all events&quot;</span>
+                
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ⚠️  Database flush test skipped (dependencies not available)&quot;</span><span class="p">)</span>
+        
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_integrated_cache_simulation">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.test_integrated_cache_simulation">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_integrated_cache_simulation</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test cache integrated with simulation.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Integrated Cache with Simulation...&quot;</span><span class="p">)</span>
+    
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">())</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+        
+        <span class="c1"># Create equipment with production mode sampling</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;CACHE-TEST&quot;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;base_rate&quot;</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span>
+                <span class="s2">&quot;mtbf&quot;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
+                <span class="s2">&quot;mttr&quot;</span><span class="p">:</span> <span class="mf">10.0</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        
+        <span class="n">sampling</span> <span class="o">=</span> <span class="n">SamplingConfig</span><span class="p">(</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">SimulationMode</span><span class="o">.</span><span class="n">PRODUCTION</span><span class="p">,</span>
+            <span class="n">sampling_rate</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">buffer_size</span><span class="o">=</span><span class="mi">100</span>
+        <span class="p">)</span>
+        
+        <span class="n">equipment</span> <span class="o">=</span> <span class="n">EquipmentPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">sampling_config</span><span class="o">=</span><span class="n">sampling</span><span class="p">)</span>
+        <span class="n">equipment</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+        <span class="c1"># Create cache for this equipment</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">ObservableCache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+        
+        <span class="c1"># Hook cache to equipment&#39;s flush callback</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">flush_to_cache</span><span class="p">(</span><span class="n">events</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Flush buffer events to cache.&quot;&quot;&quot;</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">write_batch</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+        
+        <span class="c1"># Set flush callback</span>
+        <span class="n">equipment</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">flush_callback</span> <span class="o">=</span> <span class="n">flush_to_cache</span>
+        
+        <span class="c1"># Run simulation</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Running 100-minute simulation with caching...&quot;</span><span class="p">)</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        
+        <span class="c1"># Flush any remaining events</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">equipment</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">flush_to_cache</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">equipment</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">buffer</span><span class="p">))</span>
+        
+        <span class="c1"># Check cache</span>
+        <span class="n">cache_stats</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
+        <span class="n">equipment_metrics</span> <span class="o">=</span> <span class="n">equipment</span><span class="o">.</span><span class="n">get_performance_metrics</span><span class="p">()</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Simulation results:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Events emitted: </span><span class="si">{</span><span class="n">equipment_metrics</span><span class="p">[</span><span class="s1">&#39;events_emitted&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Events sampled: </span><span class="si">{</span><span class="n">equipment_metrics</span><span class="p">[</span><span class="s1">&#39;events_sampled&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Events in cache: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Cache files: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_files&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Cache size: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_size_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Query some events from cache</span>
+        <span class="n">state_changes</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">query_events</span><span class="p">(</span><span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;state_change&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    State changes in cache: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">state_changes</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Cache successfully integrated with simulation&quot;</span><span class="p">)</span>
+        
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_long_simulation_with_cache">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.test_long_simulation_with_cache">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_long_simulation_with_cache</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that long simulations work efficiently with cache.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing Long Simulation with Cache...&quot;</span><span class="p">)</span>
+    
+    <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">())</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+        
+        <span class="n">config</span> <span class="o">=</span> <span class="n">PrimitiveConfig</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;LONG-SIM&quot;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Equipment&quot;</span><span class="p">,</span> 
+            <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;base_rate&quot;</span><span class="p">:</span> <span class="mf">60.0</span><span class="p">,</span>
+                <span class="s2">&quot;mtbf&quot;</span><span class="p">:</span> <span class="mf">480.0</span><span class="p">,</span>
+                <span class="s2">&quot;mttr&quot;</span><span class="p">:</span> <span class="mf">30.0</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Fast mode for minimal memory usage</span>
+        <span class="n">sampling</span> <span class="o">=</span> <span class="n">SamplingConfig</span><span class="p">(</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">SimulationMode</span><span class="o">.</span><span class="n">FAST</span><span class="p">,</span>
+            <span class="n">buffer_size</span><span class="o">=</span><span class="mi">100</span>
+        <span class="p">)</span>
+        
+        <span class="n">equipment</span> <span class="o">=</span> <span class="n">EquipmentPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">sampling_config</span><span class="o">=</span><span class="n">sampling</span><span class="p">)</span>
+        <span class="n">equipment</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        
+        <span class="c1"># Setup cache</span>
+        <span class="n">cache</span> <span class="o">=</span> <span class="n">ObservableCache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">dtype_size</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
+        
+        <span class="c1"># Periodic cache flush process</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">cache_manager</span><span class="p">():</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Periodically flush events to cache.&quot;&quot;&quot;</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># Every simulated hour</span>
+                
+                <span class="c1"># Get events from buffer</span>
+                <span class="n">events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">equipment</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">events</span><span class="p">:</span>
+                    <span class="n">cache</span><span class="o">.</span><span class="n">write_batch</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+                    <span class="n">equipment</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">buffer</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                    <span class="n">equipment</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">discarded_events</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cache_manager</span><span class="p">())</span>
+        
+        <span class="c1"># Run 7-day simulation</span>
+        <span class="n">SIMULATION_DAYS</span> <span class="o">=</span> <span class="mi">7</span>
+        <span class="n">SIMULATION_MINUTES</span> <span class="o">=</span> <span class="n">SIMULATION_DAYS</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Running </span><span class="si">{</span><span class="n">SIMULATION_DAYS</span><span class="si">}</span><span class="s2">-day simulation with cache...&quot;</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">SIMULATION_MINUTES</span><span class="p">)</span>
+        <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        
+        <span class="c1"># Final flush</span>
+        <span class="n">final_events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">equipment</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">final_events</span><span class="p">:</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">write_batch</span><span class="p">(</span><span class="n">final_events</span><span class="p">)</span>
+        
+        <span class="c1"># Check results</span>
+        <span class="n">cache_stats</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Results after </span><span class="si">{</span><span class="n">SIMULATION_DAYS</span><span class="si">}</span><span class="s2"> days:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Simulation time: </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Events in cache: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Cache files: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_files&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Cache size: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_size_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Events/second: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Verify simulation completed quickly</span>
+        <span class="k">assert</span> <span class="n">elapsed</span> <span class="o">&lt;</span> <span class="mf">10.0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Simulation too slow: </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span>
+        
+        <span class="c1"># Verify cache is working</span>
+        <span class="k">assert</span> <span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Should have cached events&quot;</span>
+        <span class="k">assert</span> <span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_size_mb&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;Cache too large&quot;</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Long simulation with cache completed in </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+        
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_all_tests">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_storage.html#twin_model.tests.test_phase3_storage.run_all_tests">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_all_tests</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run all Phase 3 storage optimization tests.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 3 STORAGE OPTIMIZATION TESTS&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">test_cache_basic_operations</span><span class="p">()</span>
+        <span class="n">test_cache_file_rotation</span><span class="p">()</span>
+        <span class="n">test_cache_query</span><span class="p">()</span>
+        <span class="n">test_database_batch_insert</span><span class="p">()</span>
+        <span class="n">test_cache_to_database_flush</span><span class="p">()</span>
+        <span class="n">test_integrated_cache_simulation</span><span class="p">()</span>
+        <span class="n">test_long_simulation_with_cache</span><span class="p">()</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✅ ALL PHASE 3 TESTS PASSED&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Phase 3 optimizations successfully implemented:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  • Write-through cache with memory-mapped files&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  • Automatic file rotation prevents unbounded growth&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  • Efficient querying without loading all data&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  • Batch database insertion at 1000+ events/second&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  • Cache-to-database flush for persistence&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  • 7-day simulations with &lt;100MB memory footprint&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Ready to proceed to Phase 4!&quot;</span><span class="p">)</span>
+        
+    <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ TEST FAILED: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ UNEXPECTED ERROR: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+        <span class="k">raise</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">run_all_tests</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

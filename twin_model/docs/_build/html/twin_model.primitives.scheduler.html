@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.primitives.scheduler module &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">twin_model.primitives.scheduler module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/twin_model.primitives.scheduler.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin_model.primitives.scheduler">
+<span id="twin-model-primitives-scheduler-module"></span><h1>twin_model.primitives.scheduler module<a class="headerlink" href="#module-twin_model.primitives.scheduler" title="Link to this heading"></a></h1>
+<p>Scheduler primitive for production order management.</p>
+<p>This module provides a scheduler primitive that manages production orders,
+product changeovers, shift schedules, and maintenance windows. It coordinates
+the timing and sequencing of production activities.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEventType">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.scheduler.</span></span><span class="sig-name descname"><span class="pre">ScheduleEventType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#ScheduleEventType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEventType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<p>Types of schedule events.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEventType.PRODUCTION_ORDER">
+<span class="sig-name descname"><span class="pre">PRODUCTION_ORDER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PRODUCTION_ORDER'</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEventType.PRODUCTION_ORDER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEventType.CHANGEOVER">
+<span class="sig-name descname"><span class="pre">CHANGEOVER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CHANGEOVER'</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEventType.CHANGEOVER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEventType.MAINTENANCE">
+<span class="sig-name descname"><span class="pre">MAINTENANCE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MAINTENANCE'</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEventType.MAINTENANCE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEventType.SHIFT_CHANGE">
+<span class="sig-name descname"><span class="pre">SHIFT_CHANGE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'SHIFT_CHANGE'</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEventType.SHIFT_CHANGE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEventType.BREAK">
+<span class="sig-name descname"><span class="pre">BREAK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BREAK'</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEventType.BREAK" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEventType.SHUTDOWN">
+<span class="sig-name descname"><span class="pre">SHUTDOWN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'SHUTDOWN'</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEventType.SHUTDOWN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.scheduler.</span></span><span class="sig-name descname"><span class="pre">ScheduleEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_id=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order_id=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_id=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#ScheduleEvent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A scheduled event in the production schedule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.event_type">
+<span class="sig-name descname"><span class="pre">event_type</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.event_type" title="Link to this definition"></a></dt>
+<dd><p>Type of scheduled event</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.start_time">
+<span class="sig-name descname"><span class="pre">start_time</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.start_time" title="Link to this definition"></a></dt>
+<dd><p>Scheduled start time (minutes from sim start)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.duration">
+<span class="sig-name descname"><span class="pre">duration</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.duration" title="Link to this definition"></a></dt>
+<dd><p>Expected duration in minutes</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.product_id">
+<span class="sig-name descname"><span class="pre">product_id</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.product_id" title="Link to this definition"></a></dt>
+<dd><p>Product ID for production orders</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.order_id">
+<span class="sig-name descname"><span class="pre">order_id</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.order_id" title="Link to this definition"></a></dt>
+<dd><p>Production order ID</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.line_id">
+<span class="sig-name descname"><span class="pre">line_id</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.line_id" title="Link to this definition"></a></dt>
+<dd><p>Production line affected</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.priority">
+<span class="sig-name descname"><span class="pre">priority</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.priority" title="Link to this definition"></a></dt>
+<dd><p>Priority level (lower = higher priority)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.metadata" title="Link to this definition"></a></dt>
+<dd><p>Additional event-specific data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">event_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#twin_model.primitives.scheduler.ScheduleEventType" title="twin_model.primitives.scheduler.ScheduleEventType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScheduleEventType</span></code></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">start_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">duration</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">product_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">order_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">line_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">priority</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.__lt__">
+<span class="sig-name descname"><span class="pre">__lt__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#ScheduleEvent.__lt__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.__lt__" title="Link to this definition"></a></dt>
+<dd><p>Compare events for priority queue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ScheduleEvent.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_id=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order_id=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_id=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#twin_model.primitives.scheduler.ScheduleEvent.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.scheduler.</span></span><span class="sig-name descname"><span class="pre">ProductionOrder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_quantity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">due_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pending'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actual_quantity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#ProductionOrder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Production order details.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.order_id">
+<span class="sig-name descname"><span class="pre">order_id</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.order_id" title="Link to this definition"></a></dt>
+<dd><p>Unique order identifier</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.product_id">
+<span class="sig-name descname"><span class="pre">product_id</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.product_id" title="Link to this definition"></a></dt>
+<dd><p>Product to produce</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.target_quantity">
+<span class="sig-name descname"><span class="pre">target_quantity</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.target_quantity" title="Link to this definition"></a></dt>
+<dd><p>Target production quantity</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.due_time">
+<span class="sig-name descname"><span class="pre">due_time</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.due_time" title="Link to this definition"></a></dt>
+<dd><p>Due date/time for order completion</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.line_id">
+<span class="sig-name descname"><span class="pre">line_id</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.line_id" title="Link to this definition"></a></dt>
+<dd><p>Assigned production line</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.priority">
+<span class="sig-name descname"><span class="pre">priority</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.priority" title="Link to this definition"></a></dt>
+<dd><p>Order priority</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.status">
+<span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.status" title="Link to this definition"></a></dt>
+<dd><p>Current order status</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">order_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">product_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">target_quantity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">due_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">line_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">priority</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'pending'</span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.actual_quantity">
+<span class="sig-name descname"><span class="pre">actual_quantity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.actual_quantity" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.start_time">
+<span class="sig-name descname"><span class="pre">start_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.start_time" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.end_time">
+<span class="sig-name descname"><span class="pre">end_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.end_time" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.ProductionOrder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_quantity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">due_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pending'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actual_quantity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#twin_model.primitives.scheduler.ProductionOrder.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.scheduler.</span></span><span class="sig-name descname"><span class="pre">SchedulerPrimitive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="twin_model.primitives.base.html#twin_model.primitives.base.BasePrimitive" title="twin_model.primitives.base.BasePrimitive"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasePrimitive</span></code></a></p>
+<p>Scheduler for coordinating production activities.</p>
+<p>Emits observables for:
+- Order scheduling and completion
+- Changeover events
+- Shift transitions
+- Schedule adherence metrics
+- Order tardiness
+- Resource conflicts</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize scheduler with configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://simpy.readthedocs.io/en/latest/api_reference/simpy.core.html#simpy.core.Environment" title="(in SimPy v4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Environment</span></code></a></span>) – SimPy environment</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="twin_model.primitives.base.html#twin_model.primitives.base.PrimitiveConfig" title="twin_model.primitives.base.PrimitiveConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrimitiveConfig</span></code></a></span>) – Scheduler configuration containing:
+- schedule_horizon: Planning horizon in minutes
+- changeover_matrix: Product-to-product changeover times
+- shift_schedule: Shift timing configuration
+- maintenance_schedule: Planned maintenance windows
+- optimization_mode: Scheduling algorithm to use</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.start" title="Link to this definition"></a></dt>
+<dd><p>Start the scheduler process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.schedule_process">
+<span class="sig-name descname"><span class="pre">schedule_process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.schedule_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.schedule_process" title="Link to this definition"></a></dt>
+<dd><p>Main scheduling process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generator" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.register_equipment">
+<span class="sig-name descname"><span class="pre">register_equipment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">equipment_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equipment</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.register_equipment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.register_equipment" title="Link to this definition"></a></dt>
+<dd><p>Register equipment to be controlled by scheduler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>equipment_id</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Equipment identifier</p></li>
+<li><p><strong>equipment</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span>) – Equipment primitive instance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.add_order">
+<span class="sig-name descname"><span class="pre">add_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.add_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.add_order" title="Link to this definition"></a></dt>
+<dd><p>Add a production order to the schedule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>order</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#twin_model.primitives.scheduler.ProductionOrder" title="twin_model.primitives.scheduler.ProductionOrder"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProductionOrder</span></code></a></span>) – Production order to add</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.load_schedule">
+<span class="sig-name descname"><span class="pre">load_schedule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.load_schedule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.load_schedule" title="Link to this definition"></a></dt>
+<dd><p>Load a complete schedule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>schedule_data</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span>) – List of schedule events</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.optimize_schedule">
+<span class="sig-name descname"><span class="pre">optimize_schedule</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.optimize_schedule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.optimize_schedule" title="Link to this definition"></a></dt>
+<dd><p>Optimize the current schedule based on mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.monitor_process">
+<span class="sig-name descname"><span class="pre">monitor_process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.monitor_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.monitor_process" title="Link to this definition"></a></dt>
+<dd><p>Background monitoring process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generator" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.scheduler.SchedulerPrimitive.get_statistics">
+<span class="sig-name descname"><span class="pre">get_statistics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/primitives/scheduler.html#SchedulerPrimitive.get_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.scheduler.SchedulerPrimitive.get_statistics" title="Link to this definition"></a></dt>
+<dd><p>Get scheduler statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of scheduler metrics</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,704 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_phase4_transduction &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_phase4_transduction</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.tests.test_phase4_transduction</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Test Phase 4: Validate MES transduction layer.</span>
+
+<span class="sd">This test validates that the transduction layer correctly converts</span>
+<span class="sd">SimPy observables into MES-compatible format matching mes_data_with_kpis.csv.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.model_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.transduction.mes_transducer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MESTransducer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProductionOrder</span>
+
+
+<div class="viewcode-block" id="test_transduction_basic">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.test_transduction_basic">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_transduction_basic</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test basic transduction functionality.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Basic Transduction...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create sample observables</span>
+    <span class="n">test_observables</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;new_state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;old_state&quot;</span><span class="p">:</span> <span class="s2">&quot;IDLE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duration_in_state&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;unit_produced&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;SKU-1001&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;unit_produced&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;SKU-1001&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;unit_scrapped&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;SKU-1001&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;quality_check_failed&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;new_state&quot;</span><span class="p">:</span> <span class="s2">&quot;STOPPED_FAILURE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;old_state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duration_in_state&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">&quot;failure_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;UNP-MECH&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Create transducer</span>
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">(</span><span class="n">time_bucket</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Process observables</span>
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">process_observables</span><span class="p">(</span><span class="n">test_observables</span><span class="p">)</span>
+
+    <span class="c1"># Validate output</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">empty</span><span class="p">,</span> <span class="s2">&quot;MES DataFrame should not be empty&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;Timestamp&quot;</span> <span class="ow">in</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="s2">&quot;Missing Timestamp column&quot;</span>
+    <span class="k">assert</span> <span class="s2">&quot;OEE_Score&quot;</span> <span class="ow">in</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="s2">&quot;Missing OEE_Score column&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> MES records&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Columns: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mes_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check first record</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">first_record</span> <span class="o">=</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;✓ Sample record: Equipment=</span><span class="si">{</span><span class="n">first_record</span><span class="p">[</span><span class="s1">&#39;EquipmentID&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Good=</span><span class="si">{</span><span class="n">first_record</span><span class="p">[</span><span class="s1">&#39;GoodUnitsProduced&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Scrap=</span><span class="si">{</span><span class="n">first_record</span><span class="p">[</span><span class="s1">&#39;ScrapUnitsProduced&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Basic transduction test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_mes_format_compatibility">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.test_mes_format_compatibility">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_mes_format_compatibility</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that output matches expected MES format.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing MES Format Compatibility...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load reference MES data to check format</span>
+    <span class="n">reference_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;archive/misc/data/mes_data_with_kpis.csv&quot;</span><span class="p">)</span>
+    <span class="n">reference_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">reference_path</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Expected columns from reference</span>
+    <span class="n">expected_columns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Timestamp&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ProductionOrderID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;LineID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;EquipmentID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;EquipmentType&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ProductID&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ProductName&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;MachineStatus&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;DowntimeReason&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;TargetRate_units_per_5min&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;StandardCost_per_unit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SalePrice_per_unit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Availability_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Performance_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Quality_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;OEE_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Energy_Consumption_kWh&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Create transducer and generate sample data</span>
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">()</span>
+
+    <span class="c1"># Create more comprehensive test observables</span>
+    <span class="n">test_observables</span> <span class="o">=</span> <span class="n">generate_test_observables</span><span class="p">()</span>
+
+    <span class="c1"># Process with manifests</span>
+    <span class="n">manifests</span> <span class="o">=</span> <span class="n">load_manifests</span><span class="p">()</span>
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">process_observables</span><span class="p">(</span><span class="n">test_observables</span><span class="p">,</span> <span class="n">manifests</span><span class="p">)</span>
+
+    <span class="c1"># Check all columns present</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">expected_columns</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Missing column: </span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ All </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">expected_columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> expected columns present&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check data types match reference</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">,</span> <span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]:</span>
+        <span class="k">assert</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">mes_df</span><span class="p">[</span><span class="n">col</span><span class="p">]),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> should be numeric&quot;</span>
+
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span>
+        <span class="s2">&quot;Availability_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Performance_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Quality_Score&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;OEE_Score&quot;</span><span class="p">,</span>
+    <span class="p">]:</span>
+        <span class="k">assert</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_numeric_dtype</span><span class="p">(</span><span class="n">mes_df</span><span class="p">[</span><span class="n">col</span><span class="p">]),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> should be numeric&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Data types match expected format&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check value ranges</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Availability_Score&quot;</span><span class="p">,</span> <span class="s2">&quot;Performance_Score&quot;</span><span class="p">,</span> <span class="s2">&quot;Quality_Score&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mes_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">mes_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> should be &gt;= 0&quot;</span>
+            <span class="k">assert</span> <span class="n">mes_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">110</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2"> should be &lt;= 110&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ KPI scores in valid ranges&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MES format compatibility test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_simulation_to_mes">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.test_simulation_to_mes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_simulation_to_mes</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test full pipeline from simulation to MES data.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Simulation to MES Pipeline...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Setup simulation</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+    <span class="n">ontology_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">)</span>
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build model</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span><span class="n">ontology_path</span><span class="p">,</span> <span class="n">manifest_dir</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="c1"># Load production orders</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">prod_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Add some orders</span>
+    <span class="k">if</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">order_data</span> <span class="ow">in</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;production_orders&quot;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]:</span>  <span class="c1"># First 3 orders</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">ProductionOrder</span><span class="p">(</span>
+                <span class="n">order_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;order_id&quot;</span><span class="p">],</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;product_id&quot;</span><span class="p">],</span>
+                <span class="n">target_quantity</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;target_quantity&quot;</span><span class="p">],</span>
+                <span class="n">due_time</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">],</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;line_id&quot;</span><span class="p">],</span>
+                <span class="n">priority</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;priority&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">add_order</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Model built with production orders&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Run simulation for 30 minutes</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Simulation ran for </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2"> minutes&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Collect all observables</span>
+    <span class="n">all_observables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s2">&quot;observables&quot;</span><span class="p">):</span>
+            <span class="n">all_observables</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">primitive</span><span class="o">.</span><span class="n">observables</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Collected </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_observables</span><span class="p">)</span><span class="si">}</span><span class="s2"> observables&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check what types of observables we have</span>
+    <span class="n">event_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">primitive_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">equipment_obs</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">all_observables</span><span class="p">:</span>
+        <span class="n">event_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;event_type&quot;</span><span class="p">))</span>
+        <span class="n">primitive_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;primitive_type&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">obs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;primitive_type&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Equipment&quot;</span><span class="p">,</span> <span class="s2">&quot;Filler&quot;</span><span class="p">,</span> <span class="s2">&quot;Packer&quot;</span><span class="p">,</span> <span class="s2">&quot;Palletizer&quot;</span><span class="p">]:</span>
+            <span class="n">equipment_obs</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Event types: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">event_types</span><span class="p">))[:</span><span class="mi">5</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Primitive types: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">primitive_types</span><span class="p">))[:</span><span class="mi">5</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Equipment observables: </span><span class="si">{</span><span class="n">equipment_obs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Transform to MES format</span>
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">(</span><span class="n">time_bucket</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Load manifests properly</span>
+    <span class="n">manifests</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">manifest_name</span><span class="p">,</span> <span class="n">manifest_data</span> <span class="ow">in</span> <span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;equipment&quot;</span> <span class="ow">in</span> <span class="n">manifest_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">manifests</span><span class="p">[</span><span class="s2">&quot;equipment_manifest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest_data</span>
+            <span class="k">elif</span> <span class="s2">&quot;production&quot;</span> <span class="ow">in</span> <span class="n">manifest_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">manifests</span><span class="p">[</span><span class="s2">&quot;production_manifest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">manifest_data</span>
+
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">process_observables</span><span class="p">(</span><span class="n">all_observables</span><span class="p">,</span> <span class="n">manifests</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> MES records&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Validate MES data</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="c1"># Check we have data for multiple equipment</span>
+        <span class="n">unique_equipment</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;EquipmentID&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Data for </span><span class="si">{</span><span class="n">unique_equipment</span><span class="si">}</span><span class="s2"> unique equipment&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check we have production data</span>
+        <span class="n">total_good</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">total_scrap</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Production: </span><span class="si">{</span><span class="n">total_good</span><span class="si">}</span><span class="s2"> good units, </span><span class="si">{</span><span class="n">total_scrap</span><span class="si">}</span><span class="s2"> scrap&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check OEE calculation</span>
+        <span class="n">mean_oee</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Average OEE: </span><span class="si">{</span><span class="n">mean_oee</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation to MES pipeline test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mes_df</span></div>
+
+
+
+<div class="viewcode-block" id="test_kpi_calculations">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.test_kpi_calculations">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_kpi_calculations</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test KPI calculations match expected logic.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing KPI Calculations...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create test metrics</span>
+    <span class="n">test_metrics</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;good_units&quot;</span><span class="p">:</span> <span class="mi">240</span><span class="p">,</span>
+        <span class="s2">&quot;scrap_units&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s2">&quot;downtime_minutes&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;runtime_minutes&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="s2">&quot;energy_consumption&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span>
+        <span class="s2">&quot;last_status&quot;</span><span class="p">:</span> <span class="s2">&quot;Running&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;downtime_reason&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;SKU-1001&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product_name&quot;</span><span class="p">:</span> <span class="s2">&quot;12oz Sparkling Water&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="s2">&quot;ORD-1001&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">(</span><span class="n">time_bucket</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># Test availability calculation</span>
+    <span class="n">availability</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">_calculate_availability</span><span class="p">(</span><span class="n">test_metrics</span><span class="p">)</span>
+    <span class="n">expected_availability</span> <span class="o">=</span> <span class="p">(</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">100</span>  <span class="c1"># 80%</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">availability</span> <span class="o">-</span> <span class="n">expected_availability</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Availability calculation wrong: </span><span class="si">{</span><span class="n">availability</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">expected_availability</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Availability: </span><span class="si">{</span><span class="n">availability</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% (correct)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test quality calculation</span>
+    <span class="n">quality</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">_calculate_quality</span><span class="p">(</span><span class="n">test_metrics</span><span class="p">)</span>
+    <span class="n">expected_quality</span> <span class="o">=</span> <span class="mi">240</span> <span class="o">/</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">100</span>  <span class="c1"># 96%</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">quality</span> <span class="o">-</span> <span class="n">expected_quality</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.1</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Quality calculation wrong: </span><span class="si">{</span><span class="n">quality</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">expected_quality</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Quality: </span><span class="si">{</span><span class="n">quality</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% (correct)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test performance calculation</span>
+    <span class="n">equipment_info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;base_rate&quot;</span><span class="p">:</span> <span class="mf">60.0</span><span class="p">}</span>  <span class="c1"># 60 units/minute</span>
+    <span class="n">product_info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;target_rate_units_per_5min&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">}</span>
+
+    <span class="n">performance</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">_calculate_performance</span><span class="p">(</span>
+        <span class="n">test_metrics</span><span class="p">,</span> <span class="n">equipment_info</span><span class="p">,</span> <span class="n">product_info</span>
+    <span class="p">)</span>
+    <span class="c1"># Actual: 250 units, Adjusted target: 300 * (4/5) = 240</span>
+    <span class="n">expected_performance</span> <span class="o">=</span> <span class="mi">250</span> <span class="o">/</span> <span class="mi">240</span> <span class="o">*</span> <span class="mi">100</span>  <span class="c1"># 104.2%</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">performance</span> <span class="o">-</span> <span class="n">expected_performance</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Performance calculation wrong: </span><span class="si">{</span><span class="n">performance</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">expected_performance</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Performance: </span><span class="si">{</span><span class="n">performance</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% (correct)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test OEE</span>
+    <span class="n">oee</span> <span class="o">=</span> <span class="n">availability</span> <span class="o">*</span> <span class="n">performance</span> <span class="o">*</span> <span class="n">quality</span> <span class="o">/</span> <span class="mi">10000</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;✓ OEE: </span><span class="si">{</span><span class="n">oee</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% (A:</span><span class="si">{</span><span class="n">availability</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> × P:</span><span class="si">{</span><span class="n">performance</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> × Q:</span><span class="si">{</span><span class="n">quality</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;KPI calculations test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_downtime_tracking">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.test_downtime_tracking">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_downtime_tracking</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test downtime reason tracking.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Downtime Tracking...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create observables with various downtime reasons</span>
+    <span class="n">test_observables</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># Equipment starts running</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;new_state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;old_state&quot;</span><span class="p">:</span> <span class="s2">&quot;IDLE&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="c1"># Failure with specific reason</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;equipment_failure&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;failure_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;UNP-MECH&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;new_state&quot;</span><span class="p">:</span> <span class="s2">&quot;STOPPED_FAILURE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;old_state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;failure_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;UNP-MECH&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="c1"># Another equipment with different failure</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-PCK&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;equipment_failure&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;failure_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;UNP-JAM&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-PCK&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;new_state&quot;</span><span class="p">:</span> <span class="s2">&quot;STOPPED_FAILURE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;old_state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;failure_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;UNP-JAM&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">(</span><span class="n">time_bucket</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">process_observables</span><span class="p">(</span><span class="n">test_observables</span><span class="p">)</span>
+
+    <span class="c1"># Check downtime reasons captured</span>
+    <span class="n">downtime_records</span> <span class="o">=</span> <span class="n">mes_df</span><span class="p">[</span><span class="n">mes_df</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Stopped&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">downtime_records</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">unique_reasons</span> <span class="o">=</span> <span class="n">downtime_records</span><span class="p">[</span><span class="s2">&quot;DowntimeReason&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;✓ Captured </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_reasons</span><span class="p">)</span><span class="si">}</span><span class="s2"> unique downtime reasons: </span><span class="si">{</span><span class="n">unique_reasons</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Verify specific reasons</span>
+        <span class="k">assert</span> <span class="s2">&quot;UNP-MECH&quot;</span> <span class="ow">in</span> <span class="n">downtime_records</span><span class="p">[</span><span class="s2">&quot;DowntimeReason&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">assert</span> <span class="s2">&quot;UNP-JAM&quot;</span> <span class="ow">in</span> <span class="n">downtime_records</span><span class="p">[</span><span class="s2">&quot;DowntimeReason&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Specific downtime reasons correctly tracked&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Downtime tracking test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_summary_statistics">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.test_summary_statistics">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_summary_statistics</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test summary statistics generation.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Summary Statistics...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Run simulation to get MES data</span>
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">test_simulation_to_mes</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">()</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">generate_summary_statistics</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span>
+
+        <span class="c1"># Check summary structure</span>
+        <span class="k">assert</span> <span class="s2">&quot;overall_metrics&quot;</span> <span class="ow">in</span> <span class="n">stats</span>
+        <span class="k">assert</span> <span class="s2">&quot;production&quot;</span> <span class="ow">in</span> <span class="n">stats</span>
+        <span class="k">assert</span> <span class="s2">&quot;downtime&quot;</span> <span class="ow">in</span> <span class="n">stats</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Summary statistics structure correct&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Display summary</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Summary Statistics:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Overall OEE: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;overall_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;oee&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Good Units: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;production&#39;</span><span class="p">][</span><span class="s1">&#39;total_good_units&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Scrap Rate: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;production&#39;</span><span class="p">][</span><span class="s1">&#39;scrap_rate&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;line_performance&quot;</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Lines reporting: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;line_performance&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="s2">&quot;downtime&quot;</span><span class="p">][</span><span class="s2">&quot;reasons&quot;</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Downtime reasons: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;downtime&#39;</span><span class="p">][</span><span class="s1">&#39;reasons&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Summary statistics test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="generate_test_observables">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.generate_test_observables">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_test_observables</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate comprehensive test observables.&quot;&quot;&quot;</span>
+    <span class="n">observables</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Simulate 15 minutes of production</span>
+    <span class="k">for</span> <span class="n">minute</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">):</span>
+        <span class="n">base_time</span> <span class="o">=</span> <span class="n">minute</span> <span class="o">*</span> <span class="mi">60</span>
+
+        <span class="c1"># Equipment running and producing</span>
+        <span class="k">for</span> <span class="n">equipment_id</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span> <span class="s2">&quot;LINE1-PCK&quot;</span><span class="p">,</span> <span class="s2">&quot;LINE1-PAL&quot;</span><span class="p">]:</span>
+            <span class="c1"># State changes</span>
+            <span class="k">if</span> <span class="n">minute</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">observables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">base_time</span><span class="p">,</span>
+                        <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="n">equipment_id</span><span class="p">,</span>
+                        <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;state_change&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;new_state&quot;</span><span class="p">:</span> <span class="s2">&quot;RUNNING&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;old_state&quot;</span><span class="p">:</span> <span class="s2">&quot;IDLE&quot;</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Production events</span>
+            <span class="n">units_per_minute</span> <span class="o">=</span> <span class="mi">50</span> <span class="k">if</span> <span class="s2">&quot;FIL&quot;</span> <span class="ow">in</span> <span class="n">equipment_id</span> <span class="k">else</span> <span class="mi">45</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">units_per_minute</span><span class="p">):</span>
+                <span class="n">observables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">base_time</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span>
+                        <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="n">equipment_id</span><span class="p">,</span>
+                        <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;unit_produced&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;SKU-1001&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Some scrap</span>
+            <span class="k">if</span> <span class="n">minute</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">observables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">base_time</span> <span class="o">+</span> <span class="mi">30</span><span class="p">,</span>
+                        <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="n">equipment_id</span><span class="p">,</span>
+                        <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;unit_scrapped&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="s2">&quot;SKU-1001&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;quality_check&quot;</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Energy consumption</span>
+            <span class="n">observables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">base_time</span> <span class="o">+</span> <span class="mi">59</span><span class="p">,</span>
+                    <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="n">equipment_id</span><span class="p">,</span>
+                    <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;energy_consumed&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;amount&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Add a failure event</span>
+    <span class="n">observables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">600</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_id&quot;</span><span class="p">:</span> <span class="s2">&quot;LINE1-FIL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;primitive_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;equipment_failure&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;failure_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;UNP-SENS&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">observables</span></div>
+
+
+
+<div class="viewcode-block" id="load_manifests">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.load_manifests">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_manifests</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load manifests for testing.&quot;&quot;&quot;</span>
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+    <span class="n">manifests</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;equipment_manifest.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">manifests</span><span class="p">[</span><span class="s2">&quot;equipment_manifest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">manifests</span><span class="p">[</span><span class="s2">&quot;production_manifest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">manifests</span></div>
+
+
+
+<div class="viewcode-block" id="test_save_mes_output">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase4_transduction.html#twin_model.tests.test_phase4_transduction.test_save_mes_output">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_save_mes_output</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test saving MES data to file.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing MES Output Save...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Generate MES data</span>
+    <span class="n">mes_df</span> <span class="o">=</span> <span class="n">test_simulation_to_mes</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mes_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="c1"># Save to test output</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;test_mes_output.csv&quot;</span><span class="p">)</span>
+        <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">()</span>
+        <span class="n">transducer</span><span class="o">.</span><span class="n">save_to_csv</span><span class="p">(</span><span class="n">mes_df</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+
+        <span class="c1"># Verify file created</span>
+        <span class="k">assert</span> <span class="n">output_path</span><span class="o">.</span><span class="n">exists</span><span class="p">(),</span> <span class="s2">&quot;Output file not created&quot;</span>
+
+        <span class="c1"># Load and verify</span>
+        <span class="n">loaded_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">loaded_df</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">),</span> <span class="s2">&quot;Data loss during save/load&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Saved </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mes_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> records to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Clean up</span>
+        <span class="n">output_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Test file cleaned up&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MES output save test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 4 TRANSDUCTION LAYER VALIDATION&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">test_transduction_basic</span><span class="p">()</span>
+        <span class="n">test_mes_format_compatibility</span><span class="p">()</span>
+        <span class="n">test_kpi_calculations</span><span class="p">()</span>
+        <span class="n">test_downtime_tracking</span><span class="p">()</span>
+        <span class="n">test_simulation_to_mes</span><span class="p">()</span>
+        <span class="n">test_summary_statistics</span><span class="p">()</span>
+        <span class="n">test_save_mes_output</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ALL TESTS PASSED! ✓&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phase 4 Transduction Layer validated:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Converts SimPy observables to MES format&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Matches expected CSV structure&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Calculates KPIs correctly&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Tracks downtime reasons&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Generates summary statistics&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Saves to CSV format&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ Test failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,721 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.state_manager &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.state_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.state_manager</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;State persistence and management for simulation pause/resume.</span>
+
+<span class="sd">This module provides functionality to save and restore simulation state,</span>
+<span class="sd">enabling pause/resume capabilities and recovery from interruptions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dill</span>  <span class="c1"># More powerful than pickle for complex objects</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Type</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">asdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+
+
+<div class="viewcode-block" id="SimulationCheckpoint">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationCheckpoint">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationCheckpoint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a saved simulation state checkpoint.</span>
+<span class="sd">    </span>
+<span class="sd">    Stores all necessary information to restore a simulation</span>
+<span class="sd">    from a specific point in time.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        checkpoint_id: Unique identifier for this checkpoint</span>
+<span class="sd">        simulation_time: Current simulation time when saved</span>
+<span class="sd">        real_time: Real-world timestamp when saved</span>
+<span class="sd">        primitives_state: Serialized state of all primitives</span>
+<span class="sd">        environment_state: SimPy environment state</span>
+<span class="sd">        cache_path: Path to associated event cache</span>
+<span class="sd">        metadata: Additional checkpoint metadata</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">simulation_time</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">real_time</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">primitives_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">environment_state</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">cache_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    
+<div class="viewcode-block" id="SimulationCheckpoint.to_file">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationCheckpoint.to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save checkpoint to file.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            filepath: Path to save checkpoint file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filepath</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># Use dill for better serialization support</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">dill</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+            
+<div class="viewcode-block" id="SimulationCheckpoint.from_file">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationCheckpoint.from_file">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SimulationCheckpoint&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load checkpoint from file.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            filepath: Path to checkpoint file</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Loaded checkpoint instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+            
+<div class="viewcode-block" id="SimulationCheckpoint.get_summary">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationCheckpoint.get_summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get human-readable checkpoint summary.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary with checkpoint summary information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;checkpoint_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_id</span><span class="p">,</span>
+            <span class="s2">&quot;simulation_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_time</span><span class="p">,</span>
+            <span class="s2">&quot;real_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">real_time</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s2">&quot;num_primitives&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primitives_state</span><span class="p">),</span>
+            <span class="s2">&quot;has_cache&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StateManager">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.StateManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StateManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages simulation state persistence and recovery.</span>
+<span class="sd">    </span>
+<span class="sd">    Provides methods to save simulation state at checkpoints,</span>
+<span class="sd">    restore from saved states, and manage checkpoint lifecycle.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        checkpoint_dir: Directory for storing checkpoints</span>
+<span class="sd">        max_checkpoints: Maximum number of checkpoints to retain</span>
+<span class="sd">        compression: Whether to compress checkpoint files</span>
+<span class="sd">        checkpoints: List of available checkpoints</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="StateManager.__init__">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.StateManager.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">checkpoint_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;checkpoints&quot;</span><span class="p">,</span>
+                 <span class="n">max_checkpoints</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                 <span class="n">compression</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize state manager.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            checkpoint_dir: Directory for checkpoint storage</span>
+<span class="sd">            max_checkpoints: Maximum checkpoints to retain</span>
+<span class="sd">            compression: Enable checkpoint compression</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_checkpoints</span> <span class="o">=</span> <span class="n">max_checkpoints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="n">compression</span>
+        
+        <span class="c1"># Load existing checkpoints</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_checkpoint_list</span><span class="p">()</span></div>
+
+        
+<div class="viewcode-block" id="StateManager.save_checkpoint">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.StateManager.save_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">env</span><span class="p">:</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">,</span>
+                       <span class="n">primitives</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+                       <span class="n">cache_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="n">metadata</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save current simulation state as checkpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            env: SimPy environment</span>
+<span class="sd">            primitives: Dictionary of primitive instances</span>
+<span class="sd">            cache_path: Optional path to event cache</span>
+<span class="sd">            metadata: Optional checkpoint metadata</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Checkpoint ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Generate checkpoint ID</span>
+        <span class="n">checkpoint_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_checkpoint_id</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">)</span>
+        
+        <span class="c1"># Extract primitives state</span>
+        <span class="n">primitives_state</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">primitives</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Get state from primitive if it has the method</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s1">&#39;get_state&#39;</span><span class="p">):</span>
+                    <span class="n">primitives_state</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">primitive</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Fallback to basic attributes</span>
+                    <span class="n">primitives_state</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span>
+                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">primitive</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                        <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s1">&#39;properties&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="p">}</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warning: Could not save state for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">primitives_state</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+        
+        <span class="c1"># Extract environment state</span>
+        <span class="n">environment_state</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;now&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+            <span class="s1">&#39;active_process_count&#39;</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># SimPy doesn&#39;t expose active processes easily</span>
+        <span class="p">}</span>
+        
+        <span class="c1"># Create checkpoint</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">SimulationCheckpoint</span><span class="p">(</span>
+            <span class="n">checkpoint_id</span><span class="o">=</span><span class="n">checkpoint_id</span><span class="p">,</span>
+            <span class="n">simulation_time</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+            <span class="n">real_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>
+            <span class="n">primitives_state</span><span class="o">=</span><span class="n">primitives_state</span><span class="p">,</span>
+            <span class="n">environment_state</span><span class="o">=</span><span class="n">environment_state</span><span class="p">,</span>
+            <span class="n">cache_path</span><span class="o">=</span><span class="n">cache_path</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Save to file</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_checkpoint_filepath</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compression</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+            <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">dill</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">checkpoint</span><span class="o">.</span><span class="n">to_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        
+        <span class="c1"># Update checkpoint list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cleanup_old_checkpoints</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_checkpoint_list</span><span class="p">()</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✓ Checkpoint saved: </span><span class="si">{</span><span class="n">checkpoint_id</span><span class="si">}</span><span class="s2"> at t=</span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">checkpoint_id</span></div>
+
+        
+<div class="viewcode-block" id="StateManager.load_checkpoint">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.StateManager.load_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimulationCheckpoint</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load checkpoint by ID.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            checkpoint_id: ID of checkpoint to load</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Loaded checkpoint</span>
+<span class="sd">            </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If checkpoint not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">checkpoint_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checkpoint </span><span class="si">{</span><span class="n">checkpoint_id</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+            
+        <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_checkpoint_filepath</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compression</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+            <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.gz&#39;</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">SimulationCheckpoint</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">checkpoint</span></div>
+
+        
+<div class="viewcode-block" id="StateManager.restore_simulation">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.StateManager.restore_simulation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">restore_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                          <span class="n">primitive_classes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Type</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restore simulation from checkpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            checkpoint_id: ID of checkpoint to restore</span>
+<span class="sd">            primitive_classes: Mapping of type names to primitive classes</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (environment, primitives dictionary)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_checkpoint</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+        
+        <span class="c1"># Create new environment at saved time</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">(</span><span class="n">initial_time</span><span class="o">=</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">simulation_time</span><span class="p">)</span>
+        
+        <span class="c1"># Restore primitives</span>
+        <span class="n">primitives</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">primitives_state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s1">&#39;error&#39;</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warning: Skipping </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> due to save error&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+                
+            <span class="c1"># Get primitive class</span>
+            <span class="n">prim_type</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">prim_type</span> <span class="ow">in</span> <span class="n">primitive_classes</span><span class="p">:</span>
+                <span class="n">prim_class</span> <span class="o">=</span> <span class="n">primitive_classes</span><span class="p">[</span><span class="n">prim_type</span><span class="p">]</span>
+                
+                <span class="c1"># Create primitive instance</span>
+                <span class="c1"># This assumes primitives have a from_state method</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">prim_class</span><span class="p">,</span> <span class="s1">&#39;from_state&#39;</span><span class="p">):</span>
+                    <span class="n">primitives</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">prim_class</span><span class="o">.</span><span class="n">from_state</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warning: </span><span class="si">{</span><span class="n">prim_type</span><span class="si">}</span><span class="s2"> does not support state restoration&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warning: Unknown primitive type: </span><span class="si">{</span><span class="n">prim_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✓ Simulation restored from checkpoint </span><span class="si">{</span><span class="n">checkpoint_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Time: </span><span class="si">{</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Primitives: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">primitives</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">env</span><span class="p">,</span> <span class="n">primitives</span></div>
+
+        
+<div class="viewcode-block" id="StateManager.list_checkpoints">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.StateManager.list_checkpoints">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_checkpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List all available checkpoints.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List of checkpoint summaries</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">summaries</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">checkpoint_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">checkpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_checkpoint</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+                <span class="n">summaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">get_summary</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">summaries</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                    <span class="s2">&quot;checkpoint_id&quot;</span><span class="p">:</span> <span class="n">checkpoint_id</span><span class="p">,</span>
+                    <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="p">})</span>
+                
+        <span class="k">return</span> <span class="n">summaries</span></div>
+
+        
+<div class="viewcode-block" id="StateManager.delete_checkpoint">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.StateManager.delete_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete a checkpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            checkpoint_id: ID of checkpoint to delete</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">checkpoint_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">:</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_checkpoint_filepath</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+            
+            <span class="c1"># Remove file</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compression</span><span class="p">:</span>
+                <span class="n">filepath</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.gz&#39;</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">filepath</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+                
+            <span class="c1"># Update list</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save_checkpoint_list</span><span class="p">()</span>
+            
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ✓ Checkpoint deleted: </span><span class="si">{</span><span class="n">checkpoint_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+            
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_checkpoint_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sim_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate unique checkpoint ID.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            sim_time: Current simulation time</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Unique checkpoint ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
+        <span class="n">sim_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">sim_time</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># Create short hash for uniqueness</span>
+        <span class="n">hash_input</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">sim_str</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">hash_val</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">hash_input</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">8</span><span class="p">]</span>
+        
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ckpt_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">_t</span><span class="si">{</span><span class="n">sim_str</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">hash_val</span><span class="si">}</span><span class="s2">&quot;</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_checkpoint_filepath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get filepath for checkpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            checkpoint_id: Checkpoint ID</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Path to checkpoint file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">checkpoint_id</span><span class="si">}</span><span class="s2">.ckpt&quot;</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cleanup_old_checkpoints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove old checkpoints if exceeding max limit.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checkpoints</span><span class="p">:</span>
+            <span class="c1"># Remove oldest checkpoints</span>
+            <span class="n">to_remove</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checkpoints</span>
+            
+            <span class="k">for</span> <span class="n">checkpoint_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">[:</span><span class="n">to_remove</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">delete_checkpoint</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+                
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_checkpoint_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load list of available checkpoints.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List of checkpoint IDs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">list_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span> <span class="o">/</span> <span class="s2">&quot;checkpoints.json&quot;</span>
+        
+        <span class="k">if</span> <span class="n">list_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">list_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="c1"># Scan directory for checkpoint files</span>
+        <span class="n">checkpoints</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.ckpt*&quot;</span><span class="p">):</span>
+            <span class="n">checkpoint_id</span> <span class="o">=</span> <span class="n">filepath</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.ckpt&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">checkpoint_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">checkpoints</span><span class="p">:</span>
+                <span class="n">checkpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">checkpoint_id</span><span class="p">)</span>
+                
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">checkpoints</span><span class="p">)</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_checkpoint_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save checkpoint list to file.&quot;&quot;&quot;</span>
+        <span class="n">list_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span> <span class="o">/</span> <span class="s2">&quot;checkpoints.json&quot;</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">list_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SimulationRunner">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationRunner">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationRunner</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enhanced simulation runner with chunking and state management.</span>
+<span class="sd">    </span>
+<span class="sd">    Provides chunked execution with automatic checkpointing,</span>
+<span class="sd">    progress reporting, and pause/resume capabilities.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        env: SimPy environment</span>
+<span class="sd">        primitives: Dictionary of simulation primitives</span>
+<span class="sd">        state_manager: State persistence manager</span>
+<span class="sd">        monitor: Optional simulation monitor</span>
+<span class="sd">        cache_path: Path to event cache</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+<div class="viewcode-block" id="SimulationRunner.__init__">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationRunner.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">env</span><span class="p">:</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">,</span>
+                 <span class="n">primitives</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+                 <span class="n">checkpoint_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;checkpoints&quot;</span><span class="p">,</span>
+                 <span class="n">enable_monitoring</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize simulation runner.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            env: SimPy environment</span>
+<span class="sd">            primitives: Dictionary of primitives</span>
+<span class="sd">            checkpoint_dir: Directory for checkpoints</span>
+<span class="sd">            enable_monitoring: Enable performance monitoring</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span> <span class="o">=</span> <span class="n">primitives</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span> <span class="o">=</span> <span class="n">StateManager</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1"># Setup monitoring</span>
+        <span class="k">if</span> <span class="n">enable_monitoring</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationMonitor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">SimulationMonitor</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+            
+<div class="viewcode-block" id="SimulationRunner.run_chunked">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationRunner.run_chunked">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_chunked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">total_days</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                   <span class="n">chunk_size_days</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                   <span class="n">progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                   <span class="n">checkpoint_interval</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run simulation in chunks with progress reporting.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            total_days: Total simulation duration in days</span>
+<span class="sd">            chunk_size_days: Size of each execution chunk</span>
+<span class="sd">            progress_callback: Optional progress reporter</span>
+<span class="sd">            checkpoint_interval: Days between auto checkpoints</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Simulation results and metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">tracemalloc</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">is_tracing</span><span class="p">():</span>
+            <span class="n">tracemalloc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            
+        <span class="c1"># Convert to simulation time units (minutes)</span>
+        <span class="n">total_time</span> <span class="o">=</span> <span class="n">total_days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span>
+        <span class="n">chunk_size</span> <span class="o">=</span> <span class="n">chunk_size_days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span>
+        <span class="n">checkpoint_interval_minutes</span> <span class="o">=</span> <span class="n">checkpoint_interval</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span> <span class="k">if</span> <span class="n">checkpoint_interval</span> <span class="k">else</span> <span class="kc">None</span>
+        
+        <span class="c1"># Tracking</span>
+        <span class="n">start_real_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">last_checkpoint_time</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">chunks_completed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_events</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Starting chunked simulation:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total: </span><span class="si">{</span><span class="n">total_days</span><span class="si">}</span><span class="s2"> days (</span><span class="si">{</span><span class="n">total_time</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> minutes)&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Chunk size: </span><span class="si">{</span><span class="n">chunk_size_days</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Checkpoints: </span><span class="si">{</span><span class="s1">&#39;Every &#39;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">str</span><span class="p">(</span><span class="n">checkpoint_interval</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">&#39; days&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">checkpoint_interval</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Disabled&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">&lt;</span> <span class="n">total_time</span><span class="p">:</span>
+            <span class="c1"># Calculate chunk end time</span>
+            <span class="n">chunk_end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">+</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">total_time</span><span class="p">)</span>
+            <span class="n">chunk_start_real</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            
+            <span class="c1"># Run chunk</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">chunk_end</span><span class="p">)</span>
+            
+            <span class="c1"># Get memory usage</span>
+            <span class="n">current_memory</span><span class="p">,</span> <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">get_traced_memory</span><span class="p">()</span>
+            <span class="n">memory_mb</span> <span class="o">=</span> <span class="n">current_memory</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+            
+            <span class="c1"># Count events</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">:</span>
+                <span class="n">total_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;events_total&quot;</span><span class="p">]</span>
+            
+            <span class="c1"># Progress callback</span>
+            <span class="k">if</span> <span class="n">progress_callback</span><span class="p">:</span>
+                <span class="n">progress_callback</span><span class="p">(</span>
+                    <span class="n">current_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+                    <span class="n">total_time</span><span class="o">=</span><span class="n">total_time</span><span class="p">,</span>
+                    <span class="n">events_processed</span><span class="o">=</span><span class="n">total_events</span><span class="p">,</span>
+                    <span class="n">memory_usage_mb</span><span class="o">=</span><span class="n">memory_mb</span><span class="p">,</span>
+                    <span class="n">chunks_completed</span><span class="o">=</span><span class="n">chunks_completed</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">chunk_time</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">chunk_start_real</span>
+                <span class="p">)</span>
+            
+            <span class="c1"># Auto checkpoint</span>
+            <span class="k">if</span> <span class="n">checkpoint_interval_minutes</span> <span class="ow">and</span> \
+               <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="n">last_checkpoint_time</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">checkpoint_interval_minutes</span><span class="p">:</span>
+                
+                <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;chunk&quot;</span><span class="p">:</span> <span class="n">chunks_completed</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;memory_mb&quot;</span><span class="p">:</span> <span class="n">memory_mb</span><span class="p">,</span>
+                    <span class="s2">&quot;events&quot;</span><span class="p">:</span> <span class="n">total_events</span>
+                <span class="p">}</span>
+                
+                <span class="n">checkpoint_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span>
+                    <span class="n">metadata</span>
+                <span class="p">)</span>
+                
+                <span class="n">last_checkpoint_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span>
+            
+            <span class="n">chunks_completed</span> <span class="o">+=</span> <span class="mi">1</span>
+            
+            <span class="c1"># Check for pause request (could be from file, signal, etc.)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_pause_requested</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  ⏸  Simulation paused&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_pause</span><span class="p">()</span>
+                
+        <span class="c1"># Final statistics</span>
+        <span class="n">elapsed_real</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_real_time</span>
+        
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;simulation_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+            <span class="s2">&quot;real_time_seconds&quot;</span><span class="p">:</span> <span class="n">elapsed_real</span><span class="p">,</span>
+            <span class="s2">&quot;chunks_completed&quot;</span><span class="p">:</span> <span class="n">chunks_completed</span><span class="p">,</span>
+            <span class="s2">&quot;speed_factor&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">/</span> <span class="n">elapsed_real</span> <span class="k">if</span> <span class="n">elapsed_real</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;total_events&quot;</span><span class="p">:</span> <span class="n">total_events</span><span class="p">,</span>
+            <span class="s2">&quot;peak_memory_mb&quot;</span><span class="p">:</span> <span class="n">peak_memory</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span>
+            <span class="s2">&quot;checkpoints_saved&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">checkpoints</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">:</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;monitor_metrics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+            
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Simulation completed:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Time: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;simulation_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> minutes&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Real time: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;real_time_seconds&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Speed: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;speed_factor&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Events: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">results</span></div>
+
+        
+<div class="viewcode-block" id="SimulationRunner.resume_from_checkpoint">
+<a class="viewcode-back" href="../../twin_model.state_manager.html#twin_model.state_manager.SimulationRunner.resume_from_checkpoint">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resume_from_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                              <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                              <span class="n">primitive_classes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Type</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resume simulation from checkpoint.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            checkpoint_id: ID of checkpoint to resume from</span>
+<span class="sd">            primitive_classes: Mapping of type names to classes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">restore_simulation</span><span class="p">(</span>
+            <span class="n">checkpoint_id</span><span class="p">,</span>
+            <span class="n">primitive_classes</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Restart monitoring if enabled</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationMonitor</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">SimulationMonitor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">)</span></div>
+
+            
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_pause_requested</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if pause has been requested.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            True if pause requested</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check for pause file</span>
+        <span class="n">pause_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;PAUSE_SIMULATION&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pause_file</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_pause</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle simulation pause.&quot;&quot;&quot;</span>
+        <span class="c1"># Save checkpoint</span>
+        <span class="n">checkpoint_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_path</span><span class="p">,</span>
+            <span class="p">{</span><span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;user_pause&quot;</span><span class="p">}</span>
+        <span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Checkpoint saved: </span><span class="si">{</span><span class="n">checkpoint_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Remove PAUSE_SIMULATION file to resume&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Wait for resume</span>
+        <span class="n">pause_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;PAUSE_SIMULATION&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">pause_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ▶️  Resuming simulation&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

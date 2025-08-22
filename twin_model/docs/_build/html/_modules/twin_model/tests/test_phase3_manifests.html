@@ -1,0 +1,638 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_phase3_manifests &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_phase3_manifests</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.tests.test_phase3_manifests</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Test Phase 3: Validate manifests with model builder.</span>
+
+<span class="sd">This test validates that manifests correctly provide configuration values</span>
+<span class="sd">for the ontology-driven model and that the system runs with realistic</span>
+<span class="sd">production scenarios.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.model_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EquipmentPrimitive</span><span class="p">,</span>
+    <span class="n">BufferPrimitive</span><span class="p">,</span>
+    <span class="n">SourcePrimitive</span><span class="p">,</span>
+    <span class="n">SinkPrimitive</span><span class="p">,</span>
+    <span class="n">ProductionOrder</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="test_manifest_loading">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_manifest_loading">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_manifest_loading</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that manifests load correctly.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Manifest Loading...&quot;</span><span class="p">)</span>
+
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load production manifest</span>
+    <span class="n">prod_manifest_path</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">prod_manifest_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">prod_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Check products</span>
+    <span class="k">assert</span> <span class="s2">&quot;products&quot;</span> <span class="ow">in</span> <span class="n">prod_manifest</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;products&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">products</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Expected 6 products, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">products</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">products</span><span class="p">)</span><span class="si">}</span><span class="s2"> products&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Verify all SKUs present</span>
+    <span class="n">expected_skus</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;SKU-1001&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SKU-1002&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SKU-2001&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SKU-2002&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SKU-3001&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SKU-3002&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">sku</span> <span class="ow">in</span> <span class="n">expected_skus</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">sku</span> <span class="ow">in</span> <span class="n">products</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Missing product </span><span class="si">{</span><span class="n">sku</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ All 6 SKUs defined&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check production orders</span>
+    <span class="k">assert</span> <span class="s2">&quot;production_orders&quot;</span> <span class="ow">in</span> <span class="n">prod_manifest</span>
+    <span class="n">orders</span> <span class="o">=</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;production_orders&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">orders</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;No production orders defined&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">orders</span><span class="p">)</span><span class="si">}</span><span class="s2"> production orders&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Load equipment manifest</span>
+    <span class="n">eq_manifest_path</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;equipment_manifest.yaml&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">eq_manifest_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">eq_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Check production lines</span>
+    <span class="k">assert</span> <span class="s2">&quot;production_lines&quot;</span> <span class="ow">in</span> <span class="n">eq_manifest</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">eq_manifest</span><span class="p">[</span><span class="s2">&quot;production_lines&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Expected 3 lines, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="si">}</span><span class="s2"> production lines&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check equipment</span>
+    <span class="k">assert</span> <span class="s2">&quot;equipment&quot;</span> <span class="ow">in</span> <span class="n">eq_manifest</span>
+    <span class="n">equipment</span> <span class="o">=</span> <span class="n">eq_manifest</span><span class="p">[</span><span class="s2">&quot;equipment&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Count equipment by type</span>
+    <span class="n">equipment_counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">eq_id</span><span class="p">,</span> <span class="n">eq_data</span> <span class="ow">in</span> <span class="n">equipment</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">eq_type</span> <span class="o">=</span> <span class="n">eq_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+        <span class="n">equipment_counts</span><span class="p">[</span><span class="n">eq_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">equipment_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">eq_type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Equipment configuration:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">eq_type</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">equipment_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">eq_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check failure patterns</span>
+    <span class="k">assert</span> <span class="s2">&quot;failure_patterns&quot;</span> <span class="ow">in</span> <span class="n">eq_manifest</span>
+    <span class="n">failure_patterns</span> <span class="o">=</span> <span class="n">eq_manifest</span><span class="p">[</span><span class="s2">&quot;failure_patterns&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Count downtime reasons</span>
+    <span class="n">downtime_reasons</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">equipment_type</span><span class="p">,</span> <span class="n">patterns</span> <span class="ow">in</span> <span class="n">failure_patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">pattern_name</span><span class="p">,</span> <span class="n">pattern_data</span> <span class="ow">in</span> <span class="n">patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">downtime_reasons</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pattern_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;downtime_reason&quot;</span><span class="p">))</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">downtime_reasons</span><span class="p">)</span> <span class="o">==</span> <span class="mi">8</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Expected 8 downtime codes, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">downtime_reasons</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;✓ Defined </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">downtime_reasons</span><span class="p">)</span><span class="si">}</span><span class="s2"> unique downtime codes: </span><span class="si">{</span><span class="n">downtime_reasons</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Manifest loading tests passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_model_building_with_manifests">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_model_building_with_manifests">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_model_building_with_manifests</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test building model with manifest configuration.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Model Building with Manifests...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+    <span class="n">ontology_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">)</span>
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build model with manifests</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span><span class="n">ontology_path</span><span class="p">,</span> <span class="n">manifest_dir</span><span class="p">)</span>
+
+    <span class="c1"># Check manifests loaded</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;No manifests loaded&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="p">)</span><span class="si">}</span><span class="s2"> manifests&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build model</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="c1"># Check primitives created</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Created </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;primitives&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> primitives&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check for 3 lines worth of equipment</span>
+    <span class="n">equipment_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="mi">1</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">EquipmentPrimitive</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">equipment_count</span> <span class="o">&gt;=</span> <span class="mi">9</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Expected at least 9 equipment (3 per line), got </span><span class="si">{</span><span class="n">equipment_count</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Created </span><span class="si">{</span><span class="n">equipment_count</span><span class="si">}</span><span class="s2"> equipment primitives&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check buffers</span>
+    <span class="n">buffer_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="mi">1</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">BufferPrimitive</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Created </span><span class="si">{</span><span class="n">buffer_count</span><span class="si">}</span><span class="s2"> buffer primitives&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check sources and sinks</span>
+    <span class="n">source_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="mi">1</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">SourcePrimitive</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">sink_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="mi">1</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">SinkPrimitive</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">source_count</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Expected at least 3 sources, got </span><span class="si">{</span><span class="n">source_count</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="n">sink_count</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Expected at least 3 sinks, got </span><span class="si">{</span><span class="n">sink_count</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Created </span><span class="si">{</span><span class="n">source_count</span><span class="si">}</span><span class="s2"> sources and </span><span class="si">{</span><span class="n">sink_count</span><span class="si">}</span><span class="s2"> sinks&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model building with manifests test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_production_line_configuration">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_production_line_configuration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_production_line_configuration</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that production lines are configured correctly.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Production Line Configuration...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+    <span class="n">ontology_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">)</span>
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span><span class="n">ontology_path</span><span class="p">,</span> <span class="n">manifest_dir</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="c1"># Check line configuration</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">production_lines</span>
+
+    <span class="n">expected_lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LINE1&quot;</span><span class="p">,</span> <span class="s2">&quot;LINE2&quot;</span><span class="p">,</span> <span class="s2">&quot;LINE3&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">line_id</span> <span class="ow">in</span> <span class="n">expected_lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line_id</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">line_id</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">line_id</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Equipment: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;equipment&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Buffers: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;buffers&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Source: </span><span class="si">{</span><span class="s1">&#39;Yes&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Sink: </span><span class="si">{</span><span class="s1">&#39;Yes&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;sink&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Verify line has complete structure</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="s2">&quot;equipment&quot;</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line_id</span><span class="si">}</span><span class="s2"> should have at least 3 equipment&quot;</span>
+            <span class="p">)</span>
+            <span class="k">assert</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line_id</span><span class="si">}</span><span class="s2"> missing source&quot;</span>
+            <span class="k">assert</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;sink&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line_id</span><span class="si">}</span><span class="s2"> missing sink&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ All production lines configured correctly&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Production line configuration test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_product_configuration">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_product_configuration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_product_configuration</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that products are configured with all attributes.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Product Configuration...&quot;</span><span class="p">)</span>
+
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+    <span class="n">prod_manifest_path</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">prod_manifest_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">prod_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">products</span> <span class="o">=</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;products&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Check each product has required attributes</span>
+    <span class="n">required_attrs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;target_rate_units_per_5min&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;standard_cost_per_unit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sale_price_per_unit&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;margin&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;scrap_rates&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;quality_requirements&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">product_id</span><span class="p">,</span> <span class="n">product_data</span> <span class="ow">in</span> <span class="n">products</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">product_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">required_attrs</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">product_data</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product_id</span><span class="si">}</span><span class="s2"> missing </span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Check scrap rates</span>
+        <span class="n">scrap_rates</span> <span class="o">=</span> <span class="n">product_data</span><span class="p">[</span><span class="s2">&quot;scrap_rates&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="s2">&quot;normal&quot;</span> <span class="ow">in</span> <span class="n">scrap_rates</span>
+        <span class="k">assert</span> <span class="n">scrap_rates</span><span class="p">[</span><span class="s2">&quot;normal&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">scrap_rates</span><span class="p">[</span><span class="s2">&quot;normal&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.1</span>
+
+        <span class="c1"># Check margins</span>
+        <span class="n">margin</span> <span class="o">=</span> <span class="n">product_data</span><span class="p">[</span><span class="s2">&quot;margin&quot;</span><span class="p">]</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">product_data</span><span class="p">[</span><span class="s2">&quot;standard_cost_per_unit&quot;</span><span class="p">]</span>
+        <span class="n">price</span> <span class="o">=</span> <span class="n">product_data</span><span class="p">[</span><span class="s2">&quot;sale_price_per_unit&quot;</span><span class="p">]</span>
+        <span class="n">calculated_margin</span> <span class="o">=</span> <span class="n">price</span> <span class="o">-</span> <span class="n">cost</span>
+        <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">margin</span> <span class="o">-</span> <span class="n">calculated_margin</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">,</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">product_id</span><span class="si">}</span><span class="s2"> margin mismatch: </span><span class="si">{</span><span class="n">margin</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">calculated_margin</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Rate: </span><span class="si">{</span><span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;target_rate_units_per_5min&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> units/5min&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Margin: $</span><span class="si">{</span><span class="n">margin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ($</span><span class="si">{</span><span class="n">price</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> - $</span><span class="si">{</span><span class="n">cost</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Normal scrap: </span><span class="si">{</span><span class="n">scrap_rates</span><span class="p">[</span><span class="s1">&#39;normal&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ All products configured with complete attributes&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Product configuration test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_failure_patterns">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_failure_patterns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_failure_patterns</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that failure patterns are configured correctly.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Failure Patterns...&quot;</span><span class="p">)</span>
+
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+    <span class="n">eq_manifest_path</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;equipment_manifest.yaml&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">eq_manifest_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">eq_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">failure_patterns</span> <span class="o">=</span> <span class="n">eq_manifest</span><span class="p">[</span><span class="s2">&quot;failure_patterns&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Check each equipment type has failures</span>
+    <span class="k">for</span> <span class="n">equipment_type</span><span class="p">,</span> <span class="n">patterns</span> <span class="ow">in</span> <span class="n">failure_patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">equipment_type</span><span class="si">}</span><span class="s2"> failure modes:&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">pattern_name</span><span class="p">,</span> <span class="n">pattern_data</span> <span class="ow">in</span> <span class="n">patterns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">prob</span> <span class="o">=</span> <span class="n">pattern_data</span><span class="p">[</span><span class="s2">&quot;probability_per_5min&quot;</span><span class="p">]</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">pattern_data</span><span class="p">[</span><span class="s2">&quot;duration_range&quot;</span><span class="p">]</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="n">pattern_data</span><span class="p">[</span><span class="s2">&quot;downtime_reason&quot;</span><span class="p">]</span>
+            <span class="n">cascade</span> <span class="o">=</span> <span class="n">pattern_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cascade_probability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">pattern_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">prob</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> chance, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">duration</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">duration</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> min, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;code: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;cascade: </span><span class="si">{</span><span class="n">cascade</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Validate probability ranges</span>
+            <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="mf">0.2</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Unrealistic probability for </span><span class="si">{</span><span class="n">pattern_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">assert</span> <span class="n">duration</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">duration</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unrealistic duration for </span><span class="si">{</span><span class="n">pattern_name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Check all 8 downtime codes are represented</span>
+    <span class="n">all_codes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">patterns</span> <span class="ow">in</span> <span class="n">failure_patterns</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">pattern_data</span> <span class="ow">in</span> <span class="n">patterns</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">all_codes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pattern_data</span><span class="p">[</span><span class="s2">&quot;downtime_reason&quot;</span><span class="p">])</span>
+
+    <span class="n">expected_codes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;UNP-SENS&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;UNP-MECH&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;UNP-QC&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;UNP-SEAL&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;UNP-JAM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;UNP-ELEC&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;UNP-CTRL&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;UNP-OP&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">assert</span> <span class="n">all_codes</span> <span class="o">==</span> <span class="n">expected_codes</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Missing downtime codes: </span><span class="si">{</span><span class="n">expected_codes</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">all_codes</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ All 8 downtime codes defined: </span><span class="si">{</span><span class="n">all_codes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failure patterns test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_production_schedule">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_production_schedule">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_production_schedule</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test that production schedule is realistic.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Production Schedule...&quot;</span><span class="p">)</span>
+
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+    <span class="n">prod_manifest_path</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">prod_manifest_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">prod_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">orders</span> <span class="o">=</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;production_orders&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Group orders by day</span>
+    <span class="n">orders_by_day</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">:</span>
+        <span class="n">day</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">//</span> <span class="mi">1440</span>  <span class="c1"># Convert minutes to days</span>
+        <span class="k">if</span> <span class="n">day</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orders_by_day</span><span class="p">:</span>
+            <span class="n">orders_by_day</span><span class="p">[</span><span class="n">day</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">orders_by_day</span><span class="p">[</span><span class="n">day</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Schedule covers </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">orders_by_day</span><span class="p">)</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check each day</span>
+    <span class="k">for</span> <span class="n">day</span><span class="p">,</span> <span class="n">day_orders</span> <span class="ow">in</span> <span class="n">orders_by_day</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Day </span><span class="si">{</span><span class="n">day</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Group by line</span>
+        <span class="n">by_line</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">day_orders</span><span class="p">:</span>
+            <span class="n">line_id</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="s2">&quot;line_id&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">line_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">by_line</span><span class="p">:</span>
+                <span class="n">by_line</span><span class="p">[</span><span class="n">line_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">by_line</span><span class="p">[</span><span class="n">line_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">line_id</span><span class="p">,</span> <span class="n">line_orders</span> <span class="ow">in</span> <span class="n">by_line</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">total_duration</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">line_orders</span><span class="p">)</span>
+            <span class="n">total_quantity</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s2">&quot;target_quantity&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">line_orders</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">line_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">line_orders</span><span class="p">)</span><span class="si">}</span><span class="s2"> orders, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">total_duration</span><span class="si">}</span><span class="s2"> min runtime, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">total_quantity</span><span class="si">}</span><span class="s2"> units&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Check for reasonable daily production</span>
+            <span class="k">assert</span> <span class="n">total_duration</span> <span class="o">&lt;=</span> <span class="mi">1440</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line_id</span><span class="si">}</span><span class="s2"> overbooked on day </span><span class="si">{</span><span class="n">day</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># Check product mix</span>
+    <span class="n">product_counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">orders</span><span class="p">:</span>
+        <span class="n">product_id</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="s2">&quot;product_id&quot;</span><span class="p">]</span>
+        <span class="n">product_counts</span><span class="p">[</span><span class="n">product_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">product_counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Product mix across schedule:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">product_id</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">product_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">product_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> orders&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Verify all 6 products are scheduled</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">product_counts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Not all products scheduled: </span><span class="si">{</span><span class="n">product_counts</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Production schedule test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_shift_configuration">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_shift_configuration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_shift_configuration</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test shift configurations.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Shift Configuration...&quot;</span><span class="p">)</span>
+
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+    <span class="n">eq_manifest_path</span> <span class="o">=</span> <span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;equipment_manifest.yaml&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">eq_manifest_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">eq_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">shifts</span> <span class="o">=</span> <span class="n">eq_manifest</span><span class="p">[</span><span class="s2">&quot;shifts&quot;</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">shifts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Expected 3 shifts, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">shifts</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">for</span> <span class="n">shift_id</span><span class="p">,</span> <span class="n">shift_data</span> <span class="ow">in</span> <span class="n">shifts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">perf_range</span> <span class="o">=</span> <span class="n">shift_data</span><span class="p">[</span><span class="s2">&quot;performance_range&quot;</span><span class="p">]</span>
+        <span class="n">staffing</span> <span class="o">=</span> <span class="n">shift_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;staffing_level&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">shift_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">shift_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Hours: </span><span class="si">{</span><span class="n">shift_data</span><span class="p">[</span><span class="s1">&#39;start_hour&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:00 - </span><span class="si">{</span><span class="n">shift_data</span><span class="p">[</span><span class="s1">&#39;end_hour&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:00&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Performance: </span><span class="si">{</span><span class="n">perf_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">perf_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Staffing: </span><span class="si">{</span><span class="n">staffing</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Verify performance degradation pattern</span>
+        <span class="k">if</span> <span class="n">shift_id</span> <span class="o">==</span> <span class="s2">&quot;shift1&quot;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">perf_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.95</span><span class="p">,</span> <span class="s2">&quot;Shift 1 should have best performance&quot;</span>
+        <span class="k">elif</span> <span class="n">shift_id</span> <span class="o">==</span> <span class="s2">&quot;shift3&quot;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">perf_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">0.95</span><span class="p">,</span> <span class="s2">&quot;Shift 3 should have worst performance&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Shift performance follows expected pattern&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shift configuration test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="test_simulation_with_manifests">
+<a class="viewcode-back" href="../../../twin_model.tests.test_phase3_manifests.html#twin_model.tests.test_phase3_manifests.test_simulation_with_manifests">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_simulation_with_manifests</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test running simulation with full manifest configuration.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Testing Simulation with Full Manifests...&quot;</span><span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+    <span class="n">ontology_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">)</span>
+    <span class="n">manifest_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build and run model</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span><span class="n">ontology_path</span><span class="p">,</span> <span class="n">manifest_dir</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="c1"># Load orders from manifest</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">manifest_dir</span> <span class="o">/</span> <span class="s2">&quot;production_manifest.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">prod_manifest</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Add first day&#39;s orders to scheduler</span>
+    <span class="k">if</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]:</span>
+        <span class="n">day1_orders</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">prod_manifest</span><span class="p">[</span><span class="s2">&quot;production_orders&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">o</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1440</span>
+        <span class="p">]</span>  <span class="c1"># First day only</span>
+
+        <span class="k">for</span> <span class="n">order_data</span> <span class="ow">in</span> <span class="n">day1_orders</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>  <span class="c1"># Just first 3 orders for quick test</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">ProductionOrder</span><span class="p">(</span>
+                <span class="n">order_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;order_id&quot;</span><span class="p">],</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;product_id&quot;</span><span class="p">],</span>
+                <span class="n">target_quantity</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;target_quantity&quot;</span><span class="p">],</span>
+                <span class="n">due_time</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;duration&quot;</span><span class="p">],</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;line_id&quot;</span><span class="p">],</span>
+                <span class="n">priority</span><span class="o">=</span><span class="n">order_data</span><span class="p">[</span><span class="s2">&quot;priority&quot;</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">model</span><span class="p">[</span><span class="s2">&quot;scheduler&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">add_order</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Added </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">day1_orders</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span><span class="si">}</span><span class="s2"> orders to scheduler&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Run simulation for 8 hours</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Running 8-hour simulation...&quot;</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">480</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Simulation completed at t=</span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check production metrics</span>
+    <span class="n">total_produced</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">total_scrapped</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="n">EquipmentPrimitive</span><span class="p">):</span>
+            <span class="n">total_produced</span> <span class="o">+=</span> <span class="n">primitive</span><span class="o">.</span><span class="n">units_produced</span>
+            <span class="n">total_scrapped</span> <span class="o">+=</span> <span class="n">primitive</span><span class="o">.</span><span class="n">units_scrapped</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Total production: </span><span class="si">{</span><span class="n">total_produced</span><span class="si">}</span><span class="s2"> good units, </span><span class="si">{</span><span class="n">total_scrapped</span><span class="si">}</span><span class="s2"> scrapped&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">total_produced</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">scrap_rate</span> <span class="o">=</span> <span class="n">total_scrapped</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_produced</span> <span class="o">+</span> <span class="n">total_scrapped</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Overall scrap rate: </span><span class="si">{</span><span class="n">scrap_rate</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check KPIs</span>
+    <span class="k">if</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;monitor&quot;</span><span class="p">]:</span>
+        <span class="n">dashboard</span> <span class="o">=</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;monitor&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get_dashboard</span><span class="p">()</span>
+        <span class="n">kpis</span> <span class="o">=</span> <span class="n">dashboard</span><span class="p">[</span><span class="s2">&quot;kpis&quot;</span><span class="p">]</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">KPIs after 8 hours:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">kpi_name</span><span class="p">,</span> <span class="n">kpi_data</span> <span class="ow">in</span> <span class="n">kpis</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">kpi_data</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">kpi_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">target</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">kpi_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> / </span><span class="si">{</span><span class="n">target</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Check observables generated</span>
+    <span class="n">total_observables</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">observables</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s2">&quot;observables&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Generated </span><span class="si">{</span><span class="n">total_observables</span><span class="si">}</span><span class="s2"> observables&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">total_observables</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;Should generate significant observables&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Simulation with manifests test passed!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PHASE 3 MANIFESTS VALIDATION TEST&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">test_manifest_loading</span><span class="p">()</span>
+        <span class="n">test_model_building_with_manifests</span><span class="p">()</span>
+        <span class="n">test_production_line_configuration</span><span class="p">()</span>
+        <span class="n">test_product_configuration</span><span class="p">()</span>
+        <span class="n">test_failure_patterns</span><span class="p">()</span>
+        <span class="n">test_production_schedule</span><span class="p">()</span>
+        <span class="n">test_shift_configuration</span><span class="p">()</span>
+        <span class="n">test_simulation_with_manifests</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ALL TESTS PASSED! ✓&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Phase 3 Manifests are correctly configured:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - 6 products with complete specifications&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - 3 production lines with equipment&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - 8 unique downtime codes&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - 7-day production schedule&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Shift performance variations&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  - Failure patterns per equipment type&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ Test failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

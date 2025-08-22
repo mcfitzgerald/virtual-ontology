@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.tests.test_performance module &mdash; Twin Model 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">twin_model.tests.test_performance module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/twin_model.tests.test_performance.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin_model.tests.test_performance">
+<span id="twin-model-tests-test-performance-module"></span><h1>twin_model.tests.test_performance module<a class="headerlink" href="#module-twin_model.tests.test_performance" title="Link to this heading"></a></h1>
+<p>Performance Testing Suite for SimPy optimizations.</p>
+<p>This module provides comprehensive performance benchmarks and regression
+testing for the optimized simulation system.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_performance.</span></span><span class="sig-name descname"><span class="pre">BenchmarkResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_days</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_primitives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_time_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_peak_mb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_avg_mb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_per_second</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size_mb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoints_saved</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#BenchmarkResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Results from a performance benchmark run.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.config_name">
+<span class="sig-name descname"><span class="pre">config_name</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.config_name" title="Link to this definition"></a></dt>
+<dd><p>Name of configuration used</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.simulation_days">
+<span class="sig-name descname"><span class="pre">simulation_days</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.simulation_days" title="Link to this definition"></a></dt>
+<dd><p>Duration of simulation</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.num_primitives">
+<span class="sig-name descname"><span class="pre">num_primitives</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.num_primitives" title="Link to this definition"></a></dt>
+<dd><p>Number of primitives</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.real_time_seconds">
+<span class="sig-name descname"><span class="pre">real_time_seconds</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.real_time_seconds" title="Link to this definition"></a></dt>
+<dd><p>Wall clock time</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.simulation_time">
+<span class="sig-name descname"><span class="pre">simulation_time</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.simulation_time" title="Link to this definition"></a></dt>
+<dd><p>Simulated time</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.speed_factor">
+<span class="sig-name descname"><span class="pre">speed_factor</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.speed_factor" title="Link to this definition"></a></dt>
+<dd><p>Simulation speed multiplier</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.memory_peak_mb">
+<span class="sig-name descname"><span class="pre">memory_peak_mb</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.memory_peak_mb" title="Link to this definition"></a></dt>
+<dd><p>Peak memory usage</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.memory_avg_mb">
+<span class="sig-name descname"><span class="pre">memory_avg_mb</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.memory_avg_mb" title="Link to this definition"></a></dt>
+<dd><p>Average memory usage</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.events_total">
+<span class="sig-name descname"><span class="pre">events_total</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.events_total" title="Link to this definition"></a></dt>
+<dd><p>Total events generated</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.events_per_second">
+<span class="sig-name descname"><span class="pre">events_per_second</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.events_per_second" title="Link to this definition"></a></dt>
+<dd><p>Event processing rate</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.cache_size_mb">
+<span class="sig-name descname"><span class="pre">cache_size_mb</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.cache_size_mb" title="Link to this definition"></a></dt>
+<dd><p>Final cache size</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.checkpoints_saved">
+<span class="sig-name descname"><span class="pre">checkpoints_saved</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.checkpoints_saved" title="Link to this definition"></a></dt>
+<dd><p>Number of checkpoints</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.errors">
+<span class="sig-name descname"><span class="pre">errors</span></span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.errors" title="Link to this definition"></a></dt>
+<dd><p>Any errors encountered</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">config_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">simulation_days</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">num_primitives</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">real_time_seconds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">simulation_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">speed_factor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">memory_peak_mb</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">memory_avg_mb</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">events_total</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">events_per_second</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">cache_size_mb</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">checkpoints_saved</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">errors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#BenchmarkResult.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Convert to dictionary for serialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.score">
+<span class="sig-name descname"><span class="pre">score</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#BenchmarkResult.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.score" title="Link to this definition"></a></dt>
+<dd><p>Calculate performance score (higher is better).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Performance score combining speed and memory efficiency</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.BenchmarkResult.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_days</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_primitives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real_time_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed_factor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_peak_mb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_avg_mb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_total</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_per_second</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_size_mb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoints_saved</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#twin_model.tests.test_performance.BenchmarkResult.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_performance.</span></span><span class="sig-name descname"><span class="pre">PerformanceBenchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'benchmark_results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Performance benchmarking suite for simulations.</p>
+<p>Provides automated benchmarks for different configurations
+and simulation scales with detailed performance metrics.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.results_dir">
+<span class="sig-name descname"><span class="pre">results_dir</span></span><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.results_dir" title="Link to this definition"></a></dt>
+<dd><p>Directory for storing benchmark results</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.results">
+<span class="sig-name descname"><span class="pre">results</span></span><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.results" title="Link to this definition"></a></dt>
+<dd><p>List of benchmark results</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.baseline">
+<span class="sig-name descname"><span class="pre">baseline</span></span><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.baseline" title="Link to this definition"></a></dt>
+<dd><p>Baseline results for comparison</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'benchmark_results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize benchmark suite.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>results_dir</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Directory for storing results</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.run_benchmark">
+<span class="sig-name descname"><span class="pre">run_benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_primitives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_days</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.run_benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.run_benchmark" title="Link to this definition"></a></dt>
+<dd><p>Run a single benchmark with given configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="twin_model.config.html#twin_model.config.PerformanceConfig" title="twin_model.config.PerformanceConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">PerformanceConfig</span></code></a></span>) – Performance configuration to test</p></li>
+<li><p><strong>num_primitives</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of primitives to simulate</p></li>
+<li><p><strong>simulation_days</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Duration of simulation</p></li>
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Optional name for this benchmark</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#twin_model.tests.test_performance.BenchmarkResult" title="twin_model.tests.test_performance.BenchmarkResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkResult</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Benchmark results</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.run_preset_comparison">
+<span class="sig-name descname"><span class="pre">run_preset_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_primitives</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_days</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.run_preset_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.run_preset_comparison" title="Link to this definition"></a></dt>
+<dd><p>Run benchmarks for all configuration presets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_primitives</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of primitives to test</p></li>
+<li><p><strong>simulation_days</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span>) – Duration of simulation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#twin_model.tests.test_performance.BenchmarkResult" title="twin_model.tests.test_performance.BenchmarkResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkResult</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary mapping preset names to results</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.run_scaling_benchmark">
+<span class="sig-name descname"><span class="pre">run_scaling_benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.run_scaling_benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.run_scaling_benchmark" title="Link to this definition"></a></dt>
+<dd><p>Run benchmarks with increasing scale.</p>
+<p>Tests how performance scales with simulation size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="twin_model.config.html#twin_model.config.PerformanceConfig" title="twin_model.config.PerformanceConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">PerformanceConfig</span></code></a></span>) – Configuration to use for all tests</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference internal" href="#twin_model.tests.test_performance.BenchmarkResult" title="twin_model.tests.test_performance.BenchmarkResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkResult</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of results for different scales</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.run_memory_stress_test">
+<span class="sig-name descname"><span class="pre">run_memory_stress_test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.run_memory_stress_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.run_memory_stress_test" title="Link to this definition"></a></dt>
+<dd><p>Run memory stress test with aggressive settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#twin_model.tests.test_performance.BenchmarkResult" title="twin_model.tests.test_performance.BenchmarkResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkResult</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Benchmark result from stress test</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.compare_with_baseline">
+<span class="sig-name descname"><span class="pre">compare_with_baseline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.compare_with_baseline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.compare_with_baseline" title="Link to this definition"></a></dt>
+<dd><p>Compare result with baseline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>result</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#twin_model.tests.test_performance.BenchmarkResult" title="twin_model.tests.test_performance.BenchmarkResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkResult</span></code></a></span>) – Result to compare</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with percentage improvements</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.generate_report">
+<span class="sig-name descname"><span class="pre">generate_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.generate_report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.generate_report" title="Link to this definition"></a></dt>
+<dd><p>Generate performance report.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_file</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Optional file to save report</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Report text</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.save_results">
+<span class="sig-name descname"><span class="pre">save_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'benchmark_results.json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.save_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.save_results" title="Link to this definition"></a></dt>
+<dd><p>Save benchmark results to JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Name of results file</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.PerformanceBenchmark.plot_comparison">
+<span class="sig-name descname"><span class="pre">plot_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'benchmark_comparison.png'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#PerformanceBenchmark.plot_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.PerformanceBenchmark.plot_comparison" title="Link to this definition"></a></dt>
+<dd><p>Generate comparison plots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output_file</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Name of plot file</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.run_quick_benchmark">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_performance.</span></span><span class="sig-name descname"><span class="pre">run_quick_benchmark</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#run_quick_benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.run_quick_benchmark" title="Link to this definition"></a></dt>
+<dd><p>Run a quick benchmark for testing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="twin_model.tests.test_performance.run_full_benchmark_suite">
+<span class="sig-prename descclassname"><span class="pre">twin_model.tests.test_performance.</span></span><span class="sig-name descname"><span class="pre">run_full_benchmark_suite</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/twin_model/tests/test_performance.html#run_full_benchmark_suite"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.tests.test_performance.run_full_benchmark_suite" title="Link to this definition"></a></dt>
+<dd><p>Run complete benchmark suite.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michael.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
