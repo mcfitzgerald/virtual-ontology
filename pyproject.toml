@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "virtual-ontology"
+version = "0.1.0"
+description = "Digital Twin Simulation and Optimization System"
+authors = ["Michael Fitzgerald <michael.craig.fitzgerald@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+# Core computation
+numpy = "^1.26"
+pandas = "^2.3"
+simpy = "^4.1"
+scipy = "^1.16"
+
+# Web/API
+fastapi = "^0.115"
+uvicorn = "^0.35"
+sqlmodel = "^0.0.24"
+pydantic = "^2.11"
+
+# Visualization
+matplotlib = "^3.10"
+dash = "^2.14"
+dash-cytoscape = "^0.3"
+networkx = "^3.2"
+pyvis = "^0.3"
+
+# Utilities
+click = "^8.2"
+pyyaml = "^6.0"
+dill = "^0.4"
+requests = "^2.32"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4"
+mypy = "^1.14"
+ruff = "^0.9"
+ipython = "^8.12"
+ipdb = "^0.13"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^8.2"
+sphinx-rtd-theme = "^3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
