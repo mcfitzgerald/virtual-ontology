@@ -12,8 +12,22 @@ Provides REST API endpoints for:
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+import sys
+import os
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from database.manager import TwinDatabaseManager
+from config.config_loader import ConfigLoader, ConfigurationError
+
+# Load database configuration
+try:
+    db_config = ConfigLoader.load_config('database')
+except ConfigurationError as e:
+    print(f"ERROR: Failed to load database configuration: {e}")
+    sys.exit(1)
 
 
 @asynccontextmanager
@@ -51,7 +65,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     
     print(f"✓ Ontology version: {manager.get_ontology_version()}")
     print(f"✓ Manifest version: {manager.get_manifest_version()}")
-    print("✓ API ready at http://localhost:8000")
+    
+    # Get port from config or environment
+    port = int(os.getenv("TWIN_API_PORT", db_config['api']['port']))
+    print(f"✓ API ready at {db_config['api']['base_url']}:{port}")
     
     yield
     
@@ -84,8 +101,8 @@ app = FastAPI(
     """,
     version="4.0.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc"
+    docs_url=db_config['api']['endpoints']['swagger_ui'],
+    redoc_url=db_config['api']['endpoints']['redoc']
 )
 
 

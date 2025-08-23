@@ -13,6 +13,36 @@ from enum import Enum
 import simpy
 from datetime import datetime
 import math
+import logging
+import sys
+import os
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# Import configuration
+try:
+    from config.config_loader import ConfigLoader
+    _twin_config = ConfigLoader.load_config('twin_model')
+except:
+    # Fallback for testing
+    _twin_config = {
+        'events': {'batcher_batch_size': 100},
+        'monitoring': {
+            'memory_threshold_mb': 500.0,
+            'event_rate_threshold': 100.0,
+            'check_interval': 60.0
+        }
+    }
+
+# Import centralized logging
+try:
+    from twin_model.logging_config import SimulationLogger
+    logger = SimulationLogger.get_logger(__name__)
+except ImportError:
+    # Fallback to standard logging if logging_config not available
+    logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -126,15 +156,20 @@ class SamplingConfig:
         # Event counter for sampling decisions
         self.event_counter: int = 0
         
-    def should_record_event(self, event_type: str) -> bool:
+    def should_record_event(self, event_type: str, is_critical: bool = False) -> bool:
         """Determine if an event should be recorded based on sampling config.
         
         Args:
             event_type: Type of event being emitted
+            is_critical: Override flag to mark event as critical
             
         Returns:
             True if event should be recorded, False otherwise
         """
+        # Always record if explicitly marked as critical
+        if is_critical:
+            return True
+            
         # Always record critical events
         if event_type in self.critical_events:
             return True
@@ -218,7 +253,7 @@ class ObservableBuffer:
                 self.flush_callback(events)
             except Exception as e:
                 # Log error but don't fail simulation
-                print(f"Warning: Flush callback failed: {e}")
+                logger.warning(f"Flush callback failed: {e}", exc_info=True)
                 
         # Clear buffer after flush
         self.buffer.clear()
@@ -749,21 +784,22 @@ class SimulationMonitor:
     
     def __init__(self,
                  env: simpy.Environment,
-                 memory_threshold_mb: float = 500.0,
-                 event_rate_threshold: float = 100.0,
-                 check_interval: float = 60.0) -> None:
+                 memory_threshold_mb: float = None,
+                 event_rate_threshold: float = None,
+                 check_interval: float = None) -> None:
         """Initialize simulation monitor.
         
         Args:
             env: SimPy environment to monitor
-            memory_threshold_mb: Memory usage warning threshold
-            event_rate_threshold: Minimum events/second threshold
-            check_interval: Simulation minutes between checks
+            memory_threshold_mb: Memory usage warning threshold (from config if None)
+            event_rate_threshold: Minimum events/second threshold (from config if None)
+            check_interval: Simulation minutes between checks (from config if None)
         """
         self.env = env
-        self.memory_threshold_mb = memory_threshold_mb
-        self.event_rate_threshold = event_rate_threshold
-        self.check_interval = check_interval
+        # Use config values if not provided
+        self.memory_threshold_mb = memory_threshold_mb or _twin_config['monitoring']['memory_threshold_mb']
+        self.event_rate_threshold = event_rate_threshold or _twin_config['monitoring']['event_rate_threshold']
+        self.check_interval = check_interval or _twin_config['monitoring']['check_interval']
         
         # Metrics tracking
         self.metrics: Dict[str, Any] = {
@@ -886,6 +922,9 @@ class BasePrimitive(ABC):
         self.config = config
         self.config.validate()
         
+        # Set up logging
+        self.logger = logger
+        
         # Performance configuration
         self.sampling_config = sampling_config or SamplingConfig()
         
@@ -913,12 +952,24 @@ class BasePrimitive(ABC):
         # Event batching for performance (Phase 2.1)
         self.event_batcher = EventBatcher(
             batch_window=self.sampling_config.aggregation_interval,
-            batch_size=100
+            batch_size=_twin_config['events']['batcher_batch_size']
         )
         
         # Incremental aggregation for metrics (Phase 2.2)
         self.metric_aggregator = IncrementalAggregator(
             window_size=self.sampling_config.aggregation_interval
+        )
+        
+        # Log initialization
+        logger.info(
+            f"Initialized {self.__class__.__name__}",
+            extra={'extra_data': {
+                'primitive_id': self.config.id,
+                'primitive_type': self.config.type,
+                'buffer_size': self.sampling_config.buffer_size,
+                'sampling_rate': self.sampling_config.sampling_rate,
+                'mode': self.sampling_config.mode.value
+            }}
         )
 
     @abstractmethod
@@ -932,7 +983,7 @@ class BasePrimitive(ABC):
         pass
 
     def emit_observable(
-        self, event_type: str, details: Dict[str, Any], severity: str = "INFO"
+        self, event_type: str, details: Dict[str, Any], severity: str = "INFO", is_critical: bool = False
     ) -> None:
         """Emit an observable event with sampling and performance optimization.
 
@@ -944,17 +995,34 @@ class BasePrimitive(ABC):
             event_type: Type of event (state_change, production, failure, etc.)
             details: Event-specific details with rich context
             severity: Event severity (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            is_critical: Mark event as critical to bypass sampling
         """
         # Track total events for metrics
         self.events_emitted += 1
         
+        # Check if event is explicitly marked as critical in details
+        if not is_critical and details and isinstance(details, dict):
+            is_critical = details.get('critical', False)
+        
         # Apply sampling logic to reduce memory pressure
-        if not self.sampling_config.should_record_event(event_type):
+        if not self.sampling_config.should_record_event(event_type, is_critical):
             # Event filtered by sampling - skip recording
             return
             
         # Event passed sampling - track it
         self.events_sampled += 1
+        
+        # Log debug-level event emission
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"Event emitted: {event_type}",
+                extra={'extra_data': {
+                    'primitive_id': self.config.id,
+                    'event_type': event_type,
+                    'timestamp': self.env.now,
+                    'details': details
+                }}
+            )
         
         # Build observable with all context
         observable = {

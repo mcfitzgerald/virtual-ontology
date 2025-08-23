@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Bash(npm:*), Bash(grep:*), Bash(cat:*), Bash(echo:*), Edit, Write, Read
+allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Bash(npm:*), Bash(grep:*), Bash(cat:*), Bash(echo:*), Bash(test:*), Edit, Write, Read
 description: Commit changes and update changelog automatically
 ---
 

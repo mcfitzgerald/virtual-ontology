@@ -5,8 +5,28 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import json
 import pandas as pd
+import sys
+import os
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from database.models import *
+from config.config_loader import ConfigLoader, ConfigurationError
+
+# Load database configuration
+try:
+    _db_config = ConfigLoader.load_config('database')
+except ConfigurationError as e:
+    # Use defaults if config not available (for testing)
+    _db_config = {
+        'processing': {
+            'batch_size': 5000,
+            'chunk_size': 10000,
+            'progress_report_interval': 50000
+        }
+    }
 
 
 class TwinRunRepository:
@@ -188,7 +208,7 @@ class SimulationDataRepository:
     def flush_cache_to_database(self,
                                run_id: str,
                                cache_path: str,
-                               batch_size: int = 5000) -> Dict[str, Any]:
+                               batch_size: int = None) -> Dict[str, Any]:
         """Flush events from cache to database in batches.
         
         Reads events from the ObservableCache and efficiently
@@ -208,6 +228,10 @@ class SimulationDataRepository:
         import time
         import json
         import numpy as np
+        
+        # Use config value if not provided
+        if batch_size is None:
+            batch_size = _db_config['processing']['batch_size']
         
         start_time = time.time()
         
@@ -240,7 +264,7 @@ class SimulationDataRepository:
         # Process events in chunks
         events_processed = 0
         events_inserted = 0
-        chunk_size = 10000  # Read chunks from cache
+        chunk_size = _db_config['processing']['chunk_size']  # Read chunks from cache
         
         print(f"  Flushing {total_events:,} events to database...")
         
@@ -293,7 +317,8 @@ class SimulationDataRepository:
                     all_events = all_events[chunk_size:]
                     
                     # Progress update
-                    if events_processed % 50000 == 0:
+                    progress_interval = _db_config['processing']['progress_report_interval']
+                    if events_processed % progress_interval == 0:
                         print(f"    Processed {events_processed:,}/{total_events:,} events...")
             
             del mmap  # Close memory map

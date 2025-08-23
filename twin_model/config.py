@@ -10,7 +10,22 @@ from enum import Enum
 from pathlib import Path
 import json
 import yaml
+import sys
+import os
+
+# Add parent directory to path to import config_loader
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config.config_loader import ConfigLoader, ConfigurationError
 from twin_model.primitives.base import SimulationMode
+
+# Load configuration at module initialization
+try:
+    _config = ConfigLoader.load_config('twin_model')
+except ConfigurationError as e:
+    raise ConfigurationError(
+        f"Failed to load required twin_model configuration: {e}\n"
+        "Please ensure config/twin_model.yaml exists and is valid."
+    )
 
 
 class ConfigPreset(Enum):
@@ -49,29 +64,29 @@ class PerformanceConfig:
         monitoring_interval: Minutes between health checks
     """
     
-    # Memory settings
-    observable_buffer_size: int = 1000
-    cache_max_size: int = 100000
-    max_memory_mb: float = 500.0
+    # Memory settings - loaded from config
+    observable_buffer_size: int = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.observable_buffer_size'))
+    cache_max_size: int = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.cache_max_size'))
+    max_memory_mb: float = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.max_memory_mb'))
     
-    # Sampling settings
-    sampling_rate: int = 10
+    # Sampling settings - loaded from config
+    sampling_rate: int = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.sampling_rate'))
     simulation_mode: SimulationMode = SimulationMode.PRODUCTION
     enable_global_observables: bool = False
     
-    # Processing settings
-    aggregation_interval: float = 300.0  # 5 minutes
-    flush_interval: float = 600.0  # 10 minutes
-    batch_size: int = 1000
+    # Processing settings - loaded from config
+    aggregation_interval: float = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.aggregation_interval'))
+    flush_interval: float = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.flush_interval'))
+    batch_size: int = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.batch_size'))
     
-    # Execution settings
+    # Execution settings - loaded from config
     enable_progress: bool = True
-    checkpoint_interval: Optional[float] = 1440.0  # Daily
-    chunk_size_days: float = 1.0
+    checkpoint_interval: Optional[float] = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.checkpoint_interval'))
+    chunk_size_days: float = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.chunk_size_days'))
     
-    # Monitoring settings
+    # Monitoring settings - loaded from config
     enable_monitoring: bool = True
-    monitoring_interval: float = 60.0  # Every hour
+    monitoring_interval: float = field(default_factory=lambda: ConfigLoader.get_required(_config, 'performance_defaults.monitoring_interval'))
     
     # Metadata
     name: str = "custom"
@@ -89,124 +104,46 @@ class PerformanceConfig:
         """
         if isinstance(preset, str):
             preset = ConfigPreset(preset)
-            
-        configs = {
-            ConfigPreset.DEVELOPMENT: cls(
-                name="development",
-                description="Full data collection for debugging",
-                observable_buffer_size=10000,
-                cache_max_size=1000000,
-                max_memory_mb=2000.0,
-                sampling_rate=1,  # Keep everything
-                simulation_mode=SimulationMode.DETAILED,
-                enable_global_observables=True,
-                aggregation_interval=60.0,  # Every minute
-                flush_interval=300.0,  # Every 5 minutes
-                batch_size=100,
-                enable_progress=True,
-                checkpoint_interval=144.0,  # Every 2.4 hours (>= chunk size)
-                chunk_size_days=0.1,  # Small chunks (144 minutes)
-                enable_monitoring=True,
-                monitoring_interval=10.0  # Frequent checks
-            ),
-            
-            ConfigPreset.PRODUCTION: cls(
-                name="production",
-                description="Balanced performance and data collection",
-                observable_buffer_size=1000,
-                cache_max_size=100000,
-                max_memory_mb=500.0,
-                sampling_rate=10,  # Keep 10%
-                simulation_mode=SimulationMode.PRODUCTION,
-                enable_global_observables=False,
-                aggregation_interval=300.0,  # 5 minutes
-                flush_interval=600.0,  # 10 minutes
-                batch_size=1000,
-                enable_progress=True,
-                checkpoint_interval=1440.0,  # Daily
-                chunk_size_days=1.0,
-                enable_monitoring=True,
-                monitoring_interval=60.0
-            ),
-            
-            ConfigPreset.FAST: cls(
-                name="fast",
-                description="Minimal data collection for maximum speed",
-                observable_buffer_size=100,
-                cache_max_size=10000,
-                max_memory_mb=100.0,
-                sampling_rate=100,  # Keep 1%
-                simulation_mode=SimulationMode.FAST,
-                enable_global_observables=False,
-                aggregation_interval=1440.0,  # Daily
-                flush_interval=2880.0,  # Every 2 days
-                batch_size=10000,
-                enable_progress=False,
-                checkpoint_interval=None,  # No checkpoints
-                chunk_size_days=7.0,  # Weekly chunks
-                enable_monitoring=False,
-                monitoring_interval=1440.0
-            ),
-            
-            ConfigPreset.MEMORY_OPTIMIZED: cls(
-                name="memory_optimized",
-                description="Aggressive memory optimization",
-                observable_buffer_size=50,
-                cache_max_size=5000,
-                max_memory_mb=50.0,
-                sampling_rate=1000,  # Keep 0.1%
-                simulation_mode=SimulationMode.FAST,
-                enable_global_observables=False,
-                aggregation_interval=60.0,  # Frequent aggregation
-                flush_interval=120.0,  # Frequent flush
-                batch_size=500,
-                enable_progress=True,
-                checkpoint_interval=720.0,  # Every 12 hours
-                chunk_size_days=0.5,
-                enable_monitoring=True,
-                monitoring_interval=30.0  # Frequent memory checks
-            ),
-            
-            ConfigPreset.LONG_RUNNING: cls(
-                name="long_running",
-                description="Optimized for 30+ day simulations",
-                observable_buffer_size=500,
-                cache_max_size=50000,
-                max_memory_mb=200.0,
-                sampling_rate=50,  # Keep 2%
-                simulation_mode=SimulationMode.PRODUCTION,
-                enable_global_observables=False,
-                aggregation_interval=1440.0,  # Daily
-                flush_interval=2880.0,  # Every 2 days
-                batch_size=5000,
-                enable_progress=True,
-                checkpoint_interval=2880.0,  # Every 2 days
-                chunk_size_days=2.0,
-                enable_monitoring=True,
-                monitoring_interval=720.0  # Every 12 hours
-            ),
-            
-            ConfigPreset.REAL_TIME: cls(
-                name="real_time",
-                description="For real-time digital twin scenarios",
-                observable_buffer_size=100,
-                cache_max_size=1000,
-                max_memory_mb=100.0,
-                sampling_rate=1,  # Keep all recent
-                simulation_mode=SimulationMode.PRODUCTION,
-                enable_global_observables=False,
-                aggregation_interval=1.0,  # Every minute
-                flush_interval=5.0,  # Every 5 minutes
-                batch_size=100,
-                enable_progress=True,
-                checkpoint_interval=60.0,  # Hourly (60 minutes)
-                chunk_size_days=0.0417,  # 1 hour chunks (60 minutes)
-                enable_monitoring=True,
-                monitoring_interval=1.0  # Every minute
-            )
+        
+        # Load preset configuration from config file
+        preset_config = ConfigLoader.get_required(_config, f'presets.{preset.value}')
+        
+        # Map simulation modes based on preset name
+        mode_mapping = {
+            'development': SimulationMode.DETAILED,
+            'production': SimulationMode.PRODUCTION,
+            'fast': SimulationMode.FAST,
+            'memory_optimized': SimulationMode.FAST,
+            'long_running': SimulationMode.PRODUCTION,
+            'real_time': SimulationMode.PRODUCTION
         }
         
-        return configs[preset]
+        # Create config from preset values
+        return cls(
+            name=preset.value,
+            description=f"Preset configuration: {preset.value}",
+            observable_buffer_size=preset_config['observable_buffer_size'],
+            cache_max_size=preset_config['cache_max_size'],
+            max_memory_mb=preset_config['max_memory_mb'],
+            sampling_rate=preset_config['sampling_rate'],
+            simulation_mode=mode_mapping.get(preset.value, SimulationMode.PRODUCTION),
+            enable_global_observables=(preset.value == 'development'),
+            aggregation_interval=preset_config['aggregation_interval'],
+            flush_interval=preset_config['flush_interval'],
+            batch_size=preset_config['batch_size'],
+            enable_progress=(preset.value != 'fast'),
+            checkpoint_interval=preset_config.get('checkpoint_interval'),
+            chunk_size_days=preset_config['chunk_size_days'],
+            enable_monitoring=(preset.value != 'fast'),
+            monitoring_interval=preset_config['monitoring_interval']
+        )
+        
+        # OLD CODE REMOVED - now loading from config
+        old_configs = {
+            # Removed - now loaded from config
+        }
+        
+        return None  # This line should never be reached due to earlier return
     
     @classmethod
     def from_json(cls, path: Union[str, Path]) -> 'PerformanceConfig':
@@ -317,27 +254,30 @@ class PerformanceConfig:
         """
         errors = []
         
+        # Get validation thresholds from config
+        val_config = ConfigLoader.get_required(_config, 'validation')
+        
         # Buffer size validation
-        if self.observable_buffer_size < 10:
-            errors.append("observable_buffer_size must be at least 10")
-        if self.observable_buffer_size > 1000000:
-            errors.append("observable_buffer_size too large (max 1M)")
+        if self.observable_buffer_size < val_config['buffer']['min_size']:
+            errors.append(f"observable_buffer_size must be at least {val_config['buffer']['min_size']}")
+        if self.observable_buffer_size > val_config['buffer']['max_size']:
+            errors.append(f"observable_buffer_size too large (max {val_config['buffer']['max_size']})")
             
         # Cache size validation
-        if self.cache_max_size < 100:
-            errors.append("cache_max_size must be at least 100")
+        if self.cache_max_size < val_config['cache']['min_size']:
+            errors.append(f"cache_max_size must be at least {val_config['cache']['min_size']}")
             
         # Memory validation
-        if self.max_memory_mb < 10:
-            errors.append("max_memory_mb must be at least 10MB")
-        if self.max_memory_mb > 100000:
-            errors.append("max_memory_mb unrealistic (>100GB)")
+        if self.max_memory_mb < val_config['memory']['min_mb']:
+            errors.append(f"max_memory_mb must be at least {val_config['memory']['min_mb']}MB")
+        if self.max_memory_mb > val_config['memory']['max_mb']:
+            errors.append(f"max_memory_mb unrealistic (>{val_config['memory']['max_mb']}MB)")
             
         # Sampling rate validation
-        if self.sampling_rate < 1:
-            errors.append("sampling_rate must be at least 1")
-        if self.sampling_rate > 10000:
-            errors.append("sampling_rate too high (max 10000)")
+        if self.sampling_rate < val_config['sampling']['min_rate']:
+            errors.append(f"sampling_rate must be at least {val_config['sampling']['min_rate']}")
+        if self.sampling_rate > val_config['sampling']['max_rate']:
+            errors.append(f"sampling_rate too high (max {val_config['sampling']['max_rate']})")
             
         # Interval validation
         if self.aggregation_interval <= 0:
@@ -346,16 +286,16 @@ class PerformanceConfig:
             errors.append("flush_interval must be positive")
             
         # Batch size validation
-        if self.batch_size < 1:
-            errors.append("batch_size must be at least 1")
-        if self.batch_size > 100000:
-            errors.append("batch_size too large (max 100k)")
+        if self.batch_size < val_config['batch']['min_size']:
+            errors.append(f"batch_size must be at least {val_config['batch']['min_size']}")
+        if self.batch_size > val_config['batch']['max_size']:
+            errors.append(f"batch_size too large (max {val_config['batch']['max_size']})")
             
         # Chunk size validation
         if self.chunk_size_days <= 0:
             errors.append("chunk_size_days must be positive")
-        if self.chunk_size_days > 30:
-            errors.append("chunk_size_days too large (max 30)")
+        if self.chunk_size_days > val_config['chunk']['max_days']:
+            errors.append(f"chunk_size_days too large (max {val_config['chunk']['max_days']})")
             
         # Logical consistency checks
         if self.flush_interval < self.aggregation_interval:
@@ -387,9 +327,9 @@ class PerformanceConfig:
         Returns:
             Dictionary with memory estimates in MB
         """
-        # Base estimates (bytes)
-        event_size = 200  # Average event size
-        metric_size = 50  # Average metric size
+        # Base estimates from config
+        event_size = ConfigLoader.get_required(_config, 'events.default_size_bytes')
+        metric_size = ConfigLoader.get_required(_config, 'events.metric_size_bytes')
         
         # Buffer memory per primitive
         buffer_memory = num_primitives * self.observable_buffer_size * event_size
@@ -428,11 +368,13 @@ class PerformanceConfig:
         """
         # Calculate data volume
         total_minutes = simulation_days * 1440
-        events_per_minute = num_primitives * 10  # Estimate
+        events_per_minute = num_primitives * ConfigLoader.get_required(_config, 'validation.buffer.min_size')
         total_events = total_minutes * events_per_minute
         
-        # Choose preset based on scale
-        if simulation_days <= 1 and num_primitives <= 10:
+        # Choose preset based on scale - using config thresholds
+        val_config = ConfigLoader.get_required(_config, 'validation')
+        
+        if simulation_days <= 1 and num_primitives <= val_config['buffer']['min_size']:
             config = PerformanceConfig.from_preset(ConfigPreset.DEVELOPMENT)
         elif simulation_days <= 7 and num_primitives <= 50:
             config = PerformanceConfig.from_preset(ConfigPreset.PRODUCTION)
@@ -449,9 +391,10 @@ class PerformanceConfig:
         if estimated["total_mb"] > available_memory_mb:
             # Reduce memory usage
             scale_factor = available_memory_mb / estimated["total_mb"]
-            config.observable_buffer_size = max(10, int(config.observable_buffer_size * scale_factor))
-            config.cache_max_size = max(100, int(config.cache_max_size * scale_factor))
-            config.sampling_rate = min(1000, int(config.sampling_rate / scale_factor))
+            val_config = ConfigLoader.get_required(_config, 'validation')
+            config.observable_buffer_size = max(val_config['buffer']['min_size'], int(config.observable_buffer_size * scale_factor))
+            config.cache_max_size = max(val_config['cache']['min_size'], int(config.cache_max_size * scale_factor))
+            config.sampling_rate = min(val_config['sampling']['max_rate'], int(config.sampling_rate / scale_factor))
             
         config.max_memory_mb = available_memory_mb * 0.8  # Use 80% of available
         

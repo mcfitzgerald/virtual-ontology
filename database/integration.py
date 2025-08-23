@@ -6,11 +6,24 @@ import simpy
 from sqlmodel import Session
 import pandas as pd
 from datetime import datetime
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from database.manager import TwinDatabaseManager
 from database.repositories import *
 from twin_model.model_builder import OntologyDrivenModelBuilder
 from twin_model.transduction.mes_transducer import MESTransducer
+
+# Import configuration
+try:
+    from config.config_loader import ConfigLoader
+    _db_config = ConfigLoader.load_config('database')
+except:
+    # Fallback for testing
+    _db_config = {'testing': {'base_seed': 42}}
 
 
 class TwinDatabaseIntegration:
@@ -151,7 +164,8 @@ class TwinDatabaseIntegration:
                 
                 # Apply parameter changes
                 test_params = parameter_changes.copy()
-                test_params['seed'] = 42 + i  # Different seeds
+                base_seed = _db_config.get('testing', {}).get('base_seed', 42)
+                test_params['seed'] = base_seed + i  # Different seeds from config
                 
                 run_id = self.run_simulation_to_db(
                     run_type="experiment",

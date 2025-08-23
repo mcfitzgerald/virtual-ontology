@@ -19,9 +19,9 @@ products:
     sale_price_per_unit: 0.50
     margin: 0.35
     scrap_rates:
-      normal: 0.02
-      startup: 0.05
-      changeover: 0.08
+      normal: 0.09  # 9% scrap for normal operation
+      startup: 0.15   # 15% during startup
+      changeover: 0.20 # 20% during changeover
     quality_requirements:
       min_fill_level: 11.8
       max_fill_level: 12.2
@@ -37,9 +37,9 @@ products:
     sale_price_per_unit: 1.50
     margin: 1.15
     scrap_rates:
-      normal: 0.025
-      startup: 0.06
-      changeover: 0.10
+      normal: 0.10   # 10% scrap for normal operation
+      startup: 0.16   # 16% during startup
+      changeover: 0.22 # 22% during changeover
     quality_requirements:
       min_fill_level: 15.9
       max_fill_level: 16.1
@@ -55,10 +55,10 @@ products:
     sale_price_per_unit: 1.95
     margin: 1.50
     scrap_rates:
-      normal: 0.018
-      startup: 0.04
-      changeover: 0.07
-      quality_issue: 0.08
+      normal: 0.03   # Increased from 0.018 to 3%
+      startup: 0.07   # Increased from 0.04 to 7%
+      changeover: 0.11 # Increased from 0.07 to 11%
+      quality_issue: 0.15 # Increased from 0.08 to 15%
     quality_requirements:
       min_fill_level: 31.8
       max_fill_level: 32.2
@@ -74,9 +74,9 @@ products:
     sale_price_per_unit: 3.50
     margin: 2.75
     scrap_rates:
-      normal: 0.015
-      startup: 0.03
-      changeover: 0.06
+      normal: 0.028  # Increased from 0.015 to 2.8%
+      startup: 0.06   # Increased from 0.03 to 6%
+      changeover: 0.10 # Increased from 0.06 to 10%
     quality_requirements:
       min_fill_level: 63.5
       max_fill_level: 64.5
@@ -92,10 +92,10 @@ products:
     sale_price_per_unit: 0.35
     margin: 0.25
     scrap_rates:
-      normal: 0.03
-      startup: 0.07
-      changeover: 0.12
-      seal_failure: 0.05
+      normal: 0.045  # Increased from 0.03 to 4.5%
+      startup: 0.10   # Increased from 0.07 to 10%
+      changeover: 0.16 # Increased from 0.12 to 16%
+      seal_failure: 0.08 # Increased from 0.05 to 8%
     quality_requirements:
       min_fill_level: 7.9
       max_fill_level: 8.1
@@ -111,9 +111,9 @@ products:
     sale_price_per_unit: 0.85
     margin: 0.60
     scrap_rates:
-      normal: 0.022
-      startup: 0.055
-      changeover: 0.09
+      normal: 0.038  # Increased from 0.022 to 3.8%
+      startup: 0.085  # Increased from 0.055 to 8.5%
+      changeover: 0.13 # Increased from 0.09 to 13%
     quality_requirements:
       min_fill_level: 11.9
       max_fill_level: 12.1

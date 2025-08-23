@@ -1,0 +1,133 @@
+# Twin Model Configuration
+# REQUIRED - Application will not start without this file
+
+paths:
+  cache_dir: "cache"
+  logs_dir: "logs"
+  output_dir: "output"
+  manifests_dir: "manifests"
+  ontology_dir: "ontology"
+
+file_extensions:
+  cache: ".json"
+  logs: ".log"
+  data: ".csv"
+  config: ".yaml"
+
+# Constants for event processing
+events:
+  default_size_bytes: 200
+  metric_size_bytes: 50
+  batcher_batch_size: 100  # EventBatcher batch size
+
+# Validation thresholds (REQUIRED by PerformanceConfig.validate())
+validation:
+  buffer:
+    min_size: 10
+    max_size: 1000000
+  cache:
+    min_size: 100
+  memory:
+    min_mb: 10
+    max_mb: 100000
+  sampling:
+    min_rate: 1
+    max_rate: 10000
+  batch:
+    min_size: 1
+    max_size: 100000
+  chunk:
+    max_days: 30
+
+# Default performance settings (REQUIRED)
+performance_defaults:
+  observable_buffer_size: 1000
+  cache_max_size: 100000
+  max_memory_mb: 500.0
+  sampling_rate: 10
+  aggregation_interval: 300.0    # 5 minutes
+  flush_interval: 600.0           # 10 minutes
+  batch_size: 1000
+  checkpoint_interval: 1440.0     # Daily
+  chunk_size_days: 1.0
+  monitoring_interval: 60.0       # Hourly
+
+# Performance presets (REQUIRED for from_preset())
+presets:
+  development:
+    observable_buffer_size: 10000
+    cache_max_size: 1000000
+    max_memory_mb: 2000.0
+    sampling_rate: 1
+    aggregation_interval: 60.0
+    flush_interval: 300.0
+    batch_size: 100
+    checkpoint_interval: 144.0
+    chunk_size_days: 0.1
+    monitoring_interval: 10.0
+    
+  production:
+    observable_buffer_size: 1000
+    cache_max_size: 100000
+    max_memory_mb: 500.0
+    sampling_rate: 10
+    aggregation_interval: 300.0
+    flush_interval: 600.0
+    batch_size: 1000
+    checkpoint_interval: 1440.0
+    chunk_size_days: 1.0
+    monitoring_interval: 60.0
+    
+  fast:
+    observable_buffer_size: 100
+    cache_max_size: 10000
+    max_memory_mb: 100.0
+    sampling_rate: 100
+    aggregation_interval: 1440.0
+    flush_interval: 2880.0
+    batch_size: 10000
+    checkpoint_interval: null
+    chunk_size_days: 7.0
+    monitoring_interval: 1440.0
+    
+  memory_optimized:
+    observable_buffer_size: 50
+    cache_max_size: 5000
+    max_memory_mb: 50.0
+    sampling_rate: 1000
+    aggregation_interval: 60.0
+    flush_interval: 120.0
+    batch_size: 500
+    checkpoint_interval: 720.0
+    chunk_size_days: 0.5
+    monitoring_interval: 30.0
+    
+  long_running:
+    observable_buffer_size: 500
+    cache_max_size: 50000
+    max_memory_mb: 200.0
+    sampling_rate: 50
+    aggregation_interval: 1440.0
+    flush_interval: 2880.0
+    batch_size: 5000
+    checkpoint_interval: 2880.0
+    chunk_size_days: 2.0
+    monitoring_interval: 720.0
+    
+  real_time:
+    observable_buffer_size: 100
+    cache_max_size: 1000
+    max_memory_mb: 100.0
+    sampling_rate: 1
+    aggregation_interval: 1.0
+    flush_interval: 5.0
+    batch_size: 100
+    checkpoint_interval: 60.0
+    chunk_size_days: 0.0417
+    monitoring_interval: 1.0
+
+# Monitoring configuration (for MemoryMonitor and health checks)
+monitoring:
+  memory_threshold_mb: 500.0      # Memory usage warning threshold
+  event_rate_threshold: 100.0     # Events per second threshold
+  check_interval: 60.0             # Minutes between health checks

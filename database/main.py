@@ -16,6 +16,16 @@ from pathlib import Path
 # Add parent directory to path to allow imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Import configuration loader
+from config.config_loader import ConfigLoader, ConfigurationError
+
+# Load database configuration
+try:
+    db_config = ConfigLoader.load_config('database')
+except ConfigurationError as e:
+    print(f"ERROR: Failed to load database configuration: {e}")
+    sys.exit(1)
+
 
 def main():
     """
@@ -28,11 +38,11 @@ def main():
     - TWIN_API_LOG_LEVEL: Log level (default: info)
     """
     
-    # Get configuration from environment
-    host = os.getenv("TWIN_API_HOST", "0.0.0.0")
-    port = int(os.getenv("TWIN_API_PORT", "8000"))
+    # Get configuration from config file, allow environment override
+    host = os.getenv("TWIN_API_HOST", db_config['api']['host'])
+    port = int(os.getenv("TWIN_API_PORT", db_config['api']['port']))
     reload = os.getenv("TWIN_API_RELOAD", "true").lower() == "true"
-    log_level = os.getenv("TWIN_API_LOG_LEVEL", "info")
+    log_level = os.getenv("TWIN_API_LOG_LEVEL", db_config['logging']['level'])
     
     print(f"""
 ╔══════════════════════════════════════════════════════════════════╗
@@ -46,8 +56,8 @@ Starting server...
 - Log level: {log_level}
 
 API Documentation will be available at:
-- Swagger UI: http://localhost:{port}/docs
-- ReDoc: http://localhost:{port}/redoc
+- Swagger UI: {db_config['api']['base_url']}:{port}{db_config['api']['endpoints']['swagger_ui']}
+- ReDoc: {db_config['api']['base_url']}:{port}{db_config['api']['endpoints']['redoc']}
     """)
     
     # Run the server

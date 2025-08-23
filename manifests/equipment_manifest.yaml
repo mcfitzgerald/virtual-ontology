@@ -63,48 +63,48 @@ equipment:
     base_scrap_rate: 0.02
     energy_consumption_rate: 8.5
     line_id: LINE1
-    mtbf: 480
-    mttr: 30
+    mtbf: 180  # Reduced from 480 to cause more failures (3 hours mean time between failures)
+    mttr: 45   # Increased from 30 to 45 minutes mean time to repair
     performance_by_product:
-      SKU-1001: 1.0
-      SKU-1002: 0.95
-      SKU-2001: 0.85
-      SKU-2002: 0.75
-      SKU-3002: 0.98
+      SKU-1001: 0.77  # Adjusted to achieve ~52% performance score
+      SKU-1002: 0.75
+      SKU-2001: 0.73
+      SKU-2002: 0.70
+      SKU-3002: 0.76
     position: 1
-    quality_rate: 0.9
+    quality_rate: 0.85  # Reduced from 0.9 to increase scrap
     type: Filler
   LINE1-PAL:
     base_rate: 70
     base_scrap_rate: 0.005
     energy_consumption_rate: 5.0
     line_id: LINE1
-    mtbf: 480
-    mttr: 30
+    mtbf: 250  # Reduced for more failures
+    mttr: 35   # Increased repair time
     performance_by_product:
-      SKU-1001: 1.0
-      SKU-1002: 1.0
-      SKU-2001: 0.95
-      SKU-2002: 0.85
-      SKU-3002: 1.0
+      SKU-1001: 0.88  # Reduced performance
+      SKU-1002: 0.85
+      SKU-2001: 0.82
+      SKU-2002: 0.72
+      SKU-3002: 0.87
     position: 3
-    quality_rate: 0.9
+    quality_rate: 0.88  # Reduced quality
     type: Palletizer
   LINE1-PCK:
     base_rate: 70
     base_scrap_rate: 0.01
     energy_consumption_rate: 6.5
     line_id: LINE1
-    mtbf: 480
-    mttr: 30
+    mtbf: 200  # Reduced for more failures
+    mttr: 40   # Increased repair time
     performance_by_product:
-      SKU-1001: 1.0
-      SKU-1002: 1.0
-      SKU-2001: 0.9
-      SKU-2002: 0.8
-      SKU-3002: 0.95
+      SKU-1001: 0.80  # Reduced performance
+      SKU-1002: 0.78
+      SKU-2001: 0.70
+      SKU-2002: 0.60
+      SKU-3002: 0.75
     position: 2
-    quality_rate: 0.9
+    quality_rate: 0.82  # Reduced quality
     type: Packer
   LINE1-SINK:
     base_rate: 70
@@ -119,7 +119,7 @@ equipment:
     type: Sink
   LINE1-SRC:
     arrival_pattern: EXPONENTIAL
-    arrival_rate: 65.0
+    arrival_rate: 100.0  # Exceed equipment capacity to avoid starvation
     base_rate: 70
     disruption_probability: 0.02
     line_id: LINE1
@@ -177,48 +177,48 @@ equipment:
     base_scrap_rate: 0.025
     energy_consumption_rate: 7.5
     line_id: LINE2
-    mtbf: 480
-    mttr: 30
+    mtbf: 150  # Lower MTBF for Line 2 (worse performance)
+    mttr: 50   # Higher MTTR
     performance_by_product:
-      SKU-1001: 0.95
-      SKU-1002: 1.0
-      SKU-2002: 0.7
-      SKU-3001: 1.1
-      SKU-3002: 0.9
+      SKU-1001: 0.75  # Lower performance for Line 2
+      SKU-1002: 0.78
+      SKU-2002: 0.55
+      SKU-3001: 0.85
+      SKU-3002: 0.70
     position: 1
-    quality_rate: 0.9
+    quality_rate: 0.80  # Lower quality for Line 2
     type: Filler
   LINE2-PAL:
     base_rate: 70
     base_scrap_rate: 0.008
     energy_consumption_rate: 4.5
     line_id: LINE2
-    mtbf: 480
-    mttr: 30
+    mtbf: 220  # Lower MTBF
+    mttr: 40   # Higher MTTR
     performance_by_product:
-      SKU-1001: 0.95
-      SKU-1002: 0.95
-      SKU-2002: 0.8
-      SKU-3001: 1.0
-      SKU-3002: 0.97
+      SKU-1001: 0.75  # Lower performance
+      SKU-1002: 0.75
+      SKU-2002: 0.63
+      SKU-3001: 0.78
+      SKU-3002: 0.76
     position: 3
-    quality_rate: 0.9
+    quality_rate: 0.83  # Lower quality
     type: Palletizer
   LINE2-PCK:
     base_rate: 70
     base_scrap_rate: 0.015
     energy_consumption_rate: 5.5
     line_id: LINE2
-    mtbf: 480
-    mttr: 30
+    mtbf: 170  # Lower MTBF
+    mttr: 45   # Higher MTTR
     performance_by_product:
-      SKU-1001: 0.9
-      SKU-1002: 0.95
-      SKU-2002: 0.75
-      SKU-3001: 1.0
-      SKU-3002: 0.92
+      SKU-1001: 0.70  # Lower performance
+      SKU-1002: 0.73
+      SKU-2002: 0.58
+      SKU-3001: 0.78
+      SKU-3002: 0.72
     position: 2
-    quality_rate: 0.9
+    quality_rate: 0.78  # Lower quality
     type: Packer
   LINE2-SINK:
     base_rate: 70
@@ -233,7 +233,7 @@ equipment:
     type: Sink
   LINE2-SRC:
     arrival_pattern: NORMAL
-    arrival_rate: 58.0
+    arrival_rate: 100.0  # Exceed equipment capacity to avoid starvation
     base_rate: 70
     disruption_probability: 0.025
     line_id: LINE2
@@ -291,45 +291,45 @@ equipment:
     base_scrap_rate: 0.03
     energy_consumption_rate: 7.0
     line_id: LINE3
-    mtbf: 480
-    mttr: 30
+    mtbf: 190  # Moderate MTBF
+    mttr: 42   # Moderate MTTR
     performance_by_product:
-      SKU-2001: 1.0
-      SKU-2002: 0.9
-      SKU-3001: 0.85
-      SKU-3002: 0.88
+      SKU-2001: 0.82  # Moderate performance
+      SKU-2002: 0.73
+      SKU-3001: 0.69
+      SKU-3002: 0.72
     position: 1
-    quality_rate: 0.9
+    quality_rate: 0.84  # Moderate quality
     type: Filler
   LINE3-PAL:
     base_rate: 70
     base_scrap_rate: 0.01
     energy_consumption_rate: 4.0
     line_id: LINE3
-    mtbf: 480
-    mttr: 30
+    mtbf: 240  # Moderate MTBF
+    mttr: 36   # Moderate MTTR
     performance_by_product:
-      SKU-2001: 1.0
-      SKU-2002: 0.9
-      SKU-3001: 0.95
-      SKU-3002: 0.98
+      SKU-2001: 0.85  # Moderate performance
+      SKU-2002: 0.76
+      SKU-3001: 0.80
+      SKU-3002: 0.83
     position: 3
-    quality_rate: 0.9
+    quality_rate: 0.86  # Moderate quality
     type: Palletizer
   LINE3-PCK:
     base_rate: 70
     base_scrap_rate: 0.02
     energy_consumption_rate: 5.0
     line_id: LINE3
-    mtbf: 480
-    mttr: 30
+    mtbf: 210  # Moderate MTBF
+    mttr: 38   # Moderate MTTR
     performance_by_product:
-      SKU-2001: 1.0
-      SKU-2002: 0.85
-      SKU-3001: 0.9
-      SKU-3002: 0.95
+      SKU-2001: 0.80  # Moderate performance
+      SKU-2002: 0.68
+      SKU-3001: 0.72
+      SKU-3002: 0.76
     position: 2
-    quality_rate: 0.9
+    quality_rate: 0.81  # Moderate quality
     type: Packer
   LINE3-SINK:
     base_rate: 70
@@ -344,7 +344,7 @@ equipment:
     type: Sink
   LINE3-SRC:
     arrival_pattern: BATCH
-    arrival_rate: 52.0
+    arrival_rate: 100.0  # Exceed equipment capacity to avoid starvation
     base_rate: 70
     batch_size: 5
     disruption_probability: 0.03
@@ -357,71 +357,119 @@ equipment:
 failure_patterns:
   Filler:
     micro_stops:
-      cascade_probability: 0.1
-      downtime_reason: UNP-SENS
+      cascade_probability: 0.15  # Increased cascade impact
+      downtime_reason: UNP-MS    # Micro-stop code
       duration_range:
       - 1
       - 3
-      probability_per_5min: 0.08
+      probability_per_5min: 0.005  # Reduced for realistic availability
       recovery_factor: 1.0
     quality_deviation:
-      cascade_probability: 0.05
-      downtime_reason: UNP-QC
-      duration_range:
-      - 2
-      - 5
-      probability_per_5min: 0.05
-      recovery_factor: 0.8
-    valve_failure:
-      cascade_probability: 0.2
-      downtime_reason: UNP-MECH
-      duration_range:
-      - 10
-      - 25
-      probability_per_5min: 0.03
-      recovery_factor: 1.2
-  Packer:
-    jam:
-      cascade_probability: 0.25
-      downtime_reason: UNP-JAM
-      duration_range:
-      - 5
-      - 15
-      probability_per_5min: 0.04
-      recovery_factor: 1.1
-    seal_failure:
-      cascade_probability: 0.15
-      downtime_reason: UNP-SEAL
+      cascade_probability: 0.08
+      downtime_reason: UNP-QC     # Quality control stop
       duration_range:
       - 2
       - 8
-      probability_per_5min: 0.06
-      recovery_factor: 1.0
-  Palletizer:
-    electrical_issue:
-      cascade_probability: 0.3
-      downtime_reason: UNP-ELEC
+      probability_per_5min: 0.003  # Reduced for better performance
+      recovery_factor: 0.8
+    valve_failure:
+      cascade_probability: 0.25   # Higher cascade for mechanical issues
+      downtime_reason: UNP-MECH   # Mechanical failure
       duration_range:
       - 15
-      - 45
+      - 35                        # Longer duration
+      probability_per_5min: 0.002  # Rare mechanical failures
+      recovery_factor: 1.2
+    sensor_issue:                # Added new failure mode
+      cascade_probability: 0.10
+      downtime_reason: UNP-SENS   # Sensor failure
+      duration_range:
+      - 5
+      - 15
+      probability_per_5min: 0.03
+      recovery_factor: 0.9
+    material_shortage:           # Added material shortage
+      cascade_probability: 0.30   # High cascade - starves downstream
+      downtime_reason: UNP-MAT    # Material shortage
+      duration_range:
+      - 10
+      - 30
       probability_per_5min: 0.02
-      recovery_factor: 1.5
-    operator_issue:
-      cascade_probability: 0.05
-      downtime_reason: UNP-OP
+      recovery_factor: 1.1
+  Packer:
+    jam:
+      cascade_probability: 0.30  # Increased cascade
+      downtime_reason: UNP-JAM
+      duration_range:
+      - 5
+      - 20                       # Longer jams
+      probability_per_5min: 0.004  # Occasional jams
+      recovery_factor: 1.1
+    seal_failure:
+      cascade_probability: 0.18
+      downtime_reason: UNP-SEAL
       duration_range:
       - 3
+      - 12
+      probability_per_5min: 0.003  # Occasional quality issues
+      recovery_factor: 1.0
+    micro_stops:                 # Added micro-stops for packers
+      cascade_probability: 0.10
+      downtime_reason: UNP-MS
+      duration_range:
+      - 1
+      - 2
+      probability_per_5min: 0.005  # Occasional micro-stops
+      recovery_factor: 0.9
+    sensor_issue:
+      cascade_probability: 0.12
+      downtime_reason: UNP-SENS
+      duration_range:
+      - 5
       - 10
       probability_per_5min: 0.025
+      recovery_factor: 0.95
+  Palletizer:
+    electrical_issue:
+      cascade_probability: 0.35  # High cascade impact
+      downtime_reason: UNP-ELEC
+      duration_range:
+      - 20
+      - 60                       # Longer electrical issues
+      probability_per_5min: 0.015 # Electrical issues happen
+      recovery_factor: 1.5
+    operator_issue:
+      cascade_probability: 0.08
+      downtime_reason: UNP-OPR    # Corrected code
+      duration_range:
+      - 5
+      - 15
+      probability_per_5min: 0.03  # More operator issues
       recovery_factor: 0.7
     software_fault:
-      cascade_probability: 0.1
+      cascade_probability: 0.15
       downtime_reason: UNP-CTRL
       duration_range:
       - 5
-      - 20
-      probability_per_5min: 0.015
+      - 25
+      probability_per_5min: 0.02
       recovery_factor: 0.9
+    jam:                         # Added jam for palletizers
+      cascade_probability: 0.20
+      downtime_reason: UNP-JAM
+      duration_range:
+      - 8
+      - 25
+      probability_per_5min: 0.003  # Occasional palletizer jams
+      recovery_factor: 1.2
+    micro_stops:                 # Added micro-stops
+      cascade_probability: 0.05
+      downtime_reason: UNP-MS
+      duration_range:
+      - 1
+      - 3
+      probability_per_5min: 0.003  # Occasional micro-stops
+      recovery_factor: 0.95
 maintenance_schedule:
   cleaning:
   - downtime_reason: PLN-CL

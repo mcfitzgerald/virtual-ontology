@@ -10,6 +10,15 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import pandas as pd
 from pathlib import Path
+import logging
+
+# Import centralized logging
+try:
+    from twin_model.logging_config import SimulationLogger
+    logger = SimulationLogger.get_logger(__name__)
+except ImportError:
+    # Fallback to standard logging if logging_config not available
+    logger = logging.getLogger(__name__)
 
 
 class MESTransducer:
@@ -220,6 +229,35 @@ class MESTransducer:
 
         # Generate record for each bucket
         for (bucket, equipment_id), metrics in self.bucket_metrics.items():
+            # FIX: Infer runtime when units are produced but no runtime recorded
+            if (metrics["good_units"] > 0 or metrics["scrap_units"] > 0) and metrics["runtime_minutes"] == 0:
+                logger.warning(
+                    f"Inferring runtime from production for {equipment_id}",
+                    extra={'extra_data': {
+                        'equipment_id': equipment_id,
+                        'good_units': metrics["good_units"],
+                        'scrap_units': metrics["scrap_units"],
+                        'original_runtime': 0,
+                        'inferred_runtime': self.time_bucket,
+                        'bucket': bucket
+                    }}
+                )
+                metrics["runtime_minutes"] = self.time_bucket
+                metrics["last_status"] = "Running"
+            
+            # FIX: Correct status if production detected but status is Idle
+            if metrics["good_units"] > 0 and metrics["last_status"] == "Idle":
+                logger.warning(
+                    f"Correcting status from Idle to Running for {equipment_id} due to production",
+                    extra={'extra_data': {
+                        'equipment_id': equipment_id,
+                        'good_units': metrics["good_units"],
+                        'original_status': 'Idle',
+                        'corrected_status': 'Running'
+                    }}
+                )
+                metrics["last_status"] = "Running"
+            
             # Include all buckets with any state information
             if (
                 metrics["last_status"] == "Idle"
@@ -417,7 +455,7 @@ class MESTransducer:
         equipment_info: Dict[str, Any],
         product_info: Dict[str, Any],
     ) -> float:
-        """Calculate performance score.
+        """Calculate performance score with safety checks.
 
         Args:
             metrics: Bucket metrics
@@ -427,32 +465,68 @@ class MESTransducer:
         Returns:
             Performance percentage
         """
-        # Get target rate
-        target_rate = product_info.get("target_rate_units_per_5min", 350)
+        try:
+            # Get target rate with fallback
+            target_rate = product_info.get("target_rate_units_per_5min", 350)
 
-        # Adjust for equipment-specific performance
-        if equipment_info:
-            base_rate = equipment_info.get("base_rate", 60) * self.time_bucket
-            product_id = metrics["product_id"]
-            perf_by_product = equipment_info.get("performance_by_product", {})
+            # Adjust for equipment-specific performance
+            if equipment_info:
+                base_rate = equipment_info.get("base_rate", 60) * self.time_bucket
+                product_id = metrics["product_id"]
+                perf_by_product = equipment_info.get("performance_by_product", {})
 
-            if product_id in perf_by_product:
-                base_rate *= perf_by_product[product_id]
+                if product_id in perf_by_product:
+                    base_rate *= perf_by_product[product_id]
 
-            target_rate = min(target_rate, base_rate)
+                target_rate = min(target_rate, base_rate)
 
-        # Calculate actual vs target
-        actual_units = metrics["good_units"] + metrics["scrap_units"]
+            # Calculate actual production
+            actual_units = metrics["good_units"] + metrics["scrap_units"]
+            
+            # Determine effective runtime
+            effective_runtime = metrics["runtime_minutes"]
+            if actual_units > 0 and effective_runtime == 0:
+                # FIX: Units produced but no runtime recorded - use full bucket
+                logger.debug(
+                    "Using full bucket time for performance calculation",
+                    extra={'extra_data': {
+                        'actual_units': actual_units,
+                        'original_runtime': 0,
+                        'effective_runtime': self.time_bucket
+                    }}
+                )
+                effective_runtime = self.time_bucket
 
-        if target_rate > 0 and metrics["runtime_minutes"] > 0:
-            # Adjust target for actual runtime
-            adjusted_target = (
-                target_rate * metrics["runtime_minutes"]
-            ) / self.time_bucket
-            performance = (actual_units / adjusted_target) * 100
-            return min(110, max(0, performance))  # Cap at 110% for over-performance
+            # Calculate performance with safety checks
+            if target_rate > 0 and effective_runtime > 0:
+                # Adjust target for actual runtime
+                adjusted_target = (target_rate * effective_runtime) / self.time_bucket
+                performance = (actual_units / adjusted_target) * 100
+                
+                logger.debug(
+                    "Performance calculated",
+                    extra={'extra_data': {
+                        'actual_units': actual_units,
+                        'adjusted_target': adjusted_target,
+                        'performance': performance,
+                        'runtime': effective_runtime
+                    }}
+                )
+                
+                return min(110, max(0, performance))  # Cap at 110% for over-performance
 
-        return 0.0
+            return 0.0
+            
+        except Exception as e:
+            logger.error(
+                "Performance calculation failed",
+                extra={'extra_data': {
+                    'error': str(e),
+                    'metrics': metrics
+                }},
+                exc_info=True
+            )
+            return 0.0
 
     def _calculate_quality(self, metrics: Dict[str, Any]) -> float:
         """Calculate quality score.

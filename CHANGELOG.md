@@ -7,22 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Build
-- **build(deps)**: Migrate to Poetry for dependency management (12ac40c)
-  - Reduced dependencies from 298 to 96 packages (68% reduction)
-  - Added pyproject.toml with organized dependency groups (prod/dev/docs)
-  - Created POETRY_GUIDE.md with complete usage documentation
-  - Improved dependency resolution and reproducible builds with poetry.lock
-
 ### Added
-- POETRY_GUIDE.md - Complete Poetry usage documentation
-- pyproject.toml - Poetry configuration with clean dependency organization
-- poetry.lock - Lock file for reproducible builds
-- requirements-full-backup.txt - Backup of all 298 previous packages
+- Configuration centralization system in `config/` directory
+- Comprehensive logging system with `twin_model/logging_config.py`
+- Test suites for critical events, OEE calculations, and logging performance
+- Debugging guide documentation (`twin_model/docs/debugging_guide.md`)
+- Synthetic historical data generation script
+- Hardcode analysis reports and semgrep rules for code quality
 
 ### Changed
-- Updated CLAUDE.md to specify Poetry for package management
-- Dependency management switched from pip/venv to Poetry
+- Major refactoring of `twin_model/config.py` to use centralized configuration
+- Enhanced equipment manifests with improved structure and parameters
+- Updated production manifests with better schema organization
+- Improved database integration and repository patterns
+- Enhanced MES transducer with better error handling and logging
+- Refactored equipment primitives with improved cascade modeling
+- Fixed custom command syntax in `.claude/commands/commit.md`
+
+### Removed
+- POETRY_GUIDE.md (consolidated into project documentation)
+- SYSTEM_DOCUMENTATION.md (outdated documentation)
+- TWIN_MODEL_LOGGING_AND_FIXES.md (integrated into main docs)
+- requirements.txt and requirements-full-backup.txt (replaced by Poetry)
+
+### Fixed
+- Equipment cascade failure modeling in primitives
+- Database connection handling and transaction management
+- Logging configuration for better debugging
+- Command syntax error in commit automation script
 
 ## [Previous Commits]
 

@@ -1,0 +1,76 @@
+rules:
+  - id: assignment-of-literal-string
+    pattern-either:
+      - pattern: $VAR = "..."
+      - pattern: $VAR = '...'
+      - pattern: $VAR = f"..."
+      - pattern: $VAR = """..."""
+      - pattern: $VAR = '''...'''
+    languages: [python]
+    message: "Hardcoded string literal assigned to $VAR"
+    severity: INFO
+    
+  - id: assignment-of-literal-number
+    patterns:
+      - pattern: $VAR = $NUM
+      - metavariable-regex:
+          metavariable: $NUM
+          regex: '-?\d+\.?\d*'
+    languages: [python]
+    message: "Hardcoded numeric literal $NUM assigned to $VAR"
+    severity: INFO
+    
+  - id: literal-in-comparison
+    pattern-either:
+      - patterns:
+        - pattern-either:
+          - pattern: $VAR == $LITERAL
+          - pattern: $VAR != $LITERAL
+          - pattern: $VAR > $LITERAL
+          - pattern: $VAR < $LITERAL
+          - pattern: $VAR >= $LITERAL
+          - pattern: $VAR <= $LITERAL
+        - metavariable-regex:
+            metavariable: $LITERAL
+            regex: '-?\d+\.?\d*'
+      - pattern: $VAR == "..."
+      - pattern: $VAR != "..."
+    languages: [python]
+    message: "Hardcoded value in comparison: $LITERAL"
+    severity: INFO
+    
+  - id: literal-in-function-call
+    pattern-either:
+      - patterns:
+        - pattern: $FUNC(..., $LITERAL, ...)
+        - metavariable-regex:
+            metavariable: $LITERAL
+            regex: '\d{2,}'  # Numbers with 2+ digits
+      - pattern: $FUNC(..., "...", ...)
+    languages: [python]
+    message: "Hardcoded value passed to function $FUNC"
+    severity: INFO
+    
+  - id: literal-in-list
+    pattern-either:
+      - pattern: '[..., "...", ...]'
+      - patterns:
+        - pattern: '[..., $NUM, ...]'
+        - metavariable-regex:
+            metavariable: $NUM
+            regex: '-?\d+\.?\d*'
+    languages: [python]
+    message: "Hardcoded value in list"
+    severity: INFO
+    
+  - id: literal-in-dict-value
+    pattern-either:
+      - pattern: '{..., $KEY: "...", ...}'
+      - patterns:
+        - pattern: '{..., $KEY: $NUM, ...}'
+        - metavariable-regex:
+            metavariable: $NUM
+            regex: '-?\d+\.?\d*'
+    languages: [python]
+    message: "Hardcoded value in dictionary"
+    severity: INFO

@@ -11,8 +11,17 @@ from enum import Enum
 from dataclasses import dataclass
 import random
 import simpy
+import logging
 
 from .base import BasePrimitive, PrimitiveConfig, SamplingConfig
+
+# Import centralized logging
+try:
+    from twin_model.logging_config import SimulationLogger
+    logger = SimulationLogger.get_logger(__name__)
+except ImportError:
+    # Fallback to standard logging if logging_config not available
+    logger = logging.getLogger(__name__)
 
 
 class EquipmentState(str, Enum):
@@ -246,6 +255,18 @@ class EquipmentPrimitive(BasePrimitive):
             if self.downstream and hasattr(self.downstream, "put"):
                 yield from self.downstream.put(1)
             self.units_produced += 1
+            
+            # Log production event
+            logger.debug(
+                f"Unit produced by {self.config.id}",
+                extra={'extra_data': {
+                    'equipment_id': self.config.id,
+                    'product_id': self.current_product,
+                    'cycle_time': cycle_time,
+                    'units_produced': self.units_produced,
+                    'timestamp': self.env.now
+                }}
+            )
 
             self.emit_observable(
                 event_type="unit_produced",
@@ -267,6 +288,17 @@ class EquipmentPrimitive(BasePrimitive):
         else:
             # Scrap unit
             self.units_scrapped += 1
+            
+            # Log scrap event
+            logger.debug(
+                f"Unit scrapped by {self.config.id}",
+                extra={'extra_data': {
+                    'equipment_id': self.config.id,
+                    'product_id': self.current_product,
+                    'units_scrapped': self.units_scrapped,
+                    'timestamp': self.env.now
+                }}
+            )
 
             self.emit_observable(
                 event_type="unit_scrapped",
@@ -294,8 +326,14 @@ class EquipmentPrimitive(BasePrimitive):
         """
         base_cycle = 1.0 / self.base_rate  # minutes per unit
 
-        # Apply performance factor
-        actual_cycle = base_cycle / self.performance_factor
+        # Apply product-specific performance factor if configured
+        # Performance factor < 1.0 means SLOWER production (longer cycle time)
+        # Performance factor > 1.0 means FASTER production (shorter cycle time)
+        if self.current_product:
+            product_factor = self._get_product_performance()
+            actual_cycle = base_cycle / product_factor  # Divide to apply performance
+        else:
+            actual_cycle = base_cycle
 
         # Add random variation (±10%)
         variation = random.uniform(0.9, 1.1)
@@ -304,11 +342,6 @@ class EquipmentPrimitive(BasePrimitive):
         if self.current_shift:
             shift_factor = self._get_shift_factor()
             actual_cycle *= shift_factor
-
-        # Apply product-specific factor if configured
-        if self.current_product:
-            product_factor = self._get_product_factor()
-            actual_cycle *= product_factor
 
         return actual_cycle * variation
 
@@ -533,6 +566,20 @@ class EquipmentPrimitive(BasePrimitive):
             self.previous_state = self.state
             self.state = new_state
             self.state_start_time = self.env.now
+            
+            # Log state transition with critical information
+            logger.info(
+                f"Equipment state changed: {old_state.value} -> {new_state.value}",
+                extra={'extra_data': {
+                    'equipment_id': self.config.id,
+                    'old_state': old_state.value,
+                    'new_state': new_state.value,
+                    'duration_in_state': state_duration,
+                    'timestamp': self.env.now,
+                    'product': self.current_product,
+                    'shift': self.current_shift
+                }}
+            )
 
             self.emit_observable(
                 event_type="state_change",
@@ -567,6 +614,18 @@ class EquipmentPrimitive(BasePrimitive):
         """
         # Product-specific performance from config
         return self.config.get_property(f"performance_{self.current_product}", 1.0)
+    
+    def _get_product_performance(self) -> float:
+        """Get performance factor for current product from manifest.
+
+        Returns:
+            Performance multiplier for product (0-1 range, where 1.0 is nominal)
+        """
+        # Check for performance_by_product in config
+        perf_by_product = self.config.get_property("performance_by_product", {})
+        if self.current_product and self.current_product in perf_by_product:
+            return perf_by_product[self.current_product]
+        return 1.0  # Default to nominal performance
 
     def _trigger_cascade_failure(self) -> None:
         """Trigger cascade failure in downstream equipment."""

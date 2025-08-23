@@ -52,3 +52,277 @@ INFO:     Finished server process [56445]
 INFO:     Started server process [57548]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/logging_config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [57548]
+INFO:     Started server process [65807]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [65807]
+[2025-08-22T13:07:06.647680] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [65910]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [65910]
+[2025-08-22T13:07:50.378372] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66127]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/equipment.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66127]
+[2025-08-22T13:08:01.273067] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66157]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/equipment.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66157]
+[2025-08-22T13:08:31.201221] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66245]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/equipment.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66245]
+[2025-08-22T13:08:57.198680] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66339]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/transduction/mes_transducer.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66339]
+[2025-08-22T13:09:22.668781] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66477]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/transduction/mes_transducer.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66477]
+[2025-08-22T13:10:21.326553] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66660]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/test_logging.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66660]
+[2025-08-22T13:11:15.020310] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66754]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/__init__.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66754]
+[2025-08-22T13:11:31.503694] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66866]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/__init__.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66866]
+[2025-08-22T13:11:38.481926] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [66887]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_oee_calculations.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [66887]
+[2025-08-22T13:13:00.644306] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [67034]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_oee_calculations.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [67034]
+[2025-08-22T13:13:17.632811] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [67124]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_oee_calculations.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [67124]
+[2025-08-22T13:13:25.621501] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [67166]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/test_final_verification.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [67166]
+[2025-08-22T13:15:02.310949] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [67453]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/logging_config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [67453]
+[2025-08-22T13:17:31.078886] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [67958]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/logging_config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [67958]
+[2025-08-22T13:17:37.828950+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [67991]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [67991]
+[2025-08-22T13:17:57.284084+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [68060]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/primitives/base.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68060]
+[2025-08-22T13:18:17.126562+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [68121]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_critical_events.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68121]
+[2025-08-22T13:19:11.276046+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [68192]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_critical_events.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68192]
+[2025-08-22T13:19:28.823983+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [68317]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_critical_events.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68317]
+[2025-08-22T13:19:49.459352+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [68402]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_critical_events.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68402]
+[2025-08-22T13:22:25.349417+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [68894]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_critical_events.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68894]
+[2025-08-22T13:22:55.565954+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [69101]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_logging_performance.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [69101]
+[2025-08-22T13:28:34.620257+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [69611]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/tests/test_logging_performance.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [69611]
+[2025-08-22T13:29:34.113869+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [69861]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/test_phases_verification.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [69861]
+[2025-08-22T13:32:06.939586+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [70180]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/test_phases_verification.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [70180]
+[2025-08-22T13:32:59.049823+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [70381]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/test_phases_verification.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [70381]
+[2025-08-22T13:33:14.635737+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [70442]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'twin_model/test_phases_verification.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [70442]
+[2025-08-22T13:33:32.874897+00:00] [INFO] [twin_model.logging_config] Logging configured
+INFO:     Started server process [70536]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [70536]
+INFO:     Stopping reloader process [49860]

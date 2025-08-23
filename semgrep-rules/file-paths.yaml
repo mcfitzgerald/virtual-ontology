@@ -1,0 +1,59 @@
+rules:
+  - id: hardcoded-file-path
+    pattern-regex: '["\'](/[^\s"\']+|[A-Za-z]:[\\][^\s"\']+|\\\\[^\s"\']+)["\']'
+    languages: [python]
+    message: "Hardcoded file path"
+    severity: WARNING
+    
+  - id: hardcoded-log-file
+    pattern-regex: '["\'][^\s"\']*\.log[s]?["\']'
+    languages: [python]
+    message: "Hardcoded log file"
+    severity: WARNING
+    
+  - id: hardcoded-data-file
+    pattern-regex: '["\'][^\s"\']*\.(csv|json|yaml|yml|xml|parquet|pickle|pkl)["\']'
+    languages: [python]
+    message: "Hardcoded data file"
+    severity: WARNING
+    
+  - id: hardcoded-config-file
+    pattern-regex: '["\'][^\s"\']*\.(ini|conf|cfg|config|properties|toml)["\']'
+    languages: [python]
+    message: "Hardcoded configuration file"
+    severity: WARNING
+    
+  - id: hardcoded-database-file
+    pattern-regex: '["\'][^\s"\']*\.(db|sqlite|sqlite3)["\']'
+    languages: [python]
+    message: "Hardcoded database file"
+    severity: WARNING
+    
+  - id: hardcoded-temp-path
+    pattern-regex: '["\'][/]?tmp[/][^\s"\']*["\']'
+    languages: [python]
+    message: "Hardcoded temp path"
+    severity: WARNING
+    
+  - id: hardcoded-home-path
+    pattern-regex: '["\'][/]?(?:home|Users)[/][^\s"\']+["\']'
+    languages: [python]
+    message: "Hardcoded home directory path"
+    severity: WARNING
+    
+  - id: path-join-with-literal
+    pattern-either:
+      - pattern: os.path.join(..., "...", ...)
+      - pattern: Path(..., "...")
+      - pattern: pathlib.Path(..., "...")
+    languages: [python]
+    message: "Hardcoded path component"
+    severity: INFO
+    
+  - id: open-with-hardcoded-path
+    pattern-either:
+      - pattern: open("...", ...)
+      - pattern: open('...', ...)
+    languages: [python]
+    message: "Opening file with hardcoded path"
+    severity: WARNING

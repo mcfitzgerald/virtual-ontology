@@ -6,8 +6,9 @@
 - Use `mypy` and `ruff` to validate compliance
 - Use judicious testing (test at module or integration level) and manage with `pytest`
 - **NEVER** hardcode variables, always use config patterns, ask if you are unsure
+- Use `semgrep` and appropriate rules files to scane for misplaced hardcodes
 - Use `poetry` for project environment and package management
-
+- Backward compatibility is seldom a requirement, 
 
 # Code authoring by Claude
 - Use context7 mcp tool to fetch documentation and example patterns

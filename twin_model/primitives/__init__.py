@@ -5,7 +5,7 @@ complex manufacturing systems. Primitives emit rich observables for
 discovery-based learning without prescriptive mappings.
 """
 
-from .base import BasePrimitive, PrimitiveConfig
+from .base import BasePrimitive, PrimitiveConfig, SamplingConfig, SimulationMode
 from .equipment import EquipmentPrimitive, EquipmentState
 from .buffer import BufferPrimitive, BufferItem
 from .source import SourcePrimitive, ArrivalPattern
@@ -21,6 +21,8 @@ from .monitor import MonitorPrimitive, KPIType, KPIMetric
 __all__ = [
     "BasePrimitive",
     "PrimitiveConfig",
+    "SamplingConfig",
+    "SimulationMode",
     "EquipmentPrimitive",
     "EquipmentState",
     "BufferPrimitive",
