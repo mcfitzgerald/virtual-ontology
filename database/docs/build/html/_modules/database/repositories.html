@@ -1,0 +1,768 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.repositories &mdash; Virtual Ontology Database 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Virtual Ontology Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Virtual Ontology Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">database.repositories</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for database.repositories</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Repository pattern for database operations&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">select</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># Add parent directory to path for imports</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TwinRun</span><span class="p">,</span>
+    <span class="n">SimulationData</span><span class="p">,</span>
+    <span class="n">Experiment</span><span class="p">,</span>
+    <span class="n">DiscoveredPattern</span><span class="p">,</span>
+    <span class="n">ParameterRecommendation</span><span class="p">,</span>
+    <span class="n">KPISnapshot</span><span class="p">,</span>
+    <span class="n">ComparisonResult</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">config.config_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigLoader</span><span class="p">,</span> <span class="n">ConfigurationError</span>
+
+<span class="c1"># Load database configuration</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">_db_config</span> <span class="o">=</span> <span class="n">ConfigLoader</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ConfigurationError</span><span class="p">:</span>
+    <span class="c1"># Use defaults if config not available (for testing)</span>
+    <span class="n">_db_config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;processing&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span> <span class="s2">&quot;chunk_size&quot;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span> <span class="s2">&quot;progress_report_interval&quot;</span><span class="p">:</span> <span class="mi">50000</span><span class="p">}}</span>
+
+
+<div class="viewcode-block" id="TwinRunRepository">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.TwinRunRepository">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TwinRunRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Repository for twin run operations&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">):</span>
+<div class="viewcode-block" id="TwinRunRepository.session">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.TwinRunRepository.session">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span></div>
+
+
+<div class="viewcode-block" id="TwinRunRepository.create_run">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.TwinRunRepository.create_run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">ontology_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">manifest_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">parent_run_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TwinRun</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new twin run&quot;&quot;&quot;</span>
+
+        <span class="n">run_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_type</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">_%H%M%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">run</span> <span class="o">=</span> <span class="n">TwinRun</span><span class="p">(</span>
+            <span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">,</span>
+            <span class="n">run_type</span><span class="o">=</span><span class="n">run_type</span><span class="p">,</span>
+            <span class="n">ontology_version</span><span class="o">=</span><span class="n">ontology_version</span><span class="p">,</span>
+            <span class="n">manifest_version</span><span class="o">=</span><span class="n">manifest_version</span><span class="p">,</span>
+            <span class="n">parameter_set_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">parameters</span><span class="p">),</span>
+            <span class="n">config_delta_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({}),</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">),</span>
+            <span class="n">started_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+            <span class="n">simulation_days</span><span class="o">=</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation_days&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">status</span><span class="o">=</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span>
+            <span class="n">parent_run_id</span><span class="o">=</span><span class="n">parent_run_id</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">run</span></div>
+
+
+<div class="viewcode-block" id="TwinRunRepository.update_run_status">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.TwinRunRepository.update_run_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_run_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kpi_summary</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update run status and results&quot;&quot;&quot;</span>
+        <span class="n">run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TwinRun</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">run</span><span class="p">:</span>
+            <span class="n">run</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span>
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;completed&quot;</span><span class="p">:</span>
+                <span class="n">run</span><span class="o">.</span><span class="n">finished_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">kpi_summary</span><span class="p">:</span>
+                <span class="n">run</span><span class="o">.</span><span class="n">kpi_summary_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">kpi_summary</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TwinRunRepository.get_baseline_run">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.TwinRunRepository.get_baseline_run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_baseline_run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TwinRun</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the most recent baseline run&quot;&quot;&quot;</span>
+        <span class="n">statement</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">select</span><span class="p">(</span><span class="n">TwinRun</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TwinRun</span><span class="o">.</span><span class="n">run_type</span> <span class="o">==</span> <span class="s2">&quot;baseline&quot;</span><span class="p">,</span> <span class="n">TwinRun</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;completed&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">TwinRun</span><span class="o">.</span><span class="n">started_at</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>  <span class="c1"># type: ignore[attr-defined]</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SimulationDataRepository">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.SimulationDataRepository">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationDataRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Repository for simulation data operations&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">):</span>
+<div class="viewcode-block" id="SimulationDataRepository.session">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.SimulationDataRepository.session">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span></div>
+
+
+<div class="viewcode-block" id="SimulationDataRepository.store_simulation_data">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.SimulationDataRepository.store_simulation_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">store_simulation_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mes_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store simulation output in MES format&quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">mes_data</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="c1"># Convert timestamp string to datetime if needed</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;Timestamp&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+
+            <span class="n">record</span> <span class="o">=</span> <span class="n">SimulationData</span><span class="p">(</span>
+                <span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">,</span>
+                <span class="n">timestamp</span><span class="o">=</span><span class="n">timestamp</span><span class="p">,</span>
+                <span class="n">production_order_id</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ProductionOrderID&quot;</span><span class="p">),</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;LineID&quot;</span><span class="p">],</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;EquipmentID&quot;</span><span class="p">],</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;EquipmentType&quot;</span><span class="p">],</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ProductID&quot;</span><span class="p">),</span>
+                <span class="n">product_name</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ProductName&quot;</span><span class="p">),</span>
+                <span class="n">machine_status</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;MachineStatus&quot;</span><span class="p">],</span>
+                <span class="n">downtime_reason</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DowntimeReason&quot;</span><span class="p">),</span>
+                <span class="n">good_units_produced</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">],</span>
+                <span class="n">scrap_units_produced</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;ScrapUnitsProduced&quot;</span><span class="p">],</span>
+                <span class="n">target_rate_units_per_5min</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;TargetRate_units_per_5min&quot;</span><span class="p">],</span>
+                <span class="n">standard_cost_per_unit</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;StandardCost_per_unit&quot;</span><span class="p">],</span>
+                <span class="n">sale_price_per_unit</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;SalePrice_per_unit&quot;</span><span class="p">],</span>
+                <span class="n">availability_score</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;Availability_Score&quot;</span><span class="p">],</span>
+                <span class="n">performance_score</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;Performance_Score&quot;</span><span class="p">],</span>
+                <span class="n">quality_score</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;Quality_Score&quot;</span><span class="p">],</span>
+                <span class="n">oee_score</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;OEE_Score&quot;</span><span class="p">],</span>
+                <span class="n">energy_consumption_kwh</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Energy_Consumption_kWh&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SimulationDataRepository.batch_insert_events">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.SimulationDataRepository.batch_insert_events">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">batch_insert_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Batch insert simulation events for performance.</span>
+
+<span class="sd">        Efficiently inserts large numbers of events in batches</span>
+<span class="sd">        to minimize database round-trips and transaction overhead.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            run_id: Simulation run identifier</span>
+<span class="sd">            events: List of event dictionaries to insert</span>
+<span class="sd">            batch_size: Number of records per batch (default 1000)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Number of events inserted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+        <span class="n">total_inserted</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">batch_records</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+            <span class="c1"># Convert event to SimulationData format</span>
+            <span class="c1"># Handle different event structures flexibly</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                <span class="c1"># Convert simulation time to datetime</span>
+                <span class="n">base_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">base_time</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="n">timestamp</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Map event fields to database columns</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="n">SimulationData</span><span class="p">(</span>
+                <span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">,</span>
+                <span class="n">timestamp</span><span class="o">=</span><span class="n">timestamp</span><span class="p">,</span>
+                <span class="n">production_order_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;production_order_id&quot;</span><span class="p">),</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_id&quot;</span><span class="p">,</span> <span class="s2">&quot;LINE-001&quot;</span><span class="p">),</span>
+                <span class="n">equipment_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;equipment_id&quot;</span><span class="p">,</span> <span class="s2">&quot;UNKNOWN&quot;</span><span class="p">)),</span>
+                <span class="n">equipment_type</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;equipment_type&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;event_type&quot;</span><span class="p">,</span> <span class="s2">&quot;Equipment&quot;</span><span class="p">)),</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;product_id&quot;</span><span class="p">),</span>
+                <span class="n">product_name</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;product_name&quot;</span><span class="p">),</span>
+                <span class="n">machine_status</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;machine_status&quot;</span><span class="p">,</span> <span class="s2">&quot;UNKNOWN&quot;</span><span class="p">)),</span>
+                <span class="n">downtime_reason</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;downtime_reason&quot;</span><span class="p">),</span>
+                <span class="n">good_units_produced</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;good_units&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;good_units_produced&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                <span class="n">scrap_units_produced</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scrap_units&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scrap_units_produced&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                <span class="n">target_rate_units_per_5min</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;target_rate&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">standard_cost_per_unit</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;standard_cost&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">sale_price_per_unit</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sale_price&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">availability_score</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;availability&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">performance_score</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;performance&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">quality_score</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;quality&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">oee_score</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;oee&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">energy_consumption_kwh</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;energy_consumption&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="p">)</span>
+
+            <span class="n">batch_records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+            <span class="c1"># Flush batch when it reaches the size limit</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_records</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">batch_size</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">bulk_save_objects</span><span class="p">(</span><span class="n">batch_records</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">total_inserted</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_records</span><span class="p">)</span>
+                <span class="n">batch_records</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Insert remaining records</span>
+        <span class="k">if</span> <span class="n">batch_records</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">bulk_save_objects</span><span class="p">(</span><span class="n">batch_records</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">total_inserted</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_records</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">total_inserted</span></div>
+
+
+<div class="viewcode-block" id="SimulationDataRepository.flush_cache_to_database">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.SimulationDataRepository.flush_cache_to_database">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">flush_cache_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>  <span class="c1"># type: ignore[assignment]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Flush events from cache to database in batches.</span>
+
+<span class="sd">        Reads events from the ObservableCache and efficiently</span>
+<span class="sd">        inserts them into the database using batch operations.</span>
+<span class="sd">        This enables persisting simulation data without keeping</span>
+<span class="sd">        everything in memory.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            run_id: Simulation run identifier</span>
+<span class="sd">            cache_path: Path to cache directory</span>
+<span class="sd">            batch_size: Number of records per database batch</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary with flush statistics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+        <span class="c1"># Use config value if not provided</span>
+        <span class="k">if</span> <span class="n">batch_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">batch_size</span> <span class="o">=</span> <span class="n">_db_config</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">][</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c1"># Load cache metadata to find files</span>
+        <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">cache_path</span><span class="p">)</span>
+        <span class="n">metadata_file</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="s2">&quot;metadata.json&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;events_in_cache&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;events_processed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;events_inserted&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;flush_time_seconds&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;events_per_second&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;cache_size_mb&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">total_events</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total_events&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Calculate total size</span>
+        <span class="n">total_size_mb</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">file_info</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;files&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="n">file_info</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">total_size_mb</span> <span class="o">+=</span> <span class="n">file_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+
+        <span class="c1"># Process events in chunks</span>
+        <span class="n">events_processed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">events_inserted</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">chunk_size</span> <span class="o">=</span> <span class="n">_db_config</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">][</span><span class="s2">&quot;chunk_size&quot;</span><span class="p">]</span>  <span class="c1"># Read chunks from cache</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Flushing </span><span class="si">{</span><span class="n">total_events</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> events to database...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Read events from cache files directly</span>
+        <span class="n">all_events</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">file_info</span> <span class="ow">in</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;files&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">cache_dir</span> <span class="o">/</span> <span class="n">file_info</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Open memory-mapped file for reading</span>
+            <span class="c1"># Reconstruct dtype from first file</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="p">(</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s2">&quot;event_type&quot;</span><span class="p">,</span> <span class="s2">&quot;U32&quot;</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">,</span> <span class="s2">&quot;U32&quot;</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,)),</span>  <span class="c1"># Default size</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="n">mmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">file_info</span><span class="p">[</span><span class="s2">&quot;max_events&quot;</span><span class="p">],))</span>
+
+            <span class="c1"># Read only populated entries</span>
+            <span class="n">num_events</span> <span class="o">=</span> <span class="n">file_info</span><span class="p">[</span><span class="s2">&quot;current_events&quot;</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">[:</span><span class="n">num_events</span><span class="p">]</span>
+
+            <span class="c1"># Convert to events</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="c1"># Reconstruct event</span>
+                <span class="n">json_bytes</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+                <span class="n">json_str</span> <span class="o">=</span> <span class="n">json_bytes</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\0</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+                <span class="n">event</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span> <span class="k">if</span> <span class="n">json_str</span> <span class="k">else</span> <span class="p">{}</span>
+                <span class="n">event</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">])</span>
+                <span class="n">event</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;event_type&quot;</span><span class="p">])</span>
+                <span class="n">event</span><span class="p">[</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">])</span>
+
+                <span class="n">all_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+                <span class="c1"># Process in batches</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_events</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">chunk_size</span><span class="p">:</span>
+                    <span class="n">inserted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_insert_events</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">all_events</span><span class="p">[:</span><span class="n">chunk_size</span><span class="p">],</span> <span class="n">batch_size</span><span class="p">)</span>
+                    <span class="n">events_inserted</span> <span class="o">+=</span> <span class="n">inserted</span>
+                    <span class="n">events_processed</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_events</span><span class="p">[:</span><span class="n">chunk_size</span><span class="p">])</span>
+                    <span class="n">all_events</span> <span class="o">=</span> <span class="n">all_events</span><span class="p">[</span><span class="n">chunk_size</span><span class="p">:]</span>
+
+                    <span class="c1"># Progress update</span>
+                    <span class="n">progress_interval</span> <span class="o">=</span> <span class="n">_db_config</span><span class="p">[</span><span class="s2">&quot;processing&quot;</span><span class="p">][</span><span class="s2">&quot;progress_report_interval&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">events_processed</span> <span class="o">%</span> <span class="n">progress_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Processed </span><span class="si">{</span><span class="n">events_processed</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_events</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> events...&quot;</span><span class="p">)</span>
+
+            <span class="k">del</span> <span class="n">mmap</span>  <span class="c1"># Close memory map</span>
+
+        <span class="c1"># Insert remaining events</span>
+        <span class="k">if</span> <span class="n">all_events</span><span class="p">:</span>
+            <span class="n">inserted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_insert_events</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">all_events</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+            <span class="n">events_inserted</span> <span class="o">+=</span> <span class="n">inserted</span>
+            <span class="n">events_processed</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_events</span><span class="p">)</span>
+
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;events_in_cache&quot;</span><span class="p">:</span> <span class="n">total_events</span><span class="p">,</span>
+            <span class="s2">&quot;events_processed&quot;</span><span class="p">:</span> <span class="n">events_processed</span><span class="p">,</span>
+            <span class="s2">&quot;events_inserted&quot;</span><span class="p">:</span> <span class="n">events_inserted</span><span class="p">,</span>
+            <span class="s2">&quot;flush_time_seconds&quot;</span><span class="p">:</span> <span class="n">elapsed_time</span><span class="p">,</span>
+            <span class="s2">&quot;events_per_second&quot;</span><span class="p">:</span> <span class="n">events_inserted</span> <span class="o">/</span> <span class="n">elapsed_time</span> <span class="k">if</span> <span class="n">elapsed_time</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;cache_size_mb&quot;</span><span class="p">:</span> <span class="n">total_size_mb</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="SimulationDataRepository.calculate_kpi_snapshot">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.SimulationDataRepository.calculate_kpi_snapshot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_kpi_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate KPI summary for a run&quot;&quot;&quot;</span>
+
+        <span class="c1"># Query simulation data</span>
+        <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">SimulationData</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">SimulationData</span><span class="o">.</span><span class="n">run_id</span> <span class="o">==</span> <span class="n">run_id</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="c1"># Calculate aggregates</span>
+        <span class="n">total_good</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">good_units_produced</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">)</span>
+        <span class="n">total_scrap</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">scrap_units_produced</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="n">oee_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">oee_score</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">oee_score</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">availability_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">availability_score</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">availability_score</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">performance_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">performance_score</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">performance_score</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">quality_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">quality_score</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">quality_score</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;mean_oee&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">oee_values</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">oee_values</span><span class="p">)</span> <span class="k">if</span> <span class="n">oee_values</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;mean_availability&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">availability_values</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">availability_values</span><span class="p">)</span> <span class="k">if</span> <span class="n">availability_values</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;mean_performance&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">performance_values</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">performance_values</span><span class="p">)</span> <span class="k">if</span> <span class="n">performance_values</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;mean_quality&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">quality_values</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">quality_values</span><span class="p">)</span> <span class="k">if</span> <span class="n">quality_values</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;total_good_units&quot;</span><span class="p">:</span> <span class="n">total_good</span><span class="p">,</span>
+            <span class="s2">&quot;total_scrap_units&quot;</span><span class="p">:</span> <span class="n">total_scrap</span><span class="p">,</span>
+            <span class="s2">&quot;scrap_rate&quot;</span><span class="p">:</span> <span class="n">total_scrap</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_good</span> <span class="o">+</span> <span class="n">total_scrap</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_good</span> <span class="o">+</span> <span class="n">total_scrap</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ExperimentRepository">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.ExperimentRepository">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExperimentRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Repository for experiment tracking&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">):</span>
+<div class="viewcode-block" id="ExperimentRepository.session">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.ExperimentRepository.session">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span></div>
+
+
+<div class="viewcode-block" id="ExperimentRepository.create_experiment">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.ExperimentRepository.create_experiment">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_experiment</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hypothesis</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">baseline_run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parameter_changes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Experiment</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create new experiment&quot;&quot;&quot;</span>
+
+        <span class="n">experiment_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;exp_</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">_%H%M%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span>
+            <span class="n">experiment_id</span><span class="o">=</span><span class="n">experiment_id</span><span class="p">,</span>
+            <span class="n">experiment_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">hypothesis</span><span class="o">=</span><span class="n">hypothesis</span><span class="p">,</span>
+            <span class="n">baseline_run_id</span><span class="o">=</span><span class="n">baseline_run_id</span><span class="p">,</span>
+            <span class="n">test_runs_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([]),</span>
+            <span class="n">parameter_changes_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">parameter_changes</span><span class="p">),</span>
+            <span class="n">created_by</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="p">,</span>
+            <span class="n">status</span><span class="o">=</span><span class="s2">&quot;planned&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">experiment</span></div>
+
+
+<div class="viewcode-block" id="ExperimentRepository.add_test_run">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.ExperimentRepository.add_test_run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_test_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a test run to an experiment&quot;&quot;&quot;</span>
+        <span class="n">experiment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Experiment</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">experiment</span><span class="p">:</span>
+            <span class="n">test_runs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">test_runs_json</span><span class="p">)</span>
+            <span class="n">test_runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span>
+            <span class="n">experiment</span><span class="o">.</span><span class="n">test_runs_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">test_runs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ExperimentRepository.complete_experiment">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.ExperimentRepository.complete_experiment">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">complete_experiment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">results_summary</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">conclusion</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark experiment as completed with results&quot;&quot;&quot;</span>
+        <span class="n">experiment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Experiment</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">experiment</span><span class="p">:</span>
+            <span class="n">experiment</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;completed&quot;</span>
+            <span class="n">experiment</span><span class="o">.</span><span class="n">results_summary_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">results_summary</span><span class="p">)</span>
+            <span class="n">experiment</span><span class="o">.</span><span class="n">conclusion</span> <span class="o">=</span> <span class="n">conclusion</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PatternRepository">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.PatternRepository">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatternRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Repository for discovered patterns&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">):</span>
+<div class="viewcode-block" id="PatternRepository.session">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.PatternRepository.session">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span></div>
+
+
+<div class="viewcode-block" id="PatternRepository.create_pattern">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.PatternRepository.create_pattern">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_pattern</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pattern_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">pattern_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">evidence</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">experiment_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">confidence_score</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DiscoveredPattern</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new discovered pattern&quot;&quot;&quot;</span>
+
+        <span class="n">pattern</span> <span class="o">=</span> <span class="n">DiscoveredPattern</span><span class="p">(</span>
+            <span class="n">pattern_type</span><span class="o">=</span><span class="n">pattern_type</span><span class="p">,</span>
+            <span class="n">pattern_name</span><span class="o">=</span><span class="n">pattern_name</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">evidence_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">evidence</span><span class="p">),</span>
+            <span class="n">experiment_ids_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">experiment_ids</span><span class="p">),</span>
+            <span class="n">confidence_score</span><span class="o">=</span><span class="n">confidence_score</span><span class="p">,</span>
+            <span class="n">discovered_by</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="p">,</span>
+            <span class="n">validated</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pattern</span></div>
+
+
+<div class="viewcode-block" id="PatternRepository.validate_pattern">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.PatternRepository.validate_pattern">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_pattern</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">validation_run_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark a pattern as validated&quot;&quot;&quot;</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DiscoveredPattern</span><span class="p">,</span> <span class="n">pattern_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pattern</span><span class="p">:</span>
+            <span class="n">pattern</span><span class="o">.</span><span class="n">validated</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">pattern</span><span class="o">.</span><span class="n">validation_runs_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">validation_run_ids</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RecommendationRepository">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.RecommendationRepository">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecommendationRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Repository for parameter recommendations&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">):</span>
+<div class="viewcode-block" id="RecommendationRepository.session">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.RecommendationRepository.session">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span></div>
+
+
+<div class="viewcode-block" id="RecommendationRepository.create_recommendation">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.RecommendationRepository.create_recommendation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_recommendation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pattern_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">recommendation_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">parameter_adjustments</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">expected_improvement</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParameterRecommendation</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new parameter recommendation&quot;&quot;&quot;</span>
+
+        <span class="n">recommendation</span> <span class="o">=</span> <span class="n">ParameterRecommendation</span><span class="p">(</span>
+            <span class="n">pattern_id</span><span class="o">=</span><span class="n">pattern_id</span><span class="p">,</span>
+            <span class="n">recommendation_type</span><span class="o">=</span><span class="n">recommendation_type</span><span class="p">,</span>
+            <span class="n">parameter_adjustments_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">parameter_adjustments</span><span class="p">),</span>
+            <span class="n">expected_improvement_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">expected_improvement</span><span class="p">),</span>
+            <span class="n">confidence</span><span class="o">=</span><span class="n">confidence</span><span class="p">,</span>
+            <span class="n">applied</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">recommendation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">recommendation</span></div>
+
+
+<div class="viewcode-block" id="RecommendationRepository.apply_recommendation">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.RecommendationRepository.apply_recommendation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_recommendation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recommendation_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">actual_improvement</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mark recommendation as applied with results&quot;&quot;&quot;</span>
+        <span class="n">recommendation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ParameterRecommendation</span><span class="p">,</span> <span class="n">recommendation_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">recommendation</span><span class="p">:</span>
+            <span class="n">recommendation</span><span class="o">.</span><span class="n">applied</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">recommendation</span><span class="o">.</span><span class="n">applied_run_id</span> <span class="o">=</span> <span class="n">run_id</span>
+            <span class="n">recommendation</span><span class="o">.</span><span class="n">actual_improvement_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">actual_improvement</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="KPIRepository">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.KPIRepository">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">KPIRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Repository for KPI snapshots and comparisons&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">):</span>
+<div class="viewcode-block" id="KPIRepository.session">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.KPIRepository.session">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span></div>
+
+
+<div class="viewcode-block" id="KPIRepository.create_kpi_snapshot">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.KPIRepository.create_kpi_snapshot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_kpi_snapshot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">entity_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">kpis</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">period_start</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">period_end</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KPISnapshot</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a KPI snapshot&quot;&quot;&quot;</span>
+
+        <span class="n">snapshot</span> <span class="o">=</span> <span class="n">KPISnapshot</span><span class="p">(</span>
+            <span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">,</span>
+            <span class="n">entity_type</span><span class="o">=</span><span class="n">entity_type</span><span class="p">,</span>
+            <span class="n">entity_id</span><span class="o">=</span><span class="n">entity_id</span><span class="p">,</span>
+            <span class="n">mean_oee</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;mean_oee&quot;</span><span class="p">],</span>
+            <span class="n">mean_availability</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;mean_availability&quot;</span><span class="p">],</span>
+            <span class="n">mean_performance</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;mean_performance&quot;</span><span class="p">],</span>
+            <span class="n">mean_quality</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;mean_quality&quot;</span><span class="p">],</span>
+            <span class="n">total_good_units</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_good_units&quot;</span><span class="p">],</span>
+            <span class="n">total_scrap_units</span><span class="o">=</span><span class="n">kpis</span><span class="p">[</span><span class="s2">&quot;total_scrap_units&quot;</span><span class="p">],</span>
+            <span class="n">total_downtime_minutes</span><span class="o">=</span><span class="n">kpis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total_downtime_minutes&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">additional_metrics_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">kpis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;additional&quot;</span><span class="p">,</span> <span class="p">{})),</span>
+            <span class="n">period_start</span><span class="o">=</span><span class="n">period_start</span><span class="p">,</span>
+            <span class="n">period_end</span><span class="o">=</span><span class="n">period_end</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">snapshot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">snapshot</span></div>
+
+
+<div class="viewcode-block" id="KPIRepository.create_comparison">
+<a class="viewcode-back" href="../../api/database/repositories/index.html#database.repositories.KPIRepository.create_comparison">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_comparison</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseline_run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comparison_run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ComparisonResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a comparison between two runs&quot;&quot;&quot;</span>
+
+        <span class="c1"># Get KPI snapshots for both runs</span>
+        <span class="n">baseline_statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">KPISnapshot</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">KPISnapshot</span><span class="o">.</span><span class="n">run_id</span> <span class="o">==</span> <span class="n">baseline_run_id</span><span class="p">,</span> <span class="n">KPISnapshot</span><span class="o">.</span><span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;overall&quot;</span>
+        <span class="p">)</span>
+        <span class="n">comparison_statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">KPISnapshot</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">KPISnapshot</span><span class="o">.</span><span class="n">run_id</span> <span class="o">==</span> <span class="n">comparison_run_id</span><span class="p">,</span> <span class="n">KPISnapshot</span><span class="o">.</span><span class="n">entity_type</span> <span class="o">==</span> <span class="s2">&quot;overall&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">baseline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">baseline_statement</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">comparison</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">comparison_statement</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">baseline</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">comparison</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Missing KPI snapshots for comparison&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Calculate deltas</span>
+        <span class="n">comparison_result</span> <span class="o">=</span> <span class="n">ComparisonResult</span><span class="p">(</span>
+            <span class="n">baseline_run_id</span><span class="o">=</span><span class="n">baseline_run_id</span><span class="p">,</span>
+            <span class="n">comparison_run_id</span><span class="o">=</span><span class="n">comparison_run_id</span><span class="p">,</span>
+            <span class="n">oee_delta</span><span class="o">=</span><span class="n">comparison</span><span class="o">.</span><span class="n">mean_oee</span> <span class="o">-</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_oee</span><span class="p">,</span>
+            <span class="n">availability_delta</span><span class="o">=</span><span class="n">comparison</span><span class="o">.</span><span class="n">mean_availability</span> <span class="o">-</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_availability</span><span class="p">,</span>
+            <span class="n">performance_delta</span><span class="o">=</span><span class="n">comparison</span><span class="o">.</span><span class="n">mean_performance</span> <span class="o">-</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_performance</span><span class="p">,</span>
+            <span class="n">quality_delta</span><span class="o">=</span><span class="n">comparison</span><span class="o">.</span><span class="n">mean_quality</span> <span class="o">-</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_quality</span><span class="p">,</span>
+            <span class="n">production_delta</span><span class="o">=</span><span class="n">comparison</span><span class="o">.</span><span class="n">total_good_units</span> <span class="o">-</span> <span class="n">baseline</span><span class="o">.</span><span class="n">total_good_units</span><span class="p">,</span>
+            <span class="n">analysis_json</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;baseline_kpis&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_oee</span><span class="p">,</span>
+                        <span class="s2">&quot;availability&quot;</span><span class="p">:</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_availability</span><span class="p">,</span>
+                        <span class="s2">&quot;performance&quot;</span><span class="p">:</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_performance</span><span class="p">,</span>
+                        <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="n">baseline</span><span class="o">.</span><span class="n">mean_quality</span><span class="p">,</span>
+                        <span class="s2">&quot;production&quot;</span><span class="p">:</span> <span class="n">baseline</span><span class="o">.</span><span class="n">total_good_units</span><span class="p">,</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;comparison_kpis&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">mean_oee</span><span class="p">,</span>
+                        <span class="s2">&quot;availability&quot;</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">mean_availability</span><span class="p">,</span>
+                        <span class="s2">&quot;performance&quot;</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">mean_performance</span><span class="p">,</span>
+                        <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">mean_quality</span><span class="p">,</span>
+                        <span class="s2">&quot;production&quot;</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">total_good_units</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">comparison_result</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">comparison_result</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,446 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start Guide &mdash; Virtual Ontology Database 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Virtual Ontology Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-setup">Basic Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#initialize-the-database-manager">1. Initialize the Database Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-database-tables">2. Create Database Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#import-historical-data">3. Import Historical Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sync-configuration">4. Sync Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-api">Using the API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#starting-the-api-server">Starting the API Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#making-api-requests">Making API Requests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#database-integration-with-twin-model">Database Integration with Twin Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-integration">Basic Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#querying-simulation-results">Querying Simulation Results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-sessions">Working with Sessions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#direct-database-access">Direct Database Access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#batch-operations">Batch Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-examples">Configuration Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#database-configuration">Database Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#using-with-docker">Using with Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#repository-pattern">Repository Pattern</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Virtual Ontology Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start-guide">
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
+<p>This guide will help you get started with the Virtual Ontology Database module.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The database module is part of the Virtual Ontology system. Ensure you have the required dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>sqlmodel<span class="w"> </span>fastapi<span class="w"> </span>uvicorn<span class="w"> </span>pandas<span class="w"> </span>pyyaml
+</pre></div>
+</div>
+</section>
+<section id="basic-setup">
+<h2>Basic Setup<a class="headerlink" href="#basic-setup" title="Link to this heading"></a></h2>
+<section id="initialize-the-database-manager">
+<h3>1. Initialize the Database Manager<a class="headerlink" href="#initialize-the-database-manager" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinDatabaseManager</span>
+
+<span class="c1"># Create database manager with default settings</span>
+<span class="n">db_manager</span> <span class="o">=</span> <span class="n">TwinDatabaseManager</span><span class="p">()</span>
+
+<span class="c1"># Or specify custom paths</span>
+<span class="n">db_manager</span> <span class="o">=</span> <span class="n">TwinDatabaseManager</span><span class="p">(</span>
+    <span class="n">db_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;custom/path/database.db&quot;</span><span class="p">),</span>
+    <span class="n">ontology_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">),</span>
+    <span class="n">manifest_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests/&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="create-database-tables">
+<h3>2. Create Database Tables<a class="headerlink" href="#create-database-tables" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create all required tables</span>
+<span class="n">db_manager</span><span class="o">.</span><span class="n">create_all_tables</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Database tables created successfully&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="import-historical-data">
+<h3>3. Import Historical Data<a class="headerlink" href="#import-historical-data" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import MES data from CSV</span>
+<span class="n">csv_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/mes_data.csv&quot;</span><span class="p">)</span>
+<span class="n">db_manager</span><span class="o">.</span><span class="n">import_historical_data</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Imported data from </span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="sync-configuration">
+<h3>4. Sync Configuration<a class="headerlink" href="#sync-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load configurations from YAML manifests</span>
+<span class="n">db_manager</span><span class="o">.</span><span class="n">sync_configurations_from_manifests</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Configuration synchronized&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="using-the-api">
+<h2>Using the API<a class="headerlink" href="#using-the-api" title="Link to this heading"></a></h2>
+<section id="starting-the-api-server">
+<h3>Starting the API Server<a class="headerlink" href="#starting-the-api-server" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># database/app.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.routers</span><span class="w"> </span><span class="kn">import</span> <span class="n">database</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">query</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;Virtual Ontology Database API&quot;</span><span class="p">)</span>
+
+<span class="c1"># Include routers</span>
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">database</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/database&quot;</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/simulations&quot;</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">include_router</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">router</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;/query&quot;</span><span class="p">)</span>
+
+<span class="c1"># Run with: uvicorn database.app:app --reload</span>
+</pre></div>
+</div>
+</section>
+<section id="making-api-requests">
+<h3>Making API Requests<a class="headerlink" href="#making-api-requests" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+<span class="c1"># Check database status</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000/database/status&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+
+<span class="c1"># Query historical data</span>
+<span class="n">query_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;end_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-12-31&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;equipment_id&quot;</span><span class="p">:</span> <span class="s2">&quot;Line1_Equipment1&quot;</span>
+<span class="p">}</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+    <span class="s2">&quot;http://localhost:8000/query/historical&quot;</span><span class="p">,</span>
+    <span class="n">json</span><span class="o">=</span><span class="n">query_params</span>
+<span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="database-integration-with-twin-model">
+<h2>Database Integration with Twin Model<a class="headerlink" href="#database-integration-with-twin-model" title="Link to this heading"></a></h2>
+<section id="basic-integration">
+<h3>Basic Integration<a class="headerlink" href="#basic-integration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinDatabaseIntegration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+
+<span class="c1"># Initialize integration</span>
+<span class="n">db_integration</span> <span class="o">=</span> <span class="n">TwinDatabaseIntegration</span><span class="p">()</span>
+
+<span class="c1"># Store simulation results</span>
+<span class="n">simulation_result</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-15T10:00:00&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;kpi_metrics&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="mf">85.5</span><span class="p">,</span>
+        <span class="s2">&quot;availability&quot;</span><span class="p">:</span> <span class="mf">92.0</span><span class="p">,</span>
+        <span class="s2">&quot;performance&quot;</span><span class="p">:</span> <span class="mf">95.0</span><span class="p">,</span>
+        <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="mf">98.0</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;production_output&quot;</span><span class="p">:</span> <span class="mi">1500</span>
+<span class="p">}</span>
+
+<span class="n">run_id</span> <span class="o">=</span> <span class="n">db_integration</span><span class="o">.</span><span class="n">store_simulation_run</span><span class="p">(</span>
+    <span class="n">experiment_name</span><span class="o">=</span><span class="s2">&quot;Baseline Analysis&quot;</span><span class="p">,</span>
+    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">},</span>
+    <span class="n">results</span><span class="o">=</span><span class="n">simulation_result</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stored simulation run: </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="querying-simulation-results">
+<h3>Querying Simulation Results<a class="headerlink" href="#querying-simulation-results" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get all runs for an experiment</span>
+<span class="n">runs</span> <span class="o">=</span> <span class="n">db_integration</span><span class="o">.</span><span class="n">get_experiment_runs</span><span class="p">(</span><span class="s2">&quot;Baseline Analysis&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Run </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">: OEE = </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;kpi_metrics&#39;</span><span class="p">][</span><span class="s1">&#39;oee&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Query patterns</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="n">db_integration</span><span class="o">.</span><span class="n">query_patterns</span><span class="p">(</span>
+    <span class="n">min_confidence</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+    <span class="n">pattern_type</span><span class="o">=</span><span class="s2">&quot;bottleneck&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="working-with-sessions">
+<h2>Working with Sessions<a class="headerlink" href="#working-with-sessions" title="Link to this heading"></a></h2>
+<section id="direct-database-access">
+<h3>Direct Database Access<a class="headerlink" href="#direct-database-access" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">select</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">HistoricalMESData</span>
+
+<span class="c1"># Create a session</span>
+<span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+    <span class="c1"># Query historical data</span>
+    <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">HistoricalMESData</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">HistoricalMESData</span><span class="o">.</span><span class="n">equipment_id</span> <span class="o">==</span> <span class="s2">&quot;Line1_Equipment1&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">: OEE = </span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">oee_score</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="batch-operations">
+<h3>Batch Operations<a class="headerlink" href="#batch-operations" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">HistoricalMESData</span>
+
+<span class="c1"># Batch insert</span>
+<span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">HistoricalMESData</span><span class="p">(</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;2024-01-01T</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:00:00&quot;</span><span class="p">,</span>
+            <span class="n">equipment_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Equipment_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="c1"># ... other fields</span>
+        <span class="p">)</span>
+        <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+
+    <span class="n">session</span><span class="o">.</span><span class="n">add_all</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Inserted </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span><span class="si">}</span><span class="s2"> records&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-examples">
+<h2>Configuration Examples<a class="headerlink" href="#configuration-examples" title="Link to this heading"></a></h2>
+<section id="database-configuration">
+<h3>Database Configuration<a class="headerlink" href="#database-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># config/database.yaml</span>
+<span class="nt">database</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">connection</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;sqlite&quot;</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;data/twin_database.db&quot;</span>
+<span class="w">    </span><span class="nt">check_same_thread</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+
+<span class="w">  </span><span class="nt">pool</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">    </span><span class="nt">max_overflow</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">    </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+
+<span class="w">  </span><span class="nt">logging</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">echo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">    </span><span class="nt">echo_pool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="using-with-docker">
+<h2>Using with Docker<a class="headerlink" href="#using-with-docker" title="Link to this heading"></a></h2>
+<div class="highlight-dockerfile notranslate"><div class="highlight"><pre><span></span><span class="c"># Dockerfile</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span>
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+
+<span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+
+<span class="c"># Create data directory</span>
+<span class="k">RUN</span><span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>data
+
+<span class="c"># Run API server</span>
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;uvicorn&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;database.app:app&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--host&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--port&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;8000&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># docker-compose.yaml</span>
+<span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.8&#39;</span>
+
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">database-api</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8000:8000&quot;</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./data:/app/data</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./config:/app/config</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./ontology:/app/ontology</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./manifests:/app/manifests</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DATABASE_PATH=/app/data/twin_database.db</span>
+</pre></div>
+</div>
+</section>
+<section id="common-patterns">
+<h2>Common Patterns<a class="headerlink" href="#common-patterns" title="Link to this heading"></a></h2>
+<section id="repository-pattern">
+<h3>Repository Pattern<a class="headerlink" href="#repository-pattern" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseRepository</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">HistoricalMESData</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MESDataRepository</span><span class="p">(</span><span class="n">BaseRepository</span><span class="p">[</span><span class="n">HistoricalMESData</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_by_equipment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">equipment_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">HistoricalMESData</span><span class="o">.</span><span class="n">equipment_id</span> <span class="o">==</span> <span class="n">equipment_id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_high_oee_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">85.0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">HistoricalMESData</span><span class="o">.</span><span class="n">oee_score</span> <span class="o">&gt;=</span> <span class="n">threshold</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="error-handling">
+<h3>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">database.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinDatabaseManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">db_manager</span> <span class="o">=</span> <span class="n">TwinDatabaseManager</span><span class="p">()</span>
+    <span class="n">db_manager</span><span class="o">.</span><span class="n">create_all_tables</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database initialization failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Fallback to in-memory database</span>
+    <span class="n">db_manager</span> <span class="o">=</span> <span class="n">TwinDatabaseManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;:memory:&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Explore the <a class="reference internal" href="api/index.html"><span class="doc">API Reference</span></a> for detailed API documentation</p></li>
+<li><p>Review <a class="reference internal" href="configuration.html"><span class="doc">Configuration</span></a> for advanced configuration options</p></li>
+<li><p>See <a class="reference internal" href="usage.html"><span class="doc">Usage Examples</span></a> for real-world usage examples</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

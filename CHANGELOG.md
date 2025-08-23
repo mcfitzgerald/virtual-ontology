@@ -8,6 +8,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Comprehensive Sphinx documentation for `database/` and `twin_model/` modules
+- sphinx-autoapi integration for automatic API documentation generation
+- System architecture documentation (`SYSTEM_ARCHITECTURE.md`)
+- Module-specific documentation structure with source and build directories
+- Detailed usage examples and quickstart guides for both modules
+- Configuration documentation for database and twin model
+- Overview and primitive documentation for the simulation framework
+- Ontology-driven architecture documentation
+
+### Changed
+- Documentation structure to keep separate docs within each module directory
+- Build process to use sphinx-autoapi instead of manual API documentation
+
+### Documentation
+- Complete API reference documentation auto-generated from source code
+- Intersphinx configuration for cross-module references
+- Napoleon extension configured for Google/NumPy docstring styles
+- RTD theme applied for professional documentation appearance
+- Comprehensive examples for production simulation, scenario testing, and optimization
+
+### Previous Release Notes
+
+### Added
 - Full type hints and mypy compliance for `twin_model/` and `database/` directories
 - pandas-stubs for better DataFrame type checking
 - Explicit imports replacing all star imports for better code clarity

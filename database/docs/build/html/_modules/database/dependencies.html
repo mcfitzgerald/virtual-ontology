@@ -1,0 +1,240 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.dependencies &mdash; Virtual Ontology Database 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Virtual Ontology Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Virtual Ontology Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">database.dependencies</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for database.dependencies</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">FastAPI dependencies for database access</span>
+
+<span class="sd">Provides dependency injection for:</span>
+<span class="sd">- Database sessions</span>
+<span class="sd">- Database manager</span>
+<span class="sd">- Repository instances</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Generator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">Request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinDatabaseManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TwinRunRepository</span><span class="p">,</span>
+    <span class="n">SimulationDataRepository</span><span class="p">,</span>
+    <span class="n">ExperimentRepository</span><span class="p">,</span>
+    <span class="n">PatternRepository</span><span class="p">,</span>
+    <span class="n">RecommendationRepository</span><span class="p">,</span>
+    <span class="n">KPIRepository</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_db_manager">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_db_manager">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_db_manager</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TwinDatabaseManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get database manager from app state&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">request</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">db_manager</span>  <span class="c1"># type: ignore[no-any-return]</span></div>
+
+
+
+<div class="viewcode-block" id="get_session">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_session">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_session</span><span class="p">(</span><span class="n">manager</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">TwinDatabaseManager</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db_manager</span><span class="p">)])</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Session</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a new database session for each request</span>
+
+<span class="sd">    Yields a SQLModel Session that will be automatically</span>
+<span class="sd">    closed when the request is complete</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="n">manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">session</span></div>
+
+
+
+<span class="c1"># Type annotations for dependency injection</span>
+<div class="viewcode-block" id="SessionDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.SessionDep">[docs]</a>
+<span class="n">SessionDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">Session</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_session</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="ManagerDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.ManagerDep">[docs]</a>
+<span class="n">ManagerDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">TwinDatabaseManager</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_db_manager</span><span class="p">)]</span></div>
+
+
+
+<span class="c1"># Repository dependencies</span>
+<div class="viewcode-block" id="get_twin_run_repo">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_twin_run_repo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_twin_run_repo</span><span class="p">(</span><span class="n">session</span><span class="p">:</span> <span class="n">SessionDep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TwinRunRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get TwinRun repository instance&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">TwinRunRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_simulation_data_repo">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_simulation_data_repo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_simulation_data_repo</span><span class="p">(</span><span class="n">session</span><span class="p">:</span> <span class="n">SessionDep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimulationDataRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get SimulationData repository instance&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">SimulationDataRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_experiment_repo">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_experiment_repo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_experiment_repo</span><span class="p">(</span><span class="n">session</span><span class="p">:</span> <span class="n">SessionDep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExperimentRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get Experiment repository instance&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ExperimentRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_pattern_repo">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_pattern_repo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_pattern_repo</span><span class="p">(</span><span class="n">session</span><span class="p">:</span> <span class="n">SessionDep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PatternRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get Pattern repository instance&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">PatternRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_recommendation_repo">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_recommendation_repo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_recommendation_repo</span><span class="p">(</span><span class="n">session</span><span class="p">:</span> <span class="n">SessionDep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecommendationRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get Recommendation repository instance&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">RecommendationRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_kpi_repo">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.get_kpi_repo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_kpi_repo</span><span class="p">(</span><span class="n">session</span><span class="p">:</span> <span class="n">SessionDep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KPIRepository</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get KPI repository instance&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">KPIRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Repository type annotations</span>
+<div class="viewcode-block" id="TwinRunRepoDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.TwinRunRepoDep">[docs]</a>
+<span class="n">TwinRunRepoDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">TwinRunRepository</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_twin_run_repo</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="SimulationDataRepoDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.SimulationDataRepoDep">[docs]</a>
+<span class="n">SimulationDataRepoDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">SimulationDataRepository</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_simulation_data_repo</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="ExperimentRepoDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.ExperimentRepoDep">[docs]</a>
+<span class="n">ExperimentRepoDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">ExperimentRepository</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_experiment_repo</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="PatternRepoDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.PatternRepoDep">[docs]</a>
+<span class="n">PatternRepoDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">PatternRepository</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_pattern_repo</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="RecommendationRepoDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.RecommendationRepoDep">[docs]</a>
+<span class="n">RecommendationRepoDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">RecommendationRepository</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_recommendation_repo</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="KPIRepoDep">
+<a class="viewcode-back" href="../../api/database/dependencies/index.html#database.dependencies.KPIRepoDep">[docs]</a>
+<span class="n">KPIRepoDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="n">KPIRepository</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_kpi_repo</span><span class="p">)]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

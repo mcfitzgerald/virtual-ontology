@@ -1,0 +1,1015 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.models &mdash; Virtual Ontology Database 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Virtual Ontology Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Virtual Ontology Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">database.models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for database.models</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SQLModel database models for virtual twin system</span>
+
+<span class="sd">Keeps ontologies as YAML files, stores operational data in database</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">SQLModel</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+
+<span class="c1"># ============= HISTORICAL DATA =============</span>
+
+
+<div class="viewcode-block" id="HistoricalMESData">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HistoricalMESData</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Historical MES data for baseline reference&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HistoricalMESData.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;historical_mes_data&quot;</span></div>
+
+
+<div class="viewcode-block" id="HistoricalMESData.id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.id">[docs]</a>
+    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.timestamp">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.timestamp">[docs]</a>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.production_order_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.production_order_id">[docs]</a>
+    <span class="n">production_order_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.line_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.line_id">[docs]</a>
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.equipment_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.equipment_id">[docs]</a>
+    <span class="n">equipment_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.equipment_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.equipment_type">[docs]</a>
+    <span class="n">equipment_type</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.product_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.product_id">[docs]</a>
+    <span class="n">product_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.product_name">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.product_name">[docs]</a>
+    <span class="n">product_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.machine_status">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.machine_status">[docs]</a>
+    <span class="n">machine_status</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.downtime_reason">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.downtime_reason">[docs]</a>
+    <span class="n">downtime_reason</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.good_units_produced">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.good_units_produced">[docs]</a>
+    <span class="n">good_units_produced</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.scrap_units_produced">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.scrap_units_produced">[docs]</a>
+    <span class="n">scrap_units_produced</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.target_rate_units_per_5min">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.target_rate_units_per_5min">[docs]</a>
+    <span class="n">target_rate_units_per_5min</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.standard_cost_per_unit">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.standard_cost_per_unit">[docs]</a>
+    <span class="n">standard_cost_per_unit</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.sale_price_per_unit">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.sale_price_per_unit">[docs]</a>
+    <span class="n">sale_price_per_unit</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.availability_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.availability_score">[docs]</a>
+    <span class="n">availability_score</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.performance_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.performance_score">[docs]</a>
+    <span class="n">performance_score</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.quality_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.quality_score">[docs]</a>
+    <span class="n">quality_score</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.oee_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.oee_score">[docs]</a>
+    <span class="n">oee_score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.energy_consumption_kwh">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.energy_consumption_kwh">[docs]</a>
+    <span class="n">energy_consumption_kwh</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># Metadata about data source</span>
+<div class="viewcode-block" id="HistoricalMESData.source">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.source">[docs]</a>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;historical&quot;</span><span class="p">)</span>  <span class="c1"># historical, imported, synthetic</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.import_date">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.import_date">[docs]</a>
+    <span class="n">import_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HistoricalMESData.data_quality_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.HistoricalMESData.data_quality_score">[docs]</a>
+    <span class="n">data_quality_score</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<span class="c1"># ============= CONFIGURATION (From Manifests) =============</span>
+
+
+<div class="viewcode-block" id="EquipmentConfig">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EquipmentConfig</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Equipment configuration from manifests&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EquipmentConfig.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;equipment_config&quot;</span></div>
+
+
+<div class="viewcode-block" id="EquipmentConfig.equipment_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.equipment_id">[docs]</a>
+    <span class="n">equipment_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># e.g., LINE1-FIL</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.equipment_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.equipment_type">[docs]</a>
+    <span class="n">equipment_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.line_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.line_id">[docs]</a>
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.position">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.position">[docs]</a>
+    <span class="n">position</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.base_rate">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.base_rate">[docs]</a>
+    <span class="n">base_rate</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.mtbf">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.mtbf">[docs]</a>
+    <span class="n">mtbf</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.mttr">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.mttr">[docs]</a>
+    <span class="n">mttr</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.energy_consumption_rate">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.energy_consumption_rate">[docs]</a>
+    <span class="n">energy_consumption_rate</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+    <span class="c1"># Store failure patterns as JSON</span>
+<div class="viewcode-block" id="EquipmentConfig.failure_patterns_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.failure_patterns_json">[docs]</a>
+    <span class="n">failure_patterns_json</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.performance_by_product_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.performance_by_product_json">[docs]</a>
+    <span class="n">performance_by_product_json</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Metadata</span>
+<div class="viewcode-block" id="EquipmentConfig.active">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.active">[docs]</a>
+    <span class="n">active</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.created_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.created_at">[docs]</a>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EquipmentConfig.updated_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.updated_at">[docs]</a>
+    <span class="n">updated_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="EquipmentConfig.failure_patterns">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.failure_patterns">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">failure_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failure_patterns_json</span><span class="p">)</span>  <span class="c1"># type: ignore[no-any-return]</span></div>
+
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="EquipmentConfig.performance_by_product">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.EquipmentConfig.performance_by_product">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">performance_by_product</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">performance_by_product_json</span><span class="p">)</span>  <span class="c1"># type: ignore[no-any-return]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProductConfig">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProductConfig</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Product configuration from manifests&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProductConfig.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;product_config&quot;</span></div>
+
+
+<div class="viewcode-block" id="ProductConfig.product_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.product_id">[docs]</a>
+    <span class="n">product_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># e.g., SKU-1001</span></div>
+
+<div class="viewcode-block" id="ProductConfig.product_name">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.product_name">[docs]</a>
+    <span class="n">product_name</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="ProductConfig.target_rate_units_per_5min">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.target_rate_units_per_5min">[docs]</a>
+    <span class="n">target_rate_units_per_5min</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="ProductConfig.standard_cost_per_unit">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.standard_cost_per_unit">[docs]</a>
+    <span class="n">standard_cost_per_unit</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ProductConfig.sale_price_per_unit">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.sale_price_per_unit">[docs]</a>
+    <span class="n">sale_price_per_unit</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+    <span class="c1"># Scrap rates by condition</span>
+<div class="viewcode-block" id="ProductConfig.scrap_rate_normal">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.scrap_rate_normal">[docs]</a>
+    <span class="n">scrap_rate_normal</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ProductConfig.scrap_rate_startup">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.scrap_rate_startup">[docs]</a>
+    <span class="n">scrap_rate_startup</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ProductConfig.scrap_rate_quality_issue">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.scrap_rate_quality_issue">[docs]</a>
+    <span class="n">scrap_rate_quality_issue</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># Additional properties as JSON</span>
+<div class="viewcode-block" id="ProductConfig.properties_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.properties_json">[docs]</a>
+    <span class="n">properties_json</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProductConfig.active">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.active">[docs]</a>
+    <span class="n">active</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductConfig.created_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductConfig.created_at">[docs]</a>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProductionSchedule">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProductionSchedule</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Production schedule from manifests&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProductionSchedule.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;production_schedule&quot;</span></div>
+
+
+<div class="viewcode-block" id="ProductionSchedule.schedule_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.schedule_id">[docs]</a>
+    <span class="n">schedule_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.order_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.order_id">[docs]</a>
+    <span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.product_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.product_id">[docs]</a>
+    <span class="n">product_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;product_config.product_id&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.line_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.line_id">[docs]</a>
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.scheduled_start">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.scheduled_start">[docs]</a>
+    <span class="n">scheduled_start</span><span class="p">:</span> <span class="n">datetime</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.scheduled_duration_minutes">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.scheduled_duration_minutes">[docs]</a>
+    <span class="n">scheduled_duration_minutes</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.target_quantity">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.target_quantity">[docs]</a>
+    <span class="n">target_quantity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.priority">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.priority">[docs]</a>
+    <span class="n">priority</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProductionSchedule.schedule_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.schedule_type">[docs]</a>
+    <span class="n">schedule_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>  <span class="c1"># production, changeover, maintenance</span></div>
+
+
+    <span class="c1"># Link to simulation run if this is a simulated schedule</span>
+<div class="viewcode-block" id="ProductionSchedule.simulation_run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ProductionSchedule.simulation_run_id">[docs]</a>
+    <span class="n">simulation_run_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># ============= TWIN OPERATIONS =============</span>
+
+
+<div class="viewcode-block" id="TwinRun">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TwinRun</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Twin simulation runs (keep existing structure)&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TwinRun.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;twin_runs&quot;</span></div>
+
+
+<div class="viewcode-block" id="TwinRun.run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.run_id">[docs]</a>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TwinRun.run_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.run_type">[docs]</a>
+    <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># baseline, experiment, optimization, recommendation</span></div>
+
+
+    <span class="c1"># Configuration tracking</span>
+<div class="viewcode-block" id="TwinRun.ontology_version">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.ontology_version">[docs]</a>
+    <span class="n">ontology_version</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># Version of YAML ontology used</span></div>
+
+<div class="viewcode-block" id="TwinRun.manifest_version">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.manifest_version">[docs]</a>
+    <span class="n">manifest_version</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># Version of manifest files used</span></div>
+
+<div class="viewcode-block" id="TwinRun.parameter_set_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.parameter_set_json">[docs]</a>
+    <span class="n">parameter_set_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON of parameters used</span></div>
+
+<div class="viewcode-block" id="TwinRun.config_delta_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.config_delta_json">[docs]</a>
+    <span class="n">config_delta_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># Changes from baseline</span></div>
+
+
+    <span class="c1"># Run metadata</span>
+<div class="viewcode-block" id="TwinRun.seed">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.seed">[docs]</a>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="TwinRun.started_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.started_at">[docs]</a>
+    <span class="n">started_at</span><span class="p">:</span> <span class="n">datetime</span></div>
+
+<div class="viewcode-block" id="TwinRun.finished_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.finished_at">[docs]</a>
+    <span class="n">finished_at</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TwinRun.simulation_days">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.simulation_days">[docs]</a>
+    <span class="n">simulation_days</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="TwinRun.status">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.status">[docs]</a>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># pending, running, completed, failed</span></div>
+
+
+    <span class="c1"># Results</span>
+<div class="viewcode-block" id="TwinRun.kpi_summary_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.kpi_summary_json">[docs]</a>
+    <span class="n">kpi_summary_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TwinRun.output_path">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.output_path">[docs]</a>
+    <span class="n">output_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TwinRun.data_hash">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.data_hash">[docs]</a>
+    <span class="n">data_hash</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># Lineage</span>
+<div class="viewcode-block" id="TwinRun.parent_run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.parent_run_id">[docs]</a>
+    <span class="n">parent_run_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TwinRun.notes">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.notes">[docs]</a>
+    <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TwinRun.created_by">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.TwinRun.created_by">[docs]</a>
+    <span class="n">created_by</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;system&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SimulationData">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationData</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simulation output data (MES format)&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SimulationData.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;simulation_data&quot;</span></div>
+
+
+<div class="viewcode-block" id="SimulationData.id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.id">[docs]</a>
+    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationData.run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.run_id">[docs]</a>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Same structure as HistoricalMESData for consistency</span>
+<div class="viewcode-block" id="SimulationData.timestamp">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.timestamp">[docs]</a>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationData.production_order_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.production_order_id">[docs]</a>
+    <span class="n">production_order_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationData.line_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.line_id">[docs]</a>
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationData.equipment_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.equipment_id">[docs]</a>
+    <span class="n">equipment_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationData.equipment_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.equipment_type">[docs]</a>
+    <span class="n">equipment_type</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="SimulationData.product_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.product_id">[docs]</a>
+    <span class="n">product_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationData.product_name">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.product_name">[docs]</a>
+    <span class="n">product_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SimulationData.machine_status">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.machine_status">[docs]</a>
+    <span class="n">machine_status</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="SimulationData.downtime_reason">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.downtime_reason">[docs]</a>
+    <span class="n">downtime_reason</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SimulationData.good_units_produced">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.good_units_produced">[docs]</a>
+    <span class="n">good_units_produced</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="SimulationData.scrap_units_produced">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.scrap_units_produced">[docs]</a>
+    <span class="n">scrap_units_produced</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="SimulationData.target_rate_units_per_5min">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.target_rate_units_per_5min">[docs]</a>
+    <span class="n">target_rate_units_per_5min</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="SimulationData.standard_cost_per_unit">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.standard_cost_per_unit">[docs]</a>
+    <span class="n">standard_cost_per_unit</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SimulationData.sale_price_per_unit">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.sale_price_per_unit">[docs]</a>
+    <span class="n">sale_price_per_unit</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SimulationData.availability_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.availability_score">[docs]</a>
+    <span class="n">availability_score</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SimulationData.performance_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.performance_score">[docs]</a>
+    <span class="n">performance_score</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SimulationData.quality_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.quality_score">[docs]</a>
+    <span class="n">quality_score</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="SimulationData.oee_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.oee_score">[docs]</a>
+    <span class="n">oee_score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationData.energy_consumption_kwh">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationData.energy_consumption_kwh">[docs]</a>
+    <span class="n">energy_consumption_kwh</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SimulationObservable">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimulationObservable</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raw observables from simulation (optional detailed storage)&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SimulationObservable.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;simulation_observables&quot;</span></div>
+
+
+<div class="viewcode-block" id="SimulationObservable.id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.id">[docs]</a>
+    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationObservable.run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.run_id">[docs]</a>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationObservable.timestamp">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.timestamp">[docs]</a>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># Simulation time</span></div>
+
+<div class="viewcode-block" id="SimulationObservable.primitive_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.primitive_id">[docs]</a>
+    <span class="n">primitive_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationObservable.primitive_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.primitive_type">[docs]</a>
+    <span class="n">primitive_type</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="SimulationObservable.event_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.event_type">[docs]</a>
+    <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimulationObservable.details_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.details_json">[docs]</a>
+    <span class="n">details_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON of event details</span></div>
+
+<div class="viewcode-block" id="SimulationObservable.severity">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.severity">[docs]</a>
+    <span class="n">severity</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># Only store if detailed logging enabled</span>
+<div class="viewcode-block" id="SimulationObservable.store_raw">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.SimulationObservable.store_raw">[docs]</a>
+    <span class="n">store_raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># ============= EXPERIMENTS &amp; DISCOVERY =============</span>
+
+
+<div class="viewcode-block" id="Experiment">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Experiment</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Experiments for parameter discovery&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Experiment.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;experiments&quot;</span></div>
+
+
+<div class="viewcode-block" id="Experiment.experiment_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.experiment_id">[docs]</a>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Experiment.experiment_name">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.experiment_name">[docs]</a>
+    <span class="n">experiment_name</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="Experiment.hypothesis">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.hypothesis">[docs]</a>
+    <span class="n">hypothesis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># Runs involved</span>
+<div class="viewcode-block" id="Experiment.baseline_run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.baseline_run_id">[docs]</a>
+    <span class="n">baseline_run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Experiment.test_runs_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.test_runs_json">[docs]</a>
+    <span class="n">test_runs_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON array of test run IDs</span></div>
+
+
+    <span class="c1"># Configuration</span>
+<div class="viewcode-block" id="Experiment.parameter_changes_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.parameter_changes_json">[docs]</a>
+    <span class="n">parameter_changes_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON of parameter modifications</span></div>
+
+
+    <span class="c1"># Metadata</span>
+<div class="viewcode-block" id="Experiment.created_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.created_at">[docs]</a>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Experiment.created_by">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.created_by">[docs]</a>
+    <span class="n">created_by</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="Experiment.status">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.status">[docs]</a>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;planned&quot;</span><span class="p">)</span>  <span class="c1"># planned, running, completed, failed</span></div>
+
+
+    <span class="c1"># Results</span>
+<div class="viewcode-block" id="Experiment.results_summary_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.results_summary_json">[docs]</a>
+    <span class="n">results_summary_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Experiment.conclusion">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.Experiment.conclusion">[docs]</a>
+    <span class="n">conclusion</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DiscoveredPattern">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DiscoveredPattern</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Patterns discovered through experiments&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DiscoveredPattern.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;discovered_patterns&quot;</span></div>
+
+
+<div class="viewcode-block" id="DiscoveredPattern.pattern_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.pattern_id">[docs]</a>
+    <span class="n">pattern_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.pattern_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.pattern_type">[docs]</a>
+    <span class="n">pattern_type</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># correlation, causation, threshold, anomaly</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.pattern_name">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.pattern_name">[docs]</a>
+    <span class="n">pattern_name</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.description">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.description">[docs]</a>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+    <span class="c1"># Evidence</span>
+<div class="viewcode-block" id="DiscoveredPattern.evidence_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.evidence_json">[docs]</a>
+    <span class="n">evidence_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON of supporting data</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.experiment_ids_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.experiment_ids_json">[docs]</a>
+    <span class="n">experiment_ids_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON array of experiment IDs</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.confidence_score">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.confidence_score">[docs]</a>
+    <span class="n">confidence_score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Discovery metadata</span>
+<div class="viewcode-block" id="DiscoveredPattern.discovered_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.discovered_at">[docs]</a>
+    <span class="n">discovered_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.discovered_by">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.discovered_by">[docs]</a>
+    <span class="n">discovered_by</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># LLM model or method</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.validated">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.validated">[docs]</a>
+    <span class="n">validated</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DiscoveredPattern.validation_runs_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.DiscoveredPattern.validation_runs_json">[docs]</a>
+    <span class="n">validation_runs_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># JSON array of validation run IDs</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ParameterRecommendation">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ParameterRecommendation</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parameter recommendations from discoveries&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ParameterRecommendation.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;parameter_recommendations&quot;</span></div>
+
+
+<div class="viewcode-block" id="ParameterRecommendation.recommendation_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.recommendation_id">[docs]</a>
+    <span class="n">recommendation_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParameterRecommendation.pattern_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.pattern_id">[docs]</a>
+    <span class="n">pattern_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;discovered_patterns.pattern_id&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Recommendation details</span>
+<div class="viewcode-block" id="ParameterRecommendation.recommendation_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.recommendation_type">[docs]</a>
+    <span class="n">recommendation_type</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># efficiency, quality, throughput</span></div>
+
+<div class="viewcode-block" id="ParameterRecommendation.parameter_adjustments_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.parameter_adjustments_json">[docs]</a>
+    <span class="n">parameter_adjustments_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON of parameter changes</span></div>
+
+<div class="viewcode-block" id="ParameterRecommendation.expected_improvement_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.expected_improvement_json">[docs]</a>
+    <span class="n">expected_improvement_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON of expected KPI improvements</span></div>
+
+<div class="viewcode-block" id="ParameterRecommendation.confidence">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.confidence">[docs]</a>
+    <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Application tracking</span>
+<div class="viewcode-block" id="ParameterRecommendation.created_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.created_at">[docs]</a>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParameterRecommendation.applied">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.applied">[docs]</a>
+    <span class="n">applied</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParameterRecommendation.applied_run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.applied_run_id">[docs]</a>
+    <span class="n">applied_run_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParameterRecommendation.actual_improvement_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ParameterRecommendation.actual_improvement_json">[docs]</a>
+    <span class="n">actual_improvement_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># JSON of actual results</span></div>
+</div>
+
+
+
+<span class="c1"># ============= ANALYSIS &amp; REPORTING =============</span>
+
+
+<div class="viewcode-block" id="KPISnapshot">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">KPISnapshot</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;KPI snapshots for quick comparison&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="KPISnapshot.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;kpi_snapshots&quot;</span></div>
+
+
+<div class="viewcode-block" id="KPISnapshot.snapshot_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.snapshot_id">[docs]</a>
+    <span class="n">snapshot_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.run_id">[docs]</a>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.entity_type">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.entity_type">[docs]</a>
+    <span class="n">entity_type</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># line, equipment, product, overall</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.entity_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.entity_id">[docs]</a>
+    <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+    <span class="c1"># Core KPIs</span>
+<div class="viewcode-block" id="KPISnapshot.mean_oee">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.mean_oee">[docs]</a>
+    <span class="n">mean_oee</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.mean_availability">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.mean_availability">[docs]</a>
+    <span class="n">mean_availability</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.mean_performance">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.mean_performance">[docs]</a>
+    <span class="n">mean_performance</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.mean_quality">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.mean_quality">[docs]</a>
+    <span class="n">mean_quality</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+    <span class="c1"># Production metrics</span>
+<div class="viewcode-block" id="KPISnapshot.total_good_units">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.total_good_units">[docs]</a>
+    <span class="n">total_good_units</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.total_scrap_units">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.total_scrap_units">[docs]</a>
+    <span class="n">total_scrap_units</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.total_downtime_minutes">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.total_downtime_minutes">[docs]</a>
+    <span class="n">total_downtime_minutes</span><span class="p">:</span> <span class="nb">float</span></div>
+
+
+    <span class="c1"># Additional metrics as JSON</span>
+<div class="viewcode-block" id="KPISnapshot.additional_metrics_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.additional_metrics_json">[docs]</a>
+    <span class="n">additional_metrics_json</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Time window</span>
+<div class="viewcode-block" id="KPISnapshot.period_start">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.period_start">[docs]</a>
+    <span class="n">period_start</span><span class="p">:</span> <span class="n">datetime</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.period_end">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.period_end">[docs]</a>
+    <span class="n">period_end</span><span class="p">:</span> <span class="n">datetime</span></div>
+
+<div class="viewcode-block" id="KPISnapshot.created_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.KPISnapshot.created_at">[docs]</a>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ComparisonResult">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ComparisonResult</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Results of comparing runs&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ComparisonResult.__tablename__">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.__tablename__">[docs]</a>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;comparison_results&quot;</span></div>
+
+
+<div class="viewcode-block" id="ComparisonResult.comparison_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.comparison_id">[docs]</a>
+    <span class="n">comparison_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.baseline_run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.baseline_run_id">[docs]</a>
+    <span class="n">baseline_run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.comparison_run_id">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.comparison_run_id">[docs]</a>
+    <span class="n">comparison_run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;twin_runs.run_id&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Comparison metrics</span>
+<div class="viewcode-block" id="ComparisonResult.oee_delta">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.oee_delta">[docs]</a>
+    <span class="n">oee_delta</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.availability_delta">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.availability_delta">[docs]</a>
+    <span class="n">availability_delta</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.performance_delta">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.performance_delta">[docs]</a>
+    <span class="n">performance_delta</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.quality_delta">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.quality_delta">[docs]</a>
+    <span class="n">quality_delta</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.production_delta">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.production_delta">[docs]</a>
+    <span class="n">production_delta</span><span class="p">:</span> <span class="nb">int</span></div>
+
+
+    <span class="c1"># Statistical significance</span>
+<div class="viewcode-block" id="ComparisonResult.statistical_test">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.statistical_test">[docs]</a>
+    <span class="n">statistical_test</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.p_value">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.p_value">[docs]</a>
+    <span class="n">p_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.is_significant">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.is_significant">[docs]</a>
+    <span class="n">is_significant</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="c1"># Analysis</span>
+<div class="viewcode-block" id="ComparisonResult.analysis_json">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.analysis_json">[docs]</a>
+    <span class="n">analysis_json</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># JSON of detailed comparison</span></div>
+
+<div class="viewcode-block" id="ComparisonResult.created_at">
+<a class="viewcode-back" href="../../api/database/models/index.html#database.models.ComparisonResult.created_at">[docs]</a>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

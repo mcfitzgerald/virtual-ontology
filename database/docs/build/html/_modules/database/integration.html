@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.integration &mdash; Virtual Ontology Database 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Virtual Ontology Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Virtual Ontology Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">database.integration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for database.integration</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Integration with twin model&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span><span class="p">,</span> <span class="n">select</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="c1"># Add parent directory to path for imports</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinDatabaseManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinRun</span><span class="p">,</span> <span class="n">Experiment</span><span class="p">,</span> <span class="n">DiscoveredPattern</span><span class="p">,</span> <span class="n">ParameterRecommendation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TwinRunRepository</span><span class="p">,</span>
+    <span class="n">SimulationDataRepository</span><span class="p">,</span>
+    <span class="n">KPIRepository</span><span class="p">,</span>
+    <span class="n">ExperimentRepository</span><span class="p">,</span>
+    <span class="n">PatternRepository</span><span class="p">,</span>
+    <span class="n">RecommendationRepository</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.model_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.transduction.mes_transducer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MESTransducer</span>
+
+<span class="c1"># Import configuration</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">config.config_loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigLoader</span>
+
+    <span class="n">_db_config</span> <span class="o">=</span> <span class="n">ConfigLoader</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="c1"># Fallback for testing</span>
+    <span class="n">_db_config</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;testing&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;base_seed&quot;</span><span class="p">:</span> <span class="mi">42</span><span class="p">}}</span>
+
+
+<div class="viewcode-block" id="TwinDatabaseIntegration">
+<a class="viewcode-back" href="../../api/database/integration/index.html#database.TwinDatabaseIntegration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TwinDatabaseIntegration</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Integrate twin model with database&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TwinDatabaseManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="TwinDatabaseIntegration.db_manager">
+<a class="viewcode-back" href="../../api/database/integration/index.html#database.TwinDatabaseIntegration.db_manager">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span> <span class="o">=</span> <span class="n">db_manager</span> <span class="ow">or</span> <span class="n">TwinDatabaseManager</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TwinDatabaseIntegration.run_simulation_to_db">
+<a class="viewcode-back" href="../../api/database/integration/index.html#database.TwinDatabaseIntegration.run_simulation_to_db">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_simulation_to_db</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;experiment&quot;</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="n">days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">parent_run_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run simulation and store results in database&quot;&quot;&quot;</span>
+
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="c1"># Get versions</span>
+        <span class="n">ontology_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_ontology_version</span><span class="p">()</span>
+        <span class="n">manifest_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_manifest_version</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="c1"># Create run record</span>
+            <span class="n">run_repo</span> <span class="o">=</span> <span class="n">TwinRunRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="n">run_repo</span><span class="o">.</span><span class="n">create_run</span><span class="p">(</span>
+                <span class="n">run_type</span><span class="o">=</span><span class="n">run_type</span><span class="p">,</span>
+                <span class="n">ontology_version</span><span class="o">=</span><span class="n">ontology_version</span><span class="p">,</span>
+                <span class="n">manifest_version</span><span class="o">=</span><span class="n">manifest_version</span><span class="p">,</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                <span class="n">parent_run_id</span><span class="o">=</span><span class="n">parent_run_id</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Update status to running</span>
+                <span class="n">run_repo</span><span class="o">.</span><span class="n">update_run_status</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="s2">&quot;running&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Build and run model</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+                <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span>
+                    <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">ontology_path</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">manifest_dir</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+                <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+                <span class="c1"># Run simulation</span>
+                <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="n">days</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+                <span class="c1"># Collect observables</span>
+                <span class="n">all_observables</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">primitive_id</span><span class="p">,</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">builder</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s2">&quot;observables&quot;</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">primitive</span><span class="o">.</span><span class="n">observables</span><span class="p">:</span>
+                            <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">primitive_id</span>
+                            <span class="n">obs</span><span class="p">[</span><span class="s2">&quot;primitive_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">primitive</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+                            <span class="n">all_observables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+
+                <span class="c1"># Transduce to MES format</span>
+                <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">()</span>
+                <span class="n">mes_df</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">process_observables</span><span class="p">(</span><span class="n">all_observables</span><span class="p">,</span> <span class="n">builder</span><span class="o">.</span><span class="n">manifests</span><span class="p">)</span>
+
+                <span class="c1"># Store simulation data</span>
+                <span class="n">sim_repo</span> <span class="o">=</span> <span class="n">SimulationDataRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+                <span class="n">sim_repo</span><span class="o">.</span><span class="n">store_simulation_data</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="n">mes_df</span><span class="p">)</span>
+
+                <span class="c1"># Calculate KPIs</span>
+                <span class="n">kpi_summary</span> <span class="o">=</span> <span class="n">sim_repo</span><span class="o">.</span><span class="n">calculate_kpi_snapshot</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">)</span>
+
+                <span class="c1"># Create KPI snapshot</span>
+                <span class="n">kpi_repo</span> <span class="o">=</span> <span class="n">KPIRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+                <span class="n">kpi_repo</span><span class="o">.</span><span class="n">create_kpi_snapshot</span><span class="p">(</span>
+                    <span class="n">run_id</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>
+                    <span class="n">entity_type</span><span class="o">=</span><span class="s2">&quot;overall&quot;</span><span class="p">,</span>
+                    <span class="n">entity_id</span><span class="o">=</span><span class="s2">&quot;LINE1&quot;</span><span class="p">,</span>
+                    <span class="n">kpis</span><span class="o">=</span><span class="n">kpi_summary</span><span class="p">,</span>
+                    <span class="n">period_start</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                    <span class="n">period_end</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Update run as completed</span>
+                <span class="n">run_repo</span><span class="o">.</span><span class="n">update_run_status</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="s2">&quot;completed&quot;</span><span class="p">,</span> <span class="n">kpi_summary</span><span class="p">)</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Simulation complete: </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Mean OEE: </span><span class="si">{</span><span class="n">kpi_summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Good Units: </span><span class="si">{</span><span class="n">kpi_summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;total_good_units&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">run</span><span class="o">.</span><span class="n">run_id</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">run_repo</span><span class="o">.</span><span class="n">update_run_status</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="s2">&quot;failed&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">e</span></div>
+
+
+<div class="viewcode-block" id="TwinDatabaseIntegration.run_experiment">
+<a class="viewcode-back" href="../../api/database/integration/index.html#database.TwinDatabaseIntegration.run_experiment">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_experiment</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hypothesis</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parameter_changes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_runs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run an experiment with parameter changes&quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="c1"># Get baseline run</span>
+            <span class="n">run_repo</span> <span class="o">=</span> <span class="n">TwinRunRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            <span class="n">baseline</span> <span class="o">=</span> <span class="n">run_repo</span><span class="o">.</span><span class="n">get_baseline_run</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">baseline</span><span class="p">:</span>
+                <span class="c1"># Create baseline first</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating baseline run...&quot;</span><span class="p">)</span>
+                <span class="n">baseline_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation_to_db</span><span class="p">(</span><span class="n">run_type</span><span class="o">=</span><span class="s2">&quot;baseline&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">)</span>
+                <span class="n">baseline</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TwinRun</span><span class="p">,</span> <span class="n">baseline_id</span><span class="p">)</span>
+
+            <span class="c1"># Create experiment</span>
+            <span class="n">exp_repo</span> <span class="o">=</span> <span class="n">ExperimentRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            <span class="n">experiment</span> <span class="o">=</span> <span class="n">exp_repo</span><span class="o">.</span><span class="n">create_experiment</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">hypothesis</span><span class="o">=</span><span class="n">hypothesis</span><span class="p">,</span>
+                <span class="n">baseline_run_id</span><span class="o">=</span><span class="n">baseline</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>  <span class="c1"># type: ignore[union-attr]</span>
+                <span class="n">parameter_changes</span><span class="o">=</span><span class="n">parameter_changes</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Created experiment: </span><span class="si">{</span><span class="n">experiment</span><span class="o">.</span><span class="n">experiment_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Run test simulations</span>
+            <span class="n">test_run_ids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_runs</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running test </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">num_runs</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Apply parameter changes</span>
+                <span class="n">test_params</span> <span class="o">=</span> <span class="n">parameter_changes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">base_seed</span> <span class="o">=</span> <span class="n">_db_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;testing&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;base_seed&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+                <span class="n">test_params</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_seed</span> <span class="o">+</span> <span class="n">i</span>  <span class="c1"># Different seeds from config</span>
+
+                <span class="n">run_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation_to_db</span><span class="p">(</span>
+                    <span class="n">run_type</span><span class="o">=</span><span class="s2">&quot;experiment&quot;</span><span class="p">,</span>
+                    <span class="n">parameters</span><span class="o">=</span><span class="n">test_params</span><span class="p">,</span>
+                    <span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">,</span>
+                    <span class="n">parent_run_id</span><span class="o">=</span><span class="n">baseline</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>  <span class="c1"># type: ignore[union-attr]</span>
+                <span class="p">)</span>
+
+                <span class="n">test_run_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span>
+                <span class="n">exp_repo</span><span class="o">.</span><span class="n">add_test_run</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">experiment_id</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+
+            <span class="c1"># Analyze results</span>
+            <span class="n">results_summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analyze_experiment_results</span><span class="p">(</span>
+                <span class="n">session</span><span class="p">,</span>
+                <span class="n">baseline</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>  <span class="c1"># type: ignore[union-attr]</span>
+                <span class="n">test_run_ids</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Complete experiment</span>
+            <span class="n">conclusion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_conclusion</span><span class="p">(</span><span class="n">results_summary</span><span class="p">)</span>
+            <span class="n">exp_repo</span><span class="o">.</span><span class="n">complete_experiment</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">experiment_id</span><span class="p">,</span> <span class="n">results_summary</span><span class="p">,</span> <span class="n">conclusion</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Experiment complete: </span><span class="si">{</span><span class="n">experiment</span><span class="o">.</span><span class="n">experiment_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Conclusion: </span><span class="si">{</span><span class="n">conclusion</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">experiment</span><span class="o">.</span><span class="n">experiment_id</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_experiment_results</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">:</span> <span class="n">Session</span><span class="p">,</span> <span class="n">baseline_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">test_run_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analyze experiment results&quot;&quot;&quot;</span>
+
+        <span class="n">kpi_repo</span> <span class="o">=</span> <span class="n">KPIRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+        <span class="n">comparisons</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">test_id</span> <span class="ow">in</span> <span class="n">test_run_ids</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">comparison</span> <span class="o">=</span> <span class="n">kpi_repo</span><span class="o">.</span><span class="n">create_comparison</span><span class="p">(</span><span class="n">baseline_id</span><span class="p">,</span> <span class="n">test_id</span><span class="p">)</span>
+                <span class="n">comparisons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;run_id&quot;</span><span class="p">:</span> <span class="n">test_id</span><span class="p">,</span>
+                        <span class="s2">&quot;oee_delta&quot;</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">oee_delta</span><span class="p">,</span>
+                        <span class="s2">&quot;production_delta&quot;</span><span class="p">:</span> <span class="n">comparison</span><span class="o">.</span><span class="n">production_delta</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not compare </span><span class="si">{</span><span class="n">test_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Calculate average improvements</span>
+        <span class="k">if</span> <span class="n">comparisons</span><span class="p">:</span>
+            <span class="n">avg_oee_delta</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">&quot;oee_delta&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comparisons</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">comparisons</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
+            <span class="n">avg_production_delta</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">&quot;production_delta&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">comparisons</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">comparisons</span><span class="p">)</span>  <span class="c1"># type: ignore[misc]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">avg_oee_delta</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">avg_production_delta</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;num_runs&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_run_ids</span><span class="p">),</span>
+            <span class="s2">&quot;comparisons&quot;</span><span class="p">:</span> <span class="n">comparisons</span><span class="p">,</span>
+            <span class="s2">&quot;avg_oee_delta&quot;</span><span class="p">:</span> <span class="n">avg_oee_delta</span><span class="p">,</span>
+            <span class="s2">&quot;avg_production_delta&quot;</span><span class="p">:</span> <span class="n">avg_production_delta</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_conclusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate conclusion from experiment results&quot;&quot;&quot;</span>
+
+        <span class="n">oee_delta</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;avg_oee_delta&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">production_delta</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;avg_production_delta&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">oee_delta</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Significant improvement: +</span><span class="si">{</span><span class="n">oee_delta</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% OEE, +</span><span class="si">{</span><span class="n">production_delta</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> units&quot;</span>
+        <span class="k">elif</span> <span class="n">oee_delta</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Minor improvement: +</span><span class="si">{</span><span class="n">oee_delta</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% OEE, +</span><span class="si">{</span><span class="n">production_delta</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> units&quot;</span>
+        <span class="k">elif</span> <span class="n">oee_delta</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Significant degradation: </span><span class="si">{</span><span class="n">oee_delta</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% OEE, </span><span class="si">{</span><span class="n">production_delta</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> units&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;No significant change: </span><span class="si">{</span><span class="n">oee_delta</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% OEE, </span><span class="si">{</span><span class="n">production_delta</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> units&quot;</span>
+
+<div class="viewcode-block" id="TwinDatabaseIntegration.discover_patterns">
+<a class="viewcode-back" href="../../api/database/integration/index.html#database.TwinDatabaseIntegration.discover_patterns">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">discover_patterns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">DiscoveredPattern</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Discover patterns from completed experiments&quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="c1"># Query completed experiments</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Experiment</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Experiment</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;completed&quot;</span><span class="p">)</span>
+            <span class="n">experiments</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+            <span class="n">patterns</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">pattern_repo</span> <span class="o">=</span> <span class="n">PatternRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+
+            <span class="c1"># Analyze each experiment for patterns</span>
+            <span class="k">for</span> <span class="n">exp</span> <span class="ow">in</span> <span class="n">experiments</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">exp</span><span class="o">.</span><span class="n">results_summary_json</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">results</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">exp</span><span class="o">.</span><span class="n">results_summary_json</span><span class="p">)</span>
+
+                <span class="c1"># Look for significant improvements</span>
+                <span class="k">if</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;avg_oee_delta&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="n">pattern</span> <span class="o">=</span> <span class="n">pattern_repo</span><span class="o">.</span><span class="n">create_pattern</span><span class="p">(</span>
+                        <span class="n">pattern_type</span><span class="o">=</span><span class="s2">&quot;correlation&quot;</span><span class="p">,</span>
+                        <span class="n">pattern_name</span><span class="o">=</span><span class="s2">&quot;Parameter set improves OEE&quot;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Parameters from </span><span class="si">{</span><span class="n">exp</span><span class="o">.</span><span class="n">experiment_name</span><span class="si">}</span><span class="s2"> improve OEE by </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;avg_oee_delta&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">,</span>
+                        <span class="n">evidence</span><span class="o">=</span><span class="n">results</span><span class="p">,</span>
+                        <span class="n">experiment_ids</span><span class="o">=</span><span class="p">[</span><span class="n">exp</span><span class="o">.</span><span class="n">experiment_id</span><span class="p">],</span>
+                        <span class="n">confidence_score</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="s2">&quot;avg_oee_delta&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">10</span><span class="p">),</span>
+                    <span class="p">)</span>
+                    <span class="n">patterns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Discovered </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">patterns</span><span class="p">)</span><span class="si">}</span><span class="s2"> patterns&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">patterns</span></div>
+
+
+<div class="viewcode-block" id="TwinDatabaseIntegration.generate_recommendations">
+<a class="viewcode-back" href="../../api/database/integration/index.html#database.TwinDatabaseIntegration.generate_recommendations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_recommendations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ParameterRecommendation</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate recommendations from discovered patterns&quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="c1"># Get validated patterns</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DiscoveredPattern</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DiscoveredPattern</span><span class="o">.</span><span class="n">confidence_score</span> <span class="o">&gt;=</span> <span class="mf">0.7</span><span class="p">)</span>
+            <span class="n">patterns</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+            <span class="n">recommendations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">rec_repo</span> <span class="o">=</span> <span class="n">RecommendationRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">:</span>
+                <span class="c1"># Generate recommendation from pattern</span>
+                <span class="n">evidence</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">pattern</span><span class="o">.</span><span class="n">evidence_json</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">evidence</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;avg_oee_delta&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># Extract experiment to get parameters</span>
+                    <span class="n">exp_id</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">pattern</span><span class="o">.</span><span class="n">experiment_ids_json</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">experiment</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Experiment</span><span class="p">,</span> <span class="n">exp_id</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">experiment</span><span class="p">:</span>
+                        <span class="n">parameters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">parameter_changes_json</span><span class="p">)</span>
+
+                        <span class="n">recommendation</span> <span class="o">=</span> <span class="n">rec_repo</span><span class="o">.</span><span class="n">create_recommendation</span><span class="p">(</span>
+                            <span class="n">pattern_id</span><span class="o">=</span><span class="n">pattern</span><span class="o">.</span><span class="n">pattern_id</span><span class="p">,</span>
+                            <span class="n">recommendation_type</span><span class="o">=</span><span class="s2">&quot;efficiency&quot;</span><span class="p">,</span>
+                            <span class="n">parameter_adjustments</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                            <span class="n">expected_improvement</span><span class="o">=</span><span class="p">{</span>
+                                <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="n">evidence</span><span class="p">[</span><span class="s2">&quot;avg_oee_delta&quot;</span><span class="p">],</span>
+                                <span class="s2">&quot;production&quot;</span><span class="p">:</span> <span class="n">evidence</span><span class="p">[</span><span class="s2">&quot;avg_production_delta&quot;</span><span class="p">],</span>
+                            <span class="p">},</span>
+                            <span class="n">confidence</span><span class="o">=</span><span class="n">pattern</span><span class="o">.</span><span class="n">confidence_score</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">recommendations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recommendation</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">recommendations</span><span class="p">)</span><span class="si">}</span><span class="s2"> recommendations&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">recommendations</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

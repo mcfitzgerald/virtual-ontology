@@ -1,0 +1,1399 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.primitives.base &mdash; Virtual Ontology Twin Model 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="twin_model.primitives.buffer" href="../buffer/index.html" />
+    <link rel="prev" title="twin_model.primitives" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Virtual Ontology Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cache/index.html">cache</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">twin_model</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../config/index.html">twin_model.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../logging_config/index.html">twin_model.logging_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../model_builder/index.html">twin_model.model_builder</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">twin_model.primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../state_manager/index.html">twin_model.state_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transduction/index.html">twin_model.transduction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../config_loader/index.html">config_loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../primitives.html">Simulation Primitives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ontology_driven.html">Ontology-Driven Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">Usage Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cache/index.html">cache</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">twin_model</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../config/index.html">twin_model.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../logging_config/index.html">twin_model.logging_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../model_builder/index.html">twin_model.model_builder</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">twin_model.primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../state_manager/index.html">twin_model.state_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transduction/index.html">twin_model.transduction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../config_loader/index.html">config_loader</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Virtual Ontology Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">twin_model</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">twin_model.primitives</a></li>
+      <li class="breadcrumb-item active">twin_model.primitives.base</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/api/twin_model/primitives/base/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin_model.primitives.base">
+<span id="twin-model-primitives-base"></span><h1>twin_model.primitives.base<a class="headerlink" href="#module-twin_model.primitives.base" title="Link to this heading"></a></h1>
+<p>Base primitive class for SimPy-based building blocks.</p>
+<p>This module defines the foundational primitive that all other primitives
+extend. It provides core functionality for observable emission and
+configuration management.</p>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.base.logger" title="twin_model.primitives.base.logger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logger</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.base.PrimitiveConfig" title="twin_model.primitives.base.PrimitiveConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PrimitiveConfig</span></code></a></p></td>
+<td><p>Configuration for a primitive instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin_model.primitives.base.SimulationMode" title="twin_model.primitives.base.SimulationMode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationMode</span></code></a></p></td>
+<td><p>Simulation data collection modes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.base.SamplingConfig" title="twin_model.primitives.base.SamplingConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SamplingConfig</span></code></a></p></td>
+<td><p>Configuration for observable sampling and performance optimization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin_model.primitives.base.ObservableBuffer" title="twin_model.primitives.base.ObservableBuffer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ObservableBuffer</span></code></a></p></td>
+<td><p>Circular buffer for observables with automatic memory management.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.base.EventBatcher" title="twin_model.primitives.base.EventBatcher"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EventBatcher</span></code></a></p></td>
+<td><p>Batch similar events for efficient processing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin_model.primitives.base.IncrementalAggregator" title="twin_model.primitives.base.IncrementalAggregator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IncrementalAggregator</span></code></a></p></td>
+<td><p>Incremental statistics aggregator for time-windowed metrics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.base.MetricAggregator" title="twin_model.primitives.base.MetricAggregator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MetricAggregator</span></code></a></p></td>
+<td><p>Single metric aggregator using Welford's algorithm.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin_model.primitives.base.ProgressCallback" title="twin_model.primitives.base.ProgressCallback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProgressCallback</span></code></a></p></td>
+<td><p>Abstract base class for progress reporting.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.base.ConsoleProgressReporter" title="twin_model.primitives.base.ConsoleProgressReporter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConsoleProgressReporter</span></code></a></p></td>
+<td><p>Console-based progress reporter with configurable intervals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin_model.primitives.base.SimulationMonitor" title="twin_model.primitives.base.SimulationMonitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationMonitor</span></code></a></p></td>
+<td><p>Monitor simulation health and performance metrics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.base.BasePrimitive" title="twin_model.primitives.base.BasePrimitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BasePrimitive</span></code></a></p></td>
+<td><p>Base class for all SimPy primitives.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="twin_model.primitives.base.logger">
+<span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.logger" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">PrimitiveConfig</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig" title="Link to this definition"></a></dt>
+<dd><p>Configuration for a primitive instance.</p>
+<p>This dataclass holds all configuration values loaded from manifests,
+providing a clean separation between structure (ontology) and
+values (manifests).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig.id" title="Link to this definition"></a></dt>
+<dd><p>Unique identifier for this primitive instance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig.type" title="Link to this definition"></a></dt>
+<dd><p>Type of primitive (Equipment, Buffer, Source, etc.)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig.properties" title="Link to this definition"></a></dt>
+<dd><p>Type-checked properties from manifest</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig.relationships">
+<span class="sig-name descname"><span class="pre">relationships</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.relationships"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig.relationships" title="Link to this definition"></a></dt>
+<dd><p>Dict of relationship type to related primitive IDs</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig.metadata" title="Link to this definition"></a></dt>
+<dd><p>Additional context for debugging and analysis</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">relationships</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.relationships"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig.get_property">
+<span class="sig-name descname"><span class="pre">get_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.get_property"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig.get_property" title="Link to this definition"></a></dt>
+<dd><p>Get a property value with optional default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Property name to retrieve</p></li>
+<li><p><strong>default</strong> (<em>Any</em>) – Value to return if property not found</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Property value or default</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.PrimitiveConfig.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#PrimitiveConfig.validate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.PrimitiveConfig.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate configuration against expected schema.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If required properties are missing or invalid</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMode">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">SimulationMode</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<p>Simulation data collection modes.</p>
+<dl class="simple">
+<dt>Modes:</dt><dd><p>DETAILED: Full observables, every event recorded
+PRODUCTION: Sampled data at configurable intervals
+FAST: Minimal logging, critical events and KPIs only</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMode.DETAILED">
+<span class="sig-name descname"><span class="pre">DETAILED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'detailed'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMode.DETAILED"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMode.DETAILED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMode.PRODUCTION">
+<span class="sig-name descname"><span class="pre">PRODUCTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'production'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMode.PRODUCTION"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMode.PRODUCTION" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMode.FAST">
+<span class="sig-name descname"><span class="pre">FAST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'fast'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMode.FAST"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMode.FAST" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">SamplingConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">SimulationMode.PRODUCTION</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_global_observables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig" title="Link to this definition"></a></dt>
+<dd><p>Configuration for observable sampling and performance optimization.</p>
+<p>This class controls how events are collected and stored during simulation,
+providing trade-offs between data completeness and performance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<a class="reference internal" href="#twin_model.primitives.base.SimulationMode" title="twin_model.primitives.base.SimulationMode"><em>SimulationMode</em></a>)</p></li>
+<li><p><strong>sampling_rate</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>aggregation_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+<li><p><strong>buffer_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>enable_global_observables</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.mode" title="Link to this definition"></a></dt>
+<dd><p>Simulation mode controlling data collection strategy</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.sampling_rate">
+<span class="sig-name descname"><span class="pre">sampling_rate</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.sampling_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.sampling_rate" title="Link to this definition"></a></dt>
+<dd><p>Record every Nth event (1 = all events)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.aggregation_interval">
+<span class="sig-name descname"><span class="pre">aggregation_interval</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.aggregation_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.aggregation_interval" title="Link to this definition"></a></dt>
+<dd><p>Time window for aggregating metrics (minutes)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.critical_events">
+<span class="sig-name descname"><span class="pre">critical_events</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.critical_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.critical_events" title="Link to this definition"></a></dt>
+<dd><p>Event types that bypass sampling (always recorded)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.buffer_size">
+<span class="sig-name descname"><span class="pre">buffer_size</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.buffer_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.buffer_size" title="Link to this definition"></a></dt>
+<dd><p>Maximum events to keep in memory per primitive</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.enable_global_observables">
+<span class="sig-name descname"><span class="pre">enable_global_observables</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.enable_global_observables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.enable_global_observables" title="Link to this definition"></a></dt>
+<dd><p>Whether to emit to global event bus</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">mode</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">sampling_rate</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.sampling_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">aggregation_interval</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.aggregation_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">buffer_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.buffer_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">enable_global_observables</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.enable_global_observables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">critical_events</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.critical_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.event_counter">
+<span class="sig-name descname"><span class="pre">event_counter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.event_counter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.event_counter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SamplingConfig.should_record_event">
+<span class="sig-name descname"><span class="pre">should_record_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_critical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SamplingConfig.should_record_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SamplingConfig.should_record_event" title="Link to this definition"></a></dt>
+<dd><p>Determine if an event should be recorded based on sampling config.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Type of event being emitted</p></li>
+<li><p><strong>is_critical</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Override flag to mark event as critical</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if event should be recorded, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">ObservableBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flush_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer" title="Link to this definition"></a></dt>
+<dd><p>Circular buffer for observables with automatic memory management.</p>
+<p>Uses collections.deque with maxlen for efficient circular buffer behavior.
+When the buffer is full, oldest events are automatically discarded.
+Optionally supports flushing to external storage via callback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>buffer_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>flush_callback</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><em>List</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>None</em><em>]</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.buffer">
+<span class="sig-name descname"><span class="pre">buffer</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.buffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.buffer" title="Link to this definition"></a></dt>
+<dd><p>Deque with maximum length for circular behavior</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.buffer_size">
+<span class="sig-name descname"><span class="pre">buffer_size</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.buffer_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.buffer_size" title="Link to this definition"></a></dt>
+<dd><p>Maximum number of events to keep in memory</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.flush_callback">
+<span class="sig-name descname"><span class="pre">flush_callback</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.flush_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.flush_callback" title="Link to this definition"></a></dt>
+<dd><p>Optional callback for persisting data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.total_events">
+<span class="sig-name descname"><span class="pre">total_events</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.total_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.total_events" title="Link to this definition"></a></dt>
+<dd><p>Counter of all events seen (including discarded)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.discarded_events">
+<span class="sig-name descname"><span class="pre">discarded_events</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.discarded_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.discarded_events" title="Link to this definition"></a></dt>
+<dd><p>Counter of events dropped due to buffer overflow</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">buffer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Deque</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.buffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">buffer_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.buffer_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">flush_callback</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.flush_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">total_events</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.total_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">discarded_events</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.discarded_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id15" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.append"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.append" title="Link to this definition"></a></dt>
+<dd><p>Add event to buffer, potentially discarding oldest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – Event dictionary to add to buffer</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.flush"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.flush" title="Link to this definition"></a></dt>
+<dd><p>Flush buffer contents and optionally persist via callback.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of flushed events</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.get_recent">
+<span class="sig-name descname"><span class="pre">get_recent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.get_recent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.get_recent" title="Link to this definition"></a></dt>
+<dd><p>Get n most recent events without removing them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of recent events to retrieve</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of n most recent events (or all if fewer than n)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ObservableBuffer.get_stats">
+<span class="sig-name descname"><span class="pre">get_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ObservableBuffer.get_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ObservableBuffer.get_stats" title="Link to this definition"></a></dt>
+<dd><p>Get buffer statistics for monitoring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with buffer statistics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">EventBatcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher" title="Link to this definition"></a></dt>
+<dd><p>Batch similar events for efficient processing.</p>
+<p>Groups events by type and time window to reduce individual callbacks
+and improve performance. This reduces the overhead of processing
+each event individually, especially useful for high-frequency events.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+<li><p><strong>batch_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher.batch_window">
+<span class="sig-name descname"><span class="pre">batch_window</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.batch_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher.batch_window" title="Link to this definition"></a></dt>
+<dd><p>Time window for batching (simulation minutes)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher.batch_size">
+<span class="sig-name descname"><span class="pre">batch_size</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.batch_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher.batch_size" title="Link to this definition"></a></dt>
+<dd><p>Maximum events per batch before forcing flush</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher.pending_batches">
+<span class="sig-name descname"><span class="pre">pending_batches</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.pending_batches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher.pending_batches" title="Link to this definition"></a></dt>
+<dd><p>Dict of pending event batches by type and window</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher.current_window">
+<span class="sig-name descname"><span class="pre">current_window</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.current_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher.current_window" title="Link to this definition"></a></dt>
+<dd><p>Current time window being processed</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id16">
+<span class="sig-name descname"><span class="pre">batch_window</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.batch_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id16" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">batch_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.batch_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">pending_batches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DefaultDict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.pending_batches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id18" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id19">
+<span class="sig-name descname"><span class="pre">current_window</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.current_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id19" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher.add_event">
+<span class="sig-name descname"><span class="pre">add_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.add_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher.add_event" title="Link to this definition"></a></dt>
+<dd><p>Add event to batch, return batch if ready.</p>
+<p>Groups events by type and time window. Returns completed batches
+when either the window changes or batch size is exceeded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – Event data to batch</p></li>
+<li><p><strong>timestamp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current simulation time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Completed batch if ready, None otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher.flush_all">
+<span class="sig-name descname"><span class="pre">flush_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.flush_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher.flush_all" title="Link to this definition"></a></dt>
+<dd><p>Force flush all pending batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of all flushed batches</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.EventBatcher.get_stats">
+<span class="sig-name descname"><span class="pre">get_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#EventBatcher.get_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.EventBatcher.get_stats" title="Link to this definition"></a></dt>
+<dd><p>Get batcher statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with batching statistics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">IncrementalAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator" title="Link to this definition"></a></dt>
+<dd><p>Incremental statistics aggregator for time-windowed metrics.</p>
+<p>Efficiently computes running statistics without storing all data points.
+Uses Welford’s algorithm for numerically stable variance calculation.
+This allows for constant memory usage regardless of data size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>window_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator.window_size">
+<span class="sig-name descname"><span class="pre">window_size</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.window_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator.window_size" title="Link to this definition"></a></dt>
+<dd><p>Time window for aggregation (simulation minutes)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator.metrics">
+<span class="sig-name descname"><span class="pre">metrics</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator.metrics" title="Link to this definition"></a></dt>
+<dd><p>Dict of metric aggregators by name</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator.current_window_start">
+<span class="sig-name descname"><span class="pre">current_window_start</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.current_window_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator.current_window_start" title="Link to this definition"></a></dt>
+<dd><p>Start time of current aggregation window</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id20">
+<span class="sig-name descname"><span class="pre">window_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.window_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id20" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id21">
+<span class="sig-name descname"><span class="pre">metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#twin_model.primitives.base.MetricAggregator" title="twin_model.primitives.base.MetricAggregator"><span class="pre">MetricAggregator</span></a><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id21" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id22">
+<span class="sig-name descname"><span class="pre">current_window_start</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.current_window_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id22" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator.completed_windows">
+<span class="sig-name descname"><span class="pre">completed_windows</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.completed_windows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator.completed_windows" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator.add_value">
+<span class="sig-name descname"><span class="pre">add_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.add_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator.add_value" title="Link to this definition"></a></dt>
+<dd><p>Add value to aggregator, return window summary if complete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Name of the metric being tracked</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Numeric value to add</p></li>
+<li><p><strong>timestamp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current simulation time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Completed window statistics if window finished, None otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator.get_current_stats">
+<span class="sig-name descname"><span class="pre">get_current_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.get_current_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator.get_current_stats" title="Link to this definition"></a></dt>
+<dd><p>Get statistics for current incomplete window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current window statistics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.IncrementalAggregator.get_history">
+<span class="sig-name descname"><span class="pre">get_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#IncrementalAggregator.get_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.IncrementalAggregator.get_history" title="Link to this definition"></a></dt>
+<dd><p>Get last n completed windows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of windows to retrieve</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of completed window summaries</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">MetricAggregator</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator" title="Link to this definition"></a></dt>
+<dd><p>Single metric aggregator using Welford’s algorithm.</p>
+<p>Computes mean, variance, min, max incrementally without storing values.
+This provides O(1) memory usage and numerically stable calculations.</p>
+<p>Reference: Welford, B. P. (1962). “Note on a method for calculating
+corrected sums of squares and products”. Technometrics. 4 (3): 419–420.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.count">
+<span class="sig-name descname"><span class="pre">count</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.count" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.mean">
+<span class="sig-name descname"><span class="pre">mean</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.mean" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.m2">
+<span class="sig-name descname"><span class="pre">m2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.m2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.m2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.min_value">
+<span class="sig-name descname"><span class="pre">min_value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.min_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.min_value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.max_value">
+<span class="sig-name descname"><span class="pre">max_value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.max_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.max_value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.add" title="Link to this definition"></a></dt>
+<dd><p>Add value using Welford’s online algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Numeric value to add to aggregation</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.get_stats">
+<span class="sig-name descname"><span class="pre">get_stats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.get_stats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.get_stats" title="Link to this definition"></a></dt>
+<dd><p>Get current aggregated statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with count, mean, variance, stddev, min, max</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.MetricAggregator.merge">
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#MetricAggregator.merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.MetricAggregator.merge" title="Link to this definition"></a></dt>
+<dd><p>Merge another aggregator into this one.</p>
+<p>Uses parallel algorithm for combining statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#twin_model.primitives.base.MetricAggregator" title="twin_model.primitives.base.MetricAggregator"><em>MetricAggregator</em></a>) – Another MetricAggregator to merge</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ProgressCallback">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">ProgressCallback</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ProgressCallback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ProgressCallback" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract base class for progress reporting.</p>
+<p>Implement this class to create custom progress reporters
+for long-running simulations. Callbacks are invoked periodically
+during simulation execution.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ProgressCallback.__call__">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_processed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_usage_mb</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ProgressCallback.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ProgressCallback.__call__" title="Link to this definition"></a></dt>
+<dd><p>Report simulation progress.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>current_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current simulation time</p></li>
+<li><p><strong>total_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Total simulation duration</p></li>
+<li><p><strong>events_processed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of events processed so far</p></li>
+<li><p><strong>memory_usage_mb</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current memory usage in MB</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional metrics (e.g., cache_size, db_inserts)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ConsoleProgressReporter">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">ConsoleProgressReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ConsoleProgressReporter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#twin_model.primitives.base.ProgressCallback" title="twin_model.primitives.base.ProgressCallback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProgressCallback</span></code></a></p>
+<p>Console-based progress reporter with configurable intervals.</p>
+<p>Prints progress updates to console showing percentage complete,
+time remaining, memory usage, and event processing rate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>report_interval</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ConsoleProgressReporter.report_interval">
+<span class="sig-name descname"><span class="pre">report_interval</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.report_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ConsoleProgressReporter.report_interval" title="Link to this definition"></a></dt>
+<dd><p>Seconds between progress reports</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ConsoleProgressReporter.last_report_time">
+<span class="sig-name descname"><span class="pre">last_report_time</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.last_report_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ConsoleProgressReporter.last_report_time" title="Link to this definition"></a></dt>
+<dd><p>Last time progress was reported</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ConsoleProgressReporter.start_time">
+<span class="sig-name descname"><span class="pre">start_time</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ConsoleProgressReporter.start_time" title="Link to this definition"></a></dt>
+<dd><p>Real-world start time of simulation</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id23">
+<span class="sig-name descname"><span class="pre">report_interval</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.report_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id23" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id24">
+<span class="sig-name descname"><span class="pre">last_report_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.last_report_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id24" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id25">
+<span class="sig-name descname"><span class="pre">start_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id25" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ConsoleProgressReporter.last_events">
+<span class="sig-name descname"><span class="pre">last_events</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.last_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ConsoleProgressReporter.last_events" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.ConsoleProgressReporter.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">events_processed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_usage_mb</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#ConsoleProgressReporter.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.ConsoleProgressReporter.__call__" title="Link to this definition"></a></dt>
+<dd><p>Report progress to console.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>current_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current simulation time</p></li>
+<li><p><strong>total_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Total simulation duration</p></li>
+<li><p><strong>events_processed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of events processed</p></li>
+<li><p><strong>memory_usage_mb</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Current memory usage</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional metrics</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">SimulationMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_threshold_mb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_rate_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor" title="Link to this definition"></a></dt>
+<dd><p>Monitor simulation health and performance metrics.</p>
+<p>Tracks memory usage, event rates, and simulation performance
+to detect issues and provide diagnostics during execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>simpy.Environment</em>)</p></li>
+<li><p><strong>memory_threshold_mb</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>event_rate_threshold</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>check_interval</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor.env">
+<span class="sig-name descname"><span class="pre">env</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor.env" title="Link to this definition"></a></dt>
+<dd><p>SimPy environment</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor.memory_threshold_mb">
+<span class="sig-name descname"><span class="pre">memory_threshold_mb</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.memory_threshold_mb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor.memory_threshold_mb" title="Link to this definition"></a></dt>
+<dd><p>Memory warning threshold</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor.event_rate_threshold">
+<span class="sig-name descname"><span class="pre">event_rate_threshold</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.event_rate_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor.event_rate_threshold" title="Link to this definition"></a></dt>
+<dd><p>Minimum acceptable event rate</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor.check_interval">
+<span class="sig-name descname"><span class="pre">check_interval</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.check_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor.check_interval" title="Link to this definition"></a></dt>
+<dd><p>Minutes between health checks</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor.metrics">
+<span class="sig-name descname"><span class="pre">metrics</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor.metrics" title="Link to this definition"></a></dt>
+<dd><p>Performance metrics dictionary</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id26">
+<span class="sig-name descname"><span class="pre">env</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id26" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id27">
+<span class="sig-name descname"><span class="pre">memory_threshold_mb</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.memory_threshold_mb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id27" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id28">
+<span class="sig-name descname"><span class="pre">event_rate_threshold</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.event_rate_threshold"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id28" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id29">
+<span class="sig-name descname"><span class="pre">check_interval</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.check_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id29" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id30">
+<span class="sig-name descname"><span class="pre">metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id30" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor.record_event">
+<span class="sig-name descname"><span class="pre">record_event</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.record_event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor.record_event" title="Link to this definition"></a></dt>
+<dd><p>Record that an event was processed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.SimulationMonitor.get_metrics">
+<span class="sig-name descname"><span class="pre">get_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#SimulationMonitor.get_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.SimulationMonitor.get_metrics" title="Link to this definition"></a></dt>
+<dd><p>Get current monitoring metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of performance metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.base.</span></span><span class="sig-name descname"><span class="pre">BasePrimitive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Base class for all SimPy primitives.</p>
+<p>All primitives must emit observables for discovery-based learning.
+This base class provides core functionality for:
+- Observable emission and storage
+- Configuration management
+- SimPy environment integration
+- Common event patterns</p>
+<p>The observable stream is the primary mechanism through which the
+LLM discovers relationships and patterns without prescriptive rules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>simpy.Environment</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#twin_model.primitives.base.PrimitiveConfig" title="twin_model.primitives.base.PrimitiveConfig"><em>PrimitiveConfig</em></a>)</p></li>
+<li><p><strong>sampling_config</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#twin_model.primitives.base.SamplingConfig" title="twin_model.primitives.base.SamplingConfig"><em>SamplingConfig</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.env">
+<span class="sig-name descname"><span class="pre">env</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.env" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.config">
+<span class="sig-name descname"><span class="pre">config</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.logger">
+<span class="sig-name descname"><span class="pre">logger</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.logger" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.sampling_config">
+<span class="sig-name descname"><span class="pre">sampling_config</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.sampling_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.sampling_config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.observable_buffer">
+<span class="sig-name descname"><span class="pre">observable_buffer</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.observable_buffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.observable_buffer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.observables">
+<span class="sig-name descname"><span class="pre">observables</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.observables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.observables" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.process">
+<span class="sig-name descname"><span class="pre">process</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">simpy.Process</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.process" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.is_initialized">
+<span class="sig-name descname"><span class="pre">is_initialized</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.is_initialized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.is_initialized" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.is_running">
+<span class="sig-name descname"><span class="pre">is_running</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.is_running"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.is_running" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.events_emitted">
+<span class="sig-name descname"><span class="pre">events_emitted</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.events_emitted"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.events_emitted" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.events_sampled">
+<span class="sig-name descname"><span class="pre">events_sampled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.events_sampled"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.events_sampled" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.event_batcher">
+<span class="sig-name descname"><span class="pre">event_batcher</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.event_batcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.event_batcher" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.metric_aggregator">
+<span class="sig-name descname"><span class="pre">metric_aggregator</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.metric_aggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.metric_aggregator" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.start">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.start" title="Link to this definition"></a></dt>
+<dd><p>Start the primitive’s processes.</p>
+<p>This method should be called after all primitives are created
+and wired together. It typically starts one or more SimPy
+processes that represent the primitive’s behavior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.emit_observable">
+<span class="sig-name descname"><span class="pre">emit_observable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">details</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_critical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.emit_observable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.emit_observable" title="Link to this definition"></a></dt>
+<dd><p>Emit an observable event with sampling and performance optimization.</p>
+<p>This is the primary mechanism for primitives to communicate
+their state and behavior. Events are now sampled based on
+configuration to prevent memory exhaustion in long simulations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Type of event (state_change, production, failure, etc.)</p></li>
+<li><p><strong>details</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – Event-specific details with rich context</p></li>
+<li><p><strong>severity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Event severity (DEBUG, INFO, WARNING, ERROR, CRITICAL)</p></li>
+<li><p><strong>is_critical</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – Mark event as critical to bypass sampling</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.get_observables">
+<span class="sig-name descname"><span class="pre">get_observables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.get_observables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.get_observables" title="Link to this definition"></a></dt>
+<dd><p>Retrieve observables with optional filtering from circular buffer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_type</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>) – Filter by specific event type</p></li>
+<li><p><strong>start_time</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>) – Filter events after this simulation time</p></li>
+<li><p><strong>end_time</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>) – Filter events before this simulation time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Filtered list of observable events</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.connect_to">
+<span class="sig-name descname"><span class="pre">connect_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relationship_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'feeds_into'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.connect_to"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.connect_to" title="Link to this definition"></a></dt>
+<dd><p>Connect this primitive to another via relationship.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>other</strong> (<a class="reference internal" href="#twin_model.primitives.base.BasePrimitive" title="twin_model.primitives.base.BasePrimitive"><em>BasePrimitive</em></a>) – Target primitive to connect to</p></li>
+<li><p><strong>relationship_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Type of relationship (feeds_into, controls, monitors)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.initialize">
+<span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.initialize" title="Link to this definition"></a></dt>
+<dd><p>Initialize primitive before starting processes.</p>
+<p>Override this method to perform setup that requires all
+primitives to be created first (e.g., wiring relationships).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.shutdown">
+<span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.shutdown" title="Link to this definition"></a></dt>
+<dd><p>Gracefully shutdown the primitive.</p>
+<p>Override this method to perform cleanup when simulation ends.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.emit_metric">
+<span class="sig-name descname"><span class="pre">emit_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.emit_metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.emit_metric" title="Link to this definition"></a></dt>
+<dd><p>Emit a metric value for aggregation.</p>
+<p>This method tracks numeric metrics over time windows using
+incremental statistics. Useful for KPIs like OEE, throughput, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Name of the metric (e.g., “oee”, “throughput”)</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – Numeric value to aggregate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Completed window statistics if window finished, None otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.batch_emit_observable">
+<span class="sig-name descname"><span class="pre">batch_emit_observable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">details</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'INFO'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.batch_emit_observable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.batch_emit_observable" title="Link to this definition"></a></dt>
+<dd><p>Emit observable through batcher for efficient processing.</p>
+<p>Events are grouped by type and time window to reduce processing
+overhead. Use this for high-frequency events that can be processed
+in batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Type of event</p></li>
+<li><p><strong>details</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – Event details</p></li>
+<li><p><strong>severity</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Event severity</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Completed batch if ready, None otherwise</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.process_batches">
+<span class="sig-name descname"><span class="pre">process_batches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.process_batches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.process_batches" title="Link to this definition"></a></dt>
+<dd><p>Process any pending batches.</p>
+<p>Call this periodically to flush pending batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of completed batches</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.get_aggregated_metrics">
+<span class="sig-name descname"><span class="pre">get_aggregated_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.get_aggregated_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.get_aggregated_metrics" title="Link to this definition"></a></dt>
+<dd><p>Get current aggregated metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Current window statistics and history</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.flush_observables">
+<span class="sig-name descname"><span class="pre">flush_observables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.flush_observables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.flush_observables" title="Link to this definition"></a></dt>
+<dd><p>Flush observable buffer and return events.</p>
+<p>This method can be called periodically to persist events to external
+storage and free memory. Useful for long-running simulations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of flushed events</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.get_performance_metrics">
+<span class="sig-name descname"><span class="pre">get_performance_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.get_performance_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.get_performance_metrics" title="Link to this definition"></a></dt>
+<dd><p>Get detailed performance metrics for monitoring.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing performance statistics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.get_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.get_state" title="Link to this definition"></a></dt>
+<dd><p>Get current primitive state including performance metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary describing current primitive state and performance</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.base.BasePrimitive.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/base.html#BasePrimitive.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.base.BasePrimitive.__repr__" title="Link to this definition"></a></dt>
+<dd><p>String representation for debugging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="twin_model.primitives" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../buffer/index.html" class="btn btn-neutral float-right" title="twin_model.primitives.buffer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

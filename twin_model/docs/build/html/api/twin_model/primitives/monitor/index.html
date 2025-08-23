@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.primitives.monitor &mdash; Virtual Ontology Twin Model 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="twin_model.primitives.scheduler" href="../scheduler/index.html" />
+    <link rel="prev" title="twin_model.primitives.equipment" href="../equipment/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Virtual Ontology Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cache/index.html">cache</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">twin_model</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../config/index.html">twin_model.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../logging_config/index.html">twin_model.logging_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../model_builder/index.html">twin_model.model_builder</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">twin_model.primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../state_manager/index.html">twin_model.state_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transduction/index.html">twin_model.transduction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../config_loader/index.html">config_loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../primitives.html">Simulation Primitives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ontology_driven.html">Ontology-Driven Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">Usage Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../../conf/index.html">conf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cache/index.html">cache</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">twin_model</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../config/index.html">twin_model.config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../logging_config/index.html">twin_model.logging_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../model_builder/index.html">twin_model.model_builder</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">twin_model.primitives</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../state_manager/index.html">twin_model.state_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transduction/index.html">twin_model.transduction</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../config_loader/index.html">config_loader</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Virtual Ontology Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">twin_model</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">twin_model.primitives</a></li>
+      <li class="breadcrumb-item active">twin_model.primitives.monitor</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/api/twin_model/primitives/monitor/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-twin_model.primitives.monitor">
+<span id="twin-model-primitives-monitor"></span><h1>twin_model.primitives.monitor<a class="headerlink" href="#module-twin_model.primitives.monitor" title="Link to this heading"></a></h1>
+<p>Monitor primitive for KPI tracking and aggregation.</p>
+<p>This module provides a monitor primitive that tracks key performance indicators,
+aggregates metrics across the system, and provides real-time visibility into
+production performance.</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.monitor.KPIType" title="twin_model.primitives.monitor.KPIType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KPIType</span></code></a></p></td>
+<td><p>Types of KPIs tracked.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#twin_model.primitives.monitor.KPIMetric" title="twin_model.primitives.monitor.KPIMetric"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KPIMetric</span></code></a></p></td>
+<td><p>A KPI metric with history.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#twin_model.primitives.monitor.MonitorPrimitive" title="twin_model.primitives.monitor.MonitorPrimitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MonitorPrimitive</span></code></a></p></td>
+<td><p>Monitor for tracking system-wide KPIs and metrics.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.monitor.</span></span><span class="sig-name descname"><span class="pre">KPIType</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
+<p>Types of KPIs tracked.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.OEE">
+<span class="sig-name descname"><span class="pre">OEE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'OEE'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.OEE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.OEE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.AVAILABILITY">
+<span class="sig-name descname"><span class="pre">AVAILABILITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AVAILABILITY'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.AVAILABILITY"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.AVAILABILITY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.PERFORMANCE">
+<span class="sig-name descname"><span class="pre">PERFORMANCE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PERFORMANCE'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.PERFORMANCE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.PERFORMANCE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.QUALITY">
+<span class="sig-name descname"><span class="pre">QUALITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'QUALITY'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.QUALITY"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.QUALITY" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.THROUGHPUT">
+<span class="sig-name descname"><span class="pre">THROUGHPUT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'THROUGHPUT'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.THROUGHPUT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.THROUGHPUT" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.CYCLE_TIME">
+<span class="sig-name descname"><span class="pre">CYCLE_TIME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CYCLE_TIME'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.CYCLE_TIME"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.CYCLE_TIME" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.LEAD_TIME">
+<span class="sig-name descname"><span class="pre">LEAD_TIME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'LEAD_TIME'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.LEAD_TIME"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.LEAD_TIME" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.SCRAP_RATE">
+<span class="sig-name descname"><span class="pre">SCRAP_RATE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'SCRAP_RATE'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.SCRAP_RATE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.SCRAP_RATE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.ENERGY_CONSUMPTION">
+<span class="sig-name descname"><span class="pre">ENERGY_CONSUMPTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ENERGY_CONSUMPTION'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.ENERGY_CONSUMPTION"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.ENERGY_CONSUMPTION" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.MTBF">
+<span class="sig-name descname"><span class="pre">MTBF</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MTBF'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.MTBF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.MTBF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.MTTR">
+<span class="sig-name descname"><span class="pre">MTTR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'MTTR'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.MTTR"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.MTTR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIType.UTILIZATION">
+<span class="sig-name descname"><span class="pre">UTILIZATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'UTILIZATION'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIType.UTILIZATION"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIType.UTILIZATION" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.monitor.</span></span><span class="sig-name descname"><span class="pre">KPIMetric</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric" title="Link to this definition"></a></dt>
+<dd><p>A KPI metric with history.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.name" title="Link to this definition"></a></dt>
+<dd><p>KPI name</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.type" title="Link to this definition"></a></dt>
+<dd><p>KPI type</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.value" title="Link to this definition"></a></dt>
+<dd><p>Current value</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.target">
+<span class="sig-name descname"><span class="pre">target</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.target"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.target" title="Link to this definition"></a></dt>
+<dd><p>Target value</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.history">
+<span class="sig-name descname"><span class="pre">history</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.history" title="Link to this definition"></a></dt>
+<dd><p>Historical values</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.unit" title="Link to this definition"></a></dt>
+<dd><p>Measurement unit</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.aggregation">
+<span class="sig-name descname"><span class="pre">aggregation</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.aggregation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.aggregation" title="Link to this definition"></a></dt>
+<dd><p>How to aggregate (avg, sum, max, min)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#twin_model.primitives.monitor.KPIType" title="twin_model.primitives.monitor.KPIType"><span class="pre">KPIType</span></a></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.target"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">history</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">aggregation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'avg'</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.aggregation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.add_value">
+<span class="sig-name descname"><span class="pre">add_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.add_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.add_value" title="Link to this definition"></a></dt>
+<dd><p>Add a value to history.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.get_average">
+<span class="sig-name descname"><span class="pre">get_average</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.get_average"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.get_average" title="Link to this definition"></a></dt>
+<dd><p>Get average value over time window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>)</p></li>
+<li><p><strong>current_time</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.KPIMetric.get_trend">
+<span class="sig-name descname"><span class="pre">get_trend</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#KPIMetric.get_trend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.KPIMetric.get_trend" title="Link to this definition"></a></dt>
+<dd><p>Get trend direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">twin_model.primitives.monitor.</span></span><span class="sig-name descname"><span class="pre">MonitorPrimitive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../base/index.html#twin_model.primitives.base.BasePrimitive" title="twin_model.primitives.base.BasePrimitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twin_model.primitives.base.BasePrimitive</span></code></a></p>
+<p>Monitor for tracking system-wide KPIs and metrics.</p>
+<p>Emits observables for:
+- KPI updates and trends
+- Target violations
+- Performance alerts
+- Aggregated metrics
+- Real-time dashboards</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>env</strong> (<em>simpy.Environment</em>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="../base/index.html#twin_model.primitives.base.PrimitiveConfig" title="twin_model.primitives.base.PrimitiveConfig"><em>twin_model.primitives.base.PrimitiveConfig</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.update_interval">
+<span class="sig-name descname"><span class="pre">update_interval</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.update_interval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.update_interval" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.aggregation_window">
+<span class="sig-name descname"><span class="pre">aggregation_window</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.aggregation_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.aggregation_window" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.alert_thresholds">
+<span class="sig-name descname"><span class="pre">alert_thresholds</span></span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.alert_thresholds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.alert_thresholds" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.kpis">
+<span class="sig-name descname"><span class="pre">kpis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#twin_model.primitives.monitor.KPIMetric" title="twin_model.primitives.monitor.KPIMetric"><span class="pre">KPIMetric</span></a><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.kpis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.kpis" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.monitored_primitives">
+<span class="sig-name descname"><span class="pre">monitored_primitives</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.monitored_primitives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.monitored_primitives" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.active_alerts">
+<span class="sig-name descname"><span class="pre">active_alerts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.active_alerts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.active_alerts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.alert_history">
+<span class="sig-name descname"><span class="pre">alert_history</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.alert_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.alert_history" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.line_metrics">
+<span class="sig-name descname"><span class="pre">line_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.line_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.line_metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.product_metrics">
+<span class="sig-name descname"><span class="pre">product_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.product_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.product_metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.shift_metrics">
+<span class="sig-name descname"><span class="pre">shift_metrics</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.shift_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.shift_metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.start" title="Link to this definition"></a></dt>
+<dd><p>Start the monitoring process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.monitor_process">
+<span class="sig-name descname"><span class="pre">monitor_process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.monitor_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.monitor_process" title="Link to this definition"></a></dt>
+<dd><p>Main monitoring process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Generator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.alert_process">
+<span class="sig-name descname"><span class="pre">alert_process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.alert_process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.alert_process" title="Link to this definition"></a></dt>
+<dd><p>Process for managing alerts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Generator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.register_primitive">
+<span class="sig-name descname"><span class="pre">register_primitive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitive</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.register_primitive"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.register_primitive" title="Link to this definition"></a></dt>
+<dd><p>Register a primitive to monitor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Primitive identifier</p></li>
+<li><p><strong>primitive</strong> (<em>Any</em>) – Primitive instance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.get_kpi_value">
+<span class="sig-name descname"><span class="pre">get_kpi_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kpi_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.get_kpi_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.get_kpi_value" title="Link to this definition"></a></dt>
+<dd><p>Get current value of a KPI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kpi_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Name of KPI</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Current KPI value or None</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.get_kpi_history">
+<span class="sig-name descname"><span class="pre">get_kpi_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kpi_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.get_kpi_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.get_kpi_history" title="Link to this definition"></a></dt>
+<dd><p>Get historical values of a KPI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kpi_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Name of KPI</p></li>
+<li><p><strong>window</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>) – Time window to retrieve</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of (timestamp, value) tuples</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.get_dashboard">
+<span class="sig-name descname"><span class="pre">get_dashboard</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.get_dashboard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.get_dashboard" title="Link to this definition"></a></dt>
+<dd><p>Get dashboard summary of all metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary with dashboard data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="twin_model.primitives.monitor.MonitorPrimitive.get_statistics">
+<span class="sig-name descname"><span class="pre">get_statistics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/twin_model/primitives/monitor.html#MonitorPrimitive.get_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#twin_model.primitives.monitor.MonitorPrimitive.get_statistics" title="Link to this definition"></a></dt>
+<dd><p>Get monitor statistics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary of monitor metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../equipment/index.html" class="btn btn-neutral float-left" title="twin_model.primitives.equipment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../scheduler/index.html" class="btn btn-neutral float-right" title="twin_model.primitives.scheduler" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

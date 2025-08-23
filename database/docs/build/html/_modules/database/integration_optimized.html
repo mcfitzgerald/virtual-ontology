@@ -1,0 +1,588 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.integration_optimized &mdash; Virtual Ontology Database 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Virtual Ontology Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Virtual Ontology Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">database.integration_optimized</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for database.integration_optimized</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Optimized database integration with performance configuration.</span>
+
+<span class="sd">This module provides enhanced database integration using the performance</span>
+<span class="sd">optimization features developed in Phases 1-5.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tracemalloc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinDatabaseManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.repositories</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinRunRepository</span><span class="p">,</span> <span class="n">SimulationDataRepository</span><span class="p">,</span> <span class="n">KPIRepository</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">database.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">KPISnapshot</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.model_builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">PerformanceConfig</span><span class="p">,</span> <span class="n">ConfigPreset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SamplingConfig</span><span class="p">,</span> <span class="n">SimulationMode</span><span class="p">,</span> <span class="n">ConsoleProgressReporter</span><span class="p">,</span> <span class="n">SimulationMonitor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.storage.cache</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObservableCache</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.state_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationRunner</span>
+
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptimizedTwinDatabaseIntegration</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enhanced database integration with performance optimizations.</span>
+
+<span class="sd">    This class integrates all performance optimizations from Phases 1-5:</span>
+<span class="sd">    - Configurable performance settings</span>
+<span class="sd">    - Memory-efficient event handling</span>
+<span class="sd">    - Batched database operations</span>
+<span class="sd">    - Progress reporting</span>
+<span class="sd">    - State persistence</span>
+<span class="sd">    - Automatic mode switching on memory pressure</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        db_manager: Database manager instance</span>
+<span class="sd">        perf_config: Performance configuration</span>
+<span class="sd">        cache_dir: Directory for event caching</span>
+<span class="sd">        checkpoint_dir: Directory for state checkpoints</span>
+<span class="sd">        monitor: Optional simulation monitor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TwinDatabaseManager</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">perf_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PerformanceConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize optimized integration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            db_manager: Database manager (creates default if None)</span>
+<span class="sd">            perf_config: Performance configuration (uses PRODUCTION preset if None)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.db_manager">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.db_manager">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span> <span class="o">=</span> <span class="n">db_manager</span> <span class="ow">or</span> <span class="n">TwinDatabaseManager</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.perf_config">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.perf_config">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span> <span class="o">=</span> <span class="n">perf_config</span> <span class="ow">or</span> <span class="n">PerformanceConfig</span><span class="o">.</span><span class="n">from_preset</span><span class="p">(</span><span class="n">ConfigPreset</span><span class="o">.</span><span class="n">PRODUCTION</span><span class="p">)</span></div>
+
+
+        <span class="c1"># Setup temporary directories</span>
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.cache_dir">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.cache_dir">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;twin_cache_&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.checkpoint_dir">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.checkpoint_dir">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;twin_checkpoint_&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.monitor">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.monitor">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SimulationMonitor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.__del__">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.__del__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cleanup temporary directories on deletion.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;cache_dir&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;checkpoint_dir&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.run_simulation_to_db">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.run_simulation_to_db">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_simulation_to_db</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">run_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;experiment&quot;</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="n">days</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">parent_run_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">perf_config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PerformanceConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">show_progress</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run optimized simulation and store results in database.</span>
+
+<span class="sd">        Uses all performance optimizations including:</span>
+<span class="sd">        - Circular buffers for memory efficiency</span>
+<span class="sd">        - Event sampling based on configuration</span>
+<span class="sd">        - Batched database operations</span>
+<span class="sd">        - Cache-based event storage</span>
+<span class="sd">        - Progress reporting</span>
+<span class="sd">        - Automatic checkpointing</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            run_type: Type of simulation run</span>
+<span class="sd">            parameters: Simulation parameters</span>
+<span class="sd">            days: Duration in days</span>
+<span class="sd">            parent_run_id: Optional parent run ID</span>
+<span class="sd">            perf_config: Override performance configuration</span>
+<span class="sd">            show_progress: Show progress updates</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Run ID of completed simulation</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception: If simulation fails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">perf_config</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span>
+
+        <span class="c1"># Start memory tracking if monitoring enabled</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">enable_monitoring</span><span class="p">:</span>
+            <span class="n">tracemalloc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="c1"># Get versions</span>
+        <span class="n">ontology_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_ontology_version</span><span class="p">()</span>
+        <span class="n">manifest_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">get_manifest_version</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="c1"># Create run record</span>
+            <span class="n">run_repo</span> <span class="o">=</span> <span class="n">TwinRunRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="n">run_repo</span><span class="o">.</span><span class="n">create_run</span><span class="p">(</span>
+                <span class="n">run_type</span><span class="o">=</span><span class="n">run_type</span><span class="p">,</span>
+                <span class="n">ontology_version</span><span class="o">=</span><span class="n">ontology_version</span><span class="p">,</span>
+                <span class="n">manifest_version</span><span class="o">=</span><span class="n">manifest_version</span><span class="p">,</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                <span class="n">parent_run_id</span><span class="o">=</span><span class="n">parent_run_id</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OPTIMIZED SIMULATION: </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuration: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duration: </span><span class="si">{</span><span class="n">days</span><span class="si">}</span><span class="s2"> days&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mode: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">simulation_mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sampling: 1/</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">sampling_rate</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="mi">100</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">sampling_rate</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%)&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory limit: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">max_memory_mb</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">MB&quot;</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Update status to running</span>
+                <span class="n">run_repo</span><span class="o">.</span><span class="n">update_run_status</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="s2">&quot;running&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Build model with optimized configuration</span>
+                <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span>
+                    <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">ontology_path</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">manifest_dir</span><span class="p">)</span>
+                <span class="p">)</span>
+
+                <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+
+                <span class="c1"># Setup monitoring if enabled</span>
+                <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">enable_monitoring</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">SimulationMonitor</span><span class="p">(</span>
+                        <span class="n">env</span><span class="p">,</span>
+                        <span class="n">memory_threshold_mb</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_memory_mb</span><span class="p">,</span>
+                        <span class="n">event_rate_threshold</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+                        <span class="n">check_interval</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">monitoring_interval</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># Build model with sampling configuration</span>
+                <span class="n">sampling</span> <span class="o">=</span> <span class="n">SamplingConfig</span><span class="p">(</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">simulation_mode</span><span class="p">,</span>
+                    <span class="n">sampling_rate</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
+                    <span class="n">buffer_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">observable_buffer_size</span><span class="p">,</span>
+                    <span class="n">aggregation_interval</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">aggregation_interval</span><span class="p">,</span>
+                    <span class="n">enable_global_observables</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">enable_global_observables</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Build primitives with optimized settings</span>
+                <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+                <span class="c1"># Apply sampling to all primitives</span>
+                <span class="k">for</span> <span class="n">primitive_id</span><span class="p">,</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">builder</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s2">&quot;sampling_config&quot;</span><span class="p">):</span>
+                        <span class="n">primitive</span><span class="o">.</span><span class="n">sampling_config</span> <span class="o">=</span> <span class="n">sampling</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s2">&quot;observable_buffer&quot;</span><span class="p">):</span>
+                        <span class="n">primitive</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">buffer_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">observable_buffer_size</span>
+
+                <span class="c1"># Setup event cache</span>
+                <span class="n">cache</span> <span class="o">=</span> <span class="n">ObservableCache</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">cache_max_size</span><span class="p">,</span> <span class="n">dtype_size</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+
+                <span class="c1"># Create simulation runner</span>
+                <span class="n">runner</span> <span class="o">=</span> <span class="n">SimulationRunner</span><span class="p">(</span>
+                    <span class="n">env</span><span class="p">,</span>
+                    <span class="n">builder</span><span class="o">.</span><span class="n">primitives</span><span class="p">,</span>
+                    <span class="n">checkpoint_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpoint_dir</span><span class="p">),</span>
+                    <span class="n">enable_monitoring</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">enable_monitoring</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">runner</span><span class="o">.</span><span class="n">cache_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">)</span>
+
+                <span class="c1"># Setup progress reporting</span>
+                <span class="n">progress_callback</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">show_progress</span> <span class="ow">and</span> <span class="n">config</span><span class="o">.</span><span class="n">enable_progress</span><span class="p">:</span>
+                    <span class="n">progress_callback</span> <span class="o">=</span> <span class="n">ConsoleProgressReporter</span><span class="p">(</span><span class="n">report_interval</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+
+                <span class="c1"># Run simulation with optimizations</span>
+                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+                <span class="n">results</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">run_chunked</span><span class="p">(</span>
+                    <span class="n">total_days</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">days</span><span class="p">),</span>
+                    <span class="n">chunk_size_days</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">chunk_size_days</span><span class="p">,</span>
+                    <span class="n">progress_callback</span><span class="o">=</span><span class="n">progress_callback</span><span class="p">,</span>
+                    <span class="n">checkpoint_interval</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">checkpoint_interval</span> <span class="o">/</span> <span class="mi">1440</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">checkpoint_interval</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Simulation completed in </span><span class="si">{</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Speed: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;speed_factor&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">x real-time&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Process events efficiently</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Processing events...&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Collect observables with batching</span>
+                <span class="n">all_observables</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">batch_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">batch_size</span>
+
+                <span class="k">for</span> <span class="n">primitive_id</span><span class="p">,</span> <span class="n">primitive</span> <span class="ow">in</span> <span class="n">builder</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">primitive</span><span class="p">,</span> <span class="s2">&quot;observable_buffer&quot;</span><span class="p">):</span>
+                        <span class="c1"># Get events from buffer</span>
+                        <span class="n">events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">primitive</span><span class="o">.</span><span class="n">observable_buffer</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+
+                        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">events</span><span class="p">:</span>
+                            <span class="n">event</span><span class="p">[</span><span class="s2">&quot;primitive_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">primitive_id</span>
+                            <span class="n">event</span><span class="p">[</span><span class="s2">&quot;primitive_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">primitive</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+                            <span class="n">all_observables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+                            <span class="c1"># Write to cache in batches</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_observables</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">batch_size</span><span class="p">:</span>
+                                <span class="n">cache</span><span class="o">.</span><span class="n">write_batch</span><span class="p">(</span><span class="n">all_observables</span><span class="p">)</span>
+                                <span class="n">all_observables</span> <span class="o">=</span> <span class="p">[]</span>
+
+                                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;events_total&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">batch_size</span>
+
+                <span class="c1"># Write remaining events</span>
+                <span class="k">if</span> <span class="n">all_observables</span><span class="p">:</span>
+                    <span class="n">cache</span><span class="o">.</span><span class="n">write_batch</span><span class="p">(</span><span class="n">all_observables</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;events_total&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_observables</span><span class="p">)</span>
+
+                <span class="c1"># Get cache statistics</span>
+                <span class="n">cache_stats</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Events cached: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_events&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Cache size: </span><span class="si">{</span><span class="n">cache_stats</span><span class="p">[</span><span class="s1">&#39;total_size_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">MB&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Check memory before database operations</span>
+                <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">enable_monitoring</span><span class="p">:</span>
+                    <span class="n">current_memory</span><span class="p">,</span> <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">get_traced_memory</span><span class="p">()</span>
+                    <span class="n">memory_mb</span> <span class="o">=</span> <span class="n">peak_memory</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">memory_mb</span> <span class="o">&gt;</span> <span class="n">config</span><span class="o">.</span><span class="n">max_memory_mb</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ⚠️  Memory pressure detected: </span><span class="si">{</span><span class="n">memory_mb</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">MB&quot;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Switching to FAST mode for database operations&quot;</span><span class="p">)</span>
+                        <span class="c1"># Switch to more aggressive settings</span>
+                        <span class="n">config</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+                <span class="c1"># Flush cache to database in batches</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Flushing to database...&quot;</span><span class="p">)</span>
+
+                <span class="n">sim_repo</span> <span class="o">=</span> <span class="n">SimulationDataRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+                <span class="n">flush_stats</span> <span class="o">=</span> <span class="n">sim_repo</span><span class="o">.</span><span class="n">flush_cache_to_database</span><span class="p">(</span>
+                    <span class="n">run_id</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="n">cache_path</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">batch_size</span>
+                <span class="p">)</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Events inserted: </span><span class="si">{</span><span class="n">flush_stats</span><span class="p">[</span><span class="s1">&#39;events_inserted&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Rate: </span><span class="si">{</span><span class="n">flush_stats</span><span class="p">[</span><span class="s1">&#39;events_per_second&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> events/s&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Calculate KPIs</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Calculating KPIs...&quot;</span><span class="p">)</span>
+                <span class="n">kpi_summary</span> <span class="o">=</span> <span class="n">sim_repo</span><span class="o">.</span><span class="n">calculate_kpi_snapshot</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">)</span>
+
+                <span class="c1"># Create KPI snapshot</span>
+                <span class="n">kpi_repo</span> <span class="o">=</span> <span class="n">KPIRepository</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+                <span class="n">kpi_repo</span><span class="o">.</span><span class="n">create_kpi_snapshot</span><span class="p">(</span>
+                    <span class="n">run_id</span><span class="o">=</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>
+                    <span class="n">entity_type</span><span class="o">=</span><span class="s2">&quot;overall&quot;</span><span class="p">,</span>
+                    <span class="n">entity_id</span><span class="o">=</span><span class="s2">&quot;LINE1&quot;</span><span class="p">,</span>
+                    <span class="n">kpis</span><span class="o">=</span><span class="n">kpi_summary</span><span class="p">,</span>
+                    <span class="n">period_start</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                    <span class="n">period_end</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Update run as completed</span>
+                <span class="n">run_repo</span><span class="o">.</span><span class="n">update_run_status</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="s2">&quot;completed&quot;</span><span class="p">,</span> <span class="n">kpi_summary</span><span class="p">)</span>
+
+                <span class="c1"># Final statistics</span>
+                <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">enable_monitoring</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">:</span>
+                    <span class="n">monitor_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Performance Metrics:&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Peak memory: </span><span class="si">{</span><span class="n">monitor_metrics</span><span class="p">[</span><span class="s1">&#39;memory_max_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">MB&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Avg event rate: </span><span class="si">{</span><span class="n">monitor_metrics</span><span class="p">[</span><span class="s1">&#39;avg_event_rate&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">/s&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Warnings: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">monitor_metrics</span><span class="p">[</span><span class="s1">&#39;warnings&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                    <span class="n">tracemalloc</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Run complete: </span><span class="si">{</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Mean OEE: </span><span class="si">{</span><span class="n">kpi_summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Total Good Units: </span><span class="si">{</span><span class="n">kpi_summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;total_good_units&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">run</span><span class="o">.</span><span class="n">run_id</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">run_repo</span><span class="o">.</span><span class="n">update_run_status</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span> <span class="s2">&quot;failed&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">❌ Simulation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">e</span>
+
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="c1"># Cleanup cache</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.run_performance_benchmark">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.run_performance_benchmark">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_performance_benchmark</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">days</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_primitives</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run performance benchmark with different configurations.</span>
+
+<span class="sd">        Tests multiple performance configurations and compares results.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            days: Simulation duration</span>
+<span class="sd">            num_primitives: Number of primitives (uses default model if None)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary with benchmark results</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PERFORMANCE BENCHMARK&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Test different configurations</span>
+        <span class="n">configs_to_test</span> <span class="o">=</span> <span class="p">[</span><span class="n">ConfigPreset</span><span class="o">.</span><span class="n">FAST</span><span class="p">,</span> <span class="n">ConfigPreset</span><span class="o">.</span><span class="n">PRODUCTION</span><span class="p">,</span> <span class="n">ConfigPreset</span><span class="o">.</span><span class="n">MEMORY_OPTIMIZED</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">preset</span> <span class="ow">in</span> <span class="n">configs_to_test</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">PerformanceConfig</span><span class="o">.</span><span class="n">from_preset</span><span class="p">(</span><span class="n">preset</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Testing </span><span class="si">{</span><span class="n">preset</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2"> configuration...&quot;</span><span class="p">)</span>
+
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">run_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation_to_db</span><span class="p">(</span>
+                    <span class="n">run_type</span><span class="o">=</span><span class="s2">&quot;benchmark&quot;</span><span class="p">,</span>
+                    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="n">preset</span><span class="o">.</span><span class="n">value</span><span class="p">},</span>
+                    <span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">,</span>
+                    <span class="n">perf_config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                    <span class="n">show_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+                <span class="c1"># Get KPIs</span>
+                <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">select</span>
+
+                    <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">KPISnapshot</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">KPISnapshot</span><span class="o">.</span><span class="n">run_id</span> <span class="o">==</span> <span class="n">run_id</span><span class="p">)</span>
+                    <span class="n">kpi</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+                    <span class="n">results</span><span class="p">[</span><span class="n">preset</span><span class="o">.</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;run_id&quot;</span><span class="p">:</span> <span class="n">run_id</span><span class="p">,</span>
+                        <span class="s2">&quot;elapsed_seconds&quot;</span><span class="p">:</span> <span class="n">elapsed</span><span class="p">,</span>
+                        <span class="s2">&quot;mean_oee&quot;</span><span class="p">:</span> <span class="n">kpi</span><span class="o">.</span><span class="n">mean_oee</span> <span class="k">if</span> <span class="n">kpi</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;total_units&quot;</span><span class="p">:</span> <span class="n">kpi</span><span class="o">.</span><span class="n">total_good_units</span> <span class="k">if</span> <span class="n">kpi</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="p">}</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">results</span><span class="p">[</span><span class="n">preset</span><span class="o">.</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+
+        <span class="c1"># Compare results</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;BENCHMARK RESULTS&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">config_name</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">config_name</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Time: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;elapsed_seconds&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  OEE: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;mean_oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Units: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;total_units&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">config_name</span><span class="si">}</span><span class="s2">: FAILED - </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Unknown error&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.auto_optimize_configuration">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.auto_optimize_configuration">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">auto_optimize_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">days</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">target_memory_mb</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">500.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PerformanceConfig</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Automatically optimize configuration for simulation.</span>
+
+<span class="sd">        Analyzes simulation requirements and recommends optimal configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            days: Simulation duration</span>
+<span class="sd">            target_memory_mb: Target memory budget</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optimized PerformanceConfig</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Count primitives in model</span>
+        <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">ontology_path</span><span class="p">),</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_manager</span><span class="o">.</span><span class="n">manifest_dir</span><span class="p">))</span>
+
+        <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">num_primitives</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">builder</span><span class="o">.</span><span class="n">primitives</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Auto-optimizing for </span><span class="si">{</span><span class="n">num_primitives</span><span class="si">}</span><span class="s2"> primitives, </span><span class="si">{</span><span class="n">days</span><span class="si">}</span><span class="s2"> days, </span><span class="si">{</span><span class="n">target_memory_mb</span><span class="si">}</span><span class="s2">MB memory&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Get recommendation</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">PerformanceConfig</span><span class="p">()</span><span class="o">.</span><span class="n">recommend_settings</span><span class="p">(</span>
+            <span class="n">num_primitives</span><span class="o">=</span><span class="n">num_primitives</span><span class="p">,</span> <span class="n">simulation_days</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">days</span><span class="p">),</span> <span class="n">available_memory_mb</span><span class="o">=</span><span class="n">target_memory_mb</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Estimate memory usage</span>
+        <span class="n">estimates</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">estimate_memory_usage</span><span class="p">(</span><span class="n">num_primitives</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">days</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Recommended configuration: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Estimated memory: </span><span class="si">{</span><span class="n">estimates</span><span class="p">[</span><span class="s1">&#39;total_mb&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">MB&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Buffer size: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">observable_buffer_size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Sampling rate: 1/</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">sampling_rate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Mode: </span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">simulation_mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">config</span></div>
+
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.monitor_memory_pressure">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.monitor_memory_pressure">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">monitor_memory_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if system is under memory pressure.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True if memory usage exceeds threshold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">is_tracing</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">current</span><span class="p">,</span> <span class="n">peak</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">get_traced_memory</span><span class="p">()</span>
+        <span class="n">memory_mb</span> <span class="o">=</span> <span class="n">current</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">memory_mb</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">max_memory_mb</span> <span class="o">*</span> <span class="mf">0.9</span>  <span class="c1"># 90% threshold</span></div>
+
+
+<div class="viewcode-block" id="OptimizedTwinDatabaseIntegration.adaptive_mode_switch">
+<a class="viewcode-back" href="../../api/database/integration_optimized/index.html#database.integration_optimized.OptimizedTwinDatabaseIntegration.adaptive_mode_switch">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">adaptive_mode_switch</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adaptively switch modes based on memory pressure.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor_memory_pressure</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  ⚠️  Memory pressure detected, switching to FAST mode&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Switch to more aggressive settings</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">simulation_mode</span> <span class="o">=</span> <span class="n">SimulationMode</span><span class="o">.</span><span class="n">FAST</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">observable_buffer_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_config</span><span class="o">.</span><span class="n">observable_buffer_size</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,600 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start Guide &mdash; Virtual Ontology Twin Model 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Virtual Ontology Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-setup">Basic Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#create-a-simple-model">1. Create a Simple Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-the-ontology-builder">2. Using the Ontology Builder</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-ontologies">Working with Ontologies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#defining-twin-ontology">Defining Twin Ontology</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-manifests">Creating Manifests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-scenarios">Simulation Scenarios</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#baseline-simulation">Baseline Simulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scenario-comparison">Scenario Comparison</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#real-time-monitoring">Real-time Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#event-callbacks">Event Callbacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#live-metrics-dashboard">Live Metrics Dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-export">Data Export</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#export-to-csv">Export to CSV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-with-database">Integration with Database</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-configuration">Advanced Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-arrival-patterns">Custom Arrival Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#failure-modeling">Failure Modeling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="primitives.html">Simulation Primitives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ontology_driven.html">Ontology-Driven Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Virtual Ontology Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start-guide">
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
+<p>This guide will help you get started with the Virtual Ontology Twin Model.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The twin model is part of the Virtual Ontology system. Ensure you have the required dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>simpy<span class="w"> </span>numpy<span class="w"> </span>pandas<span class="w"> </span>pyyaml<span class="w"> </span>pydantic
+</pre></div>
+</div>
+</section>
+<section id="basic-setup">
+<h2>Basic Setup<a class="headerlink" href="#basic-setup" title="Link to this heading"></a></h2>
+<section id="create-a-simple-model">
+<h3>1. Create a Simple Model<a class="headerlink" href="#create-a-simple-model" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EquipmentPrimitive</span><span class="p">,</span>
+    <span class="n">BufferPrimitive</span><span class="p">,</span>
+    <span class="n">SourcePrimitive</span><span class="p">,</span>
+    <span class="n">SinkPrimitive</span><span class="p">,</span>
+    <span class="n">MonitorPrimitive</span>
+<span class="p">)</span>
+
+<span class="c1"># Create simulation environment</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+
+<span class="c1"># Create primitives</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">SourcePrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Source1&quot;</span><span class="p">,</span> <span class="n">arrival_rate</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">buffer</span> <span class="o">=</span> <span class="n">BufferPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Buffer1&quot;</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">equipment</span> <span class="o">=</span> <span class="n">EquipmentPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Equipment1&quot;</span><span class="p">,</span> <span class="n">processing_time</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="n">sink</span> <span class="o">=</span> <span class="n">SinkPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Sink1&quot;</span><span class="p">)</span>
+<span class="n">monitor</span> <span class="o">=</span> <span class="n">MonitorPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Monitor1&quot;</span><span class="p">)</span>
+
+<span class="c1"># Connect primitives</span>
+<span class="n">source</span><span class="o">.</span><span class="n">set_output</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+<span class="n">buffer</span><span class="o">.</span><span class="n">set_output</span><span class="p">(</span><span class="n">equipment</span><span class="p">)</span>
+<span class="n">equipment</span><span class="o">.</span><span class="n">set_output</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
+
+<span class="c1"># Start processes</span>
+<span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">generate_items</span><span class="p">())</span>
+<span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">equipment</span><span class="o">.</span><span class="n">process_items</span><span class="p">())</span>
+<span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">monitor</span><span class="o">.</span><span class="n">track_metrics</span><span class="p">())</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Get results</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Items produced: </span><span class="si">{</span><span class="n">sink</span><span class="o">.</span><span class="n">get_production_count</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average OEE: </span><span class="si">{</span><span class="n">monitor</span><span class="o">.</span><span class="n">get_average_oee</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-the-ontology-builder">
+<h3>2. Using the Ontology Builder<a class="headerlink" href="#using-the-ontology-builder" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+
+<span class="c1"># Initialize builder with ontology</span>
+<span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span>
+    <span class="n">ontology_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">),</span>
+    <span class="n">manifest_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests/&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># Create environment and build model</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+<span class="c1"># Configure simulation parameters</span>
+<span class="n">model</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span>
+    <span class="n">duration</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">log_events</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+<span class="c1"># Access results</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation completed at: </span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;KPIs: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;kpi_summary&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="working-with-ontologies">
+<h2>Working with Ontologies<a class="headerlink" href="#working-with-ontologies" title="Link to this heading"></a></h2>
+<section id="defining-twin-ontology">
+<h3>Defining Twin Ontology<a class="headerlink" href="#defining-twin-ontology" title="Link to this heading"></a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">ontology/twin_ontology.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">twin_model</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Production</span><span class="nv"> </span><span class="s">Line</span><span class="nv"> </span><span class="s">Twin&quot;</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;2.0.0&quot;</span>
+
+<span class="w">  </span><span class="nt">primitives</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">Equipment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;EquipmentPrimitive&quot;</span>
+<span class="w">      </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">processing_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
+<span class="w">        </span><span class="nt">failure_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
+<span class="w">        </span><span class="nt">mttr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
+<span class="w">        </span><span class="nt">mtbf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">float</span>
+<span class="w">      </span><span class="nt">relationships</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">input_from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer&quot;</span>
+<span class="w">        </span><span class="nt">output_to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer&quot;</span>
+
+<span class="w">    </span><span class="nt">Buffer</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">class</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;BufferPrimitive&quot;</span>
+<span class="w">      </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span>
+<span class="w">        </span><span class="nt">initial_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">int</span>
+<span class="w">      </span><span class="nt">relationships</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">receives_from</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Equipment&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;Source&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">sends_to</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Equipment&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;Sink&quot;</span><span class="p p-Indicator">]</span>
+
+<span class="w">  </span><span class="nt">production_lines</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">Line1</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">components</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Source&quot;</span><span class="p p-Indicator">,</span><span class="nt"> id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Source1&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer&quot;</span><span class="p p-Indicator">,</span><span class="nt"> id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer1&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment&quot;</span><span class="p p-Indicator">,</span><span class="nt"> id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment1&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer&quot;</span><span class="p p-Indicator">,</span><span class="nt"> id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer2&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment&quot;</span><span class="p p-Indicator">,</span><span class="nt"> id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment2&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Sink&quot;</span><span class="p p-Indicator">,</span><span class="nt"> id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Sink1&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">flow</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Source1&quot;</span><span class="p p-Indicator">,</span><span class="nt"> to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer1&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer1&quot;</span><span class="p p-Indicator">,</span><span class="nt"> to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment1&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment1&quot;</span><span class="p p-Indicator">,</span><span class="nt"> to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer2&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Buffer2&quot;</span><span class="p p-Indicator">,</span><span class="nt"> to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment2&quot;</span><span class="p p-Indicator">}</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Equipment2&quot;</span><span class="p p-Indicator">,</span><span class="nt"> to</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Sink1&quot;</span><span class="p p-Indicator">}</span>
+</pre></div>
+</div>
+</section>
+<section id="creating-manifests">
+<h3>Creating Manifests<a class="headerlink" href="#creating-manifests" title="Link to this heading"></a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">manifests/equipment_manifest.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">equipment</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Equipment1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Assembly&quot;</span>
+<span class="w">    </span><span class="nt">processing_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<span class="w">    </span><span class="nt">failure_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.01</span>
+<span class="w">    </span><span class="nt">mttr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30.0</span>
+<span class="w">    </span><span class="nt">mtbf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000.0</span>
+<span class="w">    </span><span class="nt">capacity_per_hour</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+
+<span class="w">  </span><span class="nt">Equipment2</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Packaging&quot;</span>
+<span class="w">    </span><span class="nt">processing_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
+<span class="w">    </span><span class="nt">failure_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.005</span>
+<span class="w">    </span><span class="nt">mttr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20.0</span>
+<span class="w">    </span><span class="nt">mtbf</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2000.0</span>
+<span class="w">    </span><span class="nt">capacity_per_hour</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
+
+<span class="nt">buffers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Buffer1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50</span>
+<span class="w">    </span><span class="nt">initial_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+
+<span class="w">  </span><span class="nt">Buffer2</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30</span>
+<span class="w">    </span><span class="nt">initial_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="simulation-scenarios">
+<h2>Simulation Scenarios<a class="headerlink" href="#simulation-scenarios" title="Link to this heading"></a></h2>
+<section id="baseline-simulation">
+<h3>Baseline Simulation<a class="headerlink" href="#baseline-simulation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">twin_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OntologyDrivenModelBuilder</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_baseline_simulation</span><span class="p">():</span>
+    <span class="c1"># Build model</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span>
+        <span class="n">ontology_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">),</span>
+        <span class="n">manifest_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests/&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="c1"># Run for 1 day (1440 minutes)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">1440</span><span class="p">)</span>
+
+    <span class="c1"># Collect metrics</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_kpi_metrics</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;oee&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;overall_oee&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;availability&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;availability&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;performance&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;performance&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;quality&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;production&quot;</span><span class="p">:</span> <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;total_production&quot;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">run_baseline_simulation</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Baseline OEE: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="scenario-comparison">
+<h3>Scenario Comparison<a class="headerlink" href="#scenario-comparison" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">compare_scenarios</span><span class="p">():</span>
+    <span class="n">scenarios</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;baseline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;processing_time&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span> <span class="s2">&quot;failure_rate&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span>
+        <span class="s2">&quot;optimized&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;processing_time&quot;</span><span class="p">:</span> <span class="mf">4.5</span><span class="p">,</span> <span class="s2">&quot;failure_rate&quot;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">},</span>
+        <span class="s2">&quot;stressed&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;processing_time&quot;</span><span class="p">:</span> <span class="mf">6.0</span><span class="p">,</span> <span class="s2">&quot;failure_rate&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">scenarios</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Override parameters</span>
+        <span class="n">builder</span> <span class="o">=</span> <span class="n">OntologyDrivenModelBuilder</span><span class="p">(</span>
+            <span class="n">ontology_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ontology/twin_ontology.yaml&quot;</span><span class="p">),</span>
+            <span class="n">manifest_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;manifests/&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Apply scenario parameters</span>
+        <span class="n">builder</span><span class="o">.</span><span class="n">override_parameters</span><span class="p">(</span><span class="s2">&quot;Equipment1&quot;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="n">env</span> <span class="o">=</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_model</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">1440</span><span class="p">)</span>
+
+        <span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_kpi_metrics</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">results</span>
+
+<span class="n">scenario_results</span> <span class="o">=</span> <span class="n">compare_scenarios</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">metrics</span> <span class="ow">in</span> <span class="n">scenario_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: OEE=</span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;overall_oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="real-time-monitoring">
+<h2>Real-time Monitoring<a class="headerlink" href="#real-time-monitoring" title="Link to this heading"></a></h2>
+<section id="event-callbacks">
+<h3>Event Callbacks<a class="headerlink" href="#event-callbacks" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">EquipmentPrimitive</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MonitoredEquipment</span><span class="p">(</span><span class="n">EquipmentPrimitive</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_callbacks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">callback</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c1"># Trigger callbacks</span>
+        <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_callbacks</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;processing_start&quot;</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+
+        <span class="c1"># Process item</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">processing_time</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_callbacks</span><span class="p">:</span>
+            <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;processing_complete&quot;</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+
+<span class="c1"># Usage</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">log_event</span><span class="p">(</span><span class="n">equipment</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">equipment</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">equipment</span> <span class="o">=</span> <span class="n">MonitoredEquipment</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Equipment1&quot;</span><span class="p">,</span> <span class="n">processing_time</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="n">equipment</span><span class="o">.</span><span class="n">add_callback</span><span class="p">(</span><span class="n">log_event</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="live-metrics-dashboard">
+<h3>Live Metrics Dashboard<a class="headerlink" href="#live-metrics-dashboard" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">MonitorPrimitive</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LiveDashboard</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monitor</span><span class="p">:</span> <span class="n">MonitorPrimitive</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span> <span class="o">=</span> <span class="n">monitor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_loop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="o">.</span><span class="n">get_current_metrics</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_display_metrics</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_display_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">[</span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;timestamp&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">] &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;OEE: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;oee&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% | &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;Prod: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;production&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;Queue: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;buffer_level&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+              <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<span class="c1"># Usage</span>
+<span class="n">monitor</span> <span class="o">=</span> <span class="n">MonitorPrimitive</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Monitor1&quot;</span><span class="p">)</span>
+<span class="n">dashboard</span> <span class="o">=</span> <span class="n">LiveDashboard</span><span class="p">(</span><span class="n">monitor</span><span class="p">)</span>
+<span class="n">dashboard</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1"># Run simulation</span>
+<span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">dashboard</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-export">
+<h2>Data Export<a class="headerlink" href="#data-export" title="Link to this heading"></a></h2>
+<section id="export-to-csv">
+<h3>Export to CSV<a class="headerlink" href="#export-to-csv" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.transduction</span><span class="w"> </span><span class="kn">import</span> <span class="n">MESTransducer</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">export_simulation_data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">output_path</span><span class="p">):</span>
+    <span class="c1"># Get transducer</span>
+    <span class="n">transducer</span> <span class="o">=</span> <span class="n">MESTransducer</span><span class="p">()</span>
+
+    <span class="c1"># Convert events to MES format</span>
+    <span class="n">mes_records</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">get_event_log</span><span class="p">():</span>
+        <span class="n">mes_record</span> <span class="o">=</span> <span class="n">transducer</span><span class="o">.</span><span class="n">transduce_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="n">mes_records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mes_record</span><span class="p">)</span>
+
+    <span class="c1"># Create DataFrame</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mes_records</span><span class="p">)</span>
+
+    <span class="c1"># Add calculated fields</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;OEE_Score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Availability_Score&#39;</span><span class="p">]</span> <span class="o">*</span>
+                       <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Performance_Score&#39;</span><span class="p">]</span> <span class="o">*</span>
+                       <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Quality_Score&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="mi">10000</span>
+
+    <span class="c1"># Export to CSV</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exported </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2"> records to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span>
+
+<span class="c1"># Usage</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">export_simulation_data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;simulation_output.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-with-database">
+<h3>Integration with Database<a class="headerlink" href="#integration-with-database" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">TwinDatabaseIntegration</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">store_simulation_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">experiment_name</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">TwinDatabaseIntegration</span><span class="p">()</span>
+
+    <span class="c1"># Store run metadata</span>
+    <span class="n">run_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">store_simulation_run</span><span class="p">(</span>
+        <span class="n">experiment_name</span><span class="o">=</span><span class="n">experiment_name</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">(),</span>
+        <span class="n">results</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">get_kpi_metrics</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Store detailed events</span>
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">get_event_log</span><span class="p">():</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">store_event</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Stored simulation run: </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">run_id</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-configuration">
+<h2>Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Link to this heading"></a></h2>
+<section id="custom-arrival-patterns">
+<h3>Custom Arrival Patterns<a class="headerlink" href="#custom-arrival-patterns" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">SourcePrimitive</span><span class="p">,</span> <span class="n">ArrivalPattern</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomArrivalPattern</span><span class="p">(</span><span class="n">ArrivalPattern</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">morning_rate</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">afternoon_rate</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">morning_rate</span> <span class="o">=</span> <span class="n">morning_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">afternoon_rate</span> <span class="o">=</span> <span class="n">afternoon_rate</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_next_arrival</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_time</span><span class="p">):</span>
+        <span class="c1"># Higher rate in morning, lower in afternoon</span>
+        <span class="n">hour</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_time</span> <span class="o">%</span> <span class="mi">1440</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span>  <span class="c1"># Hour of day</span>
+
+        <span class="k">if</span> <span class="n">hour</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">morning_rate</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">afternoon_rate</span><span class="p">)</span>
+
+<span class="c1"># Use custom pattern</span>
+<span class="n">source</span> <span class="o">=</span> <span class="n">SourcePrimitive</span><span class="p">(</span>
+    <span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Source1&quot;</span><span class="p">,</span>
+    <span class="n">arrival_pattern</span><span class="o">=</span><span class="n">CustomArrivalPattern</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="failure-modeling">
+<h3>Failure Modeling<a class="headerlink" href="#failure-modeling" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">EquipmentPrimitive</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ReliableEquipment</span><span class="p">(</span><span class="n">EquipmentPrimitive</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mtbf</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">mttr</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mtbf</span> <span class="o">=</span> <span class="n">mtbf</span>  <span class="c1"># Mean time between failures</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mttr</span> <span class="o">=</span> <span class="n">mttr</span>  <span class="c1"># Mean time to repair</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failure_process</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">failure_process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Wait for next failure</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mtbf</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Equipment fails</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;failed&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Repair time</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mttr</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Equipment repaired</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;idle&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> repaired&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Explore <a class="reference internal" href="primitives.html"><span class="doc">Simulation Primitives</span></a> for detailed component documentation</p></li>
+<li><p>Review <a class="reference internal" href="ontology_driven.html"><span class="doc">Ontology-Driven Architecture</span></a> for advanced model building</p></li>
+<li><p>See <a class="reference internal" href="usage.html"><span class="doc">Usage Examples</span></a> for real-world examples</p></li>
+<li><p>Check <a class="reference internal" href="api/index.html"><span class="doc">API Reference</span></a> for complete API reference</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

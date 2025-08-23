@@ -1,0 +1,1257 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>database.models &mdash; Virtual Ontology Database 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="database.repositories" href="../repositories/index.html" />
+    <link rel="prev" title="database.manager" href="../manager/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Virtual Ontology Database
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../conf/index.html">conf</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">database</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../app/index.html">database.app</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cli/index.html">database.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../dependencies/index.html">database.dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../integration/index.html">database.integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../integration_optimized/index.html">database.integration_optimized</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../main/index.html">database.main</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manager/index.html">database.manager</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">database.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../repositories/index.html">database.repositories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../routers/index.html">database.routers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../schemas/index.html">database.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../config_loader/index.html">config_loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../conf/index.html">conf</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">database</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../app/index.html">database.app</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../cli/index.html">database.cli</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../dependencies/index.html">database.dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../integration/index.html">database.integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../integration_optimized/index.html">database.integration_optimized</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../main/index.html">database.main</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../manager/index.html">database.manager</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">database.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../repositories/index.html">database.repositories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../routers/index.html">database.routers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../schemas/index.html">database.schemas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../index.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../config_loader/index.html">config_loader</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Virtual Ontology Database</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">database</a></li>
+      <li class="breadcrumb-item active">database.models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/api/database/models/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-database.models">
+<span id="database-models"></span><h1>database.models<a class="headerlink" href="#module-database.models" title="Link to this heading"></a></h1>
+<p>SQLModel database models for virtual twin system</p>
+<p>Keeps ontologies as YAML files, stores operational data in database</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#database.models.HistoricalMESData" title="database.models.HistoricalMESData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HistoricalMESData</span></code></a></p></td>
+<td><p>Historical MES data for baseline reference</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#database.models.EquipmentConfig" title="database.models.EquipmentConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EquipmentConfig</span></code></a></p></td>
+<td><p>Equipment configuration from manifests</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#database.models.ProductConfig" title="database.models.ProductConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProductConfig</span></code></a></p></td>
+<td><p>Product configuration from manifests</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#database.models.ProductionSchedule" title="database.models.ProductionSchedule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProductionSchedule</span></code></a></p></td>
+<td><p>Production schedule from manifests</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#database.models.TwinRun" title="database.models.TwinRun"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TwinRun</span></code></a></p></td>
+<td><p>Twin simulation runs (keep existing structure)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#database.models.SimulationData" title="database.models.SimulationData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationData</span></code></a></p></td>
+<td><p>Simulation output data (MES format)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#database.models.SimulationObservable" title="database.models.SimulationObservable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationObservable</span></code></a></p></td>
+<td><p>Raw observables from simulation (optional detailed storage)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#database.models.Experiment" title="database.models.Experiment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Experiment</span></code></a></p></td>
+<td><p>Experiments for parameter discovery</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#database.models.DiscoveredPattern" title="database.models.DiscoveredPattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DiscoveredPattern</span></code></a></p></td>
+<td><p>Patterns discovered through experiments</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#database.models.ParameterRecommendation" title="database.models.ParameterRecommendation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParameterRecommendation</span></code></a></p></td>
+<td><p>Parameter recommendations from discoveries</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#database.models.KPISnapshot" title="database.models.KPISnapshot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">KPISnapshot</span></code></a></p></td>
+<td><p>KPI snapshots for quick comparison</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#database.models.ComparisonResult" title="database.models.ComparisonResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ComparisonResult</span></code></a></p></td>
+<td><p>Results of comparing runs</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">HistoricalMESData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Historical MES data for baseline reference</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'historical_mes_data'</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.timestamp">
+<span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.timestamp" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.production_order_id">
+<span class="sig-name descname"><span class="pre">production_order_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.production_order_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.production_order_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.line_id">
+<span class="sig-name descname"><span class="pre">line_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.line_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.line_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.equipment_id">
+<span class="sig-name descname"><span class="pre">equipment_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.equipment_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.equipment_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.equipment_type">
+<span class="sig-name descname"><span class="pre">equipment_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.equipment_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.equipment_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.product_id">
+<span class="sig-name descname"><span class="pre">product_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.product_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.product_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.product_name">
+<span class="sig-name descname"><span class="pre">product_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.product_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.product_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.machine_status">
+<span class="sig-name descname"><span class="pre">machine_status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.machine_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.machine_status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.downtime_reason">
+<span class="sig-name descname"><span class="pre">downtime_reason</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.downtime_reason"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.downtime_reason" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.good_units_produced">
+<span class="sig-name descname"><span class="pre">good_units_produced</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.good_units_produced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.good_units_produced" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.scrap_units_produced">
+<span class="sig-name descname"><span class="pre">scrap_units_produced</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.scrap_units_produced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.scrap_units_produced" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.target_rate_units_per_5min">
+<span class="sig-name descname"><span class="pre">target_rate_units_per_5min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.target_rate_units_per_5min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.target_rate_units_per_5min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.standard_cost_per_unit">
+<span class="sig-name descname"><span class="pre">standard_cost_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.standard_cost_per_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.standard_cost_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.sale_price_per_unit">
+<span class="sig-name descname"><span class="pre">sale_price_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.sale_price_per_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.sale_price_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.availability_score">
+<span class="sig-name descname"><span class="pre">availability_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.availability_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.availability_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.performance_score">
+<span class="sig-name descname"><span class="pre">performance_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.performance_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.performance_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.quality_score">
+<span class="sig-name descname"><span class="pre">quality_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.quality_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.quality_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.oee_score">
+<span class="sig-name descname"><span class="pre">oee_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.oee_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.oee_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.energy_consumption_kwh">
+<span class="sig-name descname"><span class="pre">energy_consumption_kwh</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.energy_consumption_kwh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.energy_consumption_kwh" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.source">
+<span class="sig-name descname"><span class="pre">source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.source" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.import_date">
+<span class="sig-name descname"><span class="pre">import_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.import_date"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.import_date" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.HistoricalMESData.data_quality_score">
+<span class="sig-name descname"><span class="pre">data_quality_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#HistoricalMESData.data_quality_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.HistoricalMESData.data_quality_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">EquipmentConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Equipment configuration from manifests</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'equipment_config'</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.equipment_id">
+<span class="sig-name descname"><span class="pre">equipment_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.equipment_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.equipment_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.equipment_type">
+<span class="sig-name descname"><span class="pre">equipment_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.equipment_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.equipment_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.line_id">
+<span class="sig-name descname"><span class="pre">line_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.line_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.line_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.position">
+<span class="sig-name descname"><span class="pre">position</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.position"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.position" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.base_rate">
+<span class="sig-name descname"><span class="pre">base_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.base_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.base_rate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.mtbf">
+<span class="sig-name descname"><span class="pre">mtbf</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.mtbf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.mtbf" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.mttr">
+<span class="sig-name descname"><span class="pre">mttr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.mttr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.mttr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.energy_consumption_rate">
+<span class="sig-name descname"><span class="pre">energy_consumption_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.energy_consumption_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.energy_consumption_rate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.failure_patterns_json">
+<span class="sig-name descname"><span class="pre">failure_patterns_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.failure_patterns_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.failure_patterns_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.performance_by_product_json">
+<span class="sig-name descname"><span class="pre">performance_by_product_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.performance_by_product_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.performance_by_product_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.active">
+<span class="sig-name descname"><span class="pre">active</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.active"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.active" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.created_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.created_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.updated_at">
+<span class="sig-name descname"><span class="pre">updated_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.updated_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.updated_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.failure_patterns">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">failure_patterns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.failure_patterns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.failure_patterns" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="database.models.EquipmentConfig.performance_by_product">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">performance_by_product</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></em><a class="reference internal" href="../../../_modules/database/models.html#EquipmentConfig.performance_by_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.EquipmentConfig.performance_by_product" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.ProductConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">ProductConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Product configuration from manifests</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'product_config'</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.product_id">
+<span class="sig-name descname"><span class="pre">product_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.product_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.product_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.product_name">
+<span class="sig-name descname"><span class="pre">product_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.product_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.product_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.target_rate_units_per_5min">
+<span class="sig-name descname"><span class="pre">target_rate_units_per_5min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.target_rate_units_per_5min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.target_rate_units_per_5min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.standard_cost_per_unit">
+<span class="sig-name descname"><span class="pre">standard_cost_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.standard_cost_per_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.standard_cost_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.sale_price_per_unit">
+<span class="sig-name descname"><span class="pre">sale_price_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.sale_price_per_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.sale_price_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.scrap_rate_normal">
+<span class="sig-name descname"><span class="pre">scrap_rate_normal</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.scrap_rate_normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.scrap_rate_normal" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.scrap_rate_startup">
+<span class="sig-name descname"><span class="pre">scrap_rate_startup</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.scrap_rate_startup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.scrap_rate_startup" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.scrap_rate_quality_issue">
+<span class="sig-name descname"><span class="pre">scrap_rate_quality_issue</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.scrap_rate_quality_issue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.scrap_rate_quality_issue" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.properties_json">
+<span class="sig-name descname"><span class="pre">properties_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.properties_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.properties_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.active">
+<span class="sig-name descname"><span class="pre">active</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.active"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.active" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductConfig.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductConfig.created_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductConfig.created_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">ProductionSchedule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Production schedule from manifests</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'production_schedule'</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.schedule_id">
+<span class="sig-name descname"><span class="pre">schedule_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.schedule_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.schedule_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.order_id">
+<span class="sig-name descname"><span class="pre">order_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.order_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.order_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.product_id">
+<span class="sig-name descname"><span class="pre">product_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.product_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.product_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.line_id">
+<span class="sig-name descname"><span class="pre">line_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.line_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.line_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.scheduled_start">
+<span class="sig-name descname"><span class="pre">scheduled_start</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.scheduled_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.scheduled_start" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.scheduled_duration_minutes">
+<span class="sig-name descname"><span class="pre">scheduled_duration_minutes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.scheduled_duration_minutes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.scheduled_duration_minutes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.target_quantity">
+<span class="sig-name descname"><span class="pre">target_quantity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.target_quantity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.target_quantity" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.priority">
+<span class="sig-name descname"><span class="pre">priority</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.priority"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.priority" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.schedule_type">
+<span class="sig-name descname"><span class="pre">schedule_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.schedule_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.schedule_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ProductionSchedule.simulation_run_id">
+<span class="sig-name descname"><span class="pre">simulation_run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ProductionSchedule.simulation_run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ProductionSchedule.simulation_run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.TwinRun">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">TwinRun</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#TwinRun"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Twin simulation runs (keep existing structure)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'twin_runs'</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.run_id">
+<span class="sig-name descname"><span class="pre">run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.run_type">
+<span class="sig-name descname"><span class="pre">run_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.run_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.run_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.ontology_version">
+<span class="sig-name descname"><span class="pre">ontology_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.ontology_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.ontology_version" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.manifest_version">
+<span class="sig-name descname"><span class="pre">manifest_version</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.manifest_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.manifest_version" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.parameter_set_json">
+<span class="sig-name descname"><span class="pre">parameter_set_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.parameter_set_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.parameter_set_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.config_delta_json">
+<span class="sig-name descname"><span class="pre">config_delta_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.config_delta_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.config_delta_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.seed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.started_at">
+<span class="sig-name descname"><span class="pre">started_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.started_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.started_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.finished_at">
+<span class="sig-name descname"><span class="pre">finished_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.finished_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.finished_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.simulation_days">
+<span class="sig-name descname"><span class="pre">simulation_days</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.simulation_days"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.simulation_days" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.kpi_summary_json">
+<span class="sig-name descname"><span class="pre">kpi_summary_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.kpi_summary_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.kpi_summary_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.output_path">
+<span class="sig-name descname"><span class="pre">output_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.output_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.output_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.data_hash">
+<span class="sig-name descname"><span class="pre">data_hash</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.data_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.data_hash" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.parent_run_id">
+<span class="sig-name descname"><span class="pre">parent_run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.parent_run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.parent_run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.notes">
+<span class="sig-name descname"><span class="pre">notes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.notes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.notes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.TwinRun.created_by">
+<span class="sig-name descname"><span class="pre">created_by</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#TwinRun.created_by"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.TwinRun.created_by" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.SimulationData">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">SimulationData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#SimulationData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Simulation output data (MES format)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'simulation_data'</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.run_id">
+<span class="sig-name descname"><span class="pre">run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.timestamp">
+<span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.timestamp" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.production_order_id">
+<span class="sig-name descname"><span class="pre">production_order_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.production_order_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.production_order_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.line_id">
+<span class="sig-name descname"><span class="pre">line_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.line_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.line_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.equipment_id">
+<span class="sig-name descname"><span class="pre">equipment_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.equipment_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.equipment_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.equipment_type">
+<span class="sig-name descname"><span class="pre">equipment_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.equipment_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.equipment_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.product_id">
+<span class="sig-name descname"><span class="pre">product_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.product_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.product_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.product_name">
+<span class="sig-name descname"><span class="pre">product_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.product_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.product_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.machine_status">
+<span class="sig-name descname"><span class="pre">machine_status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.machine_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.machine_status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.downtime_reason">
+<span class="sig-name descname"><span class="pre">downtime_reason</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.downtime_reason"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.downtime_reason" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.good_units_produced">
+<span class="sig-name descname"><span class="pre">good_units_produced</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.good_units_produced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.good_units_produced" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.scrap_units_produced">
+<span class="sig-name descname"><span class="pre">scrap_units_produced</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.scrap_units_produced"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.scrap_units_produced" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.target_rate_units_per_5min">
+<span class="sig-name descname"><span class="pre">target_rate_units_per_5min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.target_rate_units_per_5min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.target_rate_units_per_5min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.standard_cost_per_unit">
+<span class="sig-name descname"><span class="pre">standard_cost_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.standard_cost_per_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.standard_cost_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.sale_price_per_unit">
+<span class="sig-name descname"><span class="pre">sale_price_per_unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.sale_price_per_unit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.sale_price_per_unit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.availability_score">
+<span class="sig-name descname"><span class="pre">availability_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.availability_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.availability_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.performance_score">
+<span class="sig-name descname"><span class="pre">performance_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.performance_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.performance_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.quality_score">
+<span class="sig-name descname"><span class="pre">quality_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.quality_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.quality_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.oee_score">
+<span class="sig-name descname"><span class="pre">oee_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.oee_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.oee_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationData.energy_consumption_kwh">
+<span class="sig-name descname"><span class="pre">energy_consumption_kwh</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationData.energy_consumption_kwh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationData.energy_consumption_kwh" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.SimulationObservable">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">SimulationObservable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Raw observables from simulation (optional detailed storage)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'simulation_observables'</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.run_id">
+<span class="sig-name descname"><span class="pre">run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.timestamp">
+<span class="sig-name descname"><span class="pre">timestamp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.timestamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.timestamp" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.primitive_id">
+<span class="sig-name descname"><span class="pre">primitive_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.primitive_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.primitive_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.primitive_type">
+<span class="sig-name descname"><span class="pre">primitive_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.primitive_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.primitive_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.event_type">
+<span class="sig-name descname"><span class="pre">event_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.event_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.event_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.details_json">
+<span class="sig-name descname"><span class="pre">details_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.details_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.details_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.severity">
+<span class="sig-name descname"><span class="pre">severity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.severity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.severity" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.SimulationObservable.store_raw">
+<span class="sig-name descname"><span class="pre">store_raw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#SimulationObservable.store_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.SimulationObservable.store_raw" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.Experiment">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">Experiment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#Experiment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Experiments for parameter discovery</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'experiments'</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.experiment_id">
+<span class="sig-name descname"><span class="pre">experiment_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.experiment_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.experiment_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.experiment_name">
+<span class="sig-name descname"><span class="pre">experiment_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.experiment_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.experiment_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.hypothesis">
+<span class="sig-name descname"><span class="pre">hypothesis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.hypothesis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.hypothesis" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.baseline_run_id">
+<span class="sig-name descname"><span class="pre">baseline_run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.baseline_run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.baseline_run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.test_runs_json">
+<span class="sig-name descname"><span class="pre">test_runs_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.test_runs_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.test_runs_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.parameter_changes_json">
+<span class="sig-name descname"><span class="pre">parameter_changes_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.parameter_changes_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.parameter_changes_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.created_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.created_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.created_by">
+<span class="sig-name descname"><span class="pre">created_by</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.created_by"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.created_by" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.results_summary_json">
+<span class="sig-name descname"><span class="pre">results_summary_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.results_summary_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.results_summary_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.Experiment.conclusion">
+<span class="sig-name descname"><span class="pre">conclusion</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#Experiment.conclusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.Experiment.conclusion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">DiscoveredPattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Patterns discovered through experiments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'discovered_patterns'</span></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.pattern_id">
+<span class="sig-name descname"><span class="pre">pattern_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.pattern_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.pattern_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.pattern_type">
+<span class="sig-name descname"><span class="pre">pattern_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.pattern_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.pattern_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.pattern_name">
+<span class="sig-name descname"><span class="pre">pattern_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.pattern_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.pattern_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.evidence_json">
+<span class="sig-name descname"><span class="pre">evidence_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.evidence_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.evidence_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.experiment_ids_json">
+<span class="sig-name descname"><span class="pre">experiment_ids_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.experiment_ids_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.experiment_ids_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.confidence_score">
+<span class="sig-name descname"><span class="pre">confidence_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.confidence_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.confidence_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.discovered_at">
+<span class="sig-name descname"><span class="pre">discovered_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.discovered_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.discovered_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.discovered_by">
+<span class="sig-name descname"><span class="pre">discovered_by</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.discovered_by"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.discovered_by" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.validated">
+<span class="sig-name descname"><span class="pre">validated</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.validated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.validated" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.DiscoveredPattern.validation_runs_json">
+<span class="sig-name descname"><span class="pre">validation_runs_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#DiscoveredPattern.validation_runs_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.DiscoveredPattern.validation_runs_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">ParameterRecommendation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Parameter recommendations from discoveries</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'parameter_recommendations'</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.recommendation_id">
+<span class="sig-name descname"><span class="pre">recommendation_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.recommendation_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.recommendation_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.pattern_id">
+<span class="sig-name descname"><span class="pre">pattern_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.pattern_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.pattern_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.recommendation_type">
+<span class="sig-name descname"><span class="pre">recommendation_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.recommendation_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.recommendation_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.parameter_adjustments_json">
+<span class="sig-name descname"><span class="pre">parameter_adjustments_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.parameter_adjustments_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.parameter_adjustments_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.expected_improvement_json">
+<span class="sig-name descname"><span class="pre">expected_improvement_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.expected_improvement_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.expected_improvement_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.confidence">
+<span class="sig-name descname"><span class="pre">confidence</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.confidence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.confidence" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.created_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.created_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.applied">
+<span class="sig-name descname"><span class="pre">applied</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.applied"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.applied" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.applied_run_id">
+<span class="sig-name descname"><span class="pre">applied_run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.applied_run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.applied_run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ParameterRecommendation.actual_improvement_json">
+<span class="sig-name descname"><span class="pre">actual_improvement_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ParameterRecommendation.actual_improvement_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ParameterRecommendation.actual_improvement_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.KPISnapshot">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">KPISnapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>KPI snapshots for quick comparison</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'kpi_snapshots'</span></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.snapshot_id">
+<span class="sig-name descname"><span class="pre">snapshot_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.snapshot_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.snapshot_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.run_id">
+<span class="sig-name descname"><span class="pre">run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.entity_type">
+<span class="sig-name descname"><span class="pre">entity_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.entity_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.entity_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.entity_id">
+<span class="sig-name descname"><span class="pre">entity_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.entity_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.entity_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.mean_oee">
+<span class="sig-name descname"><span class="pre">mean_oee</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.mean_oee"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.mean_oee" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.mean_availability">
+<span class="sig-name descname"><span class="pre">mean_availability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.mean_availability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.mean_availability" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.mean_performance">
+<span class="sig-name descname"><span class="pre">mean_performance</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.mean_performance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.mean_performance" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.mean_quality">
+<span class="sig-name descname"><span class="pre">mean_quality</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.mean_quality"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.mean_quality" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.total_good_units">
+<span class="sig-name descname"><span class="pre">total_good_units</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.total_good_units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.total_good_units" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.total_scrap_units">
+<span class="sig-name descname"><span class="pre">total_scrap_units</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.total_scrap_units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.total_scrap_units" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.total_downtime_minutes">
+<span class="sig-name descname"><span class="pre">total_downtime_minutes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.total_downtime_minutes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.total_downtime_minutes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.additional_metrics_json">
+<span class="sig-name descname"><span class="pre">additional_metrics_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.additional_metrics_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.additional_metrics_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.period_start">
+<span class="sig-name descname"><span class="pre">period_start</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.period_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.period_start" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.period_end">
+<span class="sig-name descname"><span class="pre">period_end</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.period_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.period_end" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.KPISnapshot.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#KPISnapshot.created_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.KPISnapshot.created_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="database.models.ComparisonResult">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">database.models.</span></span><span class="sig-name descname"><span class="pre">ComparisonResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">sqlmodel.SQLModel</span></code></p>
+<p>Results of comparing runs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.__tablename__">
+<span class="sig-name descname"><span class="pre">__tablename__</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'comparison_results'</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.__tablename__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.__tablename__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.comparison_id">
+<span class="sig-name descname"><span class="pre">comparison_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.comparison_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.comparison_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.baseline_run_id">
+<span class="sig-name descname"><span class="pre">baseline_run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.baseline_run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.baseline_run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.comparison_run_id">
+<span class="sig-name descname"><span class="pre">comparison_run_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.comparison_run_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.comparison_run_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.oee_delta">
+<span class="sig-name descname"><span class="pre">oee_delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.oee_delta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.oee_delta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.availability_delta">
+<span class="sig-name descname"><span class="pre">availability_delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.availability_delta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.availability_delta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.performance_delta">
+<span class="sig-name descname"><span class="pre">performance_delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.performance_delta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.performance_delta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.quality_delta">
+<span class="sig-name descname"><span class="pre">quality_delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.quality_delta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.quality_delta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.production_delta">
+<span class="sig-name descname"><span class="pre">production_delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.production_delta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.production_delta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.statistical_test">
+<span class="sig-name descname"><span class="pre">statistical_test</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.statistical_test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.statistical_test" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.p_value">
+<span class="sig-name descname"><span class="pre">p_value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.p_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.p_value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.is_significant">
+<span class="sig-name descname"><span class="pre">is_significant</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.is_significant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.is_significant" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.analysis_json">
+<span class="sig-name descname"><span class="pre">analysis_json</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.analysis_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.analysis_json" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="database.models.ComparisonResult.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.13)"><span class="pre">datetime.datetime</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference internal" href="../../../_modules/database/models.html#ComparisonResult.created_at"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#database.models.ComparisonResult.created_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../manager/index.html" class="btn btn-neutral float-left" title="database.manager" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../repositories/index.html" class="btn btn-neutral float-right" title="database.repositories" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

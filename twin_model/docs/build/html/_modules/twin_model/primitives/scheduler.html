@@ -1,0 +1,908 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twin_model.primitives.scheduler &mdash; Virtual Ontology Twin Model 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=51b770b3"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Virtual Ontology Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../primitives.html">Simulation Primitives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ontology_driven.html">Ontology-Driven Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Virtual Ontology Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">twin_model.primitives.scheduler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for twin_model.primitives.scheduler</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Scheduler primitive for production order management.</span>
+
+<span class="sd">This module provides a scheduler primitive that manages production orders,</span>
+<span class="sd">product changeovers, shift schedules, and maintenance windows. It coordinates</span>
+<span class="sd">the timing and sequencing of production activities.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">simpy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePrimitive</span><span class="p">,</span> <span class="n">PrimitiveConfig</span>
+
+
+<div class="viewcode-block" id="ScheduleEventType">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEventType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScheduleEventType</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Types of schedule events.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ScheduleEventType.PRODUCTION_ORDER">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEventType.PRODUCTION_ORDER">[docs]</a>
+    <span class="n">PRODUCTION_ORDER</span> <span class="o">=</span> <span class="s2">&quot;PRODUCTION_ORDER&quot;</span></div>
+
+<div class="viewcode-block" id="ScheduleEventType.CHANGEOVER">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEventType.CHANGEOVER">[docs]</a>
+    <span class="n">CHANGEOVER</span> <span class="o">=</span> <span class="s2">&quot;CHANGEOVER&quot;</span></div>
+
+<div class="viewcode-block" id="ScheduleEventType.MAINTENANCE">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEventType.MAINTENANCE">[docs]</a>
+    <span class="n">MAINTENANCE</span> <span class="o">=</span> <span class="s2">&quot;MAINTENANCE&quot;</span></div>
+
+<div class="viewcode-block" id="ScheduleEventType.SHIFT_CHANGE">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEventType.SHIFT_CHANGE">[docs]</a>
+    <span class="n">SHIFT_CHANGE</span> <span class="o">=</span> <span class="s2">&quot;SHIFT_CHANGE&quot;</span></div>
+
+<div class="viewcode-block" id="ScheduleEventType.BREAK">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEventType.BREAK">[docs]</a>
+    <span class="n">BREAK</span> <span class="o">=</span> <span class="s2">&quot;BREAK&quot;</span></div>
+
+<div class="viewcode-block" id="ScheduleEventType.SHUTDOWN">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEventType.SHUTDOWN">[docs]</a>
+    <span class="n">SHUTDOWN</span> <span class="o">=</span> <span class="s2">&quot;SHUTDOWN&quot;</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="ScheduleEvent">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ScheduleEvent</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A scheduled event in the production schedule.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        event_type: Type of scheduled event</span>
+<span class="sd">        start_time: Scheduled start time (minutes from sim start)</span>
+<span class="sd">        duration: Expected duration in minutes</span>
+<span class="sd">        product_id: Product ID for production orders</span>
+<span class="sd">        order_id: Production order ID</span>
+<span class="sd">        line_id: Production line affected</span>
+<span class="sd">        priority: Priority level (lower = higher priority)</span>
+<span class="sd">        metadata: Additional event-specific data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ScheduleEvent.event_type">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.event_type">[docs]</a>
+    <span class="n">event_type</span><span class="p">:</span> <span class="n">ScheduleEventType</span></div>
+
+<div class="viewcode-block" id="ScheduleEvent.start_time">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.start_time">[docs]</a>
+    <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ScheduleEvent.duration">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.duration">[docs]</a>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ScheduleEvent.product_id">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.product_id">[docs]</a>
+    <span class="n">product_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScheduleEvent.order_id">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.order_id">[docs]</a>
+    <span class="n">order_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScheduleEvent.line_id">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.line_id">[docs]</a>
+    <span class="n">line_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ScheduleEvent.priority">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.priority">[docs]</a>
+    <span class="n">priority</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span></div>
+
+<div class="viewcode-block" id="ScheduleEvent.metadata">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.metadata">[docs]</a>
+    <span class="n">metadata</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ScheduleEvent.__lt__">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ScheduleEvent.__lt__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;ScheduleEvent&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare events for priority queue.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">start_time</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">priority</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">start_time</span></div>
+</div>
+
+
+
+<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="ProductionOrder">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProductionOrder</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Production order details.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        order_id: Unique order identifier</span>
+<span class="sd">        product_id: Product to produce</span>
+<span class="sd">        target_quantity: Target production quantity</span>
+<span class="sd">        due_time: Due date/time for order completion</span>
+<span class="sd">        line_id: Assigned production line</span>
+<span class="sd">        priority: Order priority</span>
+<span class="sd">        status: Current order status</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProductionOrder.order_id">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.order_id">[docs]</a>
+    <span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.product_id">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.product_id">[docs]</a>
+    <span class="n">product_id</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.target_quantity">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.target_quantity">[docs]</a>
+    <span class="n">target_quantity</span><span class="p">:</span> <span class="nb">int</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.due_time">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.due_time">[docs]</a>
+    <span class="n">due_time</span><span class="p">:</span> <span class="nb">float</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.line_id">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.line_id">[docs]</a>
+    <span class="n">line_id</span><span class="p">:</span> <span class="nb">str</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.priority">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.priority">[docs]</a>
+    <span class="n">priority</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.status">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.status">[docs]</a>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pending&quot;</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.actual_quantity">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.actual_quantity">[docs]</a>
+    <span class="n">actual_quantity</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.start_time">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.start_time">[docs]</a>
+    <span class="n">start_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ProductionOrder.end_time">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.ProductionOrder.end_time">[docs]</a>
+    <span class="n">end_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SchedulerPrimitive">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchedulerPrimitive</span><span class="p">(</span><span class="n">BasePrimitive</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scheduler for coordinating production activities.</span>
+
+<span class="sd">    Emits observables for:</span>
+<span class="sd">    - Order scheduling and completion</span>
+<span class="sd">    - Changeover events</span>
+<span class="sd">    - Shift transitions</span>
+<span class="sd">    - Schedule adherence metrics</span>
+<span class="sd">    - Order tardiness</span>
+<span class="sd">    - Resource conflicts</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span> <span class="n">simpy</span><span class="o">.</span><span class="n">Environment</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">PrimitiveConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize scheduler with configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            env: SimPy environment</span>
+<span class="sd">            config: Scheduler configuration containing:</span>
+<span class="sd">                - schedule_horizon: Planning horizon in minutes</span>
+<span class="sd">                - changeover_matrix: Product-to-product changeover times</span>
+<span class="sd">                - shift_schedule: Shift timing configuration</span>
+<span class="sd">                - maintenance_schedule: Planned maintenance windows</span>
+<span class="sd">                - optimization_mode: Scheduling algorithm to use</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+
+        <span class="c1"># Scheduler parameters</span>
+<div class="viewcode-block" id="SchedulerPrimitive.schedule_horizon">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.schedule_horizon">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_horizon</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;schedule_horizon&quot;</span><span class="p">,</span> <span class="mi">10080</span><span class="p">)</span>  <span class="c1"># 1 week</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.changeover_matrix">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.changeover_matrix">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">changeover_matrix</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;changeover_matrix&quot;</span><span class="p">,</span> <span class="p">{})</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.shift_schedule">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.shift_schedule">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shift_schedule</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;shift_schedule&quot;</span><span class="p">,</span> <span class="p">{})</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.maintenance_schedule">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.maintenance_schedule">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maintenance_schedule</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;maintenance_schedule&quot;</span><span class="p">,</span> <span class="p">[])</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.optimization_mode">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.optimization_mode">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimization_mode</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;optimization_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;FIFO&quot;</span><span class="p">)</span></div>
+
+
+        <span class="c1"># Schedule storage</span>
+<div class="viewcode-block" id="SchedulerPrimitive.schedule_events">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.schedule_events">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ScheduleEvent</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.production_orders">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.production_orders">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ProductionOrder</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.active_order">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.active_order">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ProductionOrder</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+        <span class="c1"># Tracking metrics</span>
+<div class="viewcode-block" id="SchedulerPrimitive.orders_scheduled">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.orders_scheduled">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.orders_completed">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.orders_completed">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.total_changeover_time">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.total_changeover_time">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_changeover_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.schedule_adherence">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.schedule_adherence">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_adherence</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.tardiness_total">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.tardiness_total">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tardiness_total</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+        <span class="c1"># Current state</span>
+<div class="viewcode-block" id="SchedulerPrimitive.current_product">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.current_product">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.current_shift">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.current_shift">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="SchedulerPrimitive.current_line">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.current_line">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_line</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+        <span class="c1"># Registered equipment to control</span>
+<div class="viewcode-block" id="SchedulerPrimitive.controlled_equipment">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.controlled_equipment">[docs]</a>
+        <span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="SchedulerPrimitive.start">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.start">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start the scheduler process.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_process</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">monitor_process</span><span class="p">())</span>
+
+        <span class="c1"># Load initial schedule if provided</span>
+        <span class="n">initial_schedule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get_property</span><span class="p">(</span><span class="s2">&quot;initial_schedule&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="n">initial_schedule</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_schedule</span><span class="p">(</span><span class="n">initial_schedule</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;scheduler_started&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;horizon&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_horizon</span><span class="p">,</span>
+                <span class="s2">&quot;optimization_mode&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_mode</span><span class="p">,</span>
+                <span class="s2">&quot;initial_orders&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchedulerPrimitive.schedule_process">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.schedule_process">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">schedule_process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Main scheduling process.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="c1"># Get next scheduled event</span>
+            <span class="n">next_event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_next_event</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">next_event</span><span class="p">:</span>
+                <span class="c1"># Wait until event start time</span>
+                <span class="n">wait_time</span> <span class="o">=</span> <span class="n">next_event</span><span class="o">.</span><span class="n">start_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span>
+                <span class="k">if</span> <span class="n">wait_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span>
+
+                <span class="c1"># Process the event</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_event</span><span class="p">(</span><span class="n">next_event</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># No events scheduled, wait</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_next_event</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ScheduleEvent</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the next scheduled event.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Next event to process or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Filter future events</span>
+        <span class="n">future_events</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">start_time</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">future_events</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Sort by start time and priority</span>
+        <span class="n">future_events</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">future_events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">ScheduleEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a scheduled event.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event: Event to process</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;schedule_event_started&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">event_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">order_id</span><span class="p">,</span>
+                <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">product_id</span><span class="p">,</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">event_type</span> <span class="o">==</span> <span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">PRODUCTION_ORDER</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_production_order</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">event_type</span> <span class="o">==</span> <span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">CHANGEOVER</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_changeover</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">event_type</span> <span class="o">==</span> <span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">MAINTENANCE</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_maintenance</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">event_type</span> <span class="o">==</span> <span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">SHIFT_CHANGE</span><span class="p">:</span>
+            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_shift_change</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+        <span class="c1"># Remove processed event</span>
+        <span class="k">if</span> <span class="n">event</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_production_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">ScheduleEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a production order event.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event: Production order event</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">order_id</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">order_id</span>
+
+        <span class="k">if</span> <span class="n">order_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">:</span>
+            <span class="c1"># Create order if not exists</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">ProductionOrder</span><span class="p">(</span>
+                <span class="n">order_id</span><span class="o">=</span><span class="n">order_id</span> <span class="ow">or</span> <span class="s2">&quot;DEFAULT&quot;</span><span class="p">,</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">product_id</span> <span class="ow">or</span> <span class="s2">&quot;UNKNOWN&quot;</span><span class="p">,</span>
+                <span class="n">target_quantity</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;quantity&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+                <span class="n">due_time</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">start_time</span> <span class="o">+</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">line_id</span> <span class="ow">or</span> <span class="s2">&quot;LINE1&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">[</span><span class="n">order_id</span> <span class="ow">or</span> <span class="s2">&quot;DEFAULT&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">[</span><span class="n">order_id</span><span class="p">]</span>
+
+        <span class="c1"># Check if changeover needed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span> <span class="o">!=</span> <span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">:</span>
+            <span class="n">changeover_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_changeover_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">changeover_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Schedule changeover first</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_changeover</span><span class="p">(</span>
+                    <span class="n">ScheduleEvent</span><span class="p">(</span>
+                        <span class="n">event_type</span><span class="o">=</span><span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">CHANGEOVER</span><span class="p">,</span>
+                        <span class="n">start_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+                        <span class="n">duration</span><span class="o">=</span><span class="n">changeover_time</span><span class="p">,</span>
+                        <span class="n">product_id</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">,</span>
+                        <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;from_product&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">,</span>
+                            <span class="s2">&quot;to_product&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">,</span>
+                        <span class="p">},</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Start production</span>
+        <span class="n">order</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span>
+        <span class="n">order</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;in_progress&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span> <span class="o">=</span> <span class="n">order</span><span class="o">.</span><span class="n">product_id</span>
+
+        <span class="c1"># Configure equipment for this product</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configure_equipment_for_product</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">,</span> <span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;order_started&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">,</span>
+                <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">,</span>
+                <span class="s2">&quot;target_quantity&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">target_quantity</span><span class="p">,</span>
+                <span class="s2">&quot;due_time&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">due_time</span><span class="p">,</span>
+                <span class="s2">&quot;line&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">line_id</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Wait for order duration</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+
+        <span class="c1"># Complete order</span>
+        <span class="n">order</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span>
+        <span class="n">order</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;completed&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Calculate tardiness</span>
+        <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">end_time</span> <span class="o">&gt;</span> <span class="n">order</span><span class="o">.</span><span class="n">due_time</span><span class="p">:</span>
+            <span class="n">tardiness</span> <span class="o">=</span> <span class="n">order</span><span class="o">.</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">order</span><span class="o">.</span><span class="n">due_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tardiness_total</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tardiness</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;order_tardy&quot;</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">,</span>
+                    <span class="s2">&quot;tardiness&quot;</span><span class="p">:</span> <span class="n">tardiness</span><span class="p">,</span>
+                    <span class="s2">&quot;due_time&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">due_time</span><span class="p">,</span>
+                    <span class="s2">&quot;completion_time&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">end_time</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;order_completed&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">,</span>
+                <span class="s2">&quot;actual_quantity&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">actual_quantity</span><span class="p">,</span>
+                <span class="s2">&quot;target_quantity&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">target_quantity</span><span class="p">,</span>
+                <span class="s2">&quot;completion_rate&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">actual_quantity</span> <span class="o">/</span> <span class="n">order</span><span class="o">.</span><span class="n">target_quantity</span> <span class="k">if</span> <span class="n">order</span><span class="o">.</span><span class="n">target_quantity</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;lead_time&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">order</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_changeover</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">ScheduleEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a changeover event.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event: Changeover event</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">from_product</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;from_product&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">)</span>
+        <span class="n">to_product</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;to_product&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">product_id</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;changeover_started&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;from_product&quot;</span><span class="p">:</span> <span class="n">from_product</span><span class="p">,</span>
+                <span class="s2">&quot;to_product&quot;</span><span class="p">:</span> <span class="n">to_product</span><span class="p">,</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                <span class="s2">&quot;line&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">line_id</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Stop equipment for changeover</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop_equipment_for_changeover</span><span class="p">()</span>
+
+        <span class="c1"># Changeover duration</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_changeover_time</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span> <span class="o">=</span> <span class="n">to_product</span>
+
+        <span class="c1"># Restart equipment with new product</span>
+        <span class="k">if</span> <span class="n">to_product</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_configure_equipment_for_product</span><span class="p">(</span><span class="n">to_product</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;changeover_completed&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;new_product&quot;</span><span class="p">:</span> <span class="n">to_product</span><span class="p">,</span>
+                <span class="s2">&quot;changeover_time&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                <span class="s2">&quot;total_changeover_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_changeover_time</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_maintenance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">ScheduleEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a maintenance event.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event: Maintenance event</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;maintenance_started&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;maintenance_type&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;planned&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                <span class="s2">&quot;equipment&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;equipment&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Stop affected equipment</span>
+        <span class="k">for</span> <span class="n">eq_id</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;equipment&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">if</span> <span class="n">eq_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="p">:</span>
+                <span class="c1"># Trigger maintenance on equipment</span>
+                <span class="n">equipment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="p">[</span><span class="n">eq_id</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">equipment</span><span class="p">,</span> <span class="s2">&quot;process&quot;</span><span class="p">):</span>
+                    <span class="n">equipment</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">interrupt</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;maintenance&quot;</span><span class="p">,</span> <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">})</span>
+
+        <span class="c1"># Maintenance duration</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span><span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;maintenance_completed&quot;</span><span class="p">,</span> <span class="n">details</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_shift_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">ScheduleEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a shift change event.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            event: Shift change event</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">old_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span>
+        <span class="n">new_shift</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shift_id&quot;</span><span class="p">,</span> <span class="s2">&quot;shift1&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span> <span class="o">=</span> <span class="n">new_shift</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;shift_change&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;old_shift&quot;</span><span class="p">:</span> <span class="n">old_shift</span><span class="p">,</span>
+                <span class="s2">&quot;new_shift&quot;</span><span class="p">:</span> <span class="n">new_shift</span><span class="p">,</span>
+                <span class="s2">&quot;handover_duration&quot;</span><span class="p">:</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Update equipment with new shift</span>
+        <span class="k">for</span> <span class="n">equipment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">equipment</span><span class="p">,</span> <span class="s2">&quot;set_shift&quot;</span><span class="p">):</span>
+                <span class="n">equipment</span><span class="o">.</span><span class="n">set_shift</span><span class="p">(</span><span class="n">new_shift</span><span class="p">)</span>
+
+        <span class="c1"># Handover time</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_changeover_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_product</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_product</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get changeover time between products.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            from_product: Current product</span>
+<span class="sd">            to_product: Next product</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Changeover time in minutes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">changeover_matrix</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">30.0</span>  <span class="c1"># Default changeover time</span>
+
+        <span class="c1"># Check matrix</span>
+        <span class="k">if</span> <span class="n">from_product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">changeover_matrix</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">to_product</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">changeover_matrix</span><span class="p">[</span><span class="n">from_product</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">changeover_matrix</span><span class="p">[</span><span class="n">from_product</span><span class="p">][</span><span class="n">to_product</span><span class="p">]</span>  <span class="c1"># type: ignore[no-any-return]</span>
+
+        <span class="c1"># Default based on product similarity</span>
+        <span class="k">if</span> <span class="n">from_product</span> <span class="o">==</span> <span class="n">to_product</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="k">elif</span> <span class="n">from_product</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="n">to_product</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>  <span class="c1"># Same family</span>
+            <span class="k">return</span> <span class="mf">15.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">45.0</span>  <span class="c1"># Different families</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_configure_equipment_for_product</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">order_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Configure equipment for a specific product.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            product_id: Product to configure for</span>
+<span class="sd">            order_id: Associated order ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">equipment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">equipment</span><span class="p">,</span> <span class="s2">&quot;set_product&quot;</span><span class="p">):</span>
+                <span class="n">equipment</span><span class="o">.</span><span class="n">set_product</span><span class="p">(</span><span class="n">product_id</span><span class="p">,</span> <span class="n">order_id</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stop_equipment_for_changeover</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop equipment for changeover.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">equipment</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">equipment</span><span class="p">,</span> <span class="s2">&quot;process&quot;</span><span class="p">):</span>
+                <span class="n">equipment</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">interrupt</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;changeover&quot;</span><span class="p">,</span> <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+
+<div class="viewcode-block" id="SchedulerPrimitive.register_equipment">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.register_equipment">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_equipment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">equipment_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">equipment</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register equipment to be controlled by scheduler.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            equipment_id: Equipment identifier</span>
+<span class="sd">            equipment: Equipment primitive instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="p">[</span><span class="n">equipment_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">equipment</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;equipment_registered&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;equipment_id&quot;</span><span class="p">:</span> <span class="n">equipment_id</span><span class="p">,</span>
+                <span class="s2">&quot;total_registered&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">controlled_equipment</span><span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchedulerPrimitive.add_order">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.add_order">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">:</span> <span class="n">ProductionOrder</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a production order to the schedule.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            order: Production order to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Create schedule event</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">ScheduleEvent</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">PRODUCTION_ORDER</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>  <span class="c1"># Or calculate based on optimization</span>
+            <span class="n">duration</span><span class="o">=</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">target_quantity</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">),</span>  <span class="c1"># Estimate based on rate</span>
+            <span class="n">product_id</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">,</span>
+            <span class="n">order_id</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">,</span>
+            <span class="n">line_id</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">line_id</span><span class="p">,</span>
+            <span class="n">priority</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">target_quantity</span><span class="p">},</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;order_added&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">,</span>
+                <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">product_id</span><span class="p">,</span>
+                <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">target_quantity</span><span class="p">,</span>
+                <span class="s2">&quot;due_time&quot;</span><span class="p">:</span> <span class="n">order</span><span class="o">.</span><span class="n">due_time</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchedulerPrimitive.load_schedule">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.load_schedule">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schedule_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a complete schedule.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            schedule_data: List of schedule events</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">event_data</span> <span class="ow">in</span> <span class="n">schedule_data</span><span class="p">:</span>
+            <span class="n">event_type</span> <span class="o">=</span> <span class="n">ScheduleEventType</span><span class="p">(</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;PRODUCTION_ORDER&quot;</span><span class="p">))</span>
+
+            <span class="n">event</span> <span class="o">=</span> <span class="n">ScheduleEvent</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="n">event_type</span><span class="p">,</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start_time&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration&quot;</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span>
+                <span class="n">product_id</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;product_id&quot;</span><span class="p">),</span>
+                <span class="n">order_id</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;order_id&quot;</span><span class="p">),</span>
+                <span class="n">line_id</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;line_id&quot;</span><span class="p">),</span>
+                <span class="n">priority</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;priority&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+                <span class="n">metadata</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metadata&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+            <span class="c1"># Create order if production order</span>
+            <span class="k">if</span> <span class="n">event_type</span> <span class="o">==</span> <span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">PRODUCTION_ORDER</span><span class="p">:</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="n">ProductionOrder</span><span class="p">(</span>
+                    <span class="n">order_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">order_id</span> <span class="ow">or</span> <span class="s2">&quot;DEFAULT&quot;</span><span class="p">,</span>
+                    <span class="n">product_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">product_id</span> <span class="ow">or</span> <span class="s2">&quot;UNKNOWN&quot;</span><span class="p">,</span>
+                    <span class="n">target_quantity</span><span class="o">=</span><span class="n">event_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;quantity&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+                    <span class="n">due_time</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">start_time</span> <span class="o">+</span> <span class="n">event</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                    <span class="n">line_id</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">line_id</span> <span class="ow">or</span> <span class="s2">&quot;LINE1&quot;</span><span class="p">,</span>
+                    <span class="n">priority</span><span class="o">=</span><span class="n">event</span><span class="o">.</span><span class="n">priority</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">[</span><span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;schedule_loaded&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;total_events&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="p">),</span>
+                <span class="s2">&quot;total_orders&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchedulerPrimitive.optimize_schedule">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.optimize_schedule">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">optimize_schedule</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Optimize the current schedule based on mode.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_mode</span> <span class="o">==</span> <span class="s2">&quot;FIFO&quot;</span><span class="p">:</span>
+            <span class="c1"># First in, first out</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_mode</span> <span class="o">==</span> <span class="s2">&quot;SPT&quot;</span><span class="p">:</span>
+            <span class="c1"># Shortest processing time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_mode</span> <span class="o">==</span> <span class="s2">&quot;EDD&quot;</span><span class="p">:</span>
+            <span class="c1"># Earliest due date</span>
+            <span class="n">production_events</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">event_type</span> <span class="o">==</span> <span class="n">ScheduleEventType</span><span class="o">.</span><span class="n">PRODUCTION_ORDER</span><span class="p">]</span>
+            <span class="n">production_events</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
+                <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">order_id</span><span class="p">]</span><span class="o">.</span><span class="n">due_time</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">order_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">production_orders</span>
+                <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;schedule_optimized&quot;</span><span class="p">,</span>
+            <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimization_mode</span><span class="p">,</span>
+                <span class="s2">&quot;total_events&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchedulerPrimitive.monitor_process">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.monitor_process">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">monitor_process</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Background monitoring process.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_running</span><span class="p">:</span>
+            <span class="c1"># Monitor every 5 minutes</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+
+            <span class="c1"># Calculate schedule adherence</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="p">:</span>
+                <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="o">.</span><span class="n">start_time</span> <span class="ow">or</span> <span class="mi">0</span>
+                <span class="n">due_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="o">.</span><span class="n">due_time</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">planned_progress</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                    <span class="mf">1.0</span><span class="p">,</span>
+                    <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">due_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)),</span>
+                <span class="p">)</span>
+                <span class="n">actual_progress</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="o">.</span><span class="n">actual_quantity</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="o">.</span><span class="n">target_quantity</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="o">.</span><span class="n">target_quantity</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="k">else</span> <span class="mi">0</span>
+                <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">schedule_adherence</span> <span class="o">=</span> <span class="n">actual_progress</span> <span class="o">/</span> <span class="n">planned_progress</span> <span class="k">if</span> <span class="n">planned_progress</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span>
+
+            <span class="c1"># Calculate metrics</span>
+            <span class="n">avg_tardiness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tardiness_total</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">changeover_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_changeover_time</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">now</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">emit_observable</span><span class="p">(</span>
+                <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;scheduler_monitor&quot;</span><span class="p">,</span>
+                <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;active_order&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="o">.</span><span class="n">order_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;current_product&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">,</span>
+                    <span class="s2">&quot;current_shift&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_shift</span><span class="p">,</span>
+                    <span class="s2">&quot;orders_scheduled&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span><span class="p">,</span>
+                    <span class="s2">&quot;orders_completed&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span><span class="p">,</span>
+                    <span class="s2">&quot;schedule_adherence&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_adherence</span><span class="p">,</span>
+                    <span class="s2">&quot;avg_tardiness&quot;</span><span class="p">:</span> <span class="n">avg_tardiness</span><span class="p">,</span>
+                    <span class="s2">&quot;changeover_ratio&quot;</span><span class="p">:</span> <span class="n">changeover_ratio</span><span class="p">,</span>
+                    <span class="s2">&quot;pending_events&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="p">),</span>
+                <span class="p">},</span>
+                <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SchedulerPrimitive.get_statistics">
+<a class="viewcode-back" href="../../../api/twin_model/primitives/scheduler/index.html#twin_model.SchedulerPrimitive.get_statistics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get scheduler statistics.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary of scheduler metrics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">completion_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">avg_tardiness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tardiness_total</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;orders_scheduled&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_scheduled</span><span class="p">,</span>
+            <span class="s2">&quot;orders_completed&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders_completed</span><span class="p">,</span>
+            <span class="s2">&quot;completion_rate&quot;</span><span class="p">:</span> <span class="n">completion_rate</span><span class="p">,</span>
+            <span class="s2">&quot;average_tardiness&quot;</span><span class="p">:</span> <span class="n">avg_tardiness</span><span class="p">,</span>
+            <span class="s2">&quot;total_changeover_time&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_changeover_time</span><span class="p">,</span>
+            <span class="s2">&quot;schedule_adherence&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">schedule_adherence</span><span class="p">,</span>
+            <span class="s2">&quot;current_product&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_product</span><span class="p">,</span>
+            <span class="s2">&quot;active_order&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span><span class="o">.</span><span class="n">order_id</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_order</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;pending_events&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schedule_events</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

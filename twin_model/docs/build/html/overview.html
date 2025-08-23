@@ -1,0 +1,490 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Overview &mdash; Virtual Ontology Twin Model 2.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=51b770b3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start Guide" href="quickstart.html" />
+    <link rel="prev" title="Virtual Ontology Twin Model Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Virtual Ontology Twin Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#core-concepts">Core Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ontology-driven-design">Ontology-Driven Design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simulation-primitives">Simulation Primitives</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#model-building-process">Model Building Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ontology-loading">Ontology Loading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manifest-configuration">Manifest Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-instantiation">Model Instantiation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-execution">Simulation Execution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#event-processing">Event Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#state-tracking">State Tracking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-generation">Data Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#key-performance-indicators">Key Performance Indicators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#oee-calculation">OEE Calculation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#monitoring-architecture">Monitoring Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pattern-discovery-support">Pattern Discovery Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#event-patterns">Event Patterns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#observable-generation">Observable Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pattern-templates">Pattern Templates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#integration-points">Integration Points</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#with-database-module">With Database Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#with-configuration-system">With Configuration System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#with-analysis-tools">With Analysis Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#efficient-simulation">Efficient Simulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scalability-features">Scalability Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#failure-recovery">Failure Recovery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#validation">Validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#extensibility">Extensibility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-primitives">Custom Primitives</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pattern-definitions">Pattern Definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transduction-rules">Transduction Rules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="primitives.html">Simulation Primitives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ontology_driven.html">Ontology-Driven Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Virtual Ontology Twin Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/overview.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h1>
+<p>The Virtual Ontology Twin Model is an advanced simulation framework that generates synthetic manufacturing data through ontology-driven discrete event simulation.</p>
+<section id="core-concepts">
+<h2>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h2>
+<section id="ontology-driven-design">
+<h3>Ontology-Driven Design<a class="headerlink" href="#ontology-driven-design" title="Link to this heading"></a></h3>
+<p>The twin model uses ontological structures to define:</p>
+<ul class="simple">
+<li><p><strong>System Architecture</strong>: How components connect and interact</p></li>
+<li><p><strong>Component Behavior</strong>: Rules and parameters for each primitive</p></li>
+<li><p><strong>Data Semantics</strong>: Meaning and relationships of generated data</p></li>
+<li><p><strong>Pattern Templates</strong>: Expected patterns for discovery</p></li>
+</ul>
+<p>This approach ensures:</p>
+<ul class="simple">
+<li><p>Consistent model structure across deployments</p></li>
+<li><p>Separation of structure from configuration</p></li>
+<li><p>Reusable component definitions</p></li>
+<li><p>Traceable data lineage</p></li>
+</ul>
+</section>
+<section id="simulation-primitives">
+<h3>Simulation Primitives<a class="headerlink" href="#simulation-primitives" title="Link to this heading"></a></h3>
+<p>The framework provides six core primitives:</p>
+<ol class="arabic simple">
+<li><p><strong>Equipment</strong>: Production units with configurable processing times</p></li>
+<li><p><strong>Buffer</strong>: Storage units with capacity and flow control</p></li>
+<li><p><strong>Source</strong>: Item generators with arrival patterns</p></li>
+<li><p><strong>Sink</strong>: Product collectors with quality assessment</p></li>
+<li><p><strong>Scheduler</strong>: Order and maintenance coordinators</p></li>
+<li><p><strong>Monitor</strong>: KPI trackers and metric calculators</p></li>
+</ol>
+<p>Each primitive:</p>
+<ul class="simple">
+<li><p>Extends <a class="reference internal" href="api/twin_model/primitives/index.html#twin_model.primitives.BasePrimitive" title="twin_model.primitives.BasePrimitive"><code class="xref py py-class docutils literal notranslate"><span class="pre">twin_model.primitives.BasePrimitive</span></code></a></p></li>
+<li><p>Has configurable parameters via <a class="reference internal" href="api/twin_model/primitives/index.html#twin_model.primitives.PrimitiveConfig" title="twin_model.primitives.PrimitiveConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">twin_model.primitives.PrimitiveConfig</span></code></a></p></li>
+<li><p>Generates events for pattern discovery</p></li>
+<li><p>Maintains internal state for analysis</p></li>
+</ul>
+</section>
+</section>
+<section id="model-building-process">
+<h2>Model Building Process<a class="headerlink" href="#model-building-process" title="Link to this heading"></a></h2>
+<section id="ontology-loading">
+<h3>Ontology Loading<a class="headerlink" href="#ontology-loading" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="api/twin_model/model_builder/index.html#twin_model.model_builder.OntologyDrivenModelBuilder" title="twin_model.model_builder.OntologyDrivenModelBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">twin_model.model_builder.OntologyDrivenModelBuilder</span></code></a> loads:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># twin_ontology.yaml</span>
+<span class="nt">twin_model</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">primitives</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">Equipment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">processing_time</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">failure_rate</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mttr</span>
+<span class="w">      </span><span class="nt">relationships</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">feeds_to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Buffer</span>
+
+<span class="w">  </span><span class="nt">patterns</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">bottleneck</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">indicators</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">high_buffer_occupancy</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">low_equipment_availability</span>
+</pre></div>
+</div>
+</section>
+<section id="manifest-configuration">
+<h3>Manifest Configuration<a class="headerlink" href="#manifest-configuration" title="Link to this heading"></a></h3>
+<p>Manifests provide concrete values:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># equipment_manifest.yaml</span>
+<span class="nt">equipment</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">Line1_Equipment1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Assembly</span>
+<span class="w">    </span><span class="nt">processing_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<span class="w">    </span><span class="nt">failure_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.01</span>
+<span class="w">    </span><span class="nt">mttr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30.0</span>
+<span class="w">    </span><span class="nt">capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+</pre></div>
+</div>
+</section>
+<section id="model-instantiation">
+<h3>Model Instantiation<a class="headerlink" href="#model-instantiation" title="Link to this heading"></a></h3>
+<p>The builder creates and wires components:</p>
+<ol class="arabic simple">
+<li><p>Parse ontology structure</p></li>
+<li><p>Load manifest configurations</p></li>
+<li><p>Instantiate primitives</p></li>
+<li><p>Establish relationships</p></li>
+<li><p>Configure monitors</p></li>
+</ol>
+</section>
+</section>
+<section id="simulation-execution">
+<h2>Simulation Execution<a class="headerlink" href="#simulation-execution" title="Link to this heading"></a></h2>
+<section id="event-processing">
+<h3>Event Processing<a class="headerlink" href="#event-processing" title="Link to this heading"></a></h3>
+<p>SimPy manages discrete events:</p>
+<ul class="simple">
+<li><p>Item arrivals</p></li>
+<li><p>Processing starts/completions</p></li>
+<li><p>Equipment failures/repairs</p></li>
+<li><p>Buffer fills/empties</p></li>
+<li><p>Order completions</p></li>
+</ul>
+</section>
+<section id="state-tracking">
+<h3>State Tracking<a class="headerlink" href="#state-tracking" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="api/twin_model/state_manager/index.html#twin_model.state_manager.StateManager" title="twin_model.state_manager.StateManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">twin_model.state_manager.StateManager</span></code></a> maintains:</p>
+<ul class="simple">
+<li><p>Current primitive states</p></li>
+<li><p>Event history</p></li>
+<li><p>KPI metrics</p></li>
+<li><p>Pattern occurrences</p></li>
+</ul>
+</section>
+<section id="data-generation">
+<h3>Data Generation<a class="headerlink" href="#data-generation" title="Link to this heading"></a></h3>
+<p>Events are transduced to MES format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Raw event</span>
+<span class="p">{</span>
+    <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="mf">100.5</span><span class="p">,</span>
+    <span class="s2">&quot;primitive&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;event&quot;</span><span class="p">:</span> <span class="s2">&quot;processing_complete&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;item&quot;</span><span class="p">:</span> <span class="s2">&quot;Product_123&quot;</span>
+<span class="p">}</span>
+
+<span class="c1"># MES record</span>
+<span class="p">{</span>
+    <span class="s2">&quot;Timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-01T10:00:30&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EquipmentID&quot;</span><span class="p">:</span> <span class="s2">&quot;Equipment1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MachineStatus&quot;</span><span class="p">:</span> <span class="s2">&quot;Running&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GoodUnitsProduced&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;OEE_Score&quot;</span><span class="p">:</span> <span class="mf">85.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="key-performance-indicators">
+<h2>Key Performance Indicators<a class="headerlink" href="#key-performance-indicators" title="Link to this heading"></a></h2>
+<section id="oee-calculation">
+<h3>OEE Calculation<a class="headerlink" href="#oee-calculation" title="Link to this heading"></a></h3>
+<p>Overall Equipment Effectiveness:</p>
+<div class="math notranslate nohighlight">
+\[OEE = Availability × Performance × Quality\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><strong>Availability</strong> = (Planned Time - Downtime) / Planned Time</p></li>
+<li><p><strong>Performance</strong> = Actual Output / Theoretical Output</p></li>
+<li><p><strong>Quality</strong> = Good Units / Total Units</p></li>
+</ul>
+</section>
+<section id="monitoring-architecture">
+<h3>Monitoring Architecture<a class="headerlink" href="#monitoring-architecture" title="Link to this heading"></a></h3>
+<p>The <a class="reference internal" href="api/twin_model/primitives/index.html#twin_model.primitives.MonitorPrimitive" title="twin_model.primitives.MonitorPrimitive"><code class="xref py py-class docutils literal notranslate"><span class="pre">twin_model.primitives.MonitorPrimitive</span></code></a> tracks:</p>
+<ul class="simple">
+<li><p>Real-time metrics</p></li>
+<li><p>Rolling averages</p></li>
+<li><p>Trend detection</p></li>
+<li><p>Threshold alerts</p></li>
+</ul>
+</section>
+</section>
+<section id="pattern-discovery-support">
+<h2>Pattern Discovery Support<a class="headerlink" href="#pattern-discovery-support" title="Link to this heading"></a></h2>
+<section id="event-patterns">
+<h3>Event Patterns<a class="headerlink" href="#event-patterns" title="Link to this heading"></a></h3>
+<p>The model generates patterns for:</p>
+<ul class="simple">
+<li><p>Equipment bottlenecks</p></li>
+<li><p>Quality degradation</p></li>
+<li><p>Maintenance clustering</p></li>
+<li><p>Production cascades</p></li>
+</ul>
+</section>
+<section id="observable-generation">
+<h3>Observable Generation<a class="headerlink" href="#observable-generation" title="Link to this heading"></a></h3>
+<p>Rich observables include:</p>
+<ul class="simple">
+<li><p>State transitions</p></li>
+<li><p>Queue lengths</p></li>
+<li><p>Processing durations</p></li>
+<li><p>Failure sequences</p></li>
+<li><p>Product flows</p></li>
+</ul>
+</section>
+<section id="pattern-templates">
+<h3>Pattern Templates<a class="headerlink" href="#pattern-templates" title="Link to this heading"></a></h3>
+<p>Ontology defines expected patterns:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">patterns</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">cascade_failure</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">trigger</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">equipment_failure</span>
+<span class="w">    </span><span class="nt">propagation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">downstream_buffers</span>
+<span class="w">    </span><span class="nt">impact</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">production_stoppage</span>
+<span class="w">    </span><span class="nt">probability</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.15</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="integration-points">
+<h2>Integration Points<a class="headerlink" href="#integration-points" title="Link to this heading"></a></h2>
+<section id="with-database-module">
+<h3>With Database Module<a class="headerlink" href="#with-database-module" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Store simulation results</p></li>
+<li><p>Load historical parameters</p></li>
+<li><p>Save discovered patterns</p></li>
+<li><p>Track experiments</p></li>
+</ul>
+</section>
+<section id="with-configuration-system">
+<h3>With Configuration System<a class="headerlink" href="#with-configuration-system" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Load runtime parameters</p></li>
+<li><p>Override manifest values</p></li>
+<li><p>Set simulation duration</p></li>
+<li><p>Configure logging</p></li>
+</ul>
+</section>
+<section id="with-analysis-tools">
+<h3>With Analysis Tools<a class="headerlink" href="#with-analysis-tools" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Export to pandas DataFrames</p></li>
+<li><p>Generate matplotlib visualizations</p></li>
+<li><p>Produce statistics reports</p></li>
+<li><p>Create pattern datasets</p></li>
+</ul>
+</section>
+</section>
+<section id="performance-optimization">
+<h2>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading"></a></h2>
+<section id="efficient-simulation">
+<h3>Efficient Simulation<a class="headerlink" href="#efficient-simulation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Event-driven processing (no polling)</p></li>
+<li><p>Lazy evaluation of metrics</p></li>
+<li><p>Batch event processing</p></li>
+<li><p>Memory-efficient state tracking</p></li>
+</ul>
+</section>
+<section id="scalability-features">
+<h3>Scalability Features<a class="headerlink" href="#scalability-features" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Parallel simulation runs</p></li>
+<li><p>Distributed primitive execution</p></li>
+<li><p>Incremental state updates</p></li>
+<li><p>Compressed event storage</p></li>
+</ul>
+</section>
+<section id="configuration-options">
+<h3>Configuration Options<a class="headerlink" href="#configuration-options" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># twin_model.yaml</span>
+<span class="nt">simulation</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">max_events</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000000</span>
+<span class="w">  </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">  </span><span class="nt">state_checkpoint_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">  </span><span class="nt">metric_update_frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
+<section id="failure-recovery">
+<h3>Failure Recovery<a class="headerlink" href="#failure-recovery" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Graceful degradation on primitive failures</p></li>
+<li><p>State rollback capabilities</p></li>
+<li><p>Event replay from checkpoints</p></li>
+<li><p>Detailed error logging</p></li>
+</ul>
+</section>
+<section id="validation">
+<h3>Validation<a class="headerlink" href="#validation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Ontology schema validation</p></li>
+<li><p>Manifest consistency checks</p></li>
+<li><p>Parameter range verification</p></li>
+<li><p>Relationship integrity</p></li>
+</ul>
+</section>
+</section>
+<section id="extensibility">
+<h2>Extensibility<a class="headerlink" href="#extensibility" title="Link to this heading"></a></h2>
+<section id="custom-primitives">
+<h3>Custom Primitives<a class="headerlink" href="#custom-primitives" title="Link to this heading"></a></h3>
+<p>Create new primitives by extending base:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePrimitive</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomPrimitive</span><span class="p">(</span><span class="n">BasePrimitive</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Custom logic</span>
+        <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+<section id="pattern-definitions">
+<h3>Pattern Definitions<a class="headerlink" href="#pattern-definitions" title="Link to this heading"></a></h3>
+<p>Add custom patterns to ontology:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">custom_patterns</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">my_pattern</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">detection</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">custom_algorithm</span>
+<span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.8</span>
+</pre></div>
+</div>
+</section>
+<section id="transduction-rules">
+<h3>Transduction Rules<a class="headerlink" href="#transduction-rules" title="Link to this heading"></a></h3>
+<p>Define custom MES mappings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">twin_model.transduction</span><span class="w"> </span><span class="kn">import</span> <span class="n">MESTransducer</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomTransducer</span><span class="p">(</span><span class="n">MESTransducer</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">transduce_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># Custom transformation</span>
+        <span class="k">return</span> <span class="n">mes_record</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Virtual Ontology Twin Model Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quick Start Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Virtual Ontology Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
