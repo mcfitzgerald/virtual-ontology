@@ -49,9 +49,7 @@ class KPIMetric:
     type: KPIType
     value: float = 0.0
     target: Optional[float] = None
-    history: List[Tuple[float, float]] = field(
-        default_factory=list
-    )  # (timestamp, value)
+    history: List[Tuple[float, float]] = field(default_factory=list)  # (timestamp, value)
     unit: str = ""
     aggregation: str = "avg"
 
@@ -64,9 +62,7 @@ class KPIMetric:
         if len(self.history) > 1000:
             self.history = self.history[-1000:]
 
-    def get_average(
-        self, window: Optional[float] = None, current_time: Optional[float] = None
-    ) -> float:
+    def get_average(self, window: Optional[float] = None, current_time: Optional[float] = None) -> float:
         """Get average value over time window."""
         if not self.history:
             return 0.0
@@ -85,9 +81,7 @@ class KPIMetric:
 
         recent_avg = statistics.mean([v for _, v in self.history[-5:]])
         older_avg = (
-            statistics.mean([v for _, v in self.history[-10:-5]])
-            if len(self.history) >= 10
-            else self.history[0][1]
+            statistics.mean([v for _, v in self.history[-10:-5]]) if len(self.history) >= 10 else self.history[0][1]
         )
 
         if recent_avg > older_avg * 1.05:
@@ -281,13 +275,9 @@ class MonitorPrimitive(BasePrimitive):
             total_produced = 0
 
             for primitive in self.monitored_primitives.values():
-                if hasattr(primitive, "units_produced") and hasattr(
-                    primitive, "units_scrapped"
-                ):
+                if hasattr(primitive, "units_produced") and hasattr(primitive, "units_scrapped"):
                     total_good += primitive.units_produced
-                    total_produced += (
-                        primitive.units_produced + primitive.units_scrapped
-                    )
+                    total_produced += primitive.units_produced + primitive.units_scrapped
 
             if total_produced > 0:
                 quality_rate = (total_good / total_produced) * 100
@@ -318,8 +308,7 @@ class MonitorPrimitive(BasePrimitive):
         production_events = [
             o
             for o in primitive.observables
-            if o.get("event_type") == "unit_produced"
-            and o.get("timestamp", 0) >= window_start
+            if o.get("event_type") == "unit_produced" and o.get("timestamp", 0) >= window_start
         ]
 
         return len(production_events)
@@ -340,8 +329,7 @@ class MonitorPrimitive(BasePrimitive):
         state_events = [
             o
             for o in primitive.observables
-            if o.get("event_type") == "state_change"
-            and o.get("timestamp", 0) >= window_start
+            if o.get("event_type") == "state_change" and o.get("timestamp", 0) >= window_start
         ]
 
         if not state_events:
@@ -387,12 +375,8 @@ class MonitorPrimitive(BasePrimitive):
         current_shift = self._get_current_shift()
         if current_shift:
             self.shift_metrics[current_shift] = {
-                "oee": self.kpis["overall_oee"].value
-                if "overall_oee" in self.kpis
-                else 0.0,
-                "throughput": self.kpis["throughput"].value
-                if "throughput" in self.kpis
-                else 0.0,
+                "oee": self.kpis["overall_oee"].value if "overall_oee" in self.kpis else 0.0,
+                "throughput": self.kpis["throughput"].value if "throughput" in self.kpis else 0.0,
                 "incidents": len(self.active_alerts),
             }
 
@@ -464,13 +448,9 @@ class MonitorPrimitive(BasePrimitive):
         for p in primitives:
             if hasattr(p, "observables"):
                 production_events = [
-                    o
-                    for o in p.observables
-                    if o.get("event_type") == "unit_produced" and "cycle_time" in o
+                    o for o in p.observables if o.get("event_type") == "unit_produced" and "cycle_time" in o
                 ]
-                cycle_times.extend(
-                    [e["cycle_time"] for e in production_events[-10:]]
-                )  # Last 10
+                cycle_times.extend([e["cycle_time"] for e in production_events[-10:]])  # Last 10
 
         return statistics.mean(cycle_times) if cycle_times else 0.0
 
@@ -542,9 +522,7 @@ class MonitorPrimitive(BasePrimitive):
             self.active_alerts.append(alert)
             self.alert_history.append(alert)
 
-            self.emit_observable(
-                event_type="alert_created", details=alert, severity=severity
-            )
+            self.emit_observable(event_type="alert_created", details=alert, severity=severity)
 
     def alert_process(self) -> Generator:
         """Process for managing alerts."""
@@ -599,9 +577,7 @@ class MonitorPrimitive(BasePrimitive):
             return self.kpis[kpi_name].value
         return None
 
-    def get_kpi_history(
-        self, kpi_name: str, window: Optional[float] = None
-    ) -> List[Tuple[float, float]]:
+    def get_kpi_history(self, kpi_name: str, window: Optional[float] = None) -> List[Tuple[float, float]]:
         """Get historical values of a KPI.
 
         Args:
@@ -635,9 +611,7 @@ class MonitorPrimitive(BasePrimitive):
                     "value": kpi.value,
                     "target": kpi.target,
                     "trend": kpi.get_trend(),
-                    "achievement": (kpi.value / kpi.target * 100)
-                    if kpi.target
-                    else None,
+                    "achievement": (kpi.value / kpi.target * 100) if kpi.target else None,
                 }
                 for name, kpi in self.kpis.items()
             },

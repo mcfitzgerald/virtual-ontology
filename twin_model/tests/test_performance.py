@@ -190,7 +190,7 @@ class PerformanceBenchmark:
                     memory_samples.append(current / (1024 * 1024))
                 
                 results = runner.run_chunked(
-                    total_days=simulation_days,
+                    total_days=simulation_days,  # type: ignore[arg-type]
                     chunk_size_days=config.chunk_size_days,
                     progress_callback=progress_callback if config.enable_progress else None,
                     checkpoint_interval=config.checkpoint_interval / 1440 if config.checkpoint_interval else None
@@ -230,7 +230,7 @@ class PerformanceBenchmark:
                 events_per_second=total_events / elapsed if elapsed > 0 else 0,
                 cache_size_mb=cache_stats["total_size_mb"],
                 checkpoints_saved=results.get("checkpoints_saved", 0),
-                errors=errors if errors else None
+                errors=errors if errors else None  # type: ignore[arg-type]
             )
             
             self.results.append(result)
@@ -348,7 +348,7 @@ class PerformanceBenchmark:
         """
         if not self.baseline:
             self.baseline = result
-            return {"status": "set_as_baseline"}
+            return {"status": "set_as_baseline"}  # type: ignore[dict-item]
             
         improvements = {
             "speed": ((result.speed_factor / self.baseline.speed_factor) - 1) * 100,

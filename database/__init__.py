@@ -12,7 +12,4 @@ This package provides database support for:
 from database.manager import TwinDatabaseManager
 from database.integration import TwinDatabaseIntegration
 
-__all__ = [
-    'TwinDatabaseManager',
-    'TwinDatabaseIntegration'
-]
+__all__ = ["TwinDatabaseManager", "TwinDatabaseIntegration"]

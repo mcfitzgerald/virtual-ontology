@@ -60,9 +60,7 @@ class OntologyDrivenModelBuilder:
         "MonitorPrimitive": MonitorPrimitive,
     }
 
-    def __init__(
-        self, ontology_path: Path, manifest_dir: Optional[Path] = None
-    ) -> None:
+    def __init__(self, ontology_path: Path, manifest_dir: Optional[Path] = None) -> None:
         """Initialize builder with ontology and manifest directory.
 
         Args:
@@ -95,7 +93,7 @@ class OntologyDrivenModelBuilder:
             Parsed ontology dictionary
         """
         with open(path, "r") as f:
-            return yaml.safe_load(f)
+            return yaml.safe_load(f)  # type: ignore[no-any-return]
 
     def _load_manifests(self, manifest_dir: Path) -> Dict[str, Any]:
         """Load all manifests from directory.
@@ -174,9 +172,7 @@ class OntologyDrivenModelBuilder:
             entity = ModelEntity(
                 id=eq_id,
                 ontology_class=eq_data.get("type", "Equipment"),
-                primitive_type=self._get_primitive_type(
-                    eq_data.get("type", "Equipment")
-                ),
+                primitive_type=self._get_primitive_type(eq_data.get("type", "Equipment")),
                 properties=eq_data,
                 relationships={},
             )
@@ -216,7 +212,7 @@ class OntologyDrivenModelBuilder:
             class_def = classes[ontology_class]
             primitive = class_def.get("primitive")
             if primitive:
-                return primitive
+                return primitive  # type: ignore[no-any-return]
 
             # Check parent class
             parent = class_def.get("parent")
@@ -224,15 +220,13 @@ class OntologyDrivenModelBuilder:
                 return self._get_primitive_type(parent)
 
         # Check primitive mapping rules
-        mappings = self.ontology.get("primitive_mapping", {}).get(
-            "default_mappings", {}
-        )
+        mappings = self.ontology.get("primitive_mapping", {}).get("default_mappings", {})
 
         # Handle specialized equipment types
         if ontology_class in ["Filler", "Packer", "Palletizer"]:
             return "EquipmentPrimitive"
 
-        return mappings.get(ontology_class, "EquipmentPrimitive")
+        return mappings.get(ontology_class, "EquipmentPrimitive")  # type: ignore[no-any-return]
 
     def _create_default_entities(self) -> None:
         """Create default entities for testing."""
@@ -525,7 +519,7 @@ class OntologyDrivenModelBuilder:
         Returns:
             Dictionary of parameter names to definitions
         """
-        return self.ontology.get("controllables", {})
+        return self.ontology.get("controllables", {})  # type: ignore[no-any-return]
 
     def apply_parameter_changes(self, parameters: Dict[str, float]) -> None:
         """Apply parameter changes to running model.
@@ -549,7 +543,7 @@ class OntologyDrivenModelBuilder:
             if hasattr(primitive, "observables"):
                 observables[entity_id] = primitive.observables
 
-        return observables
+        return observables  # type: ignore[return-value]
 
     def get_model_structure(self) -> Dict[str, Any]:
         """Get model structure for analysis.

@@ -119,9 +119,7 @@ class SinkPrimitive(BasePrimitive):
                         # Get from buffer
                         items = yield from self.upstream.get(1)
                         if items:
-                            product_info = (
-                                items[0] if isinstance(items, list) else items
-                            )
+                            product_info = items[0] if isinstance(items, list) else items
                             yield from self._process_product(product_info)
                     elif hasattr(self.upstream, "is_empty"):
                         # Check if upstream has products
@@ -181,15 +179,11 @@ class SinkPrimitive(BasePrimitive):
             self.total_collected += 1
 
             # Update product type tracking
-            self.products_by_type[product_id] = (
-                self.products_by_type.get(product_id, 0) + 1
-            )
+            self.products_by_type[product_id] = self.products_by_type.get(product_id, 0) + 1
 
             # Update order tracking
             if order_id:
-                self.products_by_order[order_id] = (
-                    self.products_by_order.get(order_id, 0) + 1
-                )
+                self.products_by_order[order_id] = self.products_by_order.get(order_id, 0) + 1
                 yield from self._update_order_fulfillment(order_id, product_id)
 
             self.emit_observable(
@@ -296,27 +290,17 @@ class SinkPrimitive(BasePrimitive):
             self.throughput_history.append(current_rate)
 
             # Calculate quality rate
-            recent_products = [
-                p
-                for p in self.collected_products
-                if p.collection_time >= self.env.now - window_size
-            ]
+            recent_products = [p for p in self.collected_products if p.collection_time >= self.env.now - window_size]
 
             if recent_products:
-                quality_rate = sum(
-                    1 for p in recent_products if p.quality == "good"
-                ) / len(recent_products)
+                quality_rate = sum(1 for p in recent_products if p.quality == "good") / len(recent_products)
             else:
                 quality_rate = 0.0
 
             self.quality_history.append(quality_rate)
 
             # Check performance against target
-            performance = (
-                current_rate / self.target_throughput
-                if self.target_throughput > 0
-                else 0
-            )
+            performance = current_rate / self.target_throughput if self.target_throughput > 0 else 0
 
             self.emit_observable(
                 event_type="sink_monitor",
@@ -354,11 +338,7 @@ class SinkPrimitive(BasePrimitive):
         Returns:
             Collection rate (units/minute)
         """
-        recent_count = sum(
-            1
-            for p in self.collected_products
-            if p.collection_time >= self.env.now - window
-        )
+        recent_count = sum(1 for p in self.collected_products if p.collection_time >= self.env.now - window)
         return recent_count / window if window > 0 else 0
 
     def get_statistics(self) -> Dict[str, Any]:
@@ -368,21 +348,11 @@ class SinkPrimitive(BasePrimitive):
             Dictionary of sink metrics
         """
         total_processed = self.total_collected + self.total_rejected
-        acceptance_rate = (
-            self.total_collected / total_processed if total_processed > 0 else 0
-        )
+        acceptance_rate = self.total_collected / total_processed if total_processed > 0 else 0
 
-        avg_throughput = (
-            sum(self.throughput_history) / len(self.throughput_history)
-            if self.throughput_history
-            else 0
-        )
+        avg_throughput = sum(self.throughput_history) / len(self.throughput_history) if self.throughput_history else 0
 
-        avg_quality = (
-            sum(self.quality_history) / len(self.quality_history)
-            if self.quality_history
-            else 0
-        )
+        avg_quality = sum(self.quality_history) / len(self.quality_history) if self.quality_history else 0
 
         return {
             "total_collected": self.total_collected,
@@ -394,9 +364,7 @@ class SinkPrimitive(BasePrimitive):
             "products_by_type": dict(self.products_by_type),
             "completed_orders": len(self.completed_orders),
             "pending_orders": len(self.pending_orders),
-            "performance_vs_target": avg_throughput / self.target_throughput
-            if self.target_throughput > 0
-            else 0,
+            "performance_vs_target": avg_throughput / self.target_throughput if self.target_throughput > 0 else 0,
         }
 
     def get_order_metrics(self) -> Dict[str, Any]:

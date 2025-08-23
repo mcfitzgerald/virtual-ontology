@@ -179,9 +179,7 @@ class SchedulerPrimitive(BasePrimitive):
             Next event to process or None
         """
         # Filter future events
-        future_events = [
-            e for e in self.schedule_events if e.start_time >= self.env.now
-        ]
+        future_events = [e for e in self.schedule_events if e.start_time >= self.env.now]
 
         if not future_events:
             return None
@@ -230,21 +228,19 @@ class SchedulerPrimitive(BasePrimitive):
         if order_id not in self.production_orders:
             # Create order if not exists
             order = ProductionOrder(
-                order_id=order_id,
-                product_id=event.product_id,
+                order_id=order_id or "DEFAULT",
+                product_id=event.product_id or "UNKNOWN",
                 target_quantity=event.metadata.get("quantity", 1000),
                 due_time=event.start_time + event.duration,
-                line_id=event.line_id,
+                line_id=event.line_id or "LINE1",
             )
-            self.production_orders[order_id] = order
+            self.production_orders[order_id or "DEFAULT"] = order
         else:
             order = self.production_orders[order_id]
 
         # Check if changeover needed
         if self.current_product and self.current_product != order.product_id:
-            changeover_time = self._get_changeover_time(
-                self.current_product, order.product_id
-            )
+            changeover_time = self._get_changeover_time(self.current_product, order.product_id)
 
             if changeover_time > 0:
                 # Schedule changeover first
@@ -311,9 +307,7 @@ class SchedulerPrimitive(BasePrimitive):
                 "order_id": order.order_id,
                 "actual_quantity": order.actual_quantity,
                 "target_quantity": order.target_quantity,
-                "completion_rate": order.actual_quantity / order.target_quantity
-                if order.target_quantity > 0
-                else 0,
+                "completion_rate": order.actual_quantity / order.target_quantity if order.target_quantity > 0 else 0,
                 "lead_time": order.end_time - order.start_time,
             },
         )
@@ -349,7 +343,8 @@ class SchedulerPrimitive(BasePrimitive):
         self.current_product = to_product
 
         # Restart equipment with new product
-        self._configure_equipment_for_product(to_product, None)
+        if to_product:
+            self._configure_equipment_for_product(to_product, None)
 
         self.emit_observable(
             event_type="changeover_completed",
@@ -381,16 +376,12 @@ class SchedulerPrimitive(BasePrimitive):
                 # Trigger maintenance on equipment
                 equipment = self.controlled_equipment[eq_id]
                 if hasattr(equipment, "process"):
-                    equipment.process.interrupt(
-                        {"type": "maintenance", "duration": event.duration}
-                    )
+                    equipment.process.interrupt({"type": "maintenance", "duration": event.duration})
 
         # Maintenance duration
         yield self.env.timeout(event.duration)
 
-        self.emit_observable(
-            event_type="maintenance_completed", details={"duration": event.duration}
-        )
+        self.emit_observable(event_type="maintenance_completed", details={"duration": event.duration})
 
     def _process_shift_change(self, event: ScheduleEvent) -> Generator:
         """Process a shift change event.
@@ -436,7 +427,7 @@ class SchedulerPrimitive(BasePrimitive):
         # Check matrix
         if from_product in self.changeover_matrix:
             if to_product in self.changeover_matrix[from_product]:
-                return self.changeover_matrix[from_product][to_product]
+                return self.changeover_matrix[from_product][to_product]  # type: ignore[no-any-return]
 
         # Default based on product similarity
         if from_product == to_product:
@@ -446,9 +437,7 @@ class SchedulerPrimitive(BasePrimitive):
         else:
             return 45.0  # Different families
 
-    def _configure_equipment_for_product(
-        self, product_id: str, order_id: Optional[str]
-    ) -> None:
+    def _configure_equipment_for_product(self, product_id: str, order_id: Optional[str]) -> None:
         """Configure equipment for a specific product.
 
         Args:
@@ -540,11 +529,11 @@ class SchedulerPrimitive(BasePrimitive):
             # Create order if production order
             if event_type == ScheduleEventType.PRODUCTION_ORDER:
                 order = ProductionOrder(
-                    order_id=event.order_id,
-                    product_id=event.product_id,
+                    order_id=event.order_id or "DEFAULT",
+                    product_id=event.product_id or "UNKNOWN",
                     target_quantity=event_data.get("quantity", 1000),
                     due_time=event.start_time + event.duration,
-                    line_id=event.line_id,
+                    line_id=event.line_id or "LINE1",
                     priority=event.priority,
                 )
                 self.production_orders[order.order_id] = order
@@ -568,11 +557,7 @@ class SchedulerPrimitive(BasePrimitive):
             self.schedule_events.sort(key=lambda e: e.duration)
         elif self.optimization_mode == "EDD":
             # Earliest due date
-            production_events = [
-                e
-                for e in self.schedule_events
-                if e.event_type == ScheduleEventType.PRODUCTION_ORDER
-            ]
+            production_events = [e for e in self.schedule_events if e.event_type == ScheduleEventType.PRODUCTION_ORDER]
             production_events.sort(
                 key=lambda e: self.production_orders[e.order_id].due_time
                 if e.order_id in self.production_orders
@@ -595,38 +580,28 @@ class SchedulerPrimitive(BasePrimitive):
 
             # Calculate schedule adherence
             if self.active_order:
+                start_time = self.active_order.start_time or 0
+                due_time = self.active_order.due_time or self.env.now + 1
                 planned_progress = min(
                     1.0,
-                    (self.env.now - self.active_order.start_time)
-                    / (self.active_order.due_time - self.active_order.start_time),
+                    (self.env.now - start_time) / max(1, (due_time - start_time)),
                 )
                 actual_progress = (
-                    self.active_order.actual_quantity
-                    / self.active_order.target_quantity
+                    self.active_order.actual_quantity / self.active_order.target_quantity
                     if self.active_order.target_quantity > 0
                     else 0
                 )
 
-                self.schedule_adherence = (
-                    actual_progress / planned_progress if planned_progress > 0 else 1.0
-                )
+                self.schedule_adherence = actual_progress / planned_progress if planned_progress > 0 else 1.0
 
             # Calculate metrics
-            avg_tardiness = (
-                self.tardiness_total / self.orders_completed
-                if self.orders_completed > 0
-                else 0
-            )
-            changeover_ratio = (
-                self.total_changeover_time / self.env.now if self.env.now > 0 else 0
-            )
+            avg_tardiness = self.tardiness_total / self.orders_completed if self.orders_completed > 0 else 0
+            changeover_ratio = self.total_changeover_time / self.env.now if self.env.now > 0 else 0
 
             self.emit_observable(
                 event_type="scheduler_monitor",
                 details={
-                    "active_order": self.active_order.order_id
-                    if self.active_order
-                    else None,
+                    "active_order": self.active_order.order_id if self.active_order else None,
                     "current_product": self.current_product,
                     "current_shift": self.current_shift,
                     "orders_scheduled": self.orders_scheduled,
@@ -645,16 +620,8 @@ class SchedulerPrimitive(BasePrimitive):
         Returns:
             Dictionary of scheduler metrics
         """
-        completion_rate = (
-            self.orders_completed / self.orders_scheduled
-            if self.orders_scheduled > 0
-            else 0
-        )
-        avg_tardiness = (
-            self.tardiness_total / self.orders_completed
-            if self.orders_completed > 0
-            else 0
-        )
+        completion_rate = self.orders_completed / self.orders_scheduled if self.orders_scheduled > 0 else 0
+        avg_tardiness = self.tardiness_total / self.orders_completed if self.orders_completed > 0 else 0
 
         return {
             "orders_scheduled": self.orders_scheduled,

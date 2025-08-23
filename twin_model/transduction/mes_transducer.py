@@ -15,6 +15,7 @@ import logging
 # Import centralized logging
 try:
     from twin_model.logging_config import SimulationLogger
+
     logger = SimulationLogger.get_logger(__name__)
 except ImportError:
     # Fallback to standard logging if logging_config not available
@@ -89,9 +90,7 @@ class MESTransducer:
 
         return pd.DataFrame()
 
-    def _process_observable(
-        self, obs: Dict[str, Any], manifests: Optional[Dict[str, Any]] = None
-    ) -> None:
+    def _process_observable(self, obs: Dict[str, Any], manifests: Optional[Dict[str, Any]] = None) -> None:
         """Process single observable event.
 
         Args:
@@ -105,16 +104,16 @@ class MESTransducer:
 
         # Calculate time bucket
         bucket = int(timestamp // self.time_bucket)
-        bucket_key = (bucket, primitive_id)
+        # bucket_key = (bucket, primitive_id)  # Not used in this method
 
         # Process equipment events (handle various equipment types)
         equipment_types = ["Equipment", "Filler", "Packer", "Palletizer"]
         if primitive_type in equipment_types or "Equipment" in str(primitive_type):
-            self._process_equipment_event(obs, bucket_key, manifests)
+            self._process_equipment_event(obs, (bucket, primitive_id or ""), manifests)
 
         # Track order assignment
         elif event_type == "order_assigned":
-            self._process_order_assignment(obs, bucket_key)
+            self._process_order_assignment(obs, (bucket, primitive_id or ""))
 
     def _process_equipment_event(
         self,
@@ -148,15 +147,11 @@ class MESTransducer:
                 self.bucket_metrics[bucket_key]["downtime_minutes"] += duration
 
             # Track current state
-            self.bucket_metrics[bucket_key]["last_status"] = self._map_state_to_mes(
-                new_state
-            )
+            self.bucket_metrics[bucket_key]["last_status"] = self._map_state_to_mes(new_state or "")
 
             # Track downtime reason if stopped
             if new_state in ["STOPPED_FAILURE", "STOPPED_MATERIAL"]:
-                self.bucket_metrics[bucket_key]["downtime_reason"] = obs.get(
-                    "failure_mode", "UNP-OTH"
-                )
+                self.bucket_metrics[bucket_key]["downtime_reason"] = obs.get("failure_mode", "UNP-OTH")
                 self.bucket_metrics[bucket_key]["last_status"] = "Stopped"
 
         # Track production
@@ -164,7 +159,7 @@ class MESTransducer:
             self.bucket_metrics[bucket_key]["good_units"] += 1
             self.bucket_metrics[bucket_key]["product_id"] = obs.get("product_id")
             self.bucket_metrics[bucket_key]["product_name"] = self._get_product_name(
-                obs.get("product_id"), manifests
+                obs.get("product_id") or "", manifests
             )
 
         elif event_type == "unit_scrapped":
@@ -172,20 +167,14 @@ class MESTransducer:
 
         # Track energy
         elif event_type == "energy_consumed":
-            self.bucket_metrics[bucket_key]["energy_consumption"] += obs.get(
-                "amount", 0
-            )
+            self.bucket_metrics[bucket_key]["energy_consumption"] += obs.get("amount", 0)
 
         # Track failures
         elif event_type == "equipment_failure":
-            self.bucket_metrics[bucket_key]["downtime_reason"] = obs.get(
-                "failure_mode", "UNP-OTH"
-            )
+            self.bucket_metrics[bucket_key]["downtime_reason"] = obs.get("failure_mode", "UNP-OTH")
             self.bucket_metrics[bucket_key]["last_status"] = "Stopped"
 
-    def _process_order_assignment(
-        self, obs: Dict[str, Any], bucket_key: Tuple[int, str]
-    ) -> None:
+    def _process_order_assignment(self, obs: Dict[str, Any], bucket_key: Tuple[int, str]) -> None:
         """Process order assignment events.
 
         Args:
@@ -200,9 +189,7 @@ class MESTransducer:
             # This would need line-equipment mapping from manifests
             self.bucket_metrics[bucket_key]["order_id"] = order_id
 
-    def _generate_mes_records(
-        self, manifests: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+    def _generate_mes_records(self, manifests: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Generate MES records from bucket metrics.
 
         Args:
@@ -233,49 +220,45 @@ class MESTransducer:
             if (metrics["good_units"] > 0 or metrics["scrap_units"] > 0) and metrics["runtime_minutes"] == 0:
                 logger.warning(
                     f"Inferring runtime from production for {equipment_id}",
-                    extra={'extra_data': {
-                        'equipment_id': equipment_id,
-                        'good_units': metrics["good_units"],
-                        'scrap_units': metrics["scrap_units"],
-                        'original_runtime': 0,
-                        'inferred_runtime': self.time_bucket,
-                        'bucket': bucket
-                    }}
+                    extra={
+                        "extra_data": {
+                            "equipment_id": equipment_id,
+                            "good_units": metrics["good_units"],
+                            "scrap_units": metrics["scrap_units"],
+                            "original_runtime": 0,
+                            "inferred_runtime": self.time_bucket,
+                            "bucket": bucket,
+                        }
+                    },
                 )
                 metrics["runtime_minutes"] = self.time_bucket
                 metrics["last_status"] = "Running"
-            
+
             # FIX: Correct status if production detected but status is Idle
             if metrics["good_units"] > 0 and metrics["last_status"] == "Idle":
                 logger.warning(
                     f"Correcting status from Idle to Running for {equipment_id} due to production",
-                    extra={'extra_data': {
-                        'equipment_id': equipment_id,
-                        'good_units': metrics["good_units"],
-                        'original_status': 'Idle',
-                        'corrected_status': 'Running'
-                    }}
+                    extra={
+                        "extra_data": {
+                            "equipment_id": equipment_id,
+                            "good_units": metrics["good_units"],
+                            "original_status": "Idle",
+                            "corrected_status": "Running",
+                        }
+                    },
                 )
                 metrics["last_status"] = "Running"
-            
+
             # Include all buckets with any state information
-            if (
-                metrics["last_status"] == "Idle"
-                and metrics["good_units"] == 0
-                and metrics["runtime_minutes"] == 0
-            ):
+            if metrics["last_status"] == "Idle" and metrics["good_units"] == 0 and metrics["runtime_minutes"] == 0:
                 continue  # Skip only if truly idle with no activity
 
             # Calculate timestamp
-            timestamp = datetime(2025, 6, 1) + timedelta(
-                minutes=bucket * self.time_bucket
-            )
+            timestamp = datetime(2025, 6, 1) + timedelta(minutes=bucket * self.time_bucket)
 
             # Get equipment details
             equipment_info = equipment_data.get(equipment_id, {})
-            equipment_type = self._determine_equipment_type(
-                equipment_id, equipment_info
-            )
+            equipment_type = self._determine_equipment_type(equipment_id, equipment_info)
             line_id = self._extract_line_id(equipment_id, equipment_info)
 
             # Get product details
@@ -284,37 +267,25 @@ class MESTransducer:
 
             # Calculate KPIs
             availability = self._calculate_availability(metrics)
-            performance = self._calculate_performance(
-                metrics, equipment_info, product_info
-            )
+            performance = self._calculate_performance(metrics, equipment_info, product_info)
             quality = self._calculate_quality(metrics)
-            oee = (
-                availability * performance * quality / 10000
-            )  # Convert from percentages
+            oee = availability * performance * quality / 10000  # Convert from percentages
 
             # Create MES record
             record = {
                 "Timestamp": timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                "ProductionOrderID": metrics["order_id"]
-                or f"ORD-{1000 + bucket % 100}",
+                "ProductionOrderID": metrics["order_id"] or f"ORD-{1000 + bucket % 100}",
                 "LineID": line_id,
                 "EquipmentID": equipment_id,
                 "EquipmentType": equipment_type,
                 "ProductID": product_id,
-                "ProductName": metrics["product_name"]
-                or product_info.get("name", "Unknown Product"),
+                "ProductName": metrics["product_name"] or product_info.get("name", "Unknown Product"),
                 "MachineStatus": metrics["last_status"],
-                "DowntimeReason": metrics["downtime_reason"]
-                if metrics["last_status"] == "Stopped"
-                else "",
+                "DowntimeReason": metrics["downtime_reason"] if metrics["last_status"] == "Stopped" else "",
                 "GoodUnitsProduced": metrics["good_units"],
                 "ScrapUnitsProduced": metrics["scrap_units"],
-                "TargetRate_units_per_5min": product_info.get(
-                    "target_rate_units_per_5min", 350
-                ),
-                "StandardCost_per_unit": product_info.get(
-                    "standard_cost_per_unit", 0.45
-                ),
+                "TargetRate_units_per_5min": product_info.get("target_rate_units_per_5min", 350),
+                "StandardCost_per_unit": product_info.get("standard_cost_per_unit", 0.45),
                 "SalePrice_per_unit": product_info.get("sale_price_per_unit", 1.5),
                 "Availability_Score": round(availability, 1),
                 "Performance_Score": round(performance, 1),
@@ -348,9 +319,7 @@ class MESTransducer:
         }
         return state_mapping.get(state, "Unknown")
 
-    def _determine_equipment_type(
-        self, equipment_id: str, equipment_info: Dict[str, Any]
-    ) -> str:
+    def _determine_equipment_type(self, equipment_id: str, equipment_info: Dict[str, Any]) -> str:
         """Determine equipment type from ID or manifest.
 
         Args:
@@ -362,7 +331,7 @@ class MESTransducer:
         """
         # Try manifest first
         if equipment_info and "type" in equipment_info:
-            return equipment_info["type"]
+            return str(equipment_info["type"])
 
         # Infer from ID
         if "FIL" in equipment_id:
@@ -376,9 +345,7 @@ class MESTransducer:
 
         return "Equipment"
 
-    def _extract_line_id(
-        self, equipment_id: str, equipment_info: Dict[str, Any]
-    ) -> str:
+    def _extract_line_id(self, equipment_id: str, equipment_info: Dict[str, Any]) -> str:
         """Extract line ID from equipment ID or manifest.
 
         Args:
@@ -390,7 +357,7 @@ class MESTransducer:
         """
         # Try manifest first
         if equipment_info and "line_id" in equipment_info:
-            return equipment_info["line_id"]
+            return str(equipment_info["line_id"])
 
         # Extract from ID (e.g., LINE1-FIL -> LINE1)
         if "LINE" in equipment_id:
@@ -400,9 +367,7 @@ class MESTransducer:
 
         return "1"  # Default
 
-    def _get_product_name(
-        self, product_id: str, manifests: Optional[Dict[str, Any]] = None
-    ) -> str:
+    def _get_product_name(self, product_id: str, manifests: Optional[Dict[str, Any]] = None) -> str:
         """Get product name from manifests.
 
         Args:
@@ -417,7 +382,7 @@ class MESTransducer:
             if prod_manifest and "products" in prod_manifest:
                 products = prod_manifest["products"]
                 if product_id in products:
-                    return products[product_id].get("name", "Unknown Product")
+                    return str(products[product_id].get("name", "Unknown Product"))
 
         # Default names
         default_names = {
@@ -445,7 +410,7 @@ class MESTransducer:
 
         if total_time > 0:
             availability = ((total_time - downtime) / total_time) * 100
-            return min(100, max(0, availability))
+            return float(min(100, max(0, availability)))
 
         return 0.0
 
@@ -482,18 +447,20 @@ class MESTransducer:
 
             # Calculate actual production
             actual_units = metrics["good_units"] + metrics["scrap_units"]
-            
+
             # Determine effective runtime
             effective_runtime = metrics["runtime_minutes"]
             if actual_units > 0 and effective_runtime == 0:
                 # FIX: Units produced but no runtime recorded - use full bucket
                 logger.debug(
                     "Using full bucket time for performance calculation",
-                    extra={'extra_data': {
-                        'actual_units': actual_units,
-                        'original_runtime': 0,
-                        'effective_runtime': self.time_bucket
-                    }}
+                    extra={
+                        "extra_data": {
+                            "actual_units": actual_units,
+                            "original_runtime": 0,
+                            "effective_runtime": self.time_bucket,
+                        }
+                    },
                 )
                 effective_runtime = self.time_bucket
 
@@ -502,29 +469,28 @@ class MESTransducer:
                 # Adjust target for actual runtime
                 adjusted_target = (target_rate * effective_runtime) / self.time_bucket
                 performance = (actual_units / adjusted_target) * 100
-                
+
                 logger.debug(
                     "Performance calculated",
-                    extra={'extra_data': {
-                        'actual_units': actual_units,
-                        'adjusted_target': adjusted_target,
-                        'performance': performance,
-                        'runtime': effective_runtime
-                    }}
+                    extra={
+                        "extra_data": {
+                            "actual_units": actual_units,
+                            "adjusted_target": adjusted_target,
+                            "performance": performance,
+                            "runtime": effective_runtime,
+                        }
+                    },
                 )
-                
-                return min(110, max(0, performance))  # Cap at 110% for over-performance
+
+                return float(min(110, max(0, performance)))  # Cap at 110% for over-performance
 
             return 0.0
-            
+
         except Exception as e:
             logger.error(
                 "Performance calculation failed",
-                extra={'extra_data': {
-                    'error': str(e),
-                    'metrics': metrics
-                }},
-                exc_info=True
+                extra={"extra_data": {"error": str(e), "metrics": metrics}},
+                exc_info=True,
             )
             return 0.0
 
@@ -541,7 +507,7 @@ class MESTransducer:
 
         if total_units > 0:
             quality = (metrics["good_units"] / total_units) * 100
-            return min(100, max(0, quality))
+            return float(min(100, max(0, quality)))
 
         return 0.0 if metrics["runtime_minutes"] == 0 else 100.0
 
@@ -585,9 +551,7 @@ class MESTransducer:
         # Downtime analysis
         downtime_records = df[df["MachineStatus"] == "Stopped"]
         downtime_reasons = (
-            downtime_records["DowntimeReason"].value_counts().to_dict()
-            if not downtime_records.empty
-            else {}
+            downtime_records["DowntimeReason"].value_counts().to_dict() if not downtime_records.empty else {}
         )
 
         # Line performance

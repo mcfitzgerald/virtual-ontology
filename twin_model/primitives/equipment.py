@@ -18,6 +18,7 @@ from .base import BasePrimitive, PrimitiveConfig, SamplingConfig
 # Import centralized logging
 try:
     from twin_model.logging_config import SimulationLogger
+
     logger = SimulationLogger.get_logger(__name__)
 except ImportError:
     # Fallback to standard logging if logging_config not available
@@ -77,7 +78,7 @@ class EquipmentPrimitive(BasePrimitive):
         config: PrimitiveConfig,
         upstream: Optional[Any] = None,  # Will be BufferPrimitive
         downstream: Optional[Any] = None,
-        sampling_config: Optional[SamplingConfig] = None
+        sampling_config: Optional[SamplingConfig] = None,
     ) -> None:  # Will be BufferPrimitive
         """Initialize equipment with buffers and performance optimization.
 
@@ -148,9 +149,7 @@ class EquipmentPrimitive(BasePrimitive):
                 modes.append(
                     FailureMode(
                         name=mode_name,
-                        probability_per_5min=mode_data.get(
-                            "probability_per_5min", 0.05
-                        ),
+                        probability_per_5min=mode_data.get("probability_per_5min", 0.05),
                         duration_range=tuple(mode_data.get("duration_range", [5, 15])),
                         downtime_code=mode_data.get("downtime_reason", "UNP-UNKNOWN"),
                         cascade_probability=mode_data.get("cascade_probability", 0.0),
@@ -207,20 +206,12 @@ class EquipmentPrimitive(BasePrimitive):
         while self.is_running:
             try:
                 # Check for material availability
-                if (
-                    self.upstream
-                    and hasattr(self.upstream, "level")
-                    and self.upstream.level == 0
-                ):
+                if self.upstream and hasattr(self.upstream, "level") and self.upstream.level == 0:
                     yield from self._handle_starved()
                     continue
 
                 # Check for downstream capacity
-                if (
-                    self.downstream
-                    and hasattr(self.downstream, "is_full")
-                    and self.downstream.is_full()
-                ):
+                if self.downstream and hasattr(self.downstream, "is_full") and self.downstream.is_full():
                     yield from self._handle_blocked()
                     continue
 
@@ -255,17 +246,19 @@ class EquipmentPrimitive(BasePrimitive):
             if self.downstream and hasattr(self.downstream, "put"):
                 yield from self.downstream.put(1)
             self.units_produced += 1
-            
+
             # Log production event
             logger.debug(
                 f"Unit produced by {self.config.id}",
-                extra={'extra_data': {
-                    'equipment_id': self.config.id,
-                    'product_id': self.current_product,
-                    'cycle_time': cycle_time,
-                    'units_produced': self.units_produced,
-                    'timestamp': self.env.now
-                }}
+                extra={
+                    "extra_data": {
+                        "equipment_id": self.config.id,
+                        "product_id": self.current_product,
+                        "cycle_time": cycle_time,
+                        "units_produced": self.units_produced,
+                        "timestamp": self.env.now,
+                    }
+                },
             )
 
             self.emit_observable(
@@ -288,16 +281,18 @@ class EquipmentPrimitive(BasePrimitive):
         else:
             # Scrap unit
             self.units_scrapped += 1
-            
+
             # Log scrap event
             logger.debug(
                 f"Unit scrapped by {self.config.id}",
-                extra={'extra_data': {
-                    'equipment_id': self.config.id,
-                    'product_id': self.current_product,
-                    'units_scrapped': self.units_scrapped,
-                    'timestamp': self.env.now
-                }}
+                extra={
+                    "extra_data": {
+                        "equipment_id": self.config.id,
+                        "product_id": self.current_product,
+                        "units_scrapped": self.units_scrapped,
+                        "timestamp": self.env.now,
+                    }
+                },
             )
 
             self.emit_observable(
@@ -343,7 +338,7 @@ class EquipmentPrimitive(BasePrimitive):
             shift_factor = self._get_shift_factor()
             actual_cycle *= shift_factor
 
-        return actual_cycle * variation
+        return actual_cycle * variation  # type: ignore[no-any-return]
 
     def _quality_check(self) -> bool:
         """Determine if produced unit passes quality check.
@@ -363,12 +358,10 @@ class EquipmentPrimitive(BasePrimitive):
 
         # Product-specific scrap rate
         if self.current_product:
-            product_scrap = self.config.get_property(
-                f"scrap_rate_{self.current_product}", scrap_rate
-            )
+            product_scrap = self.config.get_property(f"scrap_rate_{self.current_product}", scrap_rate)
             adjusted_rate = product_scrap
 
-        return random.random() > adjusted_rate
+        return random.random() > adjusted_rate  # type: ignore[no-any-return]
 
     def _handle_starved(self) -> Generator:
         """Handle starved state when no input material available."""
@@ -439,15 +432,11 @@ class EquipmentPrimitive(BasePrimitive):
             event_type="equipment_failure",
             details={
                 "failure_mode": failure_mode.name if failure_mode else "unknown",
-                "downtime_code": failure_mode.downtime_code
-                if failure_mode
-                else "UNP-UNKNOWN",
+                "downtime_code": failure_mode.downtime_code if failure_mode else "UNP-UNKNOWN",
                 "expected_duration": duration,
                 "cycles_since_maintenance": self.cycles_since_maintenance,
                 "total_runtime": self.total_runtime,
-                "cascade_probability": failure_mode.cascade_probability
-                if failure_mode
-                else 0.0,
+                "cascade_probability": failure_mode.cascade_probability if failure_mode else 0.0,
             },
             severity="ERROR",
         )
@@ -523,9 +512,7 @@ class EquipmentPrimitive(BasePrimitive):
 
                         # Interrupt main process
                         if self.process and not self.process.triggered:
-                            self.process.interrupt(
-                                {"type": "failure", "mode": mode, "duration": duration}
-                            )
+                            self.process.interrupt({"type": "failure", "mode": mode, "duration": duration})
                         break  # Only one failure at a time
 
     def monitor_process(self) -> Generator:
@@ -566,19 +553,21 @@ class EquipmentPrimitive(BasePrimitive):
             self.previous_state = self.state
             self.state = new_state
             self.state_start_time = self.env.now
-            
+
             # Log state transition with critical information
             logger.info(
                 f"Equipment state changed: {old_state.value} -> {new_state.value}",
-                extra={'extra_data': {
-                    'equipment_id': self.config.id,
-                    'old_state': old_state.value,
-                    'new_state': new_state.value,
-                    'duration_in_state': state_duration,
-                    'timestamp': self.env.now,
-                    'product': self.current_product,
-                    'shift': self.current_shift
-                }}
+                extra={
+                    "extra_data": {
+                        "equipment_id": self.config.id,
+                        "old_state": old_state.value,
+                        "new_state": new_state.value,
+                        "duration_in_state": state_duration,
+                        "timestamp": self.env.now,
+                        "product": self.current_product,
+                        "shift": self.current_shift,
+                    }
+                },
             )
 
             self.emit_observable(
@@ -613,8 +602,8 @@ class EquipmentPrimitive(BasePrimitive):
             Performance multiplier for product
         """
         # Product-specific performance from config
-        return self.config.get_property(f"performance_{self.current_product}", 1.0)
-    
+        return self.config.get_property(f"performance_{self.current_product}", 1.0)  # type: ignore[no-any-return]
+
     def _get_product_performance(self) -> float:
         """Get performance factor for current product from manifest.
 
@@ -624,7 +613,7 @@ class EquipmentPrimitive(BasePrimitive):
         # Check for performance_by_product in config
         perf_by_product = self.config.get_property("performance_by_product", {})
         if self.current_product and self.current_product in perf_by_product:
-            return perf_by_product[self.current_product]
+            return perf_by_product[self.current_product]  # type: ignore[no-any-return]
         return 1.0  # Default to nominal performance
 
     def _trigger_cascade_failure(self) -> None:
@@ -634,9 +623,7 @@ class EquipmentPrimitive(BasePrimitive):
                 event_type="cascade_failure_triggered",
                 details={
                     "source": self.config.id,
-                    "target": self.downstream.config.id
-                    if hasattr(self.downstream, "config")
-                    else "unknown",
+                    "target": self.downstream.config.id if hasattr(self.downstream, "config") else "unknown",
                 },
                 severity="WARNING",
             )
@@ -661,9 +648,7 @@ class EquipmentPrimitive(BasePrimitive):
         # Performance
         theoretical_output = self.base_rate * running_time
         actual_output = self.units_produced + self.units_scrapped
-        performance = (
-            actual_output / theoretical_output if theoretical_output > 0 else 0
-        )
+        performance = actual_output / theoretical_output if theoretical_output > 0 else 0
 
         # Quality
         quality = self.units_produced / actual_output if actual_output > 0 else 0

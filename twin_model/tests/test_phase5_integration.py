@@ -565,10 +565,12 @@ def compare_with_reference(
     # Statistical comparison
     if "OEE_Score" in generated_df.columns and "OEE_Score" in reference_df.columns:
         comparison["oee_range_generated"] = (
-            f"{generated_df['OEE_Score'].min():.1f} - {generated_df['OEE_Score'].max():.1f}"
+            generated_df["OEE_Score"].min(),
+            generated_df["OEE_Score"].max(),
         )
         comparison["oee_range_reference"] = (
-            f"{reference_df['OEE_Score'].min():.1f} - {reference_df['OEE_Score'].max():.1f}"
+            reference_df["OEE_Score"].min(),
+            reference_df["OEE_Score"].max(),
         )
 
     # Scrap rate comparison
@@ -577,7 +579,7 @@ def compare_with_reference(
         gen_scrap = generated_df["ScrapUnitsProduced"].sum()
         gen_total = gen_good + gen_scrap
         comparison["scrap_rate_generated"] = (
-            (gen_scrap / gen_total * 100) if gen_total > 0 else 0
+        good_unit_count = int(obs.get('good_units', 0))
         )
 
     if "GoodUnitsProduced" in reference_df.columns:
@@ -585,7 +587,7 @@ def compare_with_reference(
         ref_scrap = reference_df["ScrapUnitsProduced"].sum()
         ref_total = ref_good + ref_scrap
         comparison["scrap_rate_reference"] = (
-            (ref_scrap / ref_total * 100) if ref_total > 0 else 0
+        scrap_unit_count = int(obs.get('scrap_units', 0))
         )
 
     return comparison

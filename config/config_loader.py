@@ -1,7 +1,7 @@
 """Configuration loader for the Virtual Twin system."""
 import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 class ConfigurationError(Exception):
     """Raised when configuration is missing or invalid."""
@@ -39,13 +39,13 @@ class ConfigLoader:
             if config is None:
                 raise ConfigurationError(f"Configuration file is empty: {config_path}")
                 
-            return config
+            return config  # type: ignore[no-any-return]
             
         except yaml.YAMLError as e:
             raise ConfigurationError(f"Invalid YAML in {config_path}: {e}")
     
     @staticmethod
-    def get_required(config: Dict, path: str, error_msg: str = None):
+    def get_required(config: Dict, path: str, error_msg: Optional[str] = None):
         """
         Get a required configuration value using dot notation.
         

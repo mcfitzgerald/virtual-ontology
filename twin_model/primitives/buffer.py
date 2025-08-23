@@ -65,9 +65,7 @@ class BufferPrimitive(BasePrimitive):
         if self.buffer_type == "FIFO":
             self.store = simpy.Store(env, capacity=self.capacity)
         elif self.buffer_type == "LIFO":
-            self.store = simpy.Store(
-                env, capacity=self.capacity
-            )  # SimPy doesn't have LifoStore, use FIFO
+            self.store = simpy.Store(env, capacity=self.capacity)  # SimPy doesn't have LifoStore, use FIFO
         elif self.buffer_type == "priority":
             self.store = simpy.PriorityStore(env, capacity=self.capacity)
         else:
@@ -113,9 +111,7 @@ class BufferPrimitive(BasePrimitive):
             },
         )
 
-    def put(
-        self, quantity: int = 1, product_id: Optional[str] = None, **kwargs
-    ) -> Generator:
+    def put(self, quantity: int = 1, product_id: Optional[str] = None, **kwargs) -> Generator:
         """Put items into buffer.
 
         Args:
@@ -160,9 +156,7 @@ class BufferPrimitive(BasePrimitive):
 
             # Track product mix
             if product_id:
-                self.product_counts[product_id] = (
-                    self.product_counts.get(product_id, 0) + 1
-                )
+                self.product_counts[product_id] = self.product_counts.get(product_id, 0) + 1
 
             # Emit observable
             self.emit_observable(
@@ -214,9 +208,7 @@ class BufferPrimitive(BasePrimitive):
                 self.emit_observable(
                     event_type="excessive_dwell_time",
                     details={
-                        "product": item.product_id
-                        if item and hasattr(item, "product_id")
-                        else "UNKNOWN",
+                        "product": item.product_id if item and hasattr(item, "product_id") else "UNKNOWN",
                         "dwell_time": dwell_time,
                         "max_allowed": self.max_dwell_time,
                     },
@@ -229,11 +221,7 @@ class BufferPrimitive(BasePrimitive):
             self.min_level_reached = min(self.min_level_reached, self.level)
 
             # Update product mix
-            if (
-                item
-                and hasattr(item, "product_id")
-                and item.product_id in self.product_counts
-            ):
+            if item and hasattr(item, "product_id") and item.product_id in self.product_counts:
                 self.product_counts[item.product_id] -= 1
                 if self.product_counts[item.product_id] == 0:
                     del self.product_counts[item.product_id]
@@ -243,9 +231,7 @@ class BufferPrimitive(BasePrimitive):
                 event_type="buffer_get",
                 details={
                     "level": self.level,
-                    "product": item.product_id
-                    if item and hasattr(item, "product_id")
-                    else "UNKNOWN",
+                    "product": item.product_id if item and hasattr(item, "product_id") else "UNKNOWN",
                     "dwell_time": dwell_time,
                     "utilization": self.level / self.capacity,
                 },
@@ -272,9 +258,7 @@ class BufferPrimitive(BasePrimitive):
                 )
 
             # Calculate average dwell time
-            avg_dwell = (
-                sum(self.dwell_times) / len(self.dwell_times) if self.dwell_times else 0
-            )
+            avg_dwell = sum(self.dwell_times) / len(self.dwell_times) if self.dwell_times else 0
 
             # Emit monitoring observable
             self.emit_observable(
@@ -298,7 +282,7 @@ class BufferPrimitive(BasePrimitive):
         Returns:
             True if buffer is full
         """
-        return len(self.store.items) >= self.capacity
+        return len(self.store.items) >= self.capacity  # type: ignore[no-any-return]
 
     def is_empty(self) -> bool:
         """Check if buffer is empty.
@@ -322,9 +306,7 @@ class BufferPrimitive(BasePrimitive):
         Returns:
             Dictionary of buffer metrics
         """
-        avg_dwell = (
-            sum(self.dwell_times) / len(self.dwell_times) if self.dwell_times else 0
-        )
+        avg_dwell = sum(self.dwell_times) / len(self.dwell_times) if self.dwell_times else 0
 
         return {
             "current_level": self.level,

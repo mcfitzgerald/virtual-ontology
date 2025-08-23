@@ -18,21 +18,19 @@ from database.repositories import (
     ExperimentRepository,
     PatternRepository,
     RecommendationRepository,
-    KPIRepository
+    KPIRepository,
 )
 
 
 def get_db_manager(request: Request) -> TwinDatabaseManager:
     """Get database manager from app state"""
-    return request.app.state.db_manager
+    return request.app.state.db_manager  # type: ignore[no-any-return]
 
 
-def get_session(
-    manager: Annotated[TwinDatabaseManager, Depends(get_db_manager)]
-) -> Generator[Session, None, None]:
+def get_session(manager: Annotated[TwinDatabaseManager, Depends(get_db_manager)]) -> Generator[Session, None, None]:
     """
     Create a new database session for each request
-    
+
     Yields a SQLModel Session that will be automatically
     closed when the request is complete
     """

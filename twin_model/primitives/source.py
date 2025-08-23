@@ -59,15 +59,11 @@ class SourcePrimitive(BasePrimitive):
         self.downstream = downstream
 
         # Source parameters
-        self.arrival_pattern = ArrivalPattern(
-            config.get_property("arrival_pattern", "CONSTANT")
-        )
+        self.arrival_pattern = ArrivalPattern(config.get_property("arrival_pattern", "CONSTANT"))
         self.arrival_rate = config.get_property("arrival_rate", 60.0)
         self.batch_size = config.get_property("batch_size", 1)
         self.schedule = config.get_property("schedule", [])
-        self.disruption_probability = config.get_property(
-            "disruption_probability", 0.01
-        )
+        self.disruption_probability = config.get_property("disruption_probability", 0.01)
 
         # Product configuration
         self.product_mix = config.get_property("product_mix", {"DEFAULT": 1.0})
@@ -131,10 +127,7 @@ class SourcePrimitive(BasePrimitive):
                 # Send good units downstream if available
                 if self.downstream and good_units > 0:
                     # Check if downstream can accept
-                    if (
-                        hasattr(self.downstream, "is_full")
-                        and self.downstream.is_full()
-                    ):
+                    if hasattr(self.downstream, "is_full") and self.downstream.is_full():
                         self.blocked_count += good_units
                         self.emit_observable(
                             event_type="source_blocked",
@@ -150,9 +143,7 @@ class SourcePrimitive(BasePrimitive):
                     else:
                         # Send units downstream
                         if hasattr(self.downstream, "put"):
-                            yield from self.downstream.put(
-                                good_units, product_id=product
-                            )
+                            yield from self.downstream.put(good_units, product_id=product)
 
                         self.total_generated += good_units
 
@@ -209,7 +200,7 @@ class SourcePrimitive(BasePrimitive):
 
         elif self.arrival_pattern == ArrivalPattern.BATCH:
             # Longer time between batches
-            return base_time * self.batch_size
+            return base_time * self.batch_size  # type: ignore[no-any-return]
 
         elif self.arrival_pattern == ArrivalPattern.SCHEDULE:
             # Use schedule if available
@@ -232,7 +223,7 @@ class SourcePrimitive(BasePrimitive):
         if self.arrival_pattern == ArrivalPattern.BATCH:
             # Add some variability to batch size
             variation = int(self.batch_size * self.supply_variability)
-            return max(1, self.batch_size + random.randint(-variation, variation))
+            return max(1, self.batch_size + random.randint(-variation, variation))  # type: ignore[no-any-return]
         return 1
 
     def _select_product(self) -> str:
@@ -255,7 +246,7 @@ class SourcePrimitive(BasePrimitive):
         else:
             weights = [1.0 / len(products)] * len(products)
 
-        return random.choices(products, weights=weights)[0]
+        return random.choices(products, weights=weights)[0]  # type: ignore[no-any-return]
 
     def _get_scheduled_time(self) -> float:
         """Get next scheduled arrival time.
@@ -268,10 +259,10 @@ class SourcePrimitive(BasePrimitive):
 
         for scheduled_time in self.schedule:
             if scheduled_time > current_time:
-                return scheduled_time - current_time
+                return scheduled_time - current_time  # type: ignore[no-any-return]
 
         # If no future schedule, use base rate
-        return 1.0 / self.arrival_rate
+        return 1.0 / self.arrival_rate  # type: ignore[no-any-return]
 
     def _get_stochastic_time(self, base_time: float) -> float:
         """Generate complex stochastic interarrival time.
@@ -340,9 +331,7 @@ class SourcePrimitive(BasePrimitive):
                 duration = random.uniform(10, 60)  # 10-60 minutes
 
                 if self.process and not self.process.triggered:
-                    self.process.interrupt(
-                        {"duration": duration, "reason": "supply_shortage"}
-                    )
+                    self.process.interrupt({"duration": duration, "reason": "supply_shortage"})
 
     def set_arrival_rate(self, rate: float) -> None:
         """Dynamically adjust arrival rate.
@@ -385,9 +374,7 @@ class SourcePrimitive(BasePrimitive):
             "total_batches": self.total_batches,
             "actual_rate": actual_rate,
             "configured_rate": self.arrival_rate,
-            "efficiency": actual_rate / self.arrival_rate
-            if self.arrival_rate > 0
-            else 0,
+            "efficiency": actual_rate / self.arrival_rate if self.arrival_rate > 0 else 0,
             "disruption_count": self.disruption_count,
             "blocked_count": self.blocked_count,
             "product_mix": self.product_mix,

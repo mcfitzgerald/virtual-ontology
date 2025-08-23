@@ -96,7 +96,7 @@ class SimulationProfiler:
     def profile_function(self,
                         func: Callable,
                         args: tuple = (),
-                        kwargs: dict = None,
+                        kwargs: Optional[dict] = None,
                         name: str = "unnamed") -> ProfileResult:
         """Profile a function execution.
         
@@ -148,10 +148,10 @@ class SimulationProfiler:
         
         # Get top functions
         top_functions = []
-        total_cpu_time = sum(stat[2] for stat in stats.stats.values())
+        total_cpu_time = sum(stat[2] for stat in stats.stats.values())  # type: ignore[attr-defined]
         
         for (filename, line, func_name), (_, _, cumtime, _, _) in \
-                sorted(stats.stats.items(), key=lambda x: x[1][2], reverse=True)[:20]:
+                sorted(stats.stats.items(), key=lambda x: x[1][2], reverse=True)[:20]:  # type: ignore[attr-defined]
             
             # Skip built-in functions for clarity
             if '<' in filename:
@@ -258,32 +258,32 @@ class SimulationProfiler:
         # Compare execution times
         base_time = profiles_to_compare[0].total_time
         for profile in profiles_to_compare:
-            comparison['time_comparison'][profile.name] = {
+            comparison['time_comparison'][profile.name] = {  # type: ignore[index]
                 'total_time': profile.total_time,
                 'speedup': base_time / profile.total_time if profile.total_time > 0 else 0
             }
         
         # Compare memory usage
         for profile in profiles_to_compare:
-            comparison['memory_comparison'][profile.name] = {
+            comparison['memory_comparison'][profile.name] = {  # type: ignore[index]
                 'peak_mb': profile.memory_peak_mb,
                 'growth_mb': profile.memory_growth_mb
             }
         
         # Compare bottlenecks
         for profile in profiles_to_compare:
-            comparison['bottleneck_comparison'][profile.name] = profile.bottlenecks
+            comparison['bottleneck_comparison'][profile.name] = profile.bottlenecks  # type: ignore[index]
         
         # Print comparison
         print("\nProfile Comparison")
         print("=" * 60)
         
         print("\nExecution Time:")
-        for name, data in comparison['time_comparison'].items():
+        for name, data in comparison['time_comparison'].items():  # type: ignore[attr-defined]
             print(f"  {name}: {data['total_time']:.2f}s (speedup: {data['speedup']:.2f}x)")
         
         print("\nMemory Usage:")
-        for name, data in comparison['memory_comparison'].items():
+        for name, data in comparison['memory_comparison'].items():  # type: ignore[attr-defined]
             print(f"  {name}: {data['peak_mb']:.1f}MB peak, {data['growth_mb']:.1f}MB growth")
         
         return comparison

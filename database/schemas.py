@@ -13,8 +13,10 @@ from enum import Enum
 
 # ============= Enums =============
 
+
 class RunType(str, Enum):
     """Types of simulation runs"""
+
     BASELINE = "baseline"
     EXPERIMENT = "experiment"
     OPTIMIZATION = "optimization"
@@ -23,6 +25,7 @@ class RunType(str, Enum):
 
 class RunStatus(str, Enum):
     """Status of a simulation run"""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -31,6 +34,7 @@ class RunStatus(str, Enum):
 
 class PatternType(str, Enum):
     """Types of discovered patterns"""
+
     CORRELATION = "correlation"
     CAUSATION = "causation"
     THRESHOLD = "threshold"
@@ -39,8 +43,10 @@ class PatternType(str, Enum):
 
 # ============= Request Models =============
 
+
 class SimulationRequest(BaseModel):
     """Request to run a simulation"""
+
     run_type: RunType = RunType.EXPERIMENT
     parameters: Dict[str, Any] = Field(default_factory=dict, description="Simulation parameters")
     days: int = Field(default=1, ge=1, le=30, description="Days to simulate")
@@ -50,6 +56,7 @@ class SimulationRequest(BaseModel):
 
 class ExperimentRequest(BaseModel):
     """Request to create and run an experiment"""
+
     name: str = Field(..., description="Experiment name")
     hypothesis: str = Field(..., description="Experiment hypothesis")
     parameter_changes: Dict[str, Any] = Field(..., description="Parameters to modify")
@@ -59,15 +66,16 @@ class ExperimentRequest(BaseModel):
 
 class SQLQueryRequest(BaseModel):
     """Request to execute SQL query"""
+
     sql: str = Field(..., description="SQL query to execute")
     limit: Optional[int] = Field(1000, ge=1, le=10000, description="Maximum rows to return")
 
 
 class CleanupRequest(BaseModel):
     """Request to clean database"""
+
     category: Optional[str] = Field(
-        None, 
-        description="Category to clean: historical, simulation, optimization, monitoring, metadata, logs"
+        None, description="Category to clean: historical, simulation, optimization, monitoring, metadata, logs"
     )
     tables: Optional[List[str]] = Field(None, description="Specific tables to clean")
     older_than_days: Optional[int] = Field(None, ge=1, description="Remove data older than N days")
@@ -76,14 +84,17 @@ class CleanupRequest(BaseModel):
 
 class BackupRequest(BaseModel):
     """Request to create database backup"""
+
     description: Optional[str] = Field(None, description="Backup description")
     compress: bool = Field(False, description="Compress backup file")
 
 
 # ============= Response Models =============
 
+
 class DatabaseStats(BaseModel):
     """Database statistics"""
+
     database_path: str
     file_size_mb: float
     total_tables: int
@@ -96,6 +107,7 @@ class DatabaseStats(BaseModel):
 
 class TableInfo(BaseModel):
     """Information about a database table"""
+
     name: str
     record_count: int
     columns: List[str]
@@ -105,6 +117,7 @@ class TableInfo(BaseModel):
 
 class SimulationResponse(BaseModel):
     """Response from simulation run"""
+
     run_id: str
     status: RunStatus
     started_at: datetime
@@ -115,6 +128,7 @@ class SimulationResponse(BaseModel):
 
 class ExperimentResponse(BaseModel):
     """Response from experiment creation"""
+
     experiment_id: str
     name: str
     status: str
@@ -126,6 +140,7 @@ class ExperimentResponse(BaseModel):
 
 class PatternResponse(BaseModel):
     """Discovered pattern information"""
+
     pattern_id: int
     pattern_type: PatternType
     pattern_name: str
@@ -138,6 +153,7 @@ class PatternResponse(BaseModel):
 
 class RecommendationResponse(BaseModel):
     """Parameter recommendation"""
+
     recommendation_id: int
     recommendation_type: str
     parameter_adjustments: Dict[str, Any]
@@ -149,6 +165,7 @@ class RecommendationResponse(BaseModel):
 
 class KPISummary(BaseModel):
     """KPI summary data"""
+
     mean_oee: float
     mean_availability: float
     mean_performance: float
@@ -161,6 +178,7 @@ class KPISummary(BaseModel):
 
 class ComparisonResponse(BaseModel):
     """Comparison between two runs"""
+
     baseline_run_id: str
     comparison_run_id: str
     oee_delta: float
@@ -174,6 +192,7 @@ class ComparisonResponse(BaseModel):
 
 class SQLQueryResponse(BaseModel):
     """Response from SQL query"""
+
     query: str
     columns: List[str]
     data: List[Dict[str, Any]]
@@ -184,6 +203,7 @@ class SQLQueryResponse(BaseModel):
 
 class BackupResponse(BaseModel):
     """Response from backup operation"""
+
     backup_path: str
     size_mb: float
     tables_backed_up: int
@@ -194,6 +214,7 @@ class BackupResponse(BaseModel):
 
 class OperationResponse(BaseModel):
     """Generic operation response"""
+
     success: bool
     message: str
     details: Optional[Dict[str, Any]] = None
@@ -201,8 +222,10 @@ class OperationResponse(BaseModel):
 
 # ============= List Response Models =============
 
+
 class SimulationListResponse(BaseModel):
     """List of simulation runs"""
+
     runs: List[SimulationResponse]
     total: int
     page: int
@@ -211,17 +234,20 @@ class SimulationListResponse(BaseModel):
 
 class ExperimentListResponse(BaseModel):
     """List of experiments"""
+
     experiments: List[ExperimentResponse]
     total: int
 
 
 class PatternListResponse(BaseModel):
     """List of discovered patterns"""
+
     patterns: List[PatternResponse]
     total: int
 
 
 class RecommendationListResponse(BaseModel):
     """List of recommendations"""
+
     recommendations: List[RecommendationResponse]
     total: int

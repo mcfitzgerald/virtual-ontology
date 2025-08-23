@@ -19,12 +19,15 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Import routers
+from database.routers import query, simulation, experiment, database
+
 from database.manager import TwinDatabaseManager
 from config.config_loader import ConfigLoader, ConfigurationError
 
 # Load database configuration
 try:
-    db_config = ConfigLoader.load_config('database')
+    db_config = ConfigLoader.load_config("database")
 except ConfigurationError as e:
     print(f"ERROR: Failed to load database configuration: {e}")
     sys.exit(1)
@@ -34,48 +37,48 @@ except ConfigurationError as e:
 async def lifespan(app: FastAPI) -> AsyncGenerator:
     """
     Manage application lifecycle
-    
+
     Startup:
     - Initialize database tables
     - Sync configurations from manifests
     - Store manager in app state
-    
+
     Shutdown:
     - Clean up resources
     """
     # Startup
     print("🚀 Starting Virtual Twin Database API...")
-    
+
     # Initialize database manager
     manager = TwinDatabaseManager()
-    
+
     # Create tables if they don't exist
     manager.create_all_tables()
     print("✓ Database tables initialized")
-    
+
     # Sync configurations from YAML manifests
     try:
         manager.sync_configurations_from_manifests()
         print("✓ Configurations synced from manifests")
     except Exception as e:
         print(f"⚠ Warning: Could not sync manifests: {e}")
-    
+
     # Store manager in app state for access in endpoints
     app.state.db_manager = manager
-    
+
     print(f"✓ Ontology version: {manager.get_ontology_version()}")
     print(f"✓ Manifest version: {manager.get_manifest_version()}")
-    
+
     # Get port from config or environment
-    port = int(os.getenv("TWIN_API_PORT", db_config['api']['port']))
+    port = int(os.getenv("TWIN_API_PORT", db_config["api"]["port"]))
     print(f"✓ API ready at {db_config['api']['base_url']}:{port}")
-    
+
     yield
-    
+
     # Shutdown
     print("\n👋 Shutting down Virtual Twin Database API...")
     # Clean up resources if needed
-    
+
 
 # Create FastAPI application
 app = FastAPI(
@@ -101,8 +104,8 @@ app = FastAPI(
     """,
     version="4.0.0",
     lifespan=lifespan,
-    docs_url=db_config['api']['endpoints']['swagger_ui'],
-    redoc_url=db_config['api']['endpoints']['redoc']
+    docs_url=db_config["api"]["endpoints"]["swagger_ui"],
+    redoc_url=db_config["api"]["endpoints"]["redoc"],
 )
 
 
@@ -117,13 +120,13 @@ async def root():
             "documentation": "/docs",
             "alternative_docs": "/redoc",
             "database": "/database",
-            "simulations": "/simulations", 
+            "simulations": "/simulations",
             "experiments": "/experiments",
             "patterns": "/patterns",
             "recommendations": "/recommendations",
-            "query": "/query"
+            "query": "/query",
         },
-        "status": "operational"
+        "status": "operational",
     }
 
 
@@ -135,22 +138,13 @@ async def health_check():
         # Check if database is accessible
         manager = app.state.db_manager
         ontology_version = manager.get_ontology_version()
-        
-        return {
-            "status": "healthy",
-            "database": "connected",
-            "ontology_version": ontology_version
-        }
+
+        return {"status": "healthy", "database": "connected", "ontology_version": ontology_version}
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        return {"status": "unhealthy", "error": str(e)}
 
 
-# Import and include routers
-from database.routers import query, simulation, experiment, database
-
+# Include routers
 app.include_router(query.router, prefix="/query", tags=["SQL Queries"])
 app.include_router(simulation.router, prefix="/simulations", tags=["Simulations"])
 app.include_router(experiment.router, prefix="/experiments", tags=["Experiments"])

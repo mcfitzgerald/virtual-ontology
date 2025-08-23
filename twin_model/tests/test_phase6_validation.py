@@ -10,7 +10,7 @@ import yaml
 import pandas as pd
 from typing import Dict, Any
 import json
-from scipy import stats
+from scipy import stats  # type: ignore[import-untyped]
 
 from twin_model.model_builder import OntologyDrivenModelBuilder
 from twin_model.transduction.mes_transducer import MESTransducer
@@ -86,7 +86,7 @@ class StatisticalValidator:
                 if eq_df["GoodUnitsProduced"].mean() > 0
                 else 0,
             }
-        return variance
+        return variance  # type: ignore[return-value]
 
     def validate(self, generated_df: pd.DataFrame) -> Dict[str, Any]:
         """Validate generated data against reference.
