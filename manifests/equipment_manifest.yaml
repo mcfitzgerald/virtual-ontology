@@ -60,51 +60,51 @@ equipment:
     type: Buffer
   LINE1-FIL:
     base_rate: 70
-    base_scrap_rate: 0.02
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 8.5
     line_id: LINE1
-    mtbf: 180  # Reduced from 480 to cause more failures (3 hours mean time between failures)
-    mttr: 45   # Increased from 30 to 45 minutes mean time to repair
+    mtbf: 35  # VERY AGGRESSIVE: Failure every 35 min
+    mttr: 85  # VERY AGGRESSIVE: 85 min to repair
     performance_by_product:
-      SKU-1001: 0.77  # Adjusted to achieve ~52% performance score
-      SKU-1002: 0.75
-      SKU-2001: 0.73
-      SKU-2002: 0.70
-      SKU-3002: 0.76
+      SKU-1001: 0.48  # Further reduced to achieve 52% performance
+      SKU-1002: 0.47
+      SKU-2001: 0.45
+      SKU-2002: 0.43
+      SKU-3002: 0.47
     position: 1
-    quality_rate: 0.85  # Reduced from 0.9 to increase scrap
+    quality_rate: 0.63  # Target quality
     type: Filler
   LINE1-PAL:
     base_rate: 70
-    base_scrap_rate: 0.005
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 5.0
     line_id: LINE1
-    mtbf: 250  # Reduced for more failures
-    mttr: 35   # Increased repair time
+    mtbf: 45  # VERY AGGRESSIVE: Failure every 45 min
+    mttr: 75  # VERY AGGRESSIVE: 75 min to repair
     performance_by_product:
-      SKU-1001: 0.88  # Reduced performance
-      SKU-1002: 0.85
-      SKU-2001: 0.82
-      SKU-2002: 0.72
-      SKU-3002: 0.87
+      SKU-1001: 0.55  # Further reduced for 52% performance
+      SKU-1002: 0.53
+      SKU-2001: 0.51
+      SKU-2002: 0.44
+      SKU-3002: 0.54
     position: 3
-    quality_rate: 0.88  # Reduced quality
+    quality_rate: 0.63  # Target quality
     type: Palletizer
   LINE1-PCK:
     base_rate: 70
-    base_scrap_rate: 0.01
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 6.5
     line_id: LINE1
-    mtbf: 200  # Reduced for more failures
-    mttr: 40   # Increased repair time
+    mtbf: 40  # VERY AGGRESSIVE: Failure every 40 min
+    mttr: 80  # VERY AGGRESSIVE: 80 min to repair
     performance_by_product:
-      SKU-1001: 0.80  # Reduced performance
-      SKU-1002: 0.78
-      SKU-2001: 0.70
-      SKU-2002: 0.60
-      SKU-3002: 0.75
+      SKU-1001: 0.50  # Further reduced for 52% performance
+      SKU-1002: 0.49
+      SKU-2001: 0.43
+      SKU-2002: 0.36
+      SKU-3002: 0.46
     position: 2
-    quality_rate: 0.82  # Reduced quality
+    quality_rate: 0.63  # Target quality
     type: Packer
   LINE1-SINK:
     base_rate: 70
@@ -174,51 +174,51 @@ equipment:
     type: Buffer
   LINE2-FIL:
     base_rate: 70
-    base_scrap_rate: 0.025
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 7.5
     line_id: LINE2
-    mtbf: 150  # Lower MTBF for Line 2 (worse performance)
-    mttr: 50   # Higher MTTR
+    mtbf: 30  # VERY AGGRESSIVE: Failure every 30 min
+    mttr: 90  # VERY AGGRESSIVE: 90 min repairs
     performance_by_product:
-      SKU-1001: 0.75  # Lower performance for Line 2
-      SKU-1002: 0.78
-      SKU-2002: 0.55
-      SKU-3001: 0.85
-      SKU-3002: 0.70
+      SKU-1001: 0.46  # Further reduced for 52% performance
+      SKU-1002: 0.48
+      SKU-2002: 0.33
+      SKU-3001: 0.53
+      SKU-3002: 0.43
     position: 1
-    quality_rate: 0.80  # Lower quality for Line 2
+    quality_rate: 0.63  # Target quality
     type: Filler
   LINE2-PAL:
     base_rate: 70
-    base_scrap_rate: 0.008
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 4.5
     line_id: LINE2
-    mtbf: 220  # Lower MTBF
-    mttr: 40   # Higher MTTR
+    mtbf: 42  # VERY AGGRESSIVE
+    mttr: 78  # VERY AGGRESSIVE
     performance_by_product:
-      SKU-1001: 0.75  # Lower performance
-      SKU-1002: 0.75
-      SKU-2002: 0.63
-      SKU-3001: 0.78
-      SKU-3002: 0.76
+      SKU-1001: 0.46  # Further reduced for 52% performance
+      SKU-1002: 0.46
+      SKU-2002: 0.38
+      SKU-3001: 0.48
+      SKU-3002: 0.47
     position: 3
-    quality_rate: 0.83  # Lower quality
+    quality_rate: 0.63  # Target quality
     type: Palletizer
   LINE2-PCK:
     base_rate: 70
-    base_scrap_rate: 0.015
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 5.5
     line_id: LINE2
-    mtbf: 170  # Lower MTBF
-    mttr: 45   # Higher MTTR
+    mtbf: 35  # VERY AGGRESSIVE
+    mttr: 85  # VERY AGGRESSIVE
     performance_by_product:
-      SKU-1001: 0.70  # Lower performance
-      SKU-1002: 0.73
-      SKU-2002: 0.58
-      SKU-3001: 0.78
-      SKU-3002: 0.72
+      SKU-1001: 0.43  # Further reduced for 52% performance
+      SKU-1002: 0.45
+      SKU-2002: 0.35
+      SKU-3001: 0.48
+      SKU-3002: 0.44
     position: 2
-    quality_rate: 0.78  # Lower quality
+    quality_rate: 0.63  # Target quality
     type: Packer
   LINE2-SINK:
     base_rate: 70
@@ -288,48 +288,48 @@ equipment:
     type: Buffer
   LINE3-FIL:
     base_rate: 70
-    base_scrap_rate: 0.03
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 7.0
     line_id: LINE3
-    mtbf: 190  # Moderate MTBF
-    mttr: 42   # Moderate MTTR
+    mtbf: 38  # VERY AGGRESSIVE
+    mttr: 82  # VERY AGGRESSIVE
     performance_by_product:
-      SKU-2001: 0.82  # Moderate performance
-      SKU-2002: 0.73
-      SKU-3001: 0.69
-      SKU-3002: 0.72
+      SKU-2001: 0.51  # Further reduced for 52% performance
+      SKU-2002: 0.45
+      SKU-3001: 0.42
+      SKU-3002: 0.44
     position: 1
-    quality_rate: 0.84  # Moderate quality
+    quality_rate: 0.63  # Target quality
     type: Filler
   LINE3-PAL:
     base_rate: 70
-    base_scrap_rate: 0.01
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 4.0
     line_id: LINE3
-    mtbf: 240  # Moderate MTBF
-    mttr: 36   # Moderate MTTR
+    mtbf: 46  # VERY AGGRESSIVE
+    mttr: 74  # VERY AGGRESSIVE
     performance_by_product:
-      SKU-2001: 0.85  # Moderate performance
-      SKU-2002: 0.76
-      SKU-3001: 0.80
-      SKU-3002: 0.83
+      SKU-2001: 0.53  # Further reduced for 52% performance
+      SKU-2002: 0.47
+      SKU-3001: 0.49
+      SKU-3002: 0.51
     position: 3
-    quality_rate: 0.86  # Moderate quality
+    quality_rate: 0.63  # Target quality
     type: Palletizer
   LINE3-PCK:
     base_rate: 70
-    base_scrap_rate: 0.02
+    base_scrap_rate: 0.05  # Base scrap rate
     energy_consumption_rate: 5.0
     line_id: LINE3
-    mtbf: 210  # Moderate MTBF
-    mttr: 38   # Moderate MTTR
+    mtbf: 42  # VERY AGGRESSIVE
+    mttr: 77  # VERY AGGRESSIVE
     performance_by_product:
-      SKU-2001: 0.80  # Moderate performance
-      SKU-2002: 0.68
-      SKU-3001: 0.72
-      SKU-3002: 0.76
+      SKU-2001: 0.49  # Further reduced for 52% performance
+      SKU-2002: 0.41
+      SKU-3001: 0.44
+      SKU-3002: 0.47
     position: 2
-    quality_rate: 0.81  # Moderate quality
+    quality_rate: 0.63  # Target quality
     type: Packer
   LINE3-SINK:
     base_rate: 70
@@ -362,7 +362,7 @@ failure_patterns:
       duration_range:
       - 1
       - 3
-      probability_per_5min: 0.005  # Reduced for realistic availability
+      probability_per_5min: 0.25  # Ultra-extreme for 69% availability
       recovery_factor: 1.0
     quality_deviation:
       cascade_probability: 0.08
@@ -370,7 +370,7 @@ failure_patterns:
       duration_range:
       - 2
       - 8
-      probability_per_5min: 0.003  # Reduced for better performance
+      probability_per_5min: 0.15  # Very high
       recovery_factor: 0.8
     valve_failure:
       cascade_probability: 0.25   # Higher cascade for mechanical issues
@@ -378,7 +378,7 @@ failure_patterns:
       duration_range:
       - 15
       - 35                        # Longer duration
-      probability_per_5min: 0.002  # Rare mechanical failures
+      probability_per_5min: 0.08  # Very high
       recovery_factor: 1.2
     sensor_issue:                # Added new failure mode
       cascade_probability: 0.10
@@ -394,7 +394,7 @@ failure_patterns:
       duration_range:
       - 10
       - 30
-      probability_per_5min: 0.02
+      probability_per_5min: 0.07
       recovery_factor: 1.1
   Packer:
     jam:
@@ -403,7 +403,7 @@ failure_patterns:
       duration_range:
       - 5
       - 20                       # Longer jams
-      probability_per_5min: 0.004  # Occasional jams
+      probability_per_5min: 0.18  # Very high
       recovery_factor: 1.1
     seal_failure:
       cascade_probability: 0.18
@@ -411,7 +411,7 @@ failure_patterns:
       duration_range:
       - 3
       - 12
-      probability_per_5min: 0.003  # Occasional quality issues
+      probability_per_5min: 0.15  # Very high
       recovery_factor: 1.0
     micro_stops:                 # Added micro-stops for packers
       cascade_probability: 0.10
@@ -419,7 +419,7 @@ failure_patterns:
       duration_range:
       - 1
       - 2
-      probability_per_5min: 0.005  # Occasional micro-stops
+      probability_per_5min: 0.05  # 10x increase
       recovery_factor: 0.9
     sensor_issue:
       cascade_probability: 0.12
@@ -427,7 +427,7 @@ failure_patterns:
       duration_range:
       - 5
       - 10
-      probability_per_5min: 0.025
+      probability_per_5min: 0.08
       recovery_factor: 0.95
   Palletizer:
     electrical_issue:
@@ -436,7 +436,7 @@ failure_patterns:
       duration_range:
       - 20
       - 60                       # Longer electrical issues
-      probability_per_5min: 0.015 # Electrical issues happen
+      probability_per_5min: 0.05 # Electrical issues happen
       recovery_factor: 1.5
     operator_issue:
       cascade_probability: 0.08
@@ -452,7 +452,7 @@ failure_patterns:
       duration_range:
       - 5
       - 25
-      probability_per_5min: 0.02
+      probability_per_5min: 0.07
       recovery_factor: 0.9
     jam:                         # Added jam for palletizers
       cascade_probability: 0.20
@@ -460,7 +460,7 @@ failure_patterns:
       duration_range:
       - 8
       - 25
-      probability_per_5min: 0.003  # Occasional palletizer jams
+      probability_per_5min: 0.15  # Very high
       recovery_factor: 1.2
     micro_stops:                 # Added micro-stops
       cascade_probability: 0.05
@@ -468,7 +468,7 @@ failure_patterns:
       duration_range:
       - 1
       - 3
-      probability_per_5min: 0.003  # Occasional micro-stops
+      probability_per_5min: 0.15  # Very high
       recovery_factor: 0.95
 maintenance_schedule:
   cleaning:

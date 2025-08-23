@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Critical bug where failure patterns weren't loading from manifests to equipment primitives
+- Equipment state duration tracking now properly calculates and emits `duration_in_state`
+- Availability calculation now correctly reflects MTBF/MTTR settings
+- State changes marked as critical events for proper MES transduction
+
+### Changed
+- Equipment primitive `_change_state()` method now accepts optional `failure_mode` parameter
+- Aggressive tuning of equipment manifests to achieve target KPIs (OEE: 47%, Availability: 69%)
+- MTBF reduced from 150-250 to 30-46 minutes for realistic failure rates
+- MTTR increased from 30-45 to 74-90 minutes for realistic repair times
+- Failure probabilities increased significantly (0.15-0.25 per 5-min interval)
+
 ### Added
+- Failure pattern loading from manifests based on equipment type in model builder
+- Debug scripts for availability calculation analysis (`debug_availability.py`)
+- Test script for state duration verification (`test_state_duration.py`)
 - Comprehensive Sphinx documentation for `database/` and `twin_model/` modules
 - sphinx-autoapi integration for automatic API documentation generation
 - System architecture documentation (`SYSTEM_ARCHITECTURE.md`)
@@ -17,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overview and primitive documentation for the simulation framework
 - Ontology-driven architecture documentation
 
-### Changed
+### Changed (Documentation)
 - Documentation structure to keep separate docs within each module directory
 - Build process to use sphinx-autoapi instead of manual API documentation
 

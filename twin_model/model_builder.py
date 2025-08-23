@@ -317,6 +317,14 @@ class OntologyDrivenModelBuilder:
                 elif "LINE3" in entity_id:
                     config.properties["default_product"] = "SKU-3001"
                     config.properties["default_order"] = "ORD-1009"
+                
+                # Add failure patterns from manifest based on equipment type
+                equipment_manifest = self.manifests.get("equipment_manifest", {})
+                failure_patterns = equipment_manifest.get("failure_patterns", {})
+                equipment_type = config.properties.get("type", "")
+                
+                if equipment_type in failure_patterns:
+                    config.properties["failure_patterns"] = failure_patterns[equipment_type]
 
             # Special handling for equipment with buffers
             if entity.primitive_type == "EquipmentPrimitive":

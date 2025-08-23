@@ -423,10 +423,12 @@ class EquipmentPrimitive(BasePrimitive):
         Args:
             failure_info: Information about the failure
         """
-        self._change_state(EquipmentState.STOPPED_FAILURE)
-
         failure_mode = failure_info.get("mode")
         duration = failure_info.get("duration", 10.0)
+        
+        # Pass failure mode to state change for proper downtime tracking
+        downtime_code = failure_mode.downtime_code if failure_mode else "UNP-UNKNOWN"
+        self._change_state(EquipmentState.STOPPED_FAILURE, failure_mode=downtime_code)
 
         self.emit_observable(
             event_type="equipment_failure",
@@ -540,11 +542,12 @@ class EquipmentPrimitive(BasePrimitive):
                 severity="DEBUG",
             )
 
-    def _change_state(self, new_state: EquipmentState) -> None:
+    def _change_state(self, new_state: EquipmentState, failure_mode: Optional[str] = None) -> None:
         """Change equipment state and emit observable.
 
         Args:
             new_state: New equipment state
+            failure_mode: Optional failure mode/downtime reason for stopped states
         """
         if new_state != self.state:
             old_state = self.state
@@ -570,15 +573,18 @@ class EquipmentPrimitive(BasePrimitive):
                 },
             )
 
+            # Emit observable with duration and failure mode in details
             self.emit_observable(
                 event_type="state_change",
                 details={
                     "old_state": old_state.value,
                     "new_state": new_state.value,
-                    "duration_in_old_state": state_duration,
+                    "duration_in_state": state_duration,  # Critical for MES transducer
+                    "failure_mode": failure_mode,  # For downtime tracking
                     "product": self.current_product,
                     "shift": self.current_shift,
                 },
+                is_critical=True,  # State changes are critical for availability tracking
             )
 
     def _get_shift_factor(self) -> float:
@@ -639,7 +645,7 @@ class EquipmentPrimitive(BasePrimitive):
 
         # Availability
         running_time = sum(
-            o["duration_in_old_state"]
+            o.get("duration_in_state", 0)
             for o in self.get_observables("state_change")
             if o["old_state"] == EquipmentState.RUNNING.value
         )
