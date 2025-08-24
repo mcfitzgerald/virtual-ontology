@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `utilities/` directory for reusable calibration and analysis tools
+- `calibration_work/` directory for temporary calibration artifacts
+- New test files in `twin_model/tests/` for calibration validation
 - Comprehensive calibration system for twin model KPI tuning
 - Auto-wiring capability for production lines in model builder (`_auto_wire_lines()` method)
 - Calibration scripts: `calibrate_twin.py`, `apply_best_calibration.py`, `recalibrate_balanced.py`
@@ -16,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Manifest performance analysis and fixing utilities
 
 ### Changed  
+- Reorganized project structure with dedicated directories for utilities and tests
+- Moved calibration scripts to `utilities/` for better organization
+- Moved test files to `twin_model/tests/` following project conventions
 - Equipment manifest parameters extensively tuned for realistic KPIs:
   - Performance factors adjusted from 0.43-0.55 to 0.77-0.95
   - MTBF reduced to 15-25 minutes for 60% availability target
@@ -30,6 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Equipment state duration tracking now properly calculates and emits `duration_in_state`
 - Availability calculation now correctly reflects MTBF/MTTR settings
 - State changes marked as critical events for proper MES transduction
+
+### Removed
+- Obsolete documentation files moved to archive
+- Old synthetic historical data files (keeping only latest)
+- Temporary backup and calibration files
 
 ### Changed
 - Equipment primitive `_change_state()` method now accepts optional `failure_mode` parameter
