@@ -7,7 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Comprehensive calibration system for twin model KPI tuning
+- Auto-wiring capability for production lines in model builder (`_auto_wire_lines()` method)
+- Calibration scripts: `calibrate_twin.py`, `apply_best_calibration.py`, `recalibrate_balanced.py`
+- Validation and testing scripts for calibrated models
+- Multiple synthetic historical data generation runs for baseline comparison
+- Manifest performance analysis and fixing utilities
+
+### Changed  
+- Equipment manifest parameters extensively tuned for realistic KPIs:
+  - Performance factors adjusted from 0.43-0.55 to 0.77-0.95
+  - MTBF reduced to 15-25 minutes for 60% availability target
+  - Base rates increased to 80 units/min
+  - Quality rates set to 0.95 for 95% quality target
+- Production line auto-wiring now establishes bidirectional relationships (feeds_into/draws_from)
+
 ### Fixed
+- Critical performance issue where `performance_by_product` values <1.0 caused severe slowdown
+- Production line connectivity - equipment now properly connected via auto-wiring
 - Critical bug where failure patterns weren't loading from manifests to equipment primitives
 - Equipment state duration tracking now properly calculates and emits `duration_in_state`
 - Availability calculation now correctly reflects MTBF/MTTR settings

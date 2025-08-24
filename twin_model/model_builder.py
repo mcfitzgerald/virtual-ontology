@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 import simpy
 from dataclasses import dataclass
+import logging
 
 from .primitives import (
     BasePrimitive,
@@ -21,6 +22,9 @@ from .primitives import (
     SchedulerPrimitive,
     MonitorPrimitive,
 )
+
+# Get logger
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -131,6 +135,9 @@ class OntologyDrivenModelBuilder:
 
         # Parse entities from manifests or use defaults
         self._parse_entities()
+        
+        # Auto-wire production line connections
+        self._auto_wire_lines()
 
         # Instantiate primitives
         self._instantiate_primitives(env)
@@ -335,6 +342,131 @@ class OntologyDrivenModelBuilder:
                 primitive = primitive_class(env, config)
 
             self.primitives[entity_id] = primitive
+
+    def _auto_wire_lines(self) -> None:
+        """Automatically wire production lines based on naming patterns.
+        
+        This creates the flow connections between sources, buffers, equipment, and sinks
+        based on their IDs and types. Standard pattern:
+        SRC → BUF-IN → Equipment → Buffers → Equipment → BUF-OUT → SINK
+        """
+        # Group entities by line
+        lines: Dict[str, Dict[str, Any]] = {}
+        
+        for entity_id, entity in self.entities.items():
+            line_id = entity.properties.get("line_id")
+            if not line_id:
+                # Try to extract line ID from entity name (e.g., LINE1-FIL -> LINE1)
+                if entity_id.startswith("LINE"):
+                    parts = entity_id.split("-")
+                    if len(parts) > 1:
+                        line_id = parts[0]
+            
+            if line_id:
+                if line_id not in lines:
+                    lines[line_id] = {
+                        "source": None,
+                        "sink": None,
+                        "equipment": [],
+                        "buffers": []
+                    }
+                
+                # Categorize by type
+                if "SRC" in entity_id or entity.primitive_type == "SourcePrimitive":
+                    lines[line_id]["source"] = entity_id
+                elif "SINK" in entity_id or entity.primitive_type == "SinkPrimitive":
+                    lines[line_id]["sink"] = entity_id
+                elif "BUF" in entity_id or entity.primitive_type == "BufferPrimitive":
+                    lines[line_id]["buffers"].append(entity_id)
+                elif entity.primitive_type == "EquipmentPrimitive":
+                    lines[line_id]["equipment"].append(entity_id)
+        
+        # Wire each line
+        for line_id, components in lines.items():
+            # Build the flow sequence
+            sequence = []
+            
+            # Start with source
+            if components["source"]:
+                sequence.append(components["source"])
+            
+            # Sort components by name to maintain order
+            buffers = sorted(components["buffers"])
+            equipment = sorted(components["equipment"])
+            
+            # Expected pattern for each line:
+            # SRC → BUF-IN → FIL → BUF-1 → PCK → BUF-2 → PAL → BUF-OUT → SINK
+            
+            # Add input buffer if it exists
+            buf_in = f"{line_id}-BUF-IN"
+            if buf_in in buffers:
+                sequence.append(buf_in)
+            
+            # Add filler
+            filler = f"{line_id}-FIL"
+            if filler in equipment:
+                sequence.append(filler)
+            
+            # Add buffer 1
+            buf_1 = f"{line_id}-BUF-1"
+            if buf_1 in buffers:
+                sequence.append(buf_1)
+            
+            # Add packer
+            packer = f"{line_id}-PCK"
+            if packer in equipment:
+                sequence.append(packer)
+            
+            # Add buffer 2
+            buf_2 = f"{line_id}-BUF-2"
+            if buf_2 in buffers:
+                sequence.append(buf_2)
+            
+            # Add palletizer
+            palletizer = f"{line_id}-PAL"
+            if palletizer in equipment:
+                sequence.append(palletizer)
+            
+            # Add output buffer
+            buf_out = f"{line_id}-BUF-OUT"
+            if buf_out in buffers:
+                sequence.append(buf_out)
+            
+            # End with sink
+            if components["sink"]:
+                sequence.append(components["sink"])
+            
+            # Create relationships between consecutive items in sequence
+            for i in range(len(sequence) - 1):
+                current_id = sequence[i]
+                next_id = sequence[i + 1]
+                
+                # Add feeds_into relationship
+                if current_id in self.entities:
+                    if "feeds_into" not in self.entities[current_id].relationships:
+                        self.entities[current_id].relationships["feeds_into"] = []
+                    if next_id not in self.entities[current_id].relationships["feeds_into"]:
+                        self.entities[current_id].relationships["feeds_into"].append(next_id)
+                
+                # Add draws_from relationship (inverse)
+                if next_id in self.entities:
+                    if "draws_from" not in self.entities[next_id].relationships:
+                        self.entities[next_id].relationships["draws_from"] = []
+                    if current_id not in self.entities[next_id].relationships["draws_from"]:
+                        self.entities[next_id].relationships["draws_from"].append(current_id)
+            
+            # Log the wiring for debugging
+            if sequence:
+                logger.info(
+                    f"Auto-wired {line_id}",
+                    extra={
+                        "extra_data": {
+                            "sequence": " → ".join(sequence),
+                            "equipment_count": len(equipment),
+                            "buffer_count": len(buffers)
+                        }
+                    }
+                )
 
     def _wire_relationships(self) -> None:
         """Wire relationships between primitives."""
