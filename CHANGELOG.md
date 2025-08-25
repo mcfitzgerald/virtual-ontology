@@ -8,6 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- SimPy-based discrete event simulation implementation for twin model
+- Realistic failure modeling with mixture model pattern (micro-stops, minor/major failures)
+- Production order driven simulation replacing continuous flow model
+- Comprehensive refactor plan (TWIN_MODEL_REFACTOR_PLAN.md) for achieving 60% OEE target
+- Status report (TWIN_MODEL_STATUS_REPORT.md) documenting completed phases 1-4
+- Test suite for failure modeling validation (test_failure_modeling.py)
+- Integration test for complete refactor validation (test_refactor_complete.py)
+
+### Changed
+- Material flow logic to fix buffer-equipment interface mismatch (added `level` property)
+- Equipment primitive to support realistic failure patterns with cascade effects
+- Source primitive to support batch-based production order generation
+- Buffer primitive with proper level and capacity properties
+- Scheduler primitive enhanced with work order management and shift pattern support
+- Model builder to handle equipment-to-equipment cascade failures
+- Equipment manifest to align with realistic manufacturing parameters
+
+### Fixed
+- Critical material flow issue causing false starvation/blocking states (10% vs 85% performance)
+- Buffer level checking logic that prevented proper material flow simulation
+- Equipment cascade failure modeling for realistic production line behavior
+
+### Removed
+- Sphinx documentation build artifacts (moved to .gitignore)
+- Python cache files (__pycache__ directories)
+- Obsolete documentation source files from twin_model/docs/
+
+## [0.3.0] - Previous Release
+
+### Added
 - `utilities/` directory for reusable calibration and analysis tools
 - `calibration_work/` directory for temporary calibration artifacts
 - New test files in `twin_model/tests/` for calibration validation

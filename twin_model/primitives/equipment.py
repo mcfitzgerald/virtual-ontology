@@ -10,6 +10,7 @@ from typing import Optional, Generator, Dict, Any, List, Tuple
 from enum import Enum
 from dataclasses import dataclass
 import random
+import numpy as np
 import simpy
 import logging
 
@@ -37,6 +38,14 @@ class EquipmentState(str, Enum):
     CHANGEOVER = "CHANGEOVER"
     STARTUP = "STARTUP"
     SHUTDOWN = "SHUTDOWN"
+
+
+class FailureType(str, Enum):
+    """Types of failures with different characteristics."""
+    
+    MICRO_STOP = "micro_stop"
+    MINOR_FAILURE = "minor_failure"
+    MAJOR_FAILURE = "major_failure"
 
 
 @dataclass
@@ -95,9 +104,19 @@ class EquipmentPrimitive(BasePrimitive):
         """
         super().__init__(env, config, sampling_config)
 
-        # Buffer connections
+        # Buffer connections (legacy mode)
         self.upstream = upstream
         self.downstream = downstream
+        
+        # Internal queues (Phase 4 - SimPy best practice)
+        queue_size = config.get_property("internal_queue_size", 20)
+        self.use_internal_queues = config.get_property("use_internal_queues", False)
+        
+        if self.use_internal_queues:
+            self.input_queue = simpy.Store(env, capacity=queue_size)
+            self.output_queue = simpy.Store(env, capacity=queue_size)
+            self.upstream_equipment = None
+            self.downstream_equipment = None
 
         # Equipment parameters from config
         self.base_rate = config.get_property("base_rate", 60.0)
@@ -132,6 +151,19 @@ class EquipmentPrimitive(BasePrimitive):
 
         # Rich context for observables
         self.context_history: List[Dict[str, Any]] = []
+
+    def connect_to(self, downstream_equipment: "EquipmentPrimitive", rel_type: str = "feeds") -> None:
+        """Connect directly to downstream equipment (Phase 4).
+        
+        Args:
+            downstream_equipment: Equipment to connect to
+            rel_type: Type of relationship (for compatibility)
+        """
+        if self.use_internal_queues:
+            self.downstream_equipment = downstream_equipment
+            downstream_equipment.upstream_equipment = self
+            if hasattr(self, 'logger'):
+                self.logger.info(f"Connected {self.config.id} -> {downstream_equipment.config.id}")
 
     def _init_failure_modes(self) -> List[FailureMode]:
         """Initialize failure modes from config or use defaults.
@@ -205,23 +237,93 @@ class EquipmentPrimitive(BasePrimitive):
         """Main equipment process for production."""
         while self.is_running:
             try:
-                # Check for material availability
-                if self.upstream and hasattr(self.upstream, "level") and self.upstream.level == 0:
-                    yield from self._handle_starved()
-                    continue
+                if self.use_internal_queues:
+                    # Phase 4: Use internal queues
+                    # Check input queue
+                    if len(self.input_queue.items) == 0:
+                        yield from self._handle_starved()
+                        continue
+                    
+                    # Check output queue space
+                    if len(self.output_queue.items) >= self.output_queue.capacity:
+                        yield from self._handle_blocked()
+                        continue
+                    
+                    # Process from internal queue
+                    yield from self._process_unit_internal()
+                else:
+                    # Legacy: Use external buffers
+                    # Check for material availability
+                    if self.upstream and hasattr(self.upstream, "level") and self.upstream.level == 0:
+                        yield from self._handle_starved()
+                        continue
 
-                # Check for downstream capacity
-                if self.downstream and hasattr(self.downstream, "is_full") and self.downstream.is_full():
-                    yield from self._handle_blocked()
-                    continue
+                    # Check for downstream capacity
+                    if self.downstream and hasattr(self.downstream, "is_full") and self.downstream.is_full():
+                        yield from self._handle_blocked()
+                        continue
 
-                # Process one unit
-                yield from self._process_unit()
+                    # Process one unit
+                    yield from self._process_unit()
 
             except simpy.Interrupt as interrupt:
                 # Handle interruptions (failures, maintenance, changeover)
                 yield from self._handle_interrupt(interrupt)
 
+    def _process_unit_internal(self) -> Generator:
+        """Process a unit using internal queues (Phase 4).
+        
+        Yields:
+            Timeout for processing duration
+        """
+        self._change_state(EquipmentState.RUNNING)
+        
+        # Get from internal input queue
+        item = yield self.input_queue.get()
+        
+        # Calculate processing time
+        cycle_time = self._calculate_cycle_time()
+        yield self.env.timeout(cycle_time)
+        
+        # Quality check
+        if self._quality_check():
+            # Put in output queue
+            yield self.output_queue.put(item)
+            self.units_produced += 1
+            
+            # Transfer to downstream equipment if connected
+            if self.downstream_equipment and hasattr(self.downstream_equipment, 'input_queue'):
+                if len(self.output_queue.items) > 0:
+                    item = yield self.output_queue.get()
+                    yield self.downstream_equipment.input_queue.put(item)
+            
+            self.emit_observable(
+                event_type="unit_produced",
+                details={
+                    "product_id": self.current_product,
+                    "order_id": self.current_order,
+                    "cycle_time": cycle_time,
+                    "quality": "good",
+                    "mode": "internal_queues"
+                }
+            )
+        else:
+            # Scrap unit
+            self.units_scrapped += 1
+            self.emit_observable(
+                event_type="unit_scrapped",
+                details={
+                    "product_id": self.current_product,
+                    "reason": "quality_failure",
+                    "mode": "internal_queues"
+                }
+            )
+        
+        # Update counters
+        self.cycles_since_maintenance += 1
+        self.total_runtime += cycle_time
+        self.energy_consumed += self.energy_rate * (cycle_time / 60.0)
+    
     def _process_unit(self) -> Generator:
         """Process a single unit of material.
 
@@ -412,13 +514,19 @@ class EquipmentPrimitive(BasePrimitive):
 
             if interrupt_type == "failure":
                 yield from self._handle_failure(cause)
+            elif interrupt_type == FailureType.MICRO_STOP.value:
+                yield from self._handle_failure_with_type(FailureType.MICRO_STOP, cause)
+            elif interrupt_type == FailureType.MINOR_FAILURE.value:
+                yield from self._handle_failure_with_type(FailureType.MINOR_FAILURE, cause)
+            elif interrupt_type == FailureType.MAJOR_FAILURE.value:
+                yield from self._handle_failure_with_type(FailureType.MAJOR_FAILURE, cause)
             elif interrupt_type == "maintenance":
                 yield from self._handle_maintenance(cause)
             elif interrupt_type == "changeover":
                 yield from self._handle_changeover(cause)
 
     def _handle_failure(self, failure_info: Dict[str, Any]) -> Generator:
-        """Handle equipment failure.
+        """Handle equipment failure (legacy format).
 
         Args:
             failure_info: Information about the failure
@@ -451,6 +559,71 @@ class EquipmentPrimitive(BasePrimitive):
             self._trigger_cascade_failure()
 
         self._change_state(EquipmentState.RUNNING)
+    
+    def _handle_failure_with_type(self, failure_type: FailureType, failure_info: Dict[str, Any]) -> Generator:
+        """Handle equipment failure with specific failure type.
+        
+        Args:
+            failure_type: Type of failure (micro/minor/major)
+            failure_info: Information about the failure including duration
+        """
+        duration = failure_info.get("duration", 10.0)
+        
+        # Map failure type to downtime code
+        downtime_codes = {
+            FailureType.MICRO_STOP: "UNP-MICRO",
+            FailureType.MINOR_FAILURE: "UNP-MINOR", 
+            FailureType.MAJOR_FAILURE: "UNP-MAJOR"
+        }
+        downtime_code = downtime_codes.get(failure_type, "UNP-UNKNOWN")
+        
+        # Change state with proper downtime tracking
+        self._change_state(EquipmentState.STOPPED_FAILURE, failure_mode=downtime_code)
+        
+        # Emit failure event with type-specific details
+        self.emit_observable(
+            event_type="equipment_failure",
+            details={
+                "failure_type": failure_type.value,
+                "downtime_code": downtime_code,
+                "duration": duration,
+                "cycles_since_maintenance": self.cycles_since_maintenance,
+                "total_runtime": self.total_runtime,
+                "timestamp": self.env.now
+            },
+            severity="ERROR" if failure_type == FailureType.MAJOR_FAILURE else "WARNING"
+        )
+        
+        # Log failure based on type
+        logger.info(
+            f"Equipment {self.config.id} experiencing {failure_type.value}: "
+            f"duration={duration:.2f}min at t={self.env.now:.2f}"
+        )
+        
+        # Wait for repair duration
+        yield self.env.timeout(duration)
+        
+        # Check for cascade failures (higher probability for major failures)
+        cascade_prob = {
+            FailureType.MICRO_STOP: 0.05,
+            FailureType.MINOR_FAILURE: 0.15,
+            FailureType.MAJOR_FAILURE: 0.30
+        }.get(failure_type, 0.0)
+        
+        if random.random() < cascade_prob:
+            self._trigger_cascade_failure()
+        
+        # Recovery - return to running state
+        self._change_state(EquipmentState.RUNNING)
+        
+        self.emit_observable(
+            event_type="equipment_recovered",
+            details={
+                "failure_type": failure_type.value,
+                "downtime_duration": duration,
+                "timestamp": self.env.now
+            }
+        )
 
     def _handle_maintenance(self, maintenance_info: Dict[str, Any]) -> Generator:
         """Handle planned maintenance."""
@@ -497,25 +670,35 @@ class EquipmentPrimitive(BasePrimitive):
         self._change_state(EquipmentState.RUNNING)
 
     def failure_process(self) -> Generator:
-        """Background process for random failures."""
+        """Realistic failure process with multiple failure types using mixture model."""
         while self.is_running:
-            # Wait for next check interval (5 minutes)
-            yield self.env.timeout(5.0)
-
-            # Only fail if running
-            if self.state == EquipmentState.RUNNING:
-                for mode in self.failure_modes:
-                    if random.random() < mode.probability_per_5min:
-                        # Trigger failure
-                        duration = random.uniform(*mode.duration_range)
-
-                        # Apply contextual factors
-                        duration *= mode.recovery_time_factor
-
-                        # Interrupt main process
-                        if self.process and not self.process.triggered:
-                            self.process.interrupt({"type": "failure", "mode": mode, "duration": duration})
-                        break  # Only one failure at a time
+            # Determine next failure type and timing using competing risks
+            failure_type, time_to_failure = self._get_next_failure()
+            
+            # Wait until failure occurs
+            yield self.env.timeout(time_to_failure)
+            
+            # Only fail if equipment is running
+            if self.state == EquipmentState.RUNNING and self.is_running:
+                # Get repair duration based on failure type
+                repair_duration = self._get_repair_duration(failure_type)
+                
+                # Create failure info
+                failure_info = {
+                    "type": failure_type.value,
+                    "duration": repair_duration,
+                    "timestamp": self.env.now
+                }
+                
+                # Interrupt the main process
+                if self.process and self.process.is_alive:
+                    self.process.interrupt(failure_info)
+                    
+                    # Log failure event
+                    logger.debug(
+                        f"Equipment {self.config.id} failed with {failure_type.value} "
+                        f"at {self.env.now:.2f}, repair duration: {repair_duration:.2f} min"
+                    )
 
     def monitor_process(self) -> Generator:
         """Background process for periodic monitoring."""
@@ -688,3 +871,59 @@ class EquipmentPrimitive(BasePrimitive):
             event_type="shift_change",
             details={"shift": shift_id, "performance_factor": self._get_shift_factor()},
         )
+    
+    def _get_next_failure(self) -> Tuple[FailureType, float]:
+        """Sample next failure using competing risks model.
+        
+        Returns:
+            Tuple of failure type and time to failure in minutes
+        """
+        # Get failure timing parameters from config or use defaults
+        micro_mean = self.config.get_property("micro_stop_mean_time", 20.0)  # 20 min
+        minor_mean = self.config.get_property("minor_failure_mean_time", 240.0)  # 4 hours
+        major_mean = self.config.get_property("major_failure_mean_time", 2880.0)  # 48 hours
+        
+        # Sample time for each failure type using exponential distribution
+        micro_time = np.random.exponential(micro_mean)
+        minor_time = np.random.exponential(minor_mean)
+        major_time = np.random.exponential(major_mean)
+        
+        # Find which occurs first (competing risks)
+        times = {
+            FailureType.MICRO_STOP: micro_time,
+            FailureType.MINOR_FAILURE: minor_time,
+            FailureType.MAJOR_FAILURE: major_time
+        }
+        
+        failure_type = min(times, key=times.get)
+        return failure_type, times[failure_type]
+    
+    def _get_repair_duration(self, failure_type: FailureType) -> float:
+        """Get repair duration based on failure type using realistic distributions.
+        
+        Args:
+            failure_type: Type of failure
+            
+        Returns:
+            Repair duration in minutes
+        """
+        if failure_type == FailureType.MICRO_STOP:
+            # Log-normal distribution for micro-stops: mostly 0.5-3 minutes
+            mean = self.config.get_property("micro_stop_duration_mean", 0.0)
+            sigma = self.config.get_property("micro_stop_duration_sigma", 0.5)
+            duration = np.random.lognormal(mean, sigma)
+            return np.clip(duration, 0.5, 5.0)
+            
+        elif failure_type == FailureType.MINOR_FAILURE:
+            # Gamma distribution for minor failures: 5-30 minutes
+            shape = self.config.get_property("minor_failure_duration_shape", 2.0)
+            scale = self.config.get_property("minor_failure_duration_scale", 5.0)
+            duration = np.random.gamma(shape, scale)
+            return np.clip(duration, 5.0, 60.0)
+            
+        else:  # MAJOR_FAILURE
+            # Weibull distribution for major failures: 30+ minutes with long tail
+            shape = self.config.get_property("major_failure_duration_shape", 2.0)
+            scale = self.config.get_property("major_failure_duration_scale", 60.0)
+            duration = np.random.weibull(shape) * scale
+            return max(30.0, duration)

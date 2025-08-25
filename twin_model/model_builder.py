@@ -572,6 +572,32 @@ class OntologyDrivenModelBuilder:
             for entity_id, primitive in self.primitives.items():
                 if isinstance(primitive, EquipmentPrimitive):
                     scheduler.register_equipment(entity_id, primitive)
+            
+            # Register sources with scheduler for order-driven production
+            from twin_model.primitives.source import SourcePrimitive
+            from twin_model.primitives.scheduler import ProductionOrder
+            
+            for entity_id, primitive in self.primitives.items():
+                if isinstance(primitive, SourcePrimitive):
+                    line_id = primitive.config.get_property("line_id", "DEFAULT")
+                    scheduler.register_source(line_id, primitive)
+                    logger.info(f"Registered source {entity_id} with scheduler for line {line_id}")
+            
+            # Load production orders from manifest
+            production_manifest = self.manifests.get("production_manifest", {})
+            production_orders = production_manifest.get("production_orders", [])
+            
+            for order_data in production_orders:
+                order = ProductionOrder(
+                    order_id=order_data["order_id"],
+                    product_id=order_data["product_id"],
+                    target_quantity=order_data["target_quantity"],
+                    due_time=order_data.get("start_time", 0) + order_data.get("duration", 60),
+                    line_id=order_data["line_id"],
+                    priority=order_data.get("priority", 5)
+                )
+                scheduler.add_production_order(order)
+                logger.info(f"Added production order {order.order_id} for {order.target_quantity} units of {order.product_id}")
 
             return scheduler
 

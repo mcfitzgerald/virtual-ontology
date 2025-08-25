@@ -83,7 +83,7 @@ class BufferPrimitive(BasePrimitive):
         self.dwell_times: List[float] = []
 
         # Current state
-        self.level = self.initial_level
+        self._level = self.initial_level  # Internal tracking
         self.last_level_change = 0.0
 
         # Product mix tracking
@@ -151,7 +151,7 @@ class BufferPrimitive(BasePrimitive):
 
             # Update tracking
             self.total_items_in += 1
-            self.level = len(self.store.items)
+            self._level = len(self.store.items)  # Update internal tracking
             self.max_level_reached = max(self.max_level_reached, self.level)
 
             # Track product mix
@@ -217,7 +217,7 @@ class BufferPrimitive(BasePrimitive):
 
             # Update tracking
             self.total_items_out += 1
-            self.level = len(self.store.items)
+            self._level = len(self.store.items)  # Update internal tracking
             self.min_level_reached = min(self.min_level_reached, self.level)
 
             # Update product mix
@@ -276,13 +276,31 @@ class BufferPrimitive(BasePrimitive):
                 severity="DEBUG",
             )
 
+    @property
+    def level(self) -> int:
+        """Current buffer level.
+        
+        Returns:
+            Number of items currently in buffer
+        """
+        return len(self.store.items) if hasattr(self.store, 'items') else 0
+    
+    @level.setter
+    def level(self, value: int) -> None:
+        """Set buffer level for tracking purposes.
+        
+        Args:
+            value: New level value
+        """
+        self._level = value
+
     def is_full(self) -> bool:
         """Check if buffer is at capacity.
 
         Returns:
             True if buffer is full
         """
-        return len(self.store.items) >= self.capacity  # type: ignore[no-any-return]
+        return self.level >= self.capacity
 
     def is_empty(self) -> bool:
         """Check if buffer is empty.
@@ -329,7 +347,7 @@ class BufferPrimitive(BasePrimitive):
         """
         flushed = list(self.store.items)
         self.store.items = []
-        self.level = 0
+        self._level = 0  # Reset internal tracking
         self.product_counts.clear()
 
         self.emit_observable(

@@ -78,6 +78,23 @@ class SourcePrimitive(BasePrimitive):
         # Supply characteristics
         self.quality_rate = config.get_property("quality_rate", 0.98)
         self.supply_variability = config.get_property("supply_variability", 0.1)
+        
+        # Production order support
+        self.order_queue = []
+        self.current_order = None
+        self.order_mode = config.get_property("order_mode", False)  # Enable order-driven mode
+
+    def set_production_order(self, order: Any) -> None:
+        """Set a production order for this source.
+        
+        Args:
+            order: Production order to process
+        """
+        self.order_queue.append(order)
+        self.order_mode = True  # Switch to order-driven mode
+        
+        if hasattr(self, 'logger'):
+            self.logger.info(f"Order {order.order_id} queued for source {self.config.id}")
 
     def start(self) -> None:
         """Start the source generation process."""
@@ -102,17 +119,58 @@ class SourcePrimitive(BasePrimitive):
         """Main generation process for materials."""
         while self.is_running:
             try:
-                # Get next arrival time based on pattern
-                interarrival_time = self._get_interarrival_time()
+                # Check if we're in order-driven mode
+                if self.order_mode:
+                    # Process orders from queue
+                    if not self.current_order and self.order_queue:
+                        self.current_order = self.order_queue.pop(0)
+                        self.emit_observable(
+                            event_type="order_started",
+                            details={
+                                "order_id": self.current_order.order_id,
+                                "product_id": self.current_order.product_id,
+                                "quantity": self.current_order.target_quantity
+                            }
+                        )
+                    
+                    if self.current_order:
+                        # Generate for current order
+                        product = self.current_order.product_id
+                        remaining = self.current_order.target_quantity - self.current_order.actual_quantity
+                        
+                        if remaining > 0:
+                            # Generate batch for order
+                            batch_size = min(self.batch_size, remaining)
+                            interarrival_time = batch_size / self.arrival_rate if self.arrival_rate > 0 else 1.0
+                        else:
+                            # Order complete
+                            self.emit_observable(
+                                event_type="order_completed",
+                                details={
+                                    "order_id": self.current_order.order_id,
+                                    "actual_quantity": self.current_order.actual_quantity
+                                }
+                            )
+                            self.current_order = None
+                            yield self.env.timeout(0.1)  # Small delay before next order
+                            continue
+                    else:
+                        # No orders, wait
+                        yield self.env.timeout(1.0)
+                        continue
+                else:
+                    # Original continuous generation mode
+                    # Get next arrival time based on pattern
+                    interarrival_time = self._get_interarrival_time()
+                    
+                    # Select product based on mix
+                    product = self._select_product()
+                    
+                    # Generate batch
+                    batch_size = self._get_batch_size()
 
                 # Wait for next arrival
                 yield self.env.timeout(interarrival_time)
-
-                # Select product based on mix
-                product = self._select_product()
-
-                # Generate batch
-                batch_size = self._get_batch_size()
 
                 # Check quality for each item in batch
                 good_units = 0
@@ -146,6 +204,10 @@ class SourcePrimitive(BasePrimitive):
                             yield from self.downstream.put(good_units, product_id=product)
 
                         self.total_generated += good_units
+                        
+                        # Update order progress if in order mode
+                        if self.order_mode and self.current_order:
+                            self.current_order.actual_quantity += good_units
 
                         self.emit_observable(
                             event_type="material_generated",

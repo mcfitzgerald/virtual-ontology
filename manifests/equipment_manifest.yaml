@@ -14,6 +14,26 @@ energy_config:
   - 20
   peak_rate: 0.15
 equipment:
+  # Global failure timing parameters for mixture model
+  failure_timing_config:
+    # Mean time between failure events (in minutes)
+    micro_stop_mean_time: 20.0  # Frequent micro-stops
+    minor_failure_mean_time: 240.0  # 4 hours on average
+    major_failure_mean_time: 2880.0  # 48 hours on average
+    
+    # Repair duration distributions
+    # Micro-stops: Log-normal distribution (mostly 0.5-3 min)
+    micro_stop_duration_mean: 0.0  # ln(1) = 0 for median of 1 minute
+    micro_stop_duration_sigma: 0.5
+    
+    # Minor failures: Gamma distribution (5-30 min)
+    minor_failure_duration_shape: 2.0
+    minor_failure_duration_scale: 5.0
+    
+    # Major failures: Weibull distribution (30+ min with long tail)  
+    major_failure_duration_shape: 2.0
+    major_failure_duration_scale: 60.0
+    
   LINE1-BUF-1:
     base_rate: 70
     buffer_type: FIFO
@@ -65,6 +85,14 @@ equipment:
     line_id: LINE1
     mtbf: 21
     mttr: 85
+    use_internal_queues: true
+    internal_queue_size: 20
+    # Failure timing for mixture model (equipment-specific overrides)
+    micro_stop_mean_time: 15.0  # More frequent for fillers
+    minor_failure_mean_time: 180.0  # 3 hours
+    major_failure_mean_time: 2160.0  # 36 hours
+    micro_stop_duration_mean: -0.22  # ln(0.8) for shorter micro-stops
+    micro_stop_duration_sigma: 0.4
     performance_by_product:
       SKU-1001: 0.86
       SKU-1002: 0.85
@@ -81,6 +109,12 @@ equipment:
     line_id: LINE1
     mtbf: 27
     mttr: 75
+    use_internal_queues: true
+    internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 25.0  # Palletizers more stable
+    minor_failure_mean_time: 300.0
+    major_failure_mean_time: 3600.0
     performance_by_product:
       SKU-1001: 0.95
       SKU-1002: 0.95
@@ -97,6 +131,12 @@ equipment:
     line_id: LINE1
     mtbf: 24
     mttr: 80
+    use_internal_queues: true
+    internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 18.0  # Packers have moderate micro-stops
+    minor_failure_mean_time: 200.0
+    major_failure_mean_time: 2400.0
     performance_by_product:
       SKU-1001: 0.9
       SKU-1002: 0.88
@@ -127,6 +167,8 @@ equipment:
     mttr: 30
     quality_rate: 0.9
     supply_variability: 0.1
+    order_mode: true
+    batch_size: 100
     type: Source
   LINE2-BUF-1:
     base_rate: 70
@@ -179,6 +221,12 @@ equipment:
     line_id: LINE2
     mtbf: 18
     mttr: 90
+    use_internal_queues: true
+    internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 12.0  # LINE2 less reliable
+    minor_failure_mean_time: 150.0
+    major_failure_mean_time: 1800.0
     performance_by_product:
       SKU-1001: 0.83
       SKU-1002: 0.86
@@ -195,6 +243,12 @@ equipment:
     line_id: LINE2
     mtbf: 25
     mttr: 78
+    use_internal_queues: true
+    internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 22.0
+    minor_failure_mean_time: 280.0
+    major_failure_mean_time: 3200.0
     performance_by_product:
       SKU-1001: 0.83
       SKU-1002: 0.83
@@ -211,6 +265,12 @@ equipment:
     line_id: LINE2
     mtbf: 21
     mttr: 85
+    use_internal_queues: true
+    internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 14.0
+    minor_failure_mean_time: 160.0
+    major_failure_mean_time: 2000.0
     performance_by_product:
       SKU-1001: 0.77
       SKU-1002: 0.81
@@ -241,6 +301,8 @@ equipment:
     mttr: 30
     quality_rate: 0.9
     supply_variability: 0.15
+    order_mode: true
+    batch_size: 100
     type: Source
   LINE3-BUF-1:
     base_rate: 70
@@ -293,6 +355,8 @@ equipment:
     line_id: LINE3
     mtbf: 22
     mttr: 82
+    use_internal_queues: true
+    internal_queue_size: 20
     performance_by_product:
       SKU-2001: 0.92
       SKU-2002: 0.81
@@ -308,6 +372,8 @@ equipment:
     line_id: LINE3
     mtbf: 27
     mttr: 74
+    use_internal_queues: true
+    internal_queue_size: 20
     performance_by_product:
       SKU-2001: 0.95
       SKU-2002: 0.85
@@ -323,6 +389,8 @@ equipment:
     line_id: LINE3
     mtbf: 25
     mttr: 77
+    use_internal_queues: true
+    internal_queue_size: 20
     performance_by_product:
       SKU-2001: 0.88
       SKU-2002: 0.74
@@ -346,13 +414,14 @@ equipment:
     arrival_pattern: BATCH
     arrival_rate: 85
     base_rate: 70
-    batch_size: 5
+    batch_size: 100
     disruption_probability: 0.03
     line_id: LINE3
     mtbf: 480
     mttr: 30
     quality_rate: 0.9
     supply_variability: 0.2
+    order_mode: true
     type: Source
 failure_patterns:
   Filler:

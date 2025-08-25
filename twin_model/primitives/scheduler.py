@@ -133,6 +133,23 @@ class SchedulerPrimitive(BasePrimitive):
 
         # Registered equipment to control
         self.controlled_equipment: Dict[str, Any] = {}
+        
+        # Order queue for each line
+        self.order_queues: Dict[str, List[ProductionOrder]] = {}
+        
+        # References to sources
+        self.line_sources: Dict[str, Any] = {}
+
+    def register_source(self, line_id: str, source: Any) -> None:
+        """Register a source for a production line.
+        
+        Args:
+            line_id: Production line identifier
+            source: Source primitive to control
+        """
+        self.line_sources[line_id] = source
+        if line_id not in self.order_queues:
+            self.order_queues[line_id] = []
 
     def start(self) -> None:
         """Start the scheduler process."""
@@ -217,6 +234,68 @@ class SchedulerPrimitive(BasePrimitive):
         if event in self.schedule_events:
             self.schedule_events.remove(event)
 
+    def add_production_order(self, order: ProductionOrder) -> None:
+        """Add a production order to the schedule.
+        
+        Args:
+            order: Production order to schedule
+        """
+        self.production_orders[order.order_id] = order
+        
+        # Create schedule event for the order
+        event = ScheduleEvent(
+            event_type=ScheduleEventType.PRODUCTION_ORDER,
+            start_time=self.env.now,  # Schedule immediately or use more complex logic
+            duration=order.target_quantity / 60.0,  # Estimate based on rate
+            product_id=order.product_id,
+            order_id=order.order_id,
+            line_id=order.line_id,
+            priority=order.priority,
+            metadata={"quantity": order.target_quantity}
+        )
+        self.schedule_events.append(event)
+        self.schedule_events.sort()
+        
+        self.emit_observable(
+            event_type="order_scheduled",
+            details={
+                "order_id": order.order_id,
+                "product_id": order.product_id,
+                "quantity": order.target_quantity,
+                "line_id": order.line_id
+            }
+        )
+
+    def _release_order_to_production(self, order: ProductionOrder) -> Generator:
+        """Release an order to the production line.
+        
+        Args:
+            order: Order to release
+        """
+        line_id = order.line_id
+        
+        # Find the source for this line
+        if line_id in self.line_sources:
+            source = self.line_sources[line_id]
+            
+            # Set the production order on the source
+            if hasattr(source, 'set_production_order'):
+                source.set_production_order(order)
+                
+            self.emit_observable(
+                event_type="order_released",
+                details={
+                    "order_id": order.order_id,
+                    "product_id": order.product_id,
+                    "quantity": order.target_quantity,
+                    "line_id": line_id
+                }
+            )
+        else:
+            self.logger.warning(f"No source registered for line {line_id}")
+        
+        yield self.env.timeout(0)
+
     def _process_production_order(self, event: ScheduleEvent) -> Generator:
         """Process a production order event.
 
@@ -262,6 +341,9 @@ class SchedulerPrimitive(BasePrimitive):
         order.status = "in_progress"
         self.active_order = order
         self.current_product = order.product_id
+        
+        # Release order to production line
+        yield from self._release_order_to_production(order)
 
         # Configure equipment for this product
         self._configure_equipment_for_product(order.product_id, order.order_id)
