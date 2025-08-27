@@ -169,8 +169,7 @@ class OntologyDrivenModelBuilderV2:
         self._wire_connections()
         
         # Step 5: Create scheduler if orders exist
-        # Note: V2 scheduler has different interface, skipping for now  
-        scheduler = None  # self._create_scheduler()
+        scheduler = self._create_scheduler_v2()
         
         # Step 6: Create monitors
         monitors = self._create_monitors()
@@ -210,6 +209,23 @@ class OntologyDrivenModelBuilderV2:
             )
             
             self.entities[entity_id] = entity
+        
+        # Load scheduler from scheduler manifest if it exists
+        scheduler_manifest = self.manifests.get('scheduler_manifest', {})
+        for entity_id, value in scheduler_manifest.items():
+            if entity_id != 'metadata' and isinstance(value, dict):
+                entity_type = value.get('type', 'scheduler')
+                
+                # Create entity definition for scheduler
+                entity = EntityDefinition(
+                    entity_id=entity_id,
+                    entity_class=entity_type,
+                    properties=value.get('properties', {}),
+                    primitive_type='Scheduler'
+                )
+                entity.name = value.get('name', 'Scheduler')
+                
+                self.entities[entity_id] = entity
             
         logger.info(f"Loaded {len(self.entities)} entities from manifests")
     
@@ -362,6 +378,52 @@ class OntologyDrivenModelBuilderV2:
                     logger.debug(f"Connected {last_equipment.config.id}.output_queue to {line_config.sink.entity_id}")
                     
         logger.info("Wiring complete - internal queues only, no buffers!")
+    
+    def _create_scheduler_v2(self) -> Optional['SchedulerPrimitiveV2']:
+        """Create V2 scheduler with order management."""
+        # Check for scheduler in manifests
+        scheduler_entity = None
+        scheduler_id = None
+        for entity_id, entity_def in self.entities.items():
+            # Check both entity_class and type property for scheduler
+            is_scheduler = (entity_def.entity_class.lower() == 'scheduler' or
+                          entity_def.properties.get('type', '').lower() == 'scheduler')
+            if is_scheduler:
+                scheduler_entity = entity_def
+                scheduler_id = entity_id
+                break
+        
+        if not scheduler_entity:
+            logger.info("No scheduler entity found in manifests")
+            return None
+        
+        # Create scheduler
+        from twin_model.primitives.scheduler import SchedulerPrimitiveV2
+        
+        scheduler_config = PrimitiveConfig(
+            id=scheduler_id or "SCHEDULER",
+            type="Scheduler",
+            properties=scheduler_entity.properties,
+            metadata={'name': scheduler_entity.properties.get('name', 'Production Scheduler')}
+        )
+        scheduler = SchedulerPrimitiveV2(env=self.env, config=scheduler_config)
+        
+        # Register sources with scheduler
+        for line_id, line_config in self.lines.items():
+            if line_config.source:
+                source_primitive = self.primitives.get(line_config.source.entity_id)
+                if source_primitive:
+                    scheduler.register_source(line_id, source_primitive)
+                    logger.debug(f"Registered source {line_config.source.entity_id} for {line_id}")
+        
+        # Store scheduler in primitives
+        self.primitives['SCHEDULER'] = scheduler
+        
+        # Start scheduler process
+        self.env.process(scheduler.run())
+        
+        logger.info("Created V2 scheduler with order management")
+        return scheduler
     
     def _create_scheduler(self) -> Optional[SchedulerPrimitive]:
         """Create scheduler and load production orders."""

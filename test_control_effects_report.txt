@@ -1,0 +1,52 @@
+CONTROL EFFECTS VALIDATION REPORT
+==================================================
+
+Scenario: baseline
+Status: PASSED
+Failures: []
+OEE Values: {'LINE1': 0.43261865656785026, 'LINE2': 0.5027072632282579, 'LINE3': 0.4080153640902049}
+Units Produced: {'LINE1': 17492, 'LINE2': 20286, 'LINE3': 16524}
+--------------------------------------------------
+
+Scenario: high_training
+Status: PASSED
+Failures: []
+OEE Values: {'LINE1': 0.540856811594203, 'LINE2': 0.5141553075125918, 'LINE3': 0.4154649405015126}
+Units Produced: {'LINE1': 21856, 'LINE2': 20828, 'LINE3': 16771}
+--------------------------------------------------
+
+Scenario: high_pm_compliance
+Status: PASSED
+Failures: []
+OEE Values: {'LINE1': 0.5471269666209811, 'LINE2': 0.5407360307496362, 'LINE3': 0.40446785717730577}
+Units Produced: {'LINE1': 22148, 'LINE2': 21806, 'LINE3': 16382}
+--------------------------------------------------
+
+Scenario: high_speed
+Status: PASSED
+Failures: []
+OEE Values: {'LINE1': 0.494413155573512, 'LINE2': 0.49505264676186356, 'LINE3': 0.3356710576555937}
+Units Produced: {'LINE1': 21059, 'LINE2': 20960, 'LINE3': 14232}
+--------------------------------------------------
+
+Scenario: optimal_sensors
+Status: PASSED
+Failures: []
+OEE Values: {'LINE1': 0.5668137447791953, 'LINE2': 0.534637777765611, 'LINE3': 0.4145515368309486}
+Units Produced: {'LINE1': 22961, 'LINE2': 21650, 'LINE3': 16744}
+--------------------------------------------------
+
+Scenario: optimized
+Status: PASSED
+Failures: []
+OEE Values: {'LINE1': 0.5867351490791214, 'LINE2': 0.4829149270155678, 'LINE3': 0.42235792716269066}
+Units Produced: {'LINE1': 23709, 'LINE2': 19544, 'LINE3': 17078}
+--------------------------------------------------
+
+Scenario: degraded
+Status: PASSED
+Failures: []
+OEE Values: {'LINE1': 0.43528014524059777, 'LINE2': 0.42030206673285775, 'LINE3': 0.30529604074131905}
+Units Produced: {'LINE1': 18491, 'LINE2': 17861, 'LINE3': 12997}
+--------------------------------------------------
+

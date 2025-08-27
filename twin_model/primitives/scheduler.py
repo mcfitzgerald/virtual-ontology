@@ -13,11 +13,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Generator, List, Optional, Tuple
+import logging
 
 import numpy as np
 import simpy
 
 from .base import BasePrimitive, PrimitiveConfig, SamplingConfig
+
+logger = logging.getLogger(__name__)
 
 
 class SequencingStrategy(Enum):
@@ -159,9 +162,12 @@ class SchedulerPrimitiveV2(BasePrimitive):
         
         # Order management
         self.pending_orders: List[ProductionOrder] = []
-        self.active_order: Optional[ProductionOrder] = None
+        self.active_orders: Dict[str, ProductionOrder] = {}  # Per line active orders
         self.completed_orders: List[ProductionOrder] = []
         self.order_queue = simpy.Store(env)
+        
+        # Source connections
+        self.line_sources: Dict[str, 'SourcePrimitiveV2'] = {}  # LINE1 -> Source mapping
         
         # Current production state
         self.current_product: Optional[str] = None
@@ -263,20 +269,67 @@ class SchedulerPrimitiveV2(BasePrimitive):
                 # Sequence orders based on strategy
                 sequenced_orders = self._sequence_orders()
                 
-                # Release orders to production
+                # Dispatch orders to appropriate line sources
                 for order in sequenced_orders:
-                    yield self.order_queue.put(order)
-                    self.orders_scheduled += 1
+                    # Find the line for this order
+                    line_id = getattr(order, 'line_id', 'LINE1')
                     
-                    self.emit_observable("order_scheduled", {
-                        "order_id": order.order_id,
-                        "product_id": order.product.product_id,
-                        "quantity": order.quantity,
-                        "scheduled_start": order.scheduled_start
-                    })
+                    # Check if line has a source
+                    if line_id in self.line_sources:
+                        source = self.line_sources[line_id]
+                        
+                        # Check if line is available (no active order)
+                        if line_id not in self.active_orders or self.active_orders[line_id].is_complete:
+                            # Dispatch order to source
+                            source.set_production_order(order)
+                            self.active_orders[line_id] = order
+                            order.actual_start = self.env.now
+                            self.orders_scheduled += 1
+                            
+                            self.emit_observable("order_dispatched", {
+                                "order_id": order.order_id,
+                                "product_id": order.product.product_id,
+                                "line_id": line_id,
+                                "quantity": order.quantity,
+                                "scheduled_start": order.scheduled_start
+                            })
+                        else:
+                            # Line busy, queue the order
+                            source.add_order_to_queue(order)
+                    else:
+                        # No source for this line, put in queue for later
+                        yield self.order_queue.put(order)
+                        self.orders_scheduled += 1
+            
+            # Check for completed orders
+            for line_id, order in list(self.active_orders.items()):
+                if order.is_complete:
+                    order.actual_end = self.env.now
+                    self.completed_orders.append(order)
+                    self.orders_completed += 1
+                    
+                    # Check if line has queued orders
+                    if line_id in self.line_sources:
+                        source = self.line_sources[line_id]
+                        if source.order_queue:
+                            # Start next queued order
+                            next_order = source.order_queue.pop(0)
+                            source.set_production_order(next_order)
+                            self.active_orders[line_id] = next_order
+                            next_order.actual_start = self.env.now
             
             # Wait before next scheduling cycle
             yield self.env.timeout(5.0)  # Check every 5 minutes
+    
+    def register_source(self, line_id: str, source: 'SourcePrimitiveV2') -> None:
+        """Register a source for a production line.
+        
+        Args:
+            line_id: Production line ID (e.g., 'LINE1')
+            source: Source primitive for the line
+        """
+        self.line_sources[line_id] = source
+        logger.info(f"Registered source for {line_id}")
     
     def add_order(self, order: ProductionOrder) -> None:
         """Add a production order to the schedule.

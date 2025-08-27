@@ -110,9 +110,14 @@ class SourcePrimitiveV2(BasePrimitive):
         self.current_order = order
         self.units_remaining = order.quantity if order else 0
         
+        # Update order tracking
+        if order:
+            order.actual_start = self.env.now
+        
         self.emit_observable("order_started", {
             "source_id": self.config.id,
             "order_id": order.order_id if order else None,
+            "product_id": order.product.product_id if order and hasattr(order, 'product') else "DEFAULT",
             "target_quantity": order.quantity if order else 0
         })
         
@@ -157,6 +162,7 @@ class SourcePrimitiveV2(BasePrimitive):
         # Check if order is complete
         if self.units_remaining <= 0:
             self._complete_current_order()
+            yield self.env.timeout(0.01)  # Small delay to prevent tight loop
             return
         
         # Generate single unit at arrival rate
@@ -165,6 +171,8 @@ class SourcePrimitiveV2(BasePrimitive):
         # Only decrement if unit was actually generated (not rejected)
         if unit_generated:
             self.units_remaining -= 1
+            if self.current_order:
+                self.current_order.completed_quantity += 1
         
         # Wait for next unit based on arrival rate
         # Adjust rate for quality rejects to maintain effective throughput
@@ -214,6 +222,31 @@ class SourcePrimitiveV2(BasePrimitive):
             # Wait for next generation
             yield self.env.timeout(interval)
     
+    def _complete_current_order(self) -> None:
+        """Complete the current production order."""
+        if self.current_order:
+            self.current_order.actual_end = self.env.now
+            
+            self.emit_observable("order_completed", {
+                "source_id": self.config.id,
+                "order_id": self.current_order.order_id,
+                "product_id": self.current_order.product.product_id if hasattr(self.current_order, 'product') else "DEFAULT",
+                "completed_quantity": self.current_order.completed_quantity,
+                "target_quantity": self.current_order.quantity
+            })
+            
+            logger.info(f"{self.config.id}: Completed order {self.current_order.order_id} "
+                       f"({self.current_order.completed_quantity}/{self.current_order.quantity} units)")
+            
+            # Clear current order
+            self.current_order = None
+            self.units_remaining = 0
+            
+            # Check queue for next order
+            if self.order_queue:
+                next_order = self.order_queue.pop(0)
+                self.set_production_order(next_order)
+    
     def _generate_batch(self, size: int) -> Generator:
         """Generate a batch of units.
         
@@ -244,7 +277,7 @@ class SourcePrimitiveV2(BasePrimitive):
             return False
         
         # Create production unit
-        from .equipment import ProductionUnit
+        from .equipment_v2_fixed import ProductionUnit
         unit = ProductionUnit(
             product_id=self.current_order.product.product_id if self.current_order and hasattr(self.current_order, 'product') else "DEFAULT",
             order_id=self.current_order.order_id if self.current_order else None,
@@ -289,18 +322,6 @@ class SourcePrimitiveV2(BasePrimitive):
             self.is_disrupted = False
             self.emit_observable("supply_restored", {"source_id": self.config.id})
     
-    def _complete_current_order(self) -> None:
-        """Complete current production order."""
-        if self.current_order:
-            self.emit_observable("order_completed", {
-                "source_id": self.config.id,
-                "order_id": self.current_order.order_id,
-                "units_generated": self.current_order.quantity
-            })
-            
-            logger.info(f"{self.config.id}: Completed order {self.current_order.order_id}")
-            self.current_order = None
-            self.units_remaining = 0
     
     def stop(self) -> None:
         """Stop source generation."""

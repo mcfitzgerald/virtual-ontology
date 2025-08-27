@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Production order system with scheduler-to-source dispatch mechanism
+- SchedulerPrimitiveV2 with order queue management and line-specific tracking
+- Order-aware generation in SourcePrimitiveV2 with progress tracking
+- Scheduler manifest (manifests/scheduler_manifest.yaml) with product configurations
+- Control effects test suite (test_control_effects.py) validating 7 scenarios
+- Control effects documentation (CONTROL_EFFECTS_DOCUMENTATION.md) mapping control→parameter→outcome relationships
+- Production order test suite (test_production_orders.py) for order dispatch and completion
+- Order completion tracking with actual vs target quantities
+- Source registration system connecting schedulers to production lines
 - Two-layer control system architecture for actionable controls to simulation parameters
 - Control manager system (`twin_model/control/`) for managing plant controls and parameter mappings
 - System usage guide (SYSTEM_USAGE_GUIDE.md) documenting all components and workflows
@@ -22,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Material flow test suite (test_material_flow.py) to validate equipment connections
 
 ### Changed
+- Scheduler now manages per-line active orders instead of single active order
+- Model builder extended to load entities from scheduler manifest
+- Source primitive enhanced with order queue and completion tracking
 - Complete refactor to v2 primitives with internal queues only (no separate buffers)
 - Ontology structure updated to TBox/RBox format (twin_ontology.yaml)
 - Equipment primitives now use internal queues exclusively for material handling
