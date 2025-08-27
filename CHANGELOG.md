@@ -8,32 +8,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- SimPy-based discrete event simulation implementation for twin model
-- Realistic failure modeling with mixture model pattern (micro-stops, minor/major failures)
-- Production order driven simulation replacing continuous flow model
-- Comprehensive refactor plan (TWIN_MODEL_REFACTOR_PLAN.md) for achieving 60% OEE target
-- Status report (TWIN_MODEL_STATUS_REPORT.md) documenting completed phases 1-4
-- Test suite for failure modeling validation (test_failure_modeling.py)
-- Integration test for complete refactor validation (test_refactor_complete.py)
+- Two-layer control system architecture for actionable controls to simulation parameters
+- Control manager system (`twin_model/control/`) for managing plant controls and parameter mappings
+- System usage guide (SYSTEM_USAGE_GUIDE.md) documenting all components and workflows
+- Control mappings configuration (ontology/control_mappings.yaml) for control-to-parameter relationships
+- Control settings manifest (manifests/control_settings.yaml) with baseline control values
+- System configuration manifest (manifests/system_config.yaml) for global settings
+- Integration tests for full system validation (test_full_integration.py, test_oee_baseline.py)
+- Failure tracking counters (failure_count, micro_stop_count) in equipment primitives
+- PEP 8, PEP 257, and PEP 484 compliance throughout new code
 
 ### Changed
-- Material flow logic to fix buffer-equipment interface mismatch (added `level` property)
-- Equipment primitive to support realistic failure patterns with cascade effects
-- Source primitive to support batch-based production order generation
-- Buffer primitive with proper level and capacity properties
-- Scheduler primitive enhanced with work order management and shift pattern support
-- Model builder to handle equipment-to-equipment cascade failures
-- Equipment manifest to align with realistic manufacturing parameters
+- Complete refactor to v2 primitives with internal queues only (no separate buffers)
+- Ontology structure updated to TBox/RBox format (twin_ontology.yaml)
+- Equipment primitives now use internal queues exclusively for material handling
+- Source primitives support both order-driven and continuous generation modes
+- Model builder simplified to handle direct equipment-to-equipment connections
+- Failure generation fixed to properly trigger micro-stops and failures
+- State duration tracking improved with proper finalization
+- Performance factor, scrap rate, and micro-stop probability now properly applied
 
 ### Fixed
-- Critical material flow issue causing false starvation/blocking states (10% vs 85% performance)
-- Buffer level checking logic that prevented proper material flow simulation
-- Equipment cascade failure modeling for realistic production line behavior
+- Failure generation not triggering (warmup_complete now properly enables failures)
+- Parameter naming inconsistency (micro_stop_frequency vs micro_stop_probability)
+- State duration tracking incomplete (added finalization step)
+- Control parameter application to equipment (direct instance variable updates)
+- Source generation timing issues (fixed exponential distribution calculations)
 
 ### Removed
-- Sphinx documentation build artifacts (moved to .gitignore)
-- Python cache files (__pycache__ directories)
-- Obsolete documentation source files from twin_model/docs/
+- All v1 primitives (moved to archive/legacy_v1_files/)
+- Old test suite (test_phase1-6, test_balanced_model, etc.)
+- Obsolete configuration files (SYNTHETIC_DATA_TUNING_PLAN.md, SYSTEM_ARCHITECTURE.md)
+- Debug and utility scripts (debug_availability.py, verify_connections.py)
+- Old synthetic data generation scripts
 
 ## [0.3.0] - Previous Release
 

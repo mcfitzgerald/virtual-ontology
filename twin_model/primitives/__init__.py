@@ -6,15 +6,15 @@ discovery-based learning without prescriptive mappings.
 """
 
 from .base import BasePrimitive, PrimitiveConfig, SamplingConfig, SimulationMode
-from .equipment import EquipmentPrimitive, EquipmentState
+from .equipment import EquipmentPrimitiveV2 as EquipmentPrimitive, EquipmentState
 from .buffer import BufferPrimitive, BufferItem
-from .source import SourcePrimitive, ArrivalPattern
-from .sink import SinkPrimitive, CollectedProduct
+from .source import SourcePrimitiveV2 as SourcePrimitive, ArrivalPattern
+from .sink import SinkPrimitiveV2 as SinkPrimitive, CollectedProduct
 from .scheduler import (
-    SchedulerPrimitive,
-    ScheduleEvent,
-    ScheduleEventType,
+    SchedulerPrimitiveV2 as SchedulerPrimitive,
     ProductionOrder,
+    Product,
+    ProductCategory,
 )
 from .monitor import MonitorPrimitive, KPIType, KPIMetric
 
@@ -32,9 +32,9 @@ __all__ = [
     "SinkPrimitive",
     "CollectedProduct",
     "SchedulerPrimitive",
-    "ScheduleEvent",
-    "ScheduleEventType",
     "ProductionOrder",
+    "Product",
+    "ProductCategory",
     "MonitorPrimitive",
     "KPIType",
     "KPIMetric",

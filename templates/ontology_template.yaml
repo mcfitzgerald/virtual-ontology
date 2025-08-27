@@ -1,0 +1,236 @@
+# Ontology Template V2
+# Based on TBox (Terminological Box) and RBox (Relational Box) structure
+# This template defines the standard structure for all ontologies in the system
+
+# ====================================================================================
+# METADATA - Context and versioning
+# ====================================================================================
+metadata:
+  name: "Ontology Name"
+  version: "1.0.0"
+  namespace: "namespace_prefix"
+  description: "Purpose and scope of this ontology"
+  author: "Author or system name"
+  created: "YYYY-MM-DD"
+  modified: "YYYY-MM-DD"
+  imports: []  # Other ontologies this depends on
+  license: "License type"
+  tags: []  # Keywords for discovery
+
+# ====================================================================================
+# TBOX - Terminological Box (Class definitions and hierarchy)
+# ====================================================================================
+tbox:
+  # Class hierarchy with properties
+  classes:
+    BaseClass:
+      description: "Root class description"
+      abstract: true  # Cannot be instantiated
+      properties:
+        property_name:
+          description: "What this property represents"
+          datatype: "string|integer|float|boolean|datetime"
+          required: true
+          default: null
+          constraints:
+            min: null
+            max: null
+            pattern: null
+            enum: []
+      
+    DerivedClass:
+      description: "Specialized class"
+      parent: "BaseClass"  # Inheritance
+      properties:
+        additional_property:
+          description: "Property specific to this class"
+          datatype: "string"
+          required: false
+      disjoint_with: []  # Cannot be this AND another class
+      equivalent_to: []  # Alternative names/definitions
+      
+  # Property definitions (can be reused across classes)
+  properties:
+    global_property:
+      description: "Property that can be used by multiple classes"
+      domain: ["ClassA", "ClassB"]  # Classes that can have this property
+      range: "datatype_or_class"  # What values it can take
+      functional: true  # Only one value allowed
+      inverse_functional: false  # Unique identifier
+      
+  # Datatype definitions
+  datatypes:
+    custom_type:
+      base: "string"
+      pattern: "regex_pattern"
+      description: "Custom datatype definition"
+
+# ====================================================================================
+# RBOX - Relational Box (Relationships between entities)
+# ====================================================================================
+rbox:
+  relationships:
+    relationship_name:
+      description: "What this relationship represents"
+      domain: "SourceClass"  # What can be the subject
+      range: "TargetClass"  # What can be the object
+      cardinality: "1:N"  # 1:1, 1:N, N:1, N:N
+      
+      # Relationship properties
+      properties:
+        symmetric: false  # If A→B then B→A
+        transitive: false  # If A→B and B→C then A→C
+        reflexive: false  # Can relate to itself
+        irreflexive: false  # Cannot relate to itself
+        asymmetric: false  # If A→B then NOT B→A
+        
+      # Inverse relationship
+      inverse_of: "opposite_relationship"
+      
+      # Constraints
+      constraints:
+        min_cardinality: 0
+        max_cardinality: null  # null = unlimited
+        exactly: null
+        
+      # Sub-properties (specialization)
+      sub_property_of: null
+      
+  # Relationship chains (composed relationships)
+  property_chains:
+    derived_relationship:
+      chain: ["relationship1", "relationship2"]
+      description: "Relationship derived from chain"
+
+# ====================================================================================
+# HIERARCHY - Explicit class and property hierarchies
+# ====================================================================================
+hierarchy:
+  class_hierarchy:
+    Thing:  # Root of all classes
+      - PhysicalEntity:
+          - Equipment
+          - Material
+      - AbstractEntity:
+          - Process
+          - Information
+      - Event:
+          - StateChange
+          - Transaction
+          
+  property_hierarchy:
+    hasProperty:  # Root property
+      - hasPhysicalProperty:
+          - hasSize
+          - hasWeight
+      - hasTemporalProperty:
+          - hasStartTime
+          - hasDuration
+      - hasRelationalProperty:
+          - isPartOf
+          - isConnectedTo
+
+# ====================================================================================
+# AXIOMS - Rules and constraints
+# ====================================================================================
+axioms:
+  # Class axioms
+  class_axioms:
+    - type: "disjoint"
+      classes: ["ClassA", "ClassB"]
+      description: "An entity cannot be both A and B"
+      
+    - type: "covering"
+      parent: "ParentClass"
+      children: ["ChildA", "ChildB"]
+      description: "Every ParentClass must be either ChildA or ChildB"
+      
+    - type: "equivalence"
+      class: "ClassA"
+      definition: "ClassB AND hasProperty SOME Value"
+      description: "ClassA is defined as..."
+      
+  # Property axioms
+  property_axioms:
+    - type: "functional"
+      property: "hasID"
+      description: "Each entity has exactly one ID"
+      
+    - type: "inverse_functional"
+      property: "isIDOf"
+      description: "Each ID belongs to exactly one entity"
+      
+    - type: "transitive"
+      property: "isPartOf"
+      description: "If A is part of B and B is part of C, then A is part of C"
+      
+  # Domain rules
+  domain_rules:
+    - rule: "EquipmentMustHaveRate"
+      applies_to: "Equipment"
+      constraint: "MUST have property 'processing_rate'"
+      
+    - rule: "ConnectionsAreSymmetric"
+      applies_to: "isConnectedTo"
+      constraint: "If A connects to B, then B connects to A"
+
+# ====================================================================================
+# INSTANCES - Example instances (optional, mainly for documentation)
+# ====================================================================================
+instances:
+  example_equipment:
+    type: "Equipment"
+    properties:
+      id: "EQ-001"
+      processing_rate: 100
+    relationships:
+      isPartOf: "Line1"
+      isConnectedTo: ["EQ-002"]
+
+# ====================================================================================
+# MAPPINGS - How this ontology maps to other systems
+# ====================================================================================
+mappings:
+  # Database mappings
+  database:
+    ClassA:
+      table: "table_name"
+      columns:
+        property1: "column_name"
+        
+  # External ontology mappings
+  external:
+    ClassA:
+      owl: "http://example.org/ontology#ClassA"
+      rdfs: "http://www.w3.org/2000/01/rdf-schema#Class"
+      
+  # Simulation primitive mappings
+  primitives:
+    Equipment: "EquipmentPrimitive"
+    Source: "SourcePrimitive"
+
+# ====================================================================================
+# ANNOTATIONS - Additional metadata and documentation
+# ====================================================================================
+annotations:
+  # Descriptions for reasoning
+  competency_questions:
+    - "What equipment is part of Line1?"
+    - "What is the throughput capacity of the system?"
+    - "Which entities can fail?"
+    
+  # Usage notes
+  usage_notes:
+    - "This ontology is designed for..."
+    - "When extending, consider..."
+    
+  # Change log
+  changelog:
+    - version: "1.0.0"
+      date: "YYYY-MM-DD"
+      changes: ["Initial version"]
+      
+  # References
+  references:
+    - "Academic paper or standard"
+    - "Industry best practice document"

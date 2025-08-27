@@ -1,585 +1,470 @@
-# Twin Model Refactor and Implementation Plan
+# Twin Model Clean Refactor Plan
 
 ## Executive Summary
+Complete refactor of the twin model to implement an ontology-driven virtual twin that bridges MES data analysis to optimization via LLM orchestration. This plan establishes a clean architecture with proper material flow, realistic control abstractions, and clear extensibility patterns.
 
-This plan addresses critical issues in the virtual twin model that prevent achieving realistic KPIs (target: 60% OEE with balanced availability, performance, and quality). The refactor incorporates SimPy best practices, realistic failure modeling, and maintains the ontology-driven architecture.
+## Core Philosophy & Goals
 
-## Coding notes
-ok please implement @TWIN_MODEL_REFACTOR_PLAN.md and Comply with PEP 8 (Style Guide), PEP 257 (Docstring Convetions), PEP 484 (Type Hints). use context7 (search for simpy-mirror     │
-│   for simpy docs). DO NOT CREATE ANY HARDCODES, leverage the configs and manifests.   
+### Ultimate Vision
+Enable manufacturing optimization using existing MES data without massive digital twin investment by:
+1. Using ontologies as the semantic bridge between MES data and virtual twin
+2. Allowing LLMs to discover patterns and optimize through simulation
+3. Providing actionable recommendations in real-world terms
 
-## Current Issues
+### Key Principles
+- **Ontology-First**: The twin ontology IS the model - it defines what exists
+- **Two-Layer Control**: Separate actionable controls from simulation parameters
+- **Discovery-Oriented**: LLM discovers correlations, not prescriptive mappings
+- **No Hardcoding**: Everything configuration-driven via ontology/manifests
+- **Clean Architecture**: Internal queues only, no hybrid modes
 
-### 1. **Material Flow Logic Problem (Critical)**
-- Equipment checks `upstream.level` but buffers use `self.store.items`
-- This mismatch causes false starvation/blocking states
-- Result: Equipment runs at ~10% performance despite parameter adjustments
+## Background & Context
 
-### 2. **Unrealistic Failure Patterns**
-- Single MTBF/MTTR values don't reflect real manufacturing
-- Missing micro-stops, minor failures, and major breakdowns
-- Availability too high (~94% vs 60% target)
+### The Problem We're Solving
+In real-world manufacturing, companies have rich MES data but lack digital twins. This POC demonstrates how to:
+- Build a virtual twin from existing MES data using ontologies
+- Use LLMs for reasoning and orchestration across the system
+- Generate baseline (realistically poor) performance data for optimization
+- Discover improvement opportunities through simulation
 
-### 3. **Not Production Order Driven**
-- Continuous flow instead of scheduled production orders
-- Doesn't match real MES-driven manufacturing
+### Why Ontologies?
+The dual-ontology approach enables:
+- **MES Ontology**: Natural language to SQL for data analysis
+- **Twin Ontology**: Defines simulation structure and controls
+- **LLM Bridge**: Semantic understanding for both analysis and simulation
+- **Low Overhead**: No massive investment in traditional digital twin systems
 
-### 4. **Model Structure Issues**
-- Over-complicated buffer connections
-- SimPy best practices suggest direct equipment connections with internal queuing
+## Phase 1: Ontology Definition (Day 1)
 
----
+### 1.1 Create New Twin Ontology
+**File**: `ontology/twin_ontology_v2.yaml`
 
-## Phase 1: Fix Material Flow Logic (Immediate)
-
-### 1.1 Buffer-Equipment Interface Fix
-
-**File: `twin_model/primitives/buffer.py`**
-
-```python
-# Add property to expose store level correctly
-@property
-def level(self) -> int:
-    """Current buffer level."""
-    return len(self.store.items) if hasattr(self.store, 'items') else 0
-
-@property
-def is_full(self) -> bool:
-    """Check if buffer is at capacity."""
-    return self.level >= self.capacity
+#### Core Structure
+```yaml
+entities:
+  Equipment:
+    - No separate Buffer class
+    - Internal queues (part of equipment)
+    - Direct equipment-to-equipment connections
+  Source:
+    - Order-driven generation
+    - Feeds first equipment's input queue
+  Sink:
+    - Collects from last equipment
+  Products:
+    - Different characteristics per SKU
+  Orders:
+    - Production schedule
 ```
 
-**File: `twin_model/primitives/equipment.py`**
-
-```python
-def run(self) -> Generator:
-    """Main equipment process for production."""
-    while self.is_running:
-        try:
-            # Fix: Check actual store level
-            if self.upstream and self.upstream.level == 0:
-                yield from self._handle_starved()
-                continue
-            
-            # Fix: Check downstream capacity properly
-            if self.downstream and self.downstream.is_full():
-                yield from self._handle_blocked()
-                continue
-            
-            # Process unit
-            yield from self._process_unit()
-```
-
-### 1.2 Implement Proper SimPy Resource Pattern
-
-**New approach using SimPy Container for material flow:**
-
-```python
-class EquipmentPrimitive(BasePrimitive):
-    def __init__(self, env, config, upstream=None, downstream=None):
-        # Use SimPy Container for internal buffer
-        self.input_buffer = simpy.Container(env, 
-            capacity=config.get_property('input_buffer_size', 10),
-            init=0)
-        self.output_buffer = simpy.Container(env, 
-            capacity=config.get_property('output_buffer_size', 10),
-            init=0)
-```
-
----
-
-## Phase 2: Implement Realistic Failure Modeling
-
-### 2.1 Mixture Model for Failures
-
-**Update Ontology: `ontology/twin_ontology.yaml`**
+### 1.2 Define Actionable Controls
+Based on research, implement controls that plant managers actually use:
 
 ```yaml
-failure_patterns:
-  description: "Failure pattern definitions"
-  properties:
-    micro_stops:
-      type: "failure_type"
-      frequency: "high"  # Every 10-30 minutes
-      duration_distribution: "lognormal"
-      duration_params: {mean: 1.0, sigma: 0.5}  # 0.5-3 minutes
-      probability: 0.80
-      
-    minor_failures:
-      type: "failure_type"
-      frequency: "medium"  # Every 2-8 hours
-      duration_distribution: "gamma"
-      duration_params: {shape: 2, scale: 5}  # 5-30 minutes
-      probability: 0.15
-      
-    major_failures:
-      type: "failure_type"
-      frequency: "low"  # Every 24-168 hours
-      duration_distribution: "weibull"
-      duration_params: {shape: 2, scale: 60}  # 30+ minutes
-      probability: 0.05
-```
-
-### 2.2 Failure Implementation
-
-**File: `twin_model/primitives/equipment.py`**
-
-```python
-import numpy as np
-from enum import Enum
-
-class FailureType(Enum):
-    MICRO_STOP = "micro_stop"
-    MINOR_FAILURE = "minor_failure"
-    MAJOR_FAILURE = "major_failure"
-
-class EquipmentPrimitive(BasePrimitive):
-    def __init__(self, env, config, ...):
-        # Initialize failure parameters
-        self.failure_distributions = self._load_failure_distributions(config)
-        
-    def _failure_process(self) -> Generator:
-        """Realistic failure process with multiple failure types."""
-        while self.is_running:
-            # Determine next failure type and timing
-            failure_type, time_to_failure = self._get_next_failure()
-            
-            # Wait until failure occurs
-            yield self.env.timeout(time_to_failure)
-            
-            # Get repair duration based on failure type
-            repair_duration = self._get_repair_duration(failure_type)
-            
-            # Interrupt the main process
-            if self.process and self.process.is_alive:
-                self.process.interrupt({
-                    'type': failure_type,
-                    'duration': repair_duration
-                })
+actionable_controls:
+  # Changeover Management
+  changeover_reduction_level:
+    description: "SMED implementation (0=none, 1=basic, 2=advanced)"
+    real_world: "Quick changeover techniques, duplicate jigs"
+    affects:
+      changeover_duration: [-30%, -50%]
     
-    def _get_next_failure(self) -> Tuple[FailureType, float]:
-        """Sample next failure using competing risks model."""
-        # Sample time for each failure type
-        micro_time = np.random.exponential(20)  # Mean 20 minutes
-        minor_time = np.random.exponential(240)  # Mean 4 hours
-        major_time = np.random.exponential(2880)  # Mean 48 hours
-        
-        # Find which occurs first
-        times = {
-            FailureType.MICRO_STOP: micro_time,
-            FailureType.MINOR_FAILURE: minor_time,
-            FailureType.MAJOR_FAILURE: major_time
-        }
-        
-        failure_type = min(times, key=times.get)
-        return failure_type, times[failure_type]
+  # Operator Competency
+  operator_training_hours:
+    description: "Monthly training hours per operator"
+    real_world: "SOP training, problem-solving, equipment familiarity"
+    affects:
+      micro_stop_recovery_time: -20%
+      scrap_rate: -15%
+      performance_factor: +10%
     
-    def _get_repair_duration(self, failure_type: FailureType) -> float:
-        """Get repair duration based on failure type."""
-        if failure_type == FailureType.MICRO_STOP:
-            # Log-normal: mostly 0.5-3 minutes
-            duration = np.random.lognormal(0.0, 0.5)
-            return np.clip(duration, 0.5, 5.0)
-            
-        elif failure_type == FailureType.MINOR_FAILURE:
-            # Gamma: 5-30 minutes
-            duration = np.random.gamma(2, 5)
-            return np.clip(duration, 5, 60)
-            
-        else:  # MAJOR_FAILURE
-            # Weibull: 30+ minutes with long tail
-            duration = np.random.weibull(2) * 60
-            return max(30, duration)
-```
-
----
-
-## Phase 3: Implement Production Order Scheduling
-
-### 3.1 Update Scheduler Primitive
-
-**File: `twin_model/primitives/scheduler.py`**
-
-```python
-class ProductionOrder:
-    """Represents a production order."""
-    def __init__(self, order_id: str, product_id: str, 
-                 quantity: int, due_time: float, priority: int = 0):
-        self.order_id = order_id
-        self.product_id = product_id
-        self.quantity = quantity
-        self.due_time = due_time
-        self.priority = priority
-        self.released = False
-        self.completed_quantity = 0
-
-class SchedulerPrimitive(BasePrimitive):
-    def __init__(self, env, config):
-        super().__init__(env, config)
-        self.orders = []
-        self.active_orders = {}
-        
-    def add_order(self, order: ProductionOrder):
-        """Add a production order to the schedule."""
-        self.orders.append(order)
-        self.orders.sort(key=lambda x: (x.due_time, -x.priority))
+  # Line Speed Policy
+  line_speed_setting:
+    description: "Percentage of theoretical maximum"
+    real_world: "Balance between volume and quality"
+    affects:
+      base_rate: direct
+      scrap_rate: +2% per 10% increase
+      micro_stop_frequency: +1.5% per 10% increase
     
-    def run(self) -> Generator:
-        """Main scheduling process."""
-        while self.is_running:
-            # Check for orders to release
-            current_time = self.env.now
-            
-            for order in self.orders[:]:
-                if not order.released and self._should_release(order, current_time):
-                    # Release order to production
-                    yield from self._release_order(order)
-                    order.released = True
-                    self.active_orders[order.order_id] = order
-                    self.orders.remove(order)
-            
-            # Check every minute
-            yield self.env.timeout(1.0)
+  # Sensor Maintenance
+  sensor_calibration_frequency:
+    description: "Days between calibrations"
+    real_world: "Clean sensors, adjust triggers"
+    affects:
+      micro_stop_probability: exponential after 7 days
+      false_reject_rate: increases with drift
     
-    def _release_order(self, order: ProductionOrder) -> Generator:
-        """Release an order to the appropriate production line."""
-        # Find target line based on product
-        line_id = self._get_line_for_product(order.product_id)
-        
-        # Send order to source
-        source = self._get_source(line_id)
-        if source:
-            source.set_production_order(order)
-        
-        self.emit_observable(
-            event_type="order_released",
-            details={
-                "order_id": order.order_id,
-                "product_id": order.product_id,
-                "quantity": order.quantity,
-                "line": line_id
-            }
-        )
-        
-        yield self.env.timeout(0)
-```
-
-### 3.2 Update Source for Order-Driven Generation
-
-**File: `twin_model/primitives/source.py`**
-
-```python
-class SourcePrimitive(BasePrimitive):
-    def __init__(self, env, config, downstream=None):
-        super().__init__(env, config)
-        self.current_order = None
-        self.order_queue = []
-        
-    def set_production_order(self, order: ProductionOrder):
-        """Set a production order for this source."""
-        self.order_queue.append(order)
-        
-    def run(self) -> Generator:
-        """Order-driven material generation."""
-        while self.is_running:
-            # Check for new orders
-            if not self.current_order and self.order_queue:
-                self.current_order = self.order_queue.pop(0)
-                self.units_remaining = self.current_order.quantity
-            
-            # Generate units for current order
-            if self.current_order and self.units_remaining > 0:
-                # Generate batch
-                batch_size = min(self.batch_size, self.units_remaining)
-                
-                # Send downstream
-                if self.downstream:
-                    yield from self.downstream.put(
-                        batch_size, 
-                        product_id=self.current_order.product_id,
-                        order_id=self.current_order.order_id
-                    )
-                
-                self.units_remaining -= batch_size
-                
-                # Check if order complete
-                if self.units_remaining <= 0:
-                    self._complete_order()
-                    self.current_order = None
-                
-                # Production rate delay
-                yield self.env.timeout(batch_size / self.arrival_rate)
-            else:
-                # No active order, wait
-                yield self.env.timeout(1.0)
-```
-
----
-
-## Phase 4: Simplify Model Structure (SimPy Best Practices)
-
-### 4.1 Direct Equipment Connections
-
-**Option A: Equipment with Internal Queues**
-
-```python
-class EquipmentPrimitive(BasePrimitive):
-    def __init__(self, env, config):
-        # Internal queues instead of external buffers
-        self.input_queue = simpy.Store(env, capacity=config.get_property('queue_size', 20))
-        self.output_queue = simpy.Store(env, capacity=config.get_property('queue_size', 20))
-        
-        # Direct connections to other equipment
-        self.upstream_equipment = None
-        self.downstream_equipment = None
+  # Production Scheduling
+  product_sequencing_strategy:
+    description: "How products are sequenced"
+    real_world: "Group similar products, minimize changeovers"
+    options:
+      - random
+      - changeover_optimized
+      - campaign_mode
     
-    def connect_to(self, downstream_equipment):
-        """Connect directly to downstream equipment."""
-        self.downstream_equipment = downstream_equipment
-        downstream_equipment.upstream_equipment = self
+  # Preventive Maintenance
+  pm_schedule_compliance:
+    description: "Percentage of PM completed on time"
+    real_world: "Bearing lubrication, belt tension, parts replacement"
+    affects:
+      mtbf: +30% at 100%
+      major_failure_probability: -50% at 100%
 ```
 
-**Option B: Use SimPy Resources**
-
-```python
-class ProductionLine:
-    def __init__(self, env, line_id: str):
-        self.env = env
-        self.line_id = line_id
-        
-        # Equipment as resources
-        self.filler = simpy.Resource(env, capacity=1)
-        self.packer = simpy.Resource(env, capacity=1)
-        self.palletizer = simpy.Resource(env, capacity=1)
-        
-        # Material flow as containers
-        self.raw_material = simpy.Container(env, capacity=1000, init=0)
-        self.filled_units = simpy.Container(env, capacity=100, init=0)
-        self.packed_units = simpy.Container(env, capacity=100, init=0)
-        
-    def process_order(self, order: ProductionOrder) -> Generator:
-        """Process a production order through the line."""
-        for i in range(order.quantity):
-            # Request filler
-            with self.filler.request() as req:
-                yield req
-                yield self.env.timeout(1.0 / self.filler_rate)
-                yield self.filled_units.put(1)
-            
-            # Request packer
-            with self.packer.request() as req:
-                yield req
-                yield self.filled_units.get(1)
-                yield self.env.timeout(1.0 / self.packer_rate)
-                yield self.packed_units.put(1)
-```
-
----
-
-## Phase 5: Update Manifests and Configuration
-
-### 5.1 Equipment Manifest Changes
-
-**File: `manifests/equipment_manifest.yaml`**
+### 1.3 Define Simulation Parameters
+Internal parameters that respond to controls:
 
 ```yaml
-equipment:
-  LINE1-FIL:
-    type: Filler
-    base_rate: 85  # Units per minute at nominal
-    # Remove performance_by_product - handle in code
+simulation_parameters:
+  # Derived from actionable controls
+  micro_stop_probability:
+    base_value: 0.3  # per 5 minutes
+    modifiers:
+      - sensor_drift_factor
+      - line_speed_factor
+      - operator_skill_factor
     
-    # Failure parameters (mixture model)
-    failure_patterns:
-      micro_stops:
-        mean_time_between: 20  # minutes
-        duration_mean: 1.0
-        duration_sigma: 0.5
-        
-      minor_failures:
-        mean_time_between: 240  # 4 hours
-        duration_shape: 2
-        duration_scale: 5
-        
-      major_failures:
-        mean_time_between: 2880  # 48 hours
-        duration_shape: 2
-        duration_scale: 60
+  performance_factor:
+    base_value: 0.85
+    modifiers:
+      - operator_training_effect
+      - shift_performance
+      - equipment_wear
     
-    # Internal queue sizes (if using Option A)
-    input_queue_size: 20
-    output_queue_size: 20
-    
-    # Quality parameters
-    base_scrap_rate: 0.05  # 5% for 95% quality
+  scrap_rate:
+    base_value: 0.05
+    modifiers:
+      - line_speed_quality_tradeoff
+      - operator_experience
+      - product_complexity
 ```
 
-### 5.2 Production Order Configuration
-
-**New File: `manifests/production_schedule.yaml`**
+### 1.4 Observable Patterns
+What emerges from simulation:
 
 ```yaml
-production_orders:
-  - order_id: "ORD-001"
-    product_id: "SKU-1001"
-    quantity: 1000
-    due_time: 480  # 8 hours
-    priority: 1
-    line_assignment: "LINE1"
+observable_patterns:
+  bottleneck_location:
+    emerges_from: "Rate mismatches between equipment"
     
-  - order_id: "ORD-002"
-    product_id: "SKU-2001"
-    quantity: 1500
-    due_time: 960  # 16 hours
-    priority: 2
-    line_assignment: "LINE2"
+  starvation_patterns:
+    emerges_from: "Queue dynamics and production rates"
+    
+  quality_cascades:
+    emerges_from: "Upstream problems affecting downstream"
+    
+  shift_variations:
+    emerges_from: "Parameter combinations per shift"
 ```
 
----
+## Phase 2: Core Infrastructure (Day 2)
 
-## Phase 6: Testing and Validation
+### 2.1 Model Builder Refactor
+**File**: `twin_model/model_builder.py`
 
-### 6.1 Unit Tests
+Key changes:
+- Remove ALL buffer wiring logic
+- Implement `_wire_internal_queue_mode()`
+- Direct equipment-to-equipment connections
+- Source → First Equipment input queue
+- Last Equipment → Sink
 
+### 2.2 Equipment Primitive Updates
+**File**: `twin_model/primitives/equipment.py`
+
+Required changes:
 ```python
-# twin_model/tests/test_material_flow.py
-def test_buffer_level_property():
-    """Test that buffer level property works correctly."""
-    env = simpy.Environment()
-    config = PrimitiveConfig(id="TEST-BUF", properties={"capacity": 10})
-    buffer = BufferPrimitive(env, config)
-    
-    assert buffer.level == 0
-    env.process(buffer.put(5))
-    env.run(until=1)
-    assert buffer.level == 5
+# Remove
+- self.upstream buffer checking
+- self.downstream buffer feeding
+- hybrid mode logic
 
-def test_equipment_starvation_detection():
-    """Test equipment correctly detects starvation."""
-    # Test that equipment properly checks upstream.level
-    pass
-
-# twin_model/tests/test_failure_patterns.py
-def test_mixture_model_failures():
-    """Test that failure mixture model generates correct distribution."""
-    # Verify micro, minor, and major failures occur at expected rates
-    pass
+# Keep/Add
++ self.input_queue = simpy.Store(env, capacity=20)
++ self.output_queue = simpy.Store(env, capacity=20)
++ connect_to(next_equipment) method
++ Only check internal queues for material
 ```
 
-### 6.2 Integration Tests
+### 2.3 Source/Sink Updates
+**Files**: `twin_model/primitives/source.py`, `twin_model/primitives/sink.py`
 
-```python
-# twin_model/tests/test_production_order_flow.py
-def test_order_driven_production():
-    """Test complete order flow from scheduler to sink."""
-    env = simpy.Environment()
+Changes:
+- Source puts directly into equipment.input_queue
+- Immediate t=0 order release
+- Initial WIP configuration support
+- Sink pulls from last equipment.output_queue
+
+## Phase 3: Control Implementation (Day 3)
+
+### 3.1 Control Manager
+**New File**: `twin_model/control/control_manager.py`
+
+Responsibilities:
+- Load actionable controls from ontology
+- Apply control → parameter mappings
+- Validate control bounds
+- Enable runtime adjustments
+
+### 3.2 Realistic Failure Modeling
+Based on research findings:
+
+```yaml
+failure_distribution:
+  micro_stops:
+    percentage: 80%
+    causes:
+      - jams_at_handoffs: 40%
+      - sensor_trips: 25%
+      - minor_adjustments: 15%
+    duration: 0.5-3 minutes
     
-    # Create production line
-    builder = OntologyDrivenModelBuilder()
-    model = builder.build_model(env)
+  minor_failures:
+    percentage: 15%
+    causes:
+      - component_issues: 10%
+      - calibration_drift: 5%
+    duration: 5-30 minutes
     
-    # Add production order
-    order = ProductionOrder("ORD-TEST", "SKU-1001", 100, 60, 1)
-    scheduler = builder.primitives['SCHEDULER-DEFAULT']
-    scheduler.add_order(order)
-    
-    # Run simulation
-    env.run(until=120)
-    
-    # Verify order completed
-    sink = builder.primitives['LINE1-SINK']
-    assert sink.total_collected >= 95  # Allow for some scrap
+  major_failures:
+    percentage: 5%
+    causes:
+      - equipment_breakdown: 3%
+      - critical_component: 2%
+    duration: 30+ minutes
 ```
 
----
+### 3.3 Production Scheduling Enhancement
+Implement realistic scheduling:
+- Changeover matrices (product-to-product times)
+- Campaign production support
+- Shift-specific product assignment
+- ABC analysis for prioritization
 
-## Implementation Timeline
+## Phase 4: Integration & Testing (Day 4)
 
-### Week 1: Critical Fixes
-- [ ] Day 1-2: Fix material flow logic (Phase 1)
-- [ ] Day 3-4: Implement failure mixture model (Phase 2.1-2.2)
-- [ ] Day 5: Test and validate fixes
+### 4.1 End-to-End Flow Testing
+**File**: `twin_model/tests/test_material_flow.py`
 
-### Week 2: Structural Improvements
-- [ ] Day 1-2: Implement production order scheduling (Phase 3)
-- [ ] Day 3-4: Simplify model structure (Phase 4)
-- [ ] Day 5: Update manifests and configuration (Phase 5)
+Test cases:
+- Order flows from scheduler → source → equipment → sink
+- No immediate starvation at startup
+- Proper state transitions
+- Queue levels remain reasonable
 
-### Week 3: Testing and Calibration
-- [ ] Day 1-2: Write and run unit tests
-- [ ] Day 3-4: Integration testing
-- [ ] Day 5: Final calibration for 60% OEE target
+### 4.2 Control Testing
+**File**: `twin_model/tests/test_controls.py`
 
----
+Test cases:
+- Each actionable control affects parameters correctly
+- Bounds are enforced
+- Combinations work as expected
+- No hardcoded values
 
-## Expected Outcomes
+### 4.3 KPI Validation
+**File**: `twin_model/tests/test_kpi_targets.py`
 
-### KPI Targets
-- **OEE**: 60% (±5%)
-  - **Availability**: 60% (realistic with failure mixture model)
-  - **Performance**: 85% (fixed material flow logic)
-  - **Quality**: 95% (base_scrap_rate = 0.05)
+Validate:
+- OEE ~60% achievable
+- Availability ~60%
+- Performance ~85%
+- Quality ~95%
 
-### Benefits
-1. **Realistic Simulation**: Matches actual manufacturing patterns
-2. **MES Alignment**: Order-driven production matches real MES data
-3. **Optimization Ready**: Can test "what-if" scenarios effectively
-4. **Ontology Driven**: Maintains ontology-based architecture
+## Phase 5: MES Integration Prep (Day 5)
 
----
+### 5.1 Transduction Layer
+**File**: `twin_model/transduction/mes_transducer.py`
+
+Updates:
+- Generate realistic MES records
+- Include failure reasons
+- Add shift patterns
+- Implement noise/variation
+
+### 5.2 LLM Interface Documentation
+Create clear documentation for LLM understanding:
+- Control descriptions
+- Effect explanations
+- Discovery hints
+- Recommendation templates
+
+### 5.3 Validation Suite
+Comprehensive testing:
+- pytest for unit tests
+- mypy for type checking
+- ruff for style
+- semgrep for hardcode detection
+
+## Technical Implementation Details
+
+### Directory Structure
+```
+twin_model/
+├── ontology/
+│   ├── twin_ontology_v2.yaml      # Clean ontology
+│   ├── control_mappings.yaml      # Control → parameter
+│   └── observable_patterns.yaml   # Emergent behaviors
+├── primitives/
+│   ├── base.py                    # Base primitive
+│   ├── equipment.py               # Internal queues only
+│   ├── source.py                  # Order-driven
+│   ├── sink.py                    # Collection point
+│   ├── scheduler.py               # Order management
+│   └── monitor.py                 # KPI tracking
+├── control/
+│   ├── __init__.py
+│   ├── actionable_controls.py     # Plant manager controls
+│   ├── control_manager.py         # Mapping engine
+│   └── parameter_effects.py       # Simulation parameters
+├── model_builder.py               # Clean, no buffers
+├── config.py                      # Configuration loader
+└── tests/
+    ├── test_material_flow.py
+    ├── test_controls.py
+    ├── test_kpi_targets.py
+    └── test_integration.py
+```
+
+### Configuration Architecture
+```yaml
+# manifests/system_config.yaml
+system:
+  material_flow: "internal_queues"  # Only option now
+  startup:
+    warmup_period: 5.0
+    initial_wip: true
+    
+# manifests/control_settings.yaml  
+controls:
+  changeover_reduction_level: 1
+  operator_training_hours: 20
+  line_speed_setting: 85
+  sensor_calibration_frequency: 7
+  product_sequencing_strategy: "changeover_optimized"
+  pm_schedule_compliance: 80
+```
+
+## Success Criteria
+
+### Phase Gates
+Each phase must meet criteria before proceeding:
+
+**Phase 1**: Ontology complete and reviewed
+**Phase 2**: Material flows without errors
+**Phase 3**: Controls affect simulation correctly
+**Phase 4**: All tests passing
+**Phase 5**: Can generate realistic MES data
+
+### Final Validation
+- [ ] 60% OEE achievable with realistic parameters
+- [ ] No starvation/blocking oscillations
+- [ ] Actionable recommendations generated
+- [ ] Clear control → effect relationships
+- [ ] System is extensible for new controls
+- [ ] No hardcoded values (passes semgrep)
+- [ ] Passes mypy and ruff checks
+- [ ] Comprehensive test coverage
 
 ## Risk Mitigation
 
-### Risk 1: Breaking Existing Functionality
-- **Mitigation**: Implement changes incrementally with tests
-- **Fallback**: Git branching strategy, can revert if needed
+### Technical Risks
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Material flow bugs | High | Test incrementally, simple cases first |
+| Parameter tuning | Medium | Use industry benchmarks as guide |
+| Performance issues | Low | Profile if needed, optimize later |
 
-### Risk 2: Performance Issues with Complex Failure Model
-- **Mitigation**: Profile and optimize critical paths
-- **Fallback**: Simplify to two-tier failure model if needed
+### Process Risks
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Scope creep | High | Strict phase gates, clear priorities |
+| Lost context | Medium | Document decisions in code |
+| Over-engineering | Medium | Start simple, add only as needed |
 
-### Risk 3: Integration Complexity
-- **Mitigation**: Keep clear interfaces between components
-- **Fallback**: Phase implementation over longer timeline
+## Extension Guidelines
+
+### Adding New Actionable Control
+1. Define in `twin_ontology_v2.yaml`:
+   ```yaml
+   new_control_name:
+     description: "What it does"
+     real_world: "How it's implemented"
+     affects: {parameter: effect}
+   ```
+2. Add mapping in `control_mappings.yaml`
+3. Model builder automatically interprets
+4. Test with simulation
+5. Document for LLM
+
+### Modifying Line Configuration
+1. Update `equipment_manifest.yaml`
+2. Adjust equipment connections if needed
+3. Recalibrate parameters
+4. Run validation tests
+5. Update documentation
+
+### Adding New Observable
+1. Define in ontology what causes it
+2. Add emission in primitive
+3. Include in transduction
+4. Document pattern for LLM discovery
+
+## Dependencies & Tools
+
+### Required Libraries
+- SimPy (discrete event simulation)
+- PyYAML (configuration)
+- NumPy (distributions)
+- pytest (testing)
+- mypy (type checking)
+- ruff (linting)
+- semgrep (hardcode detection)
+
+### Development Tools
+- poetry (package management)
+- git (version control)
+- Context7 MCP (documentation lookup)
+
+## Timeline & Milestones
+
+| Day | Phase | Deliverable | Success Metric |
+|-----|-------|-------------|----------------|
+| 1 | Ontology | twin_ontology_v2.yaml | Reviewed & approved |
+| 2 | Infrastructure | Core primitives | Material flows |
+| 3 | Controls | Control system | Parameters respond |
+| 4 | Testing | Test suite | All tests pass |
+| 5 | Integration | MES transduction | Realistic data generated |
+
+## Next Steps
+
+1. **Immediate**: Save this plan and create ontology
+2. **Today**: Complete Phase 1 (ontology definition)
+3. **Tomorrow**: Begin Phase 2 (core infrastructure)
+4. **This Week**: Achieve working simulation
+5. **Next Week**: Integrate with MES analysis
+
+## References
+
+### Industry Standards
+- OEE World Class: 85% (we target 60% for realistic baseline)
+- Micro-stops: 80% of all stops
+- Changeover best practice: Under 10 minutes (SMED)
+
+### Research Sources
+- Filling line micro-stop causes and solutions
+- OEE improvement strategies
+- Plant manager actionable controls
+- SimPy best practices for production lines
+
+### Internal Documentation
+- Original prototype (main branch README)
+- TWIN_MODEL_STATUS_REPORT.md
+- Previous implementation attempts
 
 ---
 
-## Notes on SimPy Best Practices (from research)
-
-1. **Use Interrupts for Failures**: SimPy's interrupt mechanism is ideal for machine breakdowns
-2. **Resource vs Container**: Use Resource for equipment, Container for material flow
-3. **Direct Yielding**: Yield events directly rather than complex callback chains
-4. **Process-Based Design**: Each major component should be a process
-5. **Event Composition**: Use `&` and `|` operators for complex conditions
-
----
-
-## Appendix: Key Code Patterns
-
-### Pattern 1: Preemptive Resource for Maintenance
-```python
-repairman = simpy.PreemptiveResource(env, capacity=1)
-with repairman.request(priority=1) as req:  # High priority for repairs
-    yield req
-    yield env.timeout(repair_time)
-```
-
-### Pattern 2: Container for Material Flow
-```python
-material_buffer = simpy.Container(env, capacity=1000, init=100)
-yield material_buffer.get(10)  # Get 10 units
-yield material_buffer.put(5)   # Put 5 units
-```
-
-### Pattern 3: Process Interruption
-```python
-try:
-    yield env.timeout(processing_time)
-except simpy.Interrupt as interrupt:
-    # Handle interruption
-    failure_info = interrupt.cause
-```
-
----
-
-This plan provides a comprehensive roadmap to fix the virtual twin model while maintaining the ontology-driven architecture and achieving realistic KPIs.
+*Document Version: 1.0*
+*Created: 2024*
+*Purpose: Guide clean refactor of twin model with proper architecture*

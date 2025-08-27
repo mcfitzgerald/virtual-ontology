@@ -1,443 +1,361 @@
-"""Source primitive for material generation in manufacturing.
+"""Source primitive V2 for direct equipment feeding.
 
-This module provides a source primitive that generates materials/units
-entering the production system. It can model raw material arrival,
-customer orders, or other input streams with various arrival patterns.
+This module provides source primitives that feed directly into
+equipment input queues. NO BUFFERS - direct connection only.
 """
 
-from typing import Optional, Generator, Dict, Any
+from typing import Optional, Generator, Any, Union
 from enum import Enum
 import random
+import numpy as np
 import simpy
+import logging
 
-from .base import BasePrimitive, PrimitiveConfig
+from .base import BasePrimitive, PrimitiveConfig, SamplingConfig
+
+logger = logging.getLogger(__name__)
 
 
 class ArrivalPattern(str, Enum):
-    """Types of arrival patterns for source generation."""
-
+    """Material arrival patterns."""
+    
     CONSTANT = "CONSTANT"
     EXPONENTIAL = "EXPONENTIAL"
     NORMAL = "NORMAL"
     BATCH = "BATCH"
-    SCHEDULE = "SCHEDULE"
-    STOCHASTIC = "STOCHASTIC"
 
 
-class SourcePrimitive(BasePrimitive):
-    """Generic source that generates materials.
-
-    Emits observables for:
-    - Material generation events
-    - Arrival pattern variations
-    - Batch characteristics
-    - Supply disruptions
-    - Schedule adherence
+class SourcePrimitiveV2(BasePrimitive):
+    """Source that feeds directly into equipment input queues.
+    
+    Key features:
+    - Direct connection to first equipment's input queue
+    - Order-driven generation
+    - Multiple arrival patterns
+    - Quality inspection at source
+    - Supply disruption modeling
     """
-
+    
     def __init__(
         self,
         env: simpy.Environment,
         config: PrimitiveConfig,
-        downstream: Optional[Any] = None,
+        downstream: Optional[Union[simpy.Store, Any]] = None,
+        sampling_config: Optional[SamplingConfig] = None
     ) -> None:
-        """Initialize source with configuration.
-
+        """Initialize source primitive.
+        
         Args:
             env: SimPy environment
-            config: Source configuration containing:
-                - arrival_pattern: Type of arrival pattern
-                - arrival_rate: Base rate for arrivals (units/minute)
-                - batch_size: Size of batches if batch pattern
-                - schedule: Arrival schedule if scheduled pattern
-                - disruption_probability: Chance of supply disruption
-            downstream: Output buffer or equipment
+            config: Source configuration
+            downstream: Equipment input queue or equipment with input_queue
+            sampling_config: Optional sampling configuration
         """
-        super().__init__(env, config)
-
-        # Connection
-        self.downstream = downstream
-
-        # Source parameters
-        self.arrival_pattern = ArrivalPattern(config.get_property("arrival_pattern", "CONSTANT"))
-        self.arrival_rate = config.get_property("arrival_rate", 60.0)
-        self.batch_size = config.get_property("batch_size", 1)
-        self.schedule = config.get_property("schedule", [])
-        self.disruption_probability = config.get_property("disruption_probability", 0.01)
-
-        # Product configuration
-        self.product_mix = config.get_property("product_mix", {"DEFAULT": 1.0})
-        self.current_product = None
-
-        # Tracking metrics
-        self.total_generated = 0
-        self.total_batches = 0
-        self.disruption_count = 0
-        self.blocked_count = 0
-
-        # Supply characteristics
-        self.quality_rate = config.get_property("quality_rate", 0.98)
-        self.supply_variability = config.get_property("supply_variability", 0.1)
+        super().__init__(env, config, sampling_config)
         
-        # Production order support
-        self.order_queue = []
+        # Direct connection to equipment (NO BUFFERS!)
+        self.downstream = downstream
+        
+        # Source parameters
+        self.line_id = config.get_property("line_id", "LINE1")
+        self.arrival_pattern = ArrivalPattern(
+            config.get_property("arrival_pattern", "CONSTANT")
+        )
+        self.arrival_rate = config.get_property("arrival_rate", 85.0)
+        self.batch_size = config.get_property("batch_size", 100)
+        self.order_mode = config.get_property("order_mode", True)
+        
+        # Quality parameters
+        self.quality_rate = config.get_property("quality_rate", 0.95)
+        self.supply_variability = config.get_property("supply_variability", 0.1)
+        self.disruption_probability = config.get_property("disruption_probability", 0.02)
+        
+        # Order management
         self.current_order = None
-        self.order_mode = config.get_property("order_mode", False)  # Enable order-driven mode
-
-    def set_production_order(self, order: Any) -> None:
-        """Set a production order for this source.
+        self.order_queue = []
+        self.units_remaining = 0
+        self.total_generated = 0
+        self.units_generated = 0  # Alias for compatibility
+        self.total_rejected = 0
+        
+        # State tracking
+        self.is_running = True
+        self.is_disrupted = False
+        
+        # Process reference
+        self.process = None
+        
+        logger.info(f"Source {self.config.id} initialized for {self.line_id}")
+    
+    def set_downstream(self, downstream: Union[simpy.Store, Any]) -> None:
+        """Set downstream connection.
+        
+        Args:
+            downstream: Equipment input queue or equipment with input_queue
+        """
+        # Handle both direct queue and equipment with queue
+        if hasattr(downstream, 'input_queue'):
+            self.downstream = downstream.input_queue
+        else:
+            self.downstream = downstream
+            
+        logger.debug(f"{self.config.id}: Connected to downstream")
+    
+    def set_production_order(self, order: 'ProductionOrder') -> None:
+        """Set current production order.
         
         Args:
             order: Production order to process
         """
-        self.order_queue.append(order)
-        self.order_mode = True  # Switch to order-driven mode
+        self.current_order = order
+        self.units_remaining = order.quantity if order else 0
         
-        if hasattr(self, 'logger'):
-            self.logger.info(f"Order {order.order_id} queued for source {self.config.id}")
-
-    def start(self) -> None:
-        """Start the source generation process."""
-        self.is_running = True
-        self.process = self.env.process(self.generate())
-
-        # Start disruption process if configured
-        if self.disruption_probability > 0:
-            self.env.process(self.disruption_process())
-
-        self.emit_observable(
-            event_type="source_started",
-            details={
-                "arrival_pattern": self.arrival_pattern.value,
-                "arrival_rate": self.arrival_rate,
-                "batch_size": self.batch_size,
-                "product_mix": self.product_mix,
-            },
-        )
-
-    def generate(self) -> Generator:
-        """Main generation process for materials."""
+        self.emit_observable("order_started", {
+            "source_id": self.config.id,
+            "order_id": order.order_id if order else None,
+            "target_quantity": order.quantity if order else 0
+        })
+        
+        logger.info(f"{self.config.id}: Started order {order.order_id if order else 'None'}")
+    
+    def add_order_to_queue(self, order: 'ProductionOrder') -> None:
+        """Add order to queue for processing.
+        
+        Args:
+            order: Production order to queue
+        """
+        self.order_queue.append(order)
+        logger.debug(f"{self.config.id}: Queued order {order.order_id}")
+    
+    def run(self) -> Generator:
+        """Main source generation process."""
         while self.is_running:
             try:
-                # Check if we're in order-driven mode
                 if self.order_mode:
-                    # Process orders from queue
-                    if not self.current_order and self.order_queue:
-                        self.current_order = self.order_queue.pop(0)
-                        self.emit_observable(
-                            event_type="order_started",
-                            details={
-                                "order_id": self.current_order.order_id,
-                                "product_id": self.current_order.product_id,
-                                "quantity": self.current_order.target_quantity
-                            }
-                        )
-                    
-                    if self.current_order:
-                        # Generate for current order
-                        product = self.current_order.product_id
-                        remaining = self.current_order.target_quantity - self.current_order.actual_quantity
-                        
-                        if remaining > 0:
-                            # Generate batch for order
-                            batch_size = min(self.batch_size, remaining)
-                            interarrival_time = batch_size / self.arrival_rate if self.arrival_rate > 0 else 1.0
-                        else:
-                            # Order complete
-                            self.emit_observable(
-                                event_type="order_completed",
-                                details={
-                                    "order_id": self.current_order.order_id,
-                                    "actual_quantity": self.current_order.actual_quantity
-                                }
-                            )
-                            self.current_order = None
-                            yield self.env.timeout(0.1)  # Small delay before next order
-                            continue
-                    else:
-                        # No orders, wait
-                        yield self.env.timeout(1.0)
-                        continue
+                    # Order-driven generation
+                    yield from self._order_driven_generation()
                 else:
-                    # Original continuous generation mode
-                    # Get next arrival time based on pattern
-                    interarrival_time = self._get_interarrival_time()
+                    # Continuous generation
+                    yield from self._continuous_generation()
                     
-                    # Select product based on mix
-                    product = self._select_product()
-                    
-                    # Generate batch
-                    batch_size = self._get_batch_size()
-
-                # Wait for next arrival
-                yield self.env.timeout(interarrival_time)
-
-                # Check quality for each item in batch
-                good_units = 0
-                rejected_units = 0
-
-                for _ in range(batch_size):
-                    if random.random() < self.quality_rate:
-                        good_units += 1
-                    else:
-                        rejected_units += 1
-
-                # Send good units downstream if available
-                if self.downstream and good_units > 0:
-                    # Check if downstream can accept
-                    if hasattr(self.downstream, "is_full") and self.downstream.is_full():
-                        self.blocked_count += good_units
-                        self.emit_observable(
-                            event_type="source_blocked",
-                            details={
-                                "product": product,
-                                "units_blocked": good_units,
-                                "downstream_id": self.downstream.config.id
-                                if hasattr(self.downstream, "config")
-                                else None,
-                            },
-                            severity="WARNING",
-                        )
-                    else:
-                        # Send units downstream
-                        if hasattr(self.downstream, "put"):
-                            yield from self.downstream.put(good_units, product_id=product)
-
-                        self.total_generated += good_units
-                        
-                        # Update order progress if in order mode
-                        if self.order_mode and self.current_order:
-                            self.current_order.actual_quantity += good_units
-
-                        self.emit_observable(
-                            event_type="material_generated",
-                            details={
-                                "product": product,
-                                "batch_size": batch_size,
-                                "good_units": good_units,
-                                "rejected_units": rejected_units,
-                                "quality_rate": self.quality_rate,
-                                "total_generated": self.total_generated,
-                            },
-                        )
-
-                # Track rejected materials
-                if rejected_units > 0:
-                    self.emit_observable(
-                        event_type="material_rejected",
-                        details={
-                            "product": product,
-                            "rejected_units": rejected_units,
-                            "reason": "quality_check_failed",
-                        },
-                        severity="INFO",
-                    )
-
-                self.total_batches += 1
-
-            except simpy.Interrupt as interrupt:
-                # Handle disruptions
-                yield from self._handle_disruption(interrupt)
-
-    def _get_interarrival_time(self) -> float:
-        """Calculate time until next arrival based on pattern.
-
-        Returns:
-            Interarrival time in minutes
-        """
-        base_time = 1.0 / self.arrival_rate if self.arrival_rate > 0 else 60.0
-
-        if self.arrival_pattern == ArrivalPattern.CONSTANT:
-            return base_time
-
-        elif self.arrival_pattern == ArrivalPattern.EXPONENTIAL:
-            # Exponential distribution with mean = base_time
-            return random.expovariate(1.0 / base_time)
-
-        elif self.arrival_pattern == ArrivalPattern.NORMAL:
-            # Normal distribution with variability
-            std_dev = base_time * self.supply_variability
-            time = random.gauss(base_time, std_dev)
-            return max(0.1, time)  # Ensure positive
-
-        elif self.arrival_pattern == ArrivalPattern.BATCH:
-            # Longer time between batches
-            return base_time * self.batch_size  # type: ignore[no-any-return]
-
-        elif self.arrival_pattern == ArrivalPattern.SCHEDULE:
-            # Use schedule if available
-            if self.schedule:
-                return self._get_scheduled_time()
-            return base_time
-
-        elif self.arrival_pattern == ArrivalPattern.STOCHASTIC:
-            # Complex stochastic pattern
-            return self._get_stochastic_time(base_time)
-
-        return base_time
-
-    def _get_batch_size(self) -> int:
-        """Determine batch size for current generation.
-
-        Returns:
-            Number of units in batch
-        """
-        if self.arrival_pattern == ArrivalPattern.BATCH:
-            # Add some variability to batch size
-            variation = int(self.batch_size * self.supply_variability)
-            return max(1, self.batch_size + random.randint(-variation, variation))  # type: ignore[no-any-return]
-        return 1
-
-    def _select_product(self) -> str:
-        """Select product based on configured mix.
-
-        Returns:
-            Product identifier
-        """
-        if not self.product_mix:
-            return "DEFAULT"
-
-        # Weighted random selection
-        products = list(self.product_mix.keys())
-        weights = list(self.product_mix.values())
-
-        # Normalize weights
-        total_weight = sum(weights)
-        if total_weight > 0:
-            weights = [w / total_weight for w in weights]
-        else:
-            weights = [1.0 / len(products)] * len(products)
-
-        return random.choices(products, weights=weights)[0]  # type: ignore[no-any-return]
-
-    def _get_scheduled_time(self) -> float:
-        """Get next scheduled arrival time.
-
-        Returns:
-            Time until next scheduled arrival
-        """
-        # Find next scheduled time after current time
-        current_time = self.env.now
-
-        for scheduled_time in self.schedule:
-            if scheduled_time > current_time:
-                return scheduled_time - current_time  # type: ignore[no-any-return]
-
-        # If no future schedule, use base rate
-        return 1.0 / self.arrival_rate  # type: ignore[no-any-return]
-
-    def _get_stochastic_time(self, base_time: float) -> float:
-        """Generate complex stochastic interarrival time.
-
-        Args:
-            base_time: Base interarrival time
-
-        Returns:
-            Stochastic interarrival time
-        """
-        # Model time-of-day effects
-        hour_of_day = (self.env.now / 60) % 24
-
-        # Peak hours (8am-5pm) have higher rate
-        if 8 <= hour_of_day <= 17:
-            time_factor = 0.8  # Faster arrivals
-        else:
-            time_factor = 1.2  # Slower arrivals
-
-        # Add random variation
-        variation = random.uniform(0.5, 1.5)
-
-        return base_time * time_factor * variation
-
-    def _handle_disruption(self, interrupt: simpy.Interrupt) -> Generator:
-        """Handle supply disruption.
-
-        Args:
-            interrupt: Disruption information
-        """
-        disruption_info = interrupt.cause if isinstance(interrupt.cause, dict) else {}
-        duration = disruption_info.get("duration", 30.0)
-
-        self.disruption_count += 1
-
-        self.emit_observable(
-            event_type="supply_disruption",
-            details={
-                "duration": duration,
-                "reason": disruption_info.get("reason", "unknown"),
-                "impact": "generation_stopped",
-            },
-            severity="ERROR",
-        )
-
-        # Wait for disruption to end (protect against nested interrupts)
-        try:
-            yield self.env.timeout(duration)
-        except simpy.Interrupt:
-            # If interrupted during disruption, just continue
-            pass
-
-        self.emit_observable(
-            event_type="supply_resumed",
-            details={"downtime": duration, "total_disruptions": self.disruption_count},
-        )
-
-    def disruption_process(self) -> Generator:
-        """Background process for random supply disruptions."""
-        while self.is_running:
-            # Check every 10 minutes
-            yield self.env.timeout(10.0)
-
+            except Exception as e:
+                logger.error(f"{self.config.id}: Error in generation: {e}")
+                yield self.env.timeout(1)
+    
+    def _order_driven_generation(self) -> Generator:
+        """Generate material based on production orders."""
+        # Check for current order
+        if not self.current_order:
+            # Try to get next order from queue
+            if self.order_queue:
+                self.set_production_order(self.order_queue.pop(0))
+            else:
+                # No orders - wait
+                yield self.env.timeout(1)
+                return
+        
+        # Check if order is complete
+        if self.units_remaining <= 0:
+            self._complete_current_order()
+            return
+        
+        # Generate single unit at arrival rate
+        unit_generated = yield from self._generate_unit()
+        
+        # Only decrement if unit was actually generated (not rejected)
+        if unit_generated:
+            self.units_remaining -= 1
+        
+        # Wait for next unit based on arrival rate
+        # Adjust rate for quality rejects to maintain effective throughput
+        if self.arrival_rate > 0 and self.quality_rate > 0:
+            effective_rate = self.arrival_rate * self.quality_rate
+            interval = 1.0 / self.arrival_rate  # Use raw rate, quality handled in generation
+            yield self.env.timeout(interval)
+    
+    def _continuous_generation(self) -> Generator:
+        """Generate material continuously."""
+        # Check for supply disruption (probability per hour, not per unit)
+        # Convert to per-generation probability based on arrival rate
+        disruption_check_interval = 60  # Check once per hour
+        if self.env.now % disruption_check_interval < 1.0/self.arrival_rate:
             if random.random() < self.disruption_probability:
-                # Trigger disruption
-                duration = random.uniform(10, 60)  # 10-60 minutes
-
-                if self.process and not self.process.triggered:
-                    self.process.interrupt({"duration": duration, "reason": "supply_shortage"})
-
-    def set_arrival_rate(self, rate: float) -> None:
-        """Dynamically adjust arrival rate.
-
+                yield from self._handle_disruption()
+                return
+        
+        # Generate based on arrival pattern
+        if self.arrival_pattern == ArrivalPattern.BATCH:
+            # Generate batch then wait
+            yield from self._generate_batch(self.batch_size)
+            interval = self.batch_size / self.arrival_rate
+            yield self.env.timeout(interval)
+        else:
+            # For all non-batch patterns, generate single unit then wait
+            # Generate the unit first
+            yield from self._generate_unit()
+            
+            # Calculate interval based on pattern (in minutes)
+            if self.arrival_pattern == ArrivalPattern.CONSTANT:
+                interval = 1.0 / self.arrival_rate  # Minutes between units
+            elif self.arrival_pattern == ArrivalPattern.EXPONENTIAL:
+                # Use arrival_rate directly as the rate parameter (units per minute)
+                interval = random.expovariate(self.arrival_rate)  # Returns time in minutes
+            elif self.arrival_pattern == ArrivalPattern.NORMAL:
+                mean = 1.0 / self.arrival_rate  # Mean interval in minutes
+                std = mean * self.supply_variability
+                interval = max(0.001, np.random.normal(mean, std))
+            else:
+                interval = 1.0 / self.arrival_rate
+            
+            # Debug excessive intervals
+            if interval > 1.0:
+                logger.debug(f"{self.config.id}: Long interval {interval:.2f} min for pattern {self.arrival_pattern}")
+            
+            # Wait for next generation
+            yield self.env.timeout(interval)
+    
+    def _generate_batch(self, size: int) -> Generator:
+        """Generate a batch of units.
+        
         Args:
-            rate: New arrival rate (units/minute)
+            size: Batch size
         """
-        old_rate = self.arrival_rate
-        self.arrival_rate = rate
-
-        self.emit_observable(
-            event_type="arrival_rate_changed",
-            details={
-                "old_rate": old_rate,
-                "new_rate": rate,
-                "change_factor": rate / old_rate if old_rate > 0 else 0,
-            },
-        )
-
-    def set_product_mix(self, mix: Dict[str, float]) -> None:
-        """Update product mix.
-
-        Args:
-            mix: Dictionary of product IDs to weights
-        """
-        self.product_mix = mix
-
-        self.emit_observable(event_type="product_mix_changed", details={"new_mix": mix})
-
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get source statistics.
-
+        for _ in range(size):
+            yield from self._generate_unit()
+            # Delay based on arrival rate (units per minute)
+            if self.arrival_rate > 0:
+                interval = 1.0 / self.arrival_rate
+                yield self.env.timeout(interval)
+    
+    def _generate_unit(self) -> Generator:
+        """Generate a single unit.
+        
         Returns:
-            Dictionary of source metrics
+            bool: True if unit was generated, False if rejected
         """
-        actual_rate = self.total_generated / self.env.now if self.env.now > 0 else 0
-
+        # Quality check
+        if random.random() > self.quality_rate:
+            # Unit rejected at source
+            self.total_rejected += 1
+            self.emit_observable("unit_rejected", {
+                "source_id": self.config.id,
+                "reason": "quality_check"
+            })
+            return False
+        
+        # Create production unit
+        from .equipment import ProductionUnit
+        unit = ProductionUnit(
+            product_id=self.current_order.product.product_id if self.current_order and hasattr(self.current_order, 'product') else "DEFAULT",
+            order_id=self.current_order.order_id if self.current_order else None,
+            quality=self.quality_rate,
+            timestamp=self.env.now
+        )
+        
+        # Send to downstream
+        if self.downstream:
+            if hasattr(self.downstream, 'put'):
+                # Direct queue connection
+                yield self.downstream.put(unit)
+                self.total_generated += 1
+                self.units_generated += 1  # Update alias
+                
+                self.emit_observable("unit_generated", {
+                    "source_id": self.config.id,
+                    "product_id": unit.product_id,
+                    "order_id": unit.order_id
+                })
+            else:
+                logger.warning(f"{self.config.id}: Downstream has no 'put' method")
+        else:
+            logger.warning(f"{self.config.id}: No downstream connection!")
+        
+        return True
+    
+    def _handle_disruption(self) -> Generator:
+        """Handle supply disruption."""
+        if not self.is_disrupted:
+            self.is_disrupted = True
+            disruption_duration = random.uniform(10, 60)  # 10-60 minutes
+            
+            self.emit_observable("supply_disruption", {
+                "source_id": self.config.id,
+                "duration": disruption_duration
+            })
+            
+            logger.warning(f"{self.config.id}: Supply disruption for {disruption_duration:.1f} minutes")
+            yield self.env.timeout(disruption_duration)
+            
+            self.is_disrupted = False
+            self.emit_observable("supply_restored", {"source_id": self.config.id})
+    
+    def _complete_current_order(self) -> None:
+        """Complete current production order."""
+        if self.current_order:
+            self.emit_observable("order_completed", {
+                "source_id": self.config.id,
+                "order_id": self.current_order.order_id,
+                "units_generated": self.current_order.quantity
+            })
+            
+            logger.info(f"{self.config.id}: Completed order {self.current_order.order_id}")
+            self.current_order = None
+            self.units_remaining = 0
+    
+    def stop(self) -> None:
+        """Stop source generation."""
+        self.is_running = False
+        logger.info(f"{self.config.id}: Source stopped")
+    
+    def get_statistics(self) -> dict:
+        """Get source statistics.
+        
+        Returns:
+            Statistics dictionary
+        """
         return {
             "total_generated": self.total_generated,
-            "total_batches": self.total_batches,
-            "actual_rate": actual_rate,
-            "configured_rate": self.arrival_rate,
-            "efficiency": actual_rate / self.arrival_rate if self.arrival_rate > 0 else 0,
-            "disruption_count": self.disruption_count,
-            "blocked_count": self.blocked_count,
-            "product_mix": self.product_mix,
+            "total_rejected": self.total_rejected,
+            "quality_rate_actual": (
+                self.total_generated / (self.total_generated + self.total_rejected)
+                if (self.total_generated + self.total_rejected) > 0 else 0
+            ),
+            "current_order": self.current_order.order_id if self.current_order else None,
+            "orders_pending": len(self.order_queue),
+            "units_remaining": self.units_remaining,
+            "is_disrupted": self.is_disrupted
         }
+    
+    def initialize_wip(self, level: float = 0.5) -> Generator:
+        """Initialize work-in-progress in downstream equipment.
+        
+        Args:
+            level: Fill level as fraction of capacity (0-1)
+        """
+        if self.downstream and hasattr(self.downstream, 'capacity'):
+            initial_units = int(self.downstream.capacity * level)
+            
+            logger.info(f"{self.config.id}: Initializing {initial_units} units of WIP")
+            
+            for _ in range(initial_units):
+                from .equipment import ProductionUnit
+                unit = ProductionUnit(
+                    product_id="INITIAL_WIP",
+                    quality=1.0,
+                    timestamp=0
+                )
+                
+                if hasattr(self.downstream, 'put'):
+                    yield self.downstream.put(unit)
+                    
+            self.emit_observable("wip_initialized", {
+                "source_id": self.config.id,
+                "units": initial_units
+            })
+    
+    def start(self) -> None:
+        """Start the source generation process.
+        
+        Implements the abstract start method from BasePrimitive.
+        """
+        self.process = self.env.process(self.run())

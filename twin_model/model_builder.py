@@ -1,740 +1,550 @@
-"""Ontology-driven model builder for SimPy simulations.
+"""Ontology-driven model builder V2 for SimPy simulations.
 
 This module builds SimPy models from the twin ontology structure and manifests.
-It interprets the ontology to instantiate primitives, wire relationships,
-and configure values from manifests.
+Key changes in V2:
+- NO BUFFERS - only internal equipment queues
+- Direct equipment-to-equipment connections
+- Two-layer control system integration
+- Proper ontology interpretation
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
+from dataclasses import dataclass, field
 import yaml
 import simpy
-from dataclasses import dataclass
 import logging
+from collections import defaultdict
 
-from .primitives import (
+from twin_model.primitives import (
     BasePrimitive,
     PrimitiveConfig,
     EquipmentPrimitive,
-    BufferPrimitive,
     SourcePrimitive,
     SinkPrimitive,
     SchedulerPrimitive,
     MonitorPrimitive,
 )
+from twin_model.control import ControlManager
 
-# Get logger
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class ModelEntity:
-    """Represents an entity to be instantiated in the model.
-
-    Attributes:
-        id: Unique identifier
-        ontology_class: Class name from ontology
-        primitive_type: Primitive class to instantiate
-        properties: Configuration properties
-        relationships: Entity relationships
-    """
-
-    id: str
-    ontology_class: str
-    primitive_type: str
+class EntityDefinition:
+    """Definition of an entity from ontology."""
+    
+    entity_id: str
+    entity_class: str
     properties: Dict[str, Any]
-    relationships: Dict[str, List[str]]
+    relationships: Dict[str, List[str]] = field(default_factory=dict)
+    primitive_type: Optional[str] = None
 
 
-class OntologyDrivenModelBuilder:
+@dataclass
+class LineConfiguration:
+    """Configuration for a production line."""
+    
+    line_id: str
+    source: Optional[EntityDefinition] = None
+    equipment: List[EntityDefinition] = field(default_factory=list)
+    sink: Optional[EntityDefinition] = None
+    
+    def get_equipment_sequence(self) -> List[EntityDefinition]:
+        """Get equipment sorted by position."""
+        return sorted(self.equipment, key=lambda e: e.properties.get('position', 0))
+
+
+class OntologyDrivenModelBuilderV2:
     """Builds SimPy models from ontology structure and manifests.
-
-    This builder interprets the twin ontology to construct a simulation model,
-    then configures it with values from manifests. It maintains separation
-    between structure (ontology) and configuration (manifests).
+    
+    This builder:
+    1. Interprets the twin ontology to understand structure
+    2. Loads configuration from manifests
+    3. Creates primitives with internal queues only
+    4. Wires direct equipment connections
+    5. Integrates two-layer control system
     """
-
+    
     # Primitive class mapping
     PRIMITIVE_CLASSES = {
         "EquipmentPrimitive": EquipmentPrimitive,
-        "BufferPrimitive": BufferPrimitive,
         "SourcePrimitive": SourcePrimitive,
         "SinkPrimitive": SinkPrimitive,
         "SchedulerPrimitive": SchedulerPrimitive,
         "MonitorPrimitive": MonitorPrimitive,
     }
-
-    def __init__(self, ontology_path: Path, manifest_dir: Optional[Path] = None) -> None:
-        """Initialize builder with ontology and manifest directory.
-
-        Args:
-            ontology_path: Path to twin_ontology.yaml
-            manifest_dir: Directory containing manifest files (optional)
-        """
-        self.ontology_path = ontology_path
-        self.manifest_dir = manifest_dir
-
-        # Load ontology
-        self.ontology = self._load_ontology(ontology_path)
-
-        # Load manifests if provided
-        self.manifests = {}
-        if manifest_dir and manifest_dir.exists():
-            self.manifests = self._load_manifests(manifest_dir)
-
-        # Model storage
-        self.entities: Dict[str, ModelEntity] = {}
-        self.primitives: Dict[str, BasePrimitive] = {}
-        self.production_lines: Dict[str, Dict[str, Any]] = {}
-
-    def _load_ontology(self, path: Path) -> Dict[str, Any]:
-        """Load ontology from YAML file.
-
-        Args:
-            path: Path to ontology file
-
-        Returns:
-            Parsed ontology dictionary
-        """
-        with open(path, "r") as f:
-            return yaml.safe_load(f)  # type: ignore[no-any-return]
-
-    def _load_manifests(self, manifest_dir: Path) -> Dict[str, Any]:
-        """Load all manifests from directory.
-
-        Args:
-            manifest_dir: Directory containing manifest files
-
-        Returns:
-            Dictionary of manifest name to content
-        """
-        manifests = {}
-
-        for manifest_file in manifest_dir.glob("*.yaml"):
-            manifest_name = manifest_file.stem
-            with open(manifest_file, "r") as f:
-                manifests[manifest_name] = yaml.safe_load(f)
-
-        return manifests
-
-    def build_model(self, env: simpy.Environment) -> Dict[str, Any]:
-        """Build complete simulation model from ontology.
-
-        Args:
-            env: SimPy environment for the model
-
-        Returns:
-            Dictionary containing:
-                - primitives: Instantiated primitive objects
-                - lines: Production line configurations
-                - scheduler: Scheduler primitive if created
-                - monitor: Monitor primitive if created
-        """
-        # Add global observables to environment
-        env.global_observables = []  # type: ignore[attr-defined]
-
-        # Parse entities from manifests or use defaults
-        self._parse_entities()
+    
+    def __init__(
+        self,
+        env: simpy.Environment,
+        ontology_path: Path,
+        manifest_dir: Path,
+        control_manager: Optional[ControlManager] = None
+    ) -> None:
+        """Initialize model builder.
         
-        # Auto-wire production line connections
-        self._auto_wire_lines()
-
-        # Instantiate primitives
-        self._instantiate_primitives(env)
-
-        # Wire relationships
-        self._wire_relationships()
-
-        # Create production lines
-        self._create_production_lines()
-
-        # Setup scheduler if configured
-        scheduler = self._setup_scheduler(env)
-
-        # Setup monitor if configured
-        monitor = self._setup_monitor(env)
-
-        # Start all primitives
-        self._start_all_primitives()
-
-        return {
-            "primitives": self.primitives,
-            "lines": self.production_lines,
-            "scheduler": scheduler,
-            "monitor": monitor,
-            "entities": self.entities,
-        }
-
-    def _parse_entities(self) -> None:
-        """Parse entities from manifests and ontology."""
-        # Get equipment manifest if available
-        equipment_manifest = self.manifests.get("equipment_manifest", {})
-        equipment_config = equipment_manifest.get("equipment", {})
-
-        # Get production manifest if available (may be used in future)
-        # production_manifest = self.manifests.get('production_manifest', {})
-
-        # Parse equipment entities
-        for eq_id, eq_data in equipment_config.items():
-            entity = ModelEntity(
-                id=eq_id,
-                ontology_class=eq_data.get("type", "Equipment"),
-                primitive_type=self._get_primitive_type(eq_data.get("type", "Equipment")),
-                properties=eq_data,
-                relationships={},
-            )
-            self.entities[eq_id] = entity
-
-        # Parse buffer entities from manifests
-        buffer_config = equipment_manifest.get("buffers", {})
-        for buf_id, buf_data in buffer_config.items():
-            entity = ModelEntity(
-                id=buf_id,
-                ontology_class="Buffer",
-                primitive_type="BufferPrimitive",
-                properties=buf_data,
-                relationships={},
-            )
-            self.entities[buf_id] = entity
-
-        # If no manifests, create default entities from ontology patterns
-        if not self.entities:
-            self._create_default_entities()
-
-    def _get_primitive_type(self, ontology_class: str) -> str:
-        """Get primitive type for an ontology class.
-
-        Args:
-            ontology_class: Class name from ontology
-
-        Returns:
-            Primitive type name
-        """
-        # Check TBox for class definition
-        tbox = self.ontology.get("tbox", {})
-        classes = tbox.get("classes", {})
-
-        # Look up class and its primitive mapping
-        if ontology_class in classes:
-            class_def = classes[ontology_class]
-            primitive = class_def.get("primitive")
-            if primitive:
-                return primitive  # type: ignore[no-any-return]
-
-            # Check parent class
-            parent = class_def.get("parent")
-            if parent and parent != "SimulationEntity":
-                return self._get_primitive_type(parent)
-
-        # Check primitive mapping rules
-        mappings = self.ontology.get("primitive_mapping", {}).get("default_mappings", {})
-
-        # Handle specialized equipment types
-        if ontology_class in ["Filler", "Packer", "Palletizer"]:
-            return "EquipmentPrimitive"
-
-        return mappings.get(ontology_class, "EquipmentPrimitive")  # type: ignore[no-any-return]
-
-    def _create_default_entities(self) -> None:
-        """Create default entities for testing."""
-        # Create a default production line
-        default_line = [
-            ModelEntity(
-                id="SRC-DEFAULT",
-                ontology_class="Source",
-                primitive_type="SourcePrimitive",
-                properties={
-                    "arrival_rate": 65.0,
-                    "arrival_pattern": "EXPONENTIAL",
-                    "quality_rate": 0.98,
-                },
-                relationships={"feeds_into": ["BUF-IN"]},
-            ),
-            ModelEntity(
-                id="BUF-IN",
-                ontology_class="Buffer",
-                primitive_type="BufferPrimitive",
-                properties={"capacity": 100, "buffer_type": "FIFO"},
-                relationships={"feeds_into": ["EQ-DEFAULT"]},
-            ),
-            ModelEntity(
-                id="EQ-DEFAULT",
-                ontology_class="Equipment",
-                primitive_type="EquipmentPrimitive",
-                properties={
-                    "base_rate": 60.0,
-                    "mtbf": 480.0,
-                    "mttr": 30.0,
-                    "energy_consumption_rate": 5.0,
-                },
-                relationships={"draws_from": ["BUF-IN"], "feeds_into": ["BUF-OUT"]},
-            ),
-            ModelEntity(
-                id="BUF-OUT",
-                ontology_class="Buffer",
-                primitive_type="BufferPrimitive",
-                properties={"capacity": 50, "buffer_type": "FIFO"},
-                relationships={
-                    "draws_from": ["EQ-DEFAULT"],
-                    "feeds_into": ["SINK-DEFAULT"],
-                },
-            ),
-            ModelEntity(
-                id="SINK-DEFAULT",
-                ontology_class="Sink",
-                primitive_type="SinkPrimitive",
-                properties={"collection_rate": 55.0, "target_throughput": 50.0},
-                relationships={"draws_from": ["BUF-OUT"]},
-            ),
-        ]
-
-        for entity in default_line:
-            self.entities[entity.id] = entity
-
-    def _instantiate_primitives(self, env: simpy.Environment) -> None:
-        """Instantiate primitive objects from entities.
-
         Args:
             env: SimPy environment
+            ontology_path: Path to twin_ontology.yaml
+            manifest_dir: Directory containing manifest files
+            control_manager: Optional control manager for two-layer system
         """
+        self.env = env
+        self.ontology_path = ontology_path
+        self.manifest_dir = manifest_dir
+        self.control_manager = control_manager
+        
+        # Load ontology
+        self.ontology = self._load_yaml(ontology_path)
+        
+        # Load manifests
+        self.manifests = self._load_manifests(manifest_dir)
+        
+        # Parse ontology structure
+        self.classes = self._parse_classes()
+        self.relationships = self._parse_relationships()
+        self.mappings = self._parse_mappings()
+        
+        # Storage for created entities
+        self.entities: Dict[str, EntityDefinition] = {}
+        self.primitives: Dict[str, BasePrimitive] = {}
+        self.lines: Dict[str, LineConfiguration] = {}
+        
+        # Build flags
+        self.built = False
+        
+        logger.info(f"Model builder V2 initialized with ontology from {ontology_path}")
+    
+    def _load_yaml(self, path: Path) -> Dict[str, Any]:
+        """Load YAML file."""
+        with open(path, 'r') as f:
+            return yaml.safe_load(f)
+    
+    def _load_manifests(self, manifest_dir: Path) -> Dict[str, Any]:
+        """Load all manifest files from directory."""
+        manifests = {}
+        
+        for file_path in manifest_dir.glob("*.yaml"):
+            manifest_name = file_path.stem
+            manifests[manifest_name] = self._load_yaml(file_path)
+            logger.debug(f"Loaded manifest: {manifest_name}")
+            
+        return manifests
+    
+    def _parse_classes(self) -> Dict[str, Any]:
+        """Parse class definitions from TBox."""
+        tbox = self.ontology.get('tbox', {})
+        return tbox.get('classes', {})
+    
+    def _parse_relationships(self) -> Dict[str, Any]:
+        """Parse relationships from RBox."""
+        rbox = self.ontology.get('rbox', {})
+        return rbox.get('relationships', {})
+    
+    def _parse_mappings(self) -> Dict[str, str]:
+        """Parse primitive mappings."""
+        mappings = self.ontology.get('mappings', {})
+        return mappings.get('primitives', {})
+    
+    def build_model(self) -> Dict[str, Any]:
+        """Build complete simulation model from ontology and manifests.
+        
+        Returns:
+            Dictionary containing model components
+        """
+        if self.built:
+            logger.warning("Model already built, rebuilding...")
+            
+        # Step 1: Load entities from manifests
+        self._load_entities()
+        
+        # Step 2: Organize by production lines
+        self._organize_lines()
+        
+        # Step 3: Create primitives
+        self._create_primitives()
+        
+        # Step 4: Wire connections (internal queues only!)
+        self._wire_connections()
+        
+        # Step 5: Create scheduler if orders exist
+        # Note: V2 scheduler has different interface, skipping for now  
+        scheduler = None  # self._create_scheduler()
+        
+        # Step 6: Create monitors
+        monitors = self._create_monitors()
+        
+        # Step 7: Apply control parameters
+        if self.control_manager:
+            self._apply_control_parameters()
+            
+        self.built = True
+        
+        return {
+            'entities': self.entities,
+            'primitives': self.primitives,
+            'lines': self.lines,
+            'scheduler': scheduler,
+            'monitors': monitors
+        }
+    
+    def _load_entities(self) -> None:
+        """Load entity definitions from manifests."""
+        # Load equipment from equipment manifest
+        equipment_manifest = self.manifests.get('equipment_manifest', {})
+        equipment_data = equipment_manifest.get('equipment', {})
+        
+        for entity_id, properties in equipment_data.items():
+            entity_type = properties.get('type', 'Equipment')
+            
+            # Determine primitive type from ontology mapping
+            primitive_type = self.mappings.get(entity_type)
+            
+            # Create entity definition
+            entity = EntityDefinition(
+                entity_id=entity_id,
+                entity_class=entity_type,
+                properties=properties,
+                primitive_type=primitive_type
+            )
+            
+            self.entities[entity_id] = entity
+            
+        logger.info(f"Loaded {len(self.entities)} entities from manifests")
+    
+    def _organize_lines(self) -> None:
+        """Organize entities into production lines."""
+        # Group by line_id
+        lines_dict = defaultdict(lambda: {'equipment': [], 'source': None, 'sink': None})
+        
         for entity_id, entity in self.entities.items():
-            # Get primitive class
-            primitive_class = self.PRIMITIVE_CLASSES.get(entity.primitive_type)
-
-            if not primitive_class:
-                print(f"Warning: Unknown primitive type {entity.primitive_type}")
+            line_id = entity.properties.get('line_id')
+            if not line_id:
                 continue
-
+                
+            entity_class = entity.entity_class
+            
+            if entity_class == 'Source':
+                lines_dict[line_id]['source'] = entity
+            elif entity_class == 'Sink':
+                lines_dict[line_id]['sink'] = entity
+            elif entity_class in ['Filler', 'Packer', 'Palletizer', 'Equipment']:
+                lines_dict[line_id]['equipment'].append(entity)
+                
+        # Create line configurations
+        for line_id, components in lines_dict.items():
+            line_config = LineConfiguration(
+                line_id=line_id,
+                source=components['source'],
+                equipment=components['equipment'],
+                sink=components['sink']
+            )
+            self.lines[line_id] = line_config
+            
+        logger.info(f"Organized {len(self.lines)} production lines")
+    
+    def _create_primitives(self) -> None:
+        """Create SimPy primitives from entity definitions."""
+        for entity_id, entity in self.entities.items():
+            primitive_type = entity.primitive_type
+            
+            if not primitive_type:
+                logger.debug(f"No primitive mapping for {entity_id}")
+                continue
+                
+            # Get primitive class
+            primitive_class = self.PRIMITIVE_CLASSES.get(primitive_type)
+            if not primitive_class:
+                logger.warning(f"Unknown primitive type: {primitive_type}")
+                continue
+                
             # Create configuration
             config = PrimitiveConfig(
                 id=entity_id,
-                type=entity.ontology_class,
+                type=entity.entity_class,
                 properties=entity.properties,
-                relationships=entity.relationships,
+                metadata={'name': entity.properties.get('name', entity_id)}
             )
-
-            # Add default product based on line for equipment
-            if entity.primitive_type == "EquipmentPrimitive":
-                if "LINE1" in entity_id:
-                    config.properties["default_product"] = "SKU-1001"
-                    config.properties["default_order"] = "ORD-1000"
-                elif "LINE2" in entity_id:
-                    config.properties["default_product"] = "SKU-1002"
-                    config.properties["default_order"] = "ORD-1001"
-                elif "LINE3" in entity_id:
-                    config.properties["default_product"] = "SKU-3001"
-                    config.properties["default_order"] = "ORD-1009"
+            
+            # Create primitive based on type
+            if primitive_type == "EquipmentPrimitive":
+                # Equipment with internal queues only!
+                primitive = primitive_class(
+                    env=self.env,
+                    config=config
+                )
+                # V2 equipment always uses internal queues
                 
-                # Add failure patterns from manifest based on equipment type
-                equipment_manifest = self.manifests.get("equipment_manifest", {})
-                failure_patterns = equipment_manifest.get("failure_patterns", {})
-                equipment_type = config.properties.get("type", "")
+            elif primitive_type == "SourcePrimitive":
+                primitive = primitive_class(
+                    env=self.env,
+                    config=config,
+                    downstream=None  # Will be wired to equipment input queue
+                )
                 
-                if equipment_type in failure_patterns:
-                    config.properties["failure_patterns"] = failure_patterns[equipment_type]
-
-            # Special handling for equipment with buffers
-            if entity.primitive_type == "EquipmentPrimitive":
-                # Will wire buffers in relationship phase
-                primitive = primitive_class(env, config)
+            elif primitive_type == "SinkPrimitive":
+                primitive = primitive_class(
+                    env=self.env,
+                    config=config,
+                    upstream=None  # Will be wired to equipment output queue
+                )
+                
             else:
-                # Create primitive
-                primitive = primitive_class(env, config)
-
+                # Generic primitive creation
+                primitive = primitive_class(env=self.env, config=config)
+                
             self.primitives[entity_id] = primitive
-
-    def _auto_wire_lines(self) -> None:
-        """Automatically wire production lines based on naming patterns.
+            
+        logger.info(f"Created {len(self.primitives)} primitives")
+    
+    def _wire_connections(self) -> None:
+        """Wire direct equipment-to-equipment connections using internal queues.
         
-        This creates the flow connections between sources, buffers, equipment, and sinks
-        based on their IDs and types. Standard pattern:
-        SRC → BUF-IN → Equipment → Buffers → Equipment → BUF-OUT → SINK
+        This is the key difference in V2:
+        - NO separate buffer entities
+        - Direct equipment connections via internal queues
+        - Source feeds first equipment's input queue
+        - Sink collects from last equipment's output queue
         """
-        # Group entities by line
-        lines: Dict[str, Dict[str, Any]] = {}
-        
-        for entity_id, entity in self.entities.items():
-            line_id = entity.properties.get("line_id")
-            if not line_id:
-                # Try to extract line ID from entity name (e.g., LINE1-FIL -> LINE1)
-                if entity_id.startswith("LINE"):
-                    parts = entity_id.split("-")
-                    if len(parts) > 1:
-                        line_id = parts[0]
+        for line_id, line_config in self.lines.items():
+            # Get equipment in sequence
+            equipment_sequence = line_config.get_equipment_sequence()
             
-            if line_id:
-                if line_id not in lines:
-                    lines[line_id] = {
-                        "source": None,
-                        "sink": None,
-                        "equipment": [],
-                        "buffers": []
-                    }
-                
-                # Categorize by type
-                if "SRC" in entity_id or entity.primitive_type == "SourcePrimitive":
-                    lines[line_id]["source"] = entity_id
-                elif "SINK" in entity_id or entity.primitive_type == "SinkPrimitive":
-                    lines[line_id]["sink"] = entity_id
-                elif "BUF" in entity_id or entity.primitive_type == "BufferPrimitive":
-                    lines[line_id]["buffers"].append(entity_id)
-                elif entity.primitive_type == "EquipmentPrimitive":
-                    lines[line_id]["equipment"].append(entity_id)
-        
-        # Wire each line
-        for line_id, components in lines.items():
-            # Build the flow sequence
-            sequence = []
-            
-            # Start with source
-            if components["source"]:
-                sequence.append(components["source"])
-            
-            # Sort components by name to maintain order
-            buffers = sorted(components["buffers"])
-            equipment = sorted(components["equipment"])
-            
-            # Expected pattern for each line:
-            # SRC → BUF-IN → FIL → BUF-1 → PCK → BUF-2 → PAL → BUF-OUT → SINK
-            
-            # Add input buffer if it exists
-            buf_in = f"{line_id}-BUF-IN"
-            if buf_in in buffers:
-                sequence.append(buf_in)
-            
-            # Add filler
-            filler = f"{line_id}-FIL"
-            if filler in equipment:
-                sequence.append(filler)
-            
-            # Add buffer 1
-            buf_1 = f"{line_id}-BUF-1"
-            if buf_1 in buffers:
-                sequence.append(buf_1)
-            
-            # Add packer
-            packer = f"{line_id}-PCK"
-            if packer in equipment:
-                sequence.append(packer)
-            
-            # Add buffer 2
-            buf_2 = f"{line_id}-BUF-2"
-            if buf_2 in buffers:
-                sequence.append(buf_2)
-            
-            # Add palletizer
-            palletizer = f"{line_id}-PAL"
-            if palletizer in equipment:
-                sequence.append(palletizer)
-            
-            # Add output buffer
-            buf_out = f"{line_id}-BUF-OUT"
-            if buf_out in buffers:
-                sequence.append(buf_out)
-            
-            # End with sink
-            if components["sink"]:
-                sequence.append(components["sink"])
-            
-            # Create relationships between consecutive items in sequence
-            for i in range(len(sequence) - 1):
-                current_id = sequence[i]
-                next_id = sequence[i + 1]
-                
-                # Add feeds_into relationship
-                if current_id in self.entities:
-                    if "feeds_into" not in self.entities[current_id].relationships:
-                        self.entities[current_id].relationships["feeds_into"] = []
-                    if next_id not in self.entities[current_id].relationships["feeds_into"]:
-                        self.entities[current_id].relationships["feeds_into"].append(next_id)
-                
-                # Add draws_from relationship (inverse)
-                if next_id in self.entities:
-                    if "draws_from" not in self.entities[next_id].relationships:
-                        self.entities[next_id].relationships["draws_from"] = []
-                    if current_id not in self.entities[next_id].relationships["draws_from"]:
-                        self.entities[next_id].relationships["draws_from"].append(current_id)
-            
-            # Log the wiring for debugging
-            if sequence:
-                logger.info(
-                    f"Auto-wired {line_id}",
-                    extra={
-                        "extra_data": {
-                            "sequence": " → ".join(sequence),
-                            "equipment_count": len(equipment),
-                            "buffer_count": len(buffers)
-                        }
-                    }
-                )
-
-    def _wire_relationships(self) -> None:
-        """Wire relationships between primitives."""
-        for entity_id, entity in self.entities.items():
-            primitive = self.primitives.get(entity_id)
-
-            if not primitive:
+            if not equipment_sequence:
+                logger.warning(f"No equipment in line {line_id}")
                 continue
-
-            # Process each relationship type
-            for rel_type, target_ids in entity.relationships.items():
-                for target_id in target_ids:
-                    target = self.primitives.get(target_id)
-
-                    if not target:
-                        continue
-
-                    # Wire based on relationship type
-                    if rel_type == "feeds_into":
-                        # Set downstream connection
-                        if hasattr(primitive, "downstream"):
-                            primitive.downstream = target
-
-                        # For equipment, also set buffer connections
-                        if isinstance(primitive, EquipmentPrimitive):
-                            if isinstance(target, BufferPrimitive):
-                                primitive.downstream = target
-
-                    elif rel_type == "draws_from":
-                        # Set upstream connection
-                        if hasattr(primitive, "upstream"):
-                            primitive.upstream = target
-
-                        # For equipment, also set buffer connections
-                        if isinstance(primitive, EquipmentPrimitive):
-                            if isinstance(target, BufferPrimitive):
-                                primitive.upstream = target
-
-                    # Track relationship in primitive
-                    primitive.connect_to(target, rel_type)
-
-    def _create_production_lines(self) -> None:
-        """Create production line structures."""
-        # Group entities by line
-        lines: Dict[str, Dict[str, Any]] = {}
-
-        for entity_id, entity in self.entities.items():
-            # Get line ID from properties or relationships
-            line_id = entity.properties.get("line_id", "DEFAULT")
-
-            if line_id not in lines:
-                lines[line_id] = {
-                    "equipment": [],
-                    "buffers": [],
-                    "source": None,
-                    "sink": None,
-                }
-
-            # Categorize by type
-            if entity.ontology_class == "Source":
-                lines[line_id]["source"] = self.primitives[entity_id]
-            elif entity.ontology_class == "Sink":
-                lines[line_id]["sink"] = self.primitives[entity_id]
-            elif entity.ontology_class == "Buffer":
-                lines[line_id]["buffers"].append(self.primitives[entity_id])
-            elif entity.ontology_class in [
-                "Equipment",
-                "Filler",
-                "Packer",
-                "Palletizer",
-            ]:
-                lines[line_id]["equipment"].append(self.primitives[entity_id])
-
-        self.production_lines = lines
-
-    def _setup_scheduler(self, env: simpy.Environment) -> Optional[SchedulerPrimitive]:
-        """Setup scheduler if configured.
-
-        Args:
-            env: SimPy environment
-
-        Returns:
-            Scheduler primitive or None
-        """
-        # Check for scheduler in manifests
-        scheduler_config = self.manifests.get("schedule_manifest", {})
-
-        if not scheduler_config and "SCHEDULER" not in self.primitives:
-            # Create default scheduler
-            config = PrimitiveConfig(
-                id="SCHEDULER-DEFAULT",
-                type="Scheduler",
-                properties={
-                    "schedule_horizon": 10080,  # 1 week
-                    "optimization_mode": "FIFO",
-                },
+                
+            # Get primitives
+            equipment_primitives = []
+            for entity in equipment_sequence:
+                primitive = self.primitives.get(entity.entity_id)
+                if primitive:
+                    equipment_primitives.append(primitive)
+                    
+            if not equipment_primitives:
+                logger.warning(f"No equipment primitives for line {line_id}")
+                continue
+                
+            # Wire source to first equipment
+            if line_config.source:
+                source_primitive = self.primitives.get(line_config.source.entity_id)
+                if source_primitive and equipment_primitives:
+                    first_equipment = equipment_primitives[0]
+                    if hasattr(first_equipment, 'input_queue'):
+                        source_primitive.downstream = first_equipment.input_queue
+                        logger.debug(f"Connected {line_config.source.entity_id} to {first_equipment.config.id}.input_queue")
+                    else:
+                        logger.error(f"Equipment {first_equipment.config.id} has no input_queue!")
+                        
+            # Wire equipment to equipment
+            for i in range(len(equipment_primitives) - 1):
+                current = equipment_primitives[i]
+                next_eq = equipment_primitives[i + 1]
+                
+                if hasattr(current, 'connect_to'):
+                    current.connect_to(next_eq)
+                    logger.debug(f"Connected {current.config.id} to {next_eq.config.id}")
+                else:
+                    # Manual connection if connect_to not available
+                    if hasattr(current, 'output_queue') and hasattr(next_eq, 'input_queue'):
+                        current.downstream_equipment = next_eq
+                        next_eq.upstream_equipment = current
+                        logger.debug(f"Manually connected {current.config.id} to {next_eq.config.id}")
+                        
+            # Wire last equipment to sink
+            if line_config.sink and equipment_primitives:
+                sink_primitive = self.primitives.get(line_config.sink.entity_id)
+                last_equipment = equipment_primitives[-1]
+                if sink_primitive and hasattr(last_equipment, 'output_queue'):
+                    sink_primitive.upstream = last_equipment.output_queue
+                    last_equipment.downstream = sink_primitive
+                    logger.debug(f"Connected {last_equipment.config.id}.output_queue to {line_config.sink.entity_id}")
+                    
+        logger.info("Wiring complete - internal queues only, no buffers!")
+    
+    def _create_scheduler(self) -> Optional[SchedulerPrimitive]:
+        """Create scheduler and load production orders."""
+        # Check if production manifest exists
+        production_manifest = self.manifests.get('production_manifest', {})
+        if not production_manifest:
+            logger.info("No production manifest found")
+            return None
+            
+        orders_data = production_manifest.get('production_orders', [])
+        if not orders_data:
+            logger.info("No production orders found")
+            return None
+            
+        # Create scheduler
+        scheduler_config = PrimitiveConfig(
+            id="SCHEDULER",
+            type="Scheduler",
+            properties={'schedule_horizon': 7},
+            metadata={'name': 'Production Scheduler'}
+        )
+        scheduler = SchedulerPrimitive(env=self.env, config=scheduler_config)
+        
+        # Register sources with scheduler
+        for line_id, line_config in self.lines.items():
+            if line_config.source:
+                source_primitive = self.primitives.get(line_config.source.entity_id)
+                if source_primitive:
+                    scheduler.register_source(line_id, source_primitive)
+                    
+        # Load production orders
+        products = production_manifest.get('products', {})
+        for order_data in orders_data:
+            # Create production order
+            product_id = order_data.get('product_id')
+            product_info = products.get(product_id, {})
+            
+            order = scheduler.create_production_order(
+                order_id=order_data.get('order_id'),
+                product_id=product_id,
+                product_name=product_info.get('name', product_id),
+                target_quantity=order_data.get('target_quantity'),
+                start_time=order_data.get('start_time', 0),
+                line_id=order_data.get('line_id'),
+                priority=order_data.get('priority', 1)
             )
-
-            scheduler = SchedulerPrimitive(env, config)
-            self.primitives["SCHEDULER-DEFAULT"] = scheduler
-
-            # Register equipment with scheduler
-            for entity_id, primitive in self.primitives.items():
-                if isinstance(primitive, EquipmentPrimitive):
-                    scheduler.register_equipment(entity_id, primitive)
             
-            # Register sources with scheduler for order-driven production
-            from twin_model.primitives.source import SourcePrimitive
-            from twin_model.primitives.scheduler import ProductionOrder
+            scheduler.add_production_order(order)
             
-            for entity_id, primitive in self.primitives.items():
-                if isinstance(primitive, SourcePrimitive):
-                    line_id = primitive.config.get_property("line_id", "DEFAULT")
-                    scheduler.register_source(line_id, primitive)
-                    logger.info(f"Registered source {entity_id} with scheduler for line {line_id}")
-            
-            # Load production orders from manifest
-            production_manifest = self.manifests.get("production_manifest", {})
-            production_orders = production_manifest.get("production_orders", [])
-            
-            for order_data in production_orders:
-                order = ProductionOrder(
-                    order_id=order_data["order_id"],
-                    product_id=order_data["product_id"],
-                    target_quantity=order_data["target_quantity"],
-                    due_time=order_data.get("start_time", 0) + order_data.get("duration", 60),
-                    line_id=order_data["line_id"],
-                    priority=order_data.get("priority", 5)
-                )
-                scheduler.add_production_order(order)
-                logger.info(f"Added production order {order.order_id} for {order.target_quantity} units of {order.product_id}")
-
-            return scheduler
-
-        # Return existing scheduler if present
-        for primitive in self.primitives.values():
-            if isinstance(primitive, SchedulerPrimitive):
-                return primitive
-
-        return None
-
-    def _setup_monitor(self, env: simpy.Environment) -> Optional[MonitorPrimitive]:
-        """Setup monitor if configured.
-
-        Args:
-            env: SimPy environment
-
-        Returns:
-            Monitor primitive or None
-        """
-        # Check for monitor in manifests
-        monitor_config = self.manifests.get("monitor_manifest", {})
-
-        if not monitor_config and "MONITOR" not in self.primitives:
-            # Create default monitor
-            config = PrimitiveConfig(
-                id="MONITOR-DEFAULT",
+        logger.info(f"Created scheduler with {len(orders_data)} orders")
+        return scheduler
+    
+    def _create_monitors(self) -> List[MonitorPrimitive]:
+        """Create monitors for KPI tracking."""
+        monitors = []
+        
+        # Create a monitor for each line
+        for line_id, line_config in self.lines.items():
+            monitor_config = PrimitiveConfig(
+                id=f"MONITOR-{line_id}",
                 type="Monitor",
-                properties={
-                    "update_interval": 5.0,
-                    "aggregation_window": 60.0,
-                    "kpi_definitions": {
-                        "overall_oee": {"type": "OEE", "target": 65.0, "unit": "%"},
-                        "throughput": {
-                            "type": "THROUGHPUT",
-                            "target": 50.0,
-                            "unit": "units/min",
-                        },
-                        "availability": {
-                            "type": "AVAILABILITY",
-                            "target": 90.0,
-                            "unit": "%",
-                        },
-                        "quality": {"type": "QUALITY", "target": 98.0, "unit": "%"},
-                    },
-                },
+                properties={'monitoring_interval': 5.0},
+                metadata={'name': f"Monitor for {line_id}"}
             )
-
-            monitor = MonitorPrimitive(env, config)
-            self.primitives["MONITOR-DEFAULT"] = monitor
-
-            # Register all primitives with monitor
-            for entity_id, primitive in self.primitives.items():
-                if entity_id not in ["MONITOR-DEFAULT", "SCHEDULER-DEFAULT"]:
-                    monitor.register_primitive(entity_id, primitive)
-
-            return monitor
-
-        # Return existing monitor if present
-        for primitive in self.primitives.values():
-            if isinstance(primitive, MonitorPrimitive):
-                return primitive
-
-        return None
-
-    def _start_all_primitives(self) -> None:
-        """Start all instantiated primitives."""
-        # Start in order: Buffers, Sources, Equipment, Sinks, Scheduler, Monitor
-        start_order = [
-            BufferPrimitive,
-            SourcePrimitive,
-            EquipmentPrimitive,
-            SinkPrimitive,
-            SchedulerPrimitive,
-            MonitorPrimitive,
-        ]
-
-        for primitive_class in start_order:
-            for primitive in self.primitives.values():
-                if isinstance(primitive, primitive_class) and not primitive.is_running:
-                    primitive.start()
-
-    def get_controllable_parameters(self) -> Dict[str, Any]:
-        """Get controllable parameters from ontology.
-
-        Returns:
-            Dictionary of parameter names to definitions
-        """
-        return self.ontology.get("controllables", {})  # type: ignore[no-any-return]
-
-    def apply_parameter_changes(self, parameters: Dict[str, float]) -> None:
-        """Apply parameter changes to running model.
-
-        Args:
-            parameters: Dictionary of parameter name to value
-        """
-        # This would be implemented to apply parameters to primitives
-        # For now, parameters would be read from manifests
-        pass
-
-    def get_observables(self) -> Dict[str, List[Dict[str, Any]]]:
-        """Get all observables from primitives.
-
-        Returns:
-            Dictionary of primitive ID to observable list
-        """
-        observables = {}
-
+            monitor = MonitorPrimitive(env=self.env, config=monitor_config)
+            
+            # Register equipment with monitor
+            # Note: V2 monitor has different interface
+            # for entity in line_config.equipment:
+            #     primitive = self.primitives.get(entity.entity_id)
+            #     if primitive:
+            #         monitor.register_equipment(primitive)
+                    
+            monitors.append(monitor)
+            
+        logger.info(f"Created {len(monitors)} monitors")
+        return monitors
+    
+    def _apply_control_parameters(self) -> None:
+        """Apply control system parameters to primitives."""
+        if not self.control_manager:
+            return
+            
+        # Get current parameters
+        params = self.control_manager.get_all_parameters()
+        
+        # Apply to equipment
         for entity_id, primitive in self.primitives.items():
-            if hasattr(primitive, "observables"):
-                observables[entity_id] = primitive.observables
-
-        return observables  # type: ignore[return-value]
-
-    def get_model_structure(self) -> Dict[str, Any]:
-        """Get model structure for analysis.
-
+            if hasattr(primitive, 'performance_factor'):  # Check if it's equipment
+                # Apply performance parameters
+                if 'performance_factor' in params:
+                    primitive.performance_factor = params['performance_factor']
+                    
+                # Apply failure parameters  
+                if 'micro_stop_probability' in params:
+                    primitive.micro_stop_probability = params['micro_stop_probability']
+                    primitive.config.properties['micro_stop_probability'] = params['micro_stop_probability']
+                    
+                # Apply quality parameters
+                if 'scrap_rate' in params:
+                    primitive.scrap_rate = params['scrap_rate']
+                    primitive.config.properties['scrap_rate'] = params['scrap_rate']
+                    
+        logger.info("Applied control parameters to primitives")
+    
+    def start_processes(self) -> None:
+        """Start all simulation processes."""
+        if not self.built:
+            raise RuntimeError("Model must be built before starting processes")
+            
+        # Start equipment processes
+        for entity_id, primitive in self.primitives.items():
+            if hasattr(primitive, 'run'):
+                self.env.process(primitive.run())
+                logger.debug(f"Started process for {entity_id}")
+                
+        logger.info("All simulation processes started")
+    
+    def get_line_status(self, line_id: str) -> Dict[str, Any]:
+        """Get current status of a production line.
+        
+        Args:
+            line_id: Line identifier
+            
         Returns:
-            Dictionary describing model structure
+            Status dictionary
         """
-        return {
-            "entities": {
-                entity_id: {
-                    "class": entity.ontology_class,
-                    "primitive": entity.primitive_type,
-                    "relationships": entity.relationships,
-                }
-                for entity_id, entity in self.entities.items()
-            },
-            "lines": {
-                line_id: {
-                    "equipment_count": len(line["equipment"]),
-                    "buffer_count": len(line["buffers"]),
-                    "has_source": line["source"] is not None,
-                    "has_sink": line["sink"] is not None,
-                }
-                for line_id, line in self.production_lines.items()
-            },
-            "controllables": list(self.get_controllable_parameters().keys()),
-            "observable_types": list(self.ontology.get("observables", {}).keys()),
+        if line_id not in self.lines:
+            return {'error': f"Unknown line: {line_id}"}
+            
+        line_config = self.lines[line_id]
+        status = {
+            'line_id': line_id,
+            'equipment': []
         }
+        
+        for entity in line_config.get_equipment_sequence():
+            primitive = self.primitives.get(entity.entity_id)
+            if primitive and isinstance(primitive, EquipmentPrimitive):
+                eq_status = {
+                    'id': entity.entity_id,
+                    'state': primitive.state.value if hasattr(primitive, 'state') else 'UNKNOWN',
+                    'units_produced': getattr(primitive, 'units_produced', 0),
+                    'units_scrapped': getattr(primitive, 'units_scrapped', 0)
+                }
+                
+                # Add queue levels if using internal queues
+                if hasattr(primitive, 'input_queue'):
+                    eq_status['input_queue_level'] = len(primitive.input_queue.items)
+                if hasattr(primitive, 'output_queue'):
+                    eq_status['output_queue_level'] = len(primitive.output_queue.items)
+                    
+                status['equipment'].append(eq_status)
+                
+        return status
+    
+    def describe_model(self) -> str:
+        """Get human-readable description of the model.
+        
+        Returns:
+            Description string
+        """
+        desc = "=== Twin Model V2 ===\n"
+        desc += f"Lines: {len(self.lines)}\n"
+        desc += f"Entities: {len(self.entities)}\n"
+        desc += f"Primitives: {len(self.primitives)}\n\n"
+        
+        for line_id, line_config in self.lines.items():
+            desc += f"Line {line_id}:\n"
+            
+            if line_config.source:
+                desc += f"  Source: {line_config.source.entity_id}\n"
+                
+            desc += "  Equipment chain:\n"
+            for entity in line_config.get_equipment_sequence():
+                desc += f"    {entity.entity_id} (pos {entity.properties.get('position', 0)})\n"
+                
+            if line_config.sink:
+                desc += f"  Sink: {line_config.sink.entity_id}\n"
+                
+            desc += "\n"
+            
+        desc += "Material flow: Source → Equipment.input_queue → Process → Equipment.output_queue → Next\n"
+        desc += "NO BUFFERS - Internal queues only!\n"
+        
+        return desc

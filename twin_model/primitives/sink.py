@@ -1,395 +1,358 @@
-"""Sink primitive for product collection in manufacturing.
+"""Sink primitive V2 for collecting from equipment output queues.
 
-This module provides a sink primitive that collects finished products
-exiting the production system. It tracks throughput, quality metrics,
-and delivery performance.
+This module provides sink primitives that collect directly from
+equipment output queues. NO BUFFERS - direct connection only.
 """
 
-from typing import Optional, Generator, Dict, Any, List
+from typing import Optional, Generator, Union, Dict, Any, List
 from dataclasses import dataclass, field
 import simpy
+import logging
 
-from .base import BasePrimitive, PrimitiveConfig
+from .base import BasePrimitive, PrimitiveConfig, SamplingConfig
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class CollectedProduct:
-    """Product collected by sink with metadata.
-
-    Attributes:
-        product_id: Product identifier
-        order_id: Associated production order
-        collection_time: Simulation time when collected
-        quality: Quality status
-        lead_time: Time from order to collection
-        metadata: Additional product data
-    """
-
+    """Represents a collected finished product."""
+    
     product_id: str
     order_id: Optional[str]
-    collection_time: float
-    quality: str = "good"
-    lead_time: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    quality: float
+    collected_time: float
+    source_equipment: Optional[str] = None
 
 
-class SinkPrimitive(BasePrimitive):
-    """Generic sink that collects finished products.
+@dataclass
+class OrderTracking:
+    """Tracks order completion."""
+    
+    order_id: str
+    target_quantity: int
+    collected_quantity: int = 0
+    start_time: float = 0.0
+    completion_time: Optional[float] = None
+    
+    @property
+    def is_complete(self) -> bool:
+        """Check if order is complete."""
+        return self.collected_quantity >= self.target_quantity
+    
+    @property
+    def completion_percentage(self) -> float:
+        """Get completion percentage."""
+        return (self.collected_quantity / self.target_quantity * 100) if self.target_quantity > 0 else 0
 
-    Emits observables for:
-    - Product collection events
-    - Throughput metrics
-    - Quality statistics
-    - Order fulfillment
-    - Delivery performance
+
+class SinkPrimitiveV2(BasePrimitive):
+    """Sink that collects from equipment output queues.
+    
+    Key features:
+    - Direct connection to last equipment's output queue
+    - Order tracking and completion
+    - Throughput monitoring
+    - Quality tracking
+    - Collection rate limiting
     """
-
+    
     def __init__(
         self,
         env: simpy.Environment,
         config: PrimitiveConfig,
-        upstream: Optional[Any] = None,
+        upstream: Optional[Union[simpy.Store, Any]] = None,
+        sampling_config: Optional[SamplingConfig] = None
     ) -> None:
-        """Initialize sink with configuration.
-
+        """Initialize sink primitive.
+        
         Args:
             env: SimPy environment
-            config: Sink configuration containing:
-                - collection_rate: Maximum collection rate (units/minute)
-                - quality_threshold: Minimum quality score for acceptance
-                - target_throughput: Expected throughput for KPI
-                - order_tracking: Whether to track order fulfillment
-            upstream: Input buffer or equipment
+            config: Sink configuration
+            upstream: Equipment output queue or equipment with output_queue
+            sampling_config: Optional sampling configuration
         """
-        super().__init__(env, config)
-
-        # Connection
+        super().__init__(env, config, sampling_config)
+        
+        # Direct connection to equipment (NO BUFFERS!)
         self.upstream = upstream
-
+        
         # Sink parameters
-        self.collection_rate = config.get_property("collection_rate", float("inf"))
+        self.line_id = config.get_property("line_id", "LINE1")
+        self.collection_rate = config.get_property("collection_rate", 50.0)
         self.quality_threshold = config.get_property("quality_threshold", 0.0)
-        self.target_throughput = config.get_property("target_throughput", 50.0)
-        self.order_tracking = config.get_property("order_tracking", True)
-
+        self.target_throughput = config.get_property("target_throughput", 45.0)
+        self.order_tracking_enabled = config.get_property("order_tracking", True)
+        
         # Collection storage
         self.collected_products: List[CollectedProduct] = []
-
-        # Tracking metrics
         self.total_collected = 0
+        self.total_units_collected = 0  # Alias for compatibility
         self.total_rejected = 0
-        self.products_by_type: Dict[str, int] = {}
-        self.products_by_order: Dict[str, int] = {}
-
-        # Performance metrics
-        self.throughput_history: List[float] = []
-        self.quality_history: List[float] = []
-
-        # Order fulfillment tracking
-        self.pending_orders: Dict[str, Dict[str, Any]] = {}
-        self.completed_orders: List[Dict[str, Any]] = []
-
-    def start(self) -> None:
-        """Start the sink collection process."""
+        
+        # Order tracking
+        self.active_orders: Dict[str, OrderTracking] = {}
+        self.completed_orders: List[OrderTracking] = []
+        
+        # Throughput tracking
+        self.throughput_window = 60.0  # 1 hour window
+        self.recent_collections: List[float] = []  # Timestamps
+        
+        # State
         self.is_running = True
-        self.process = self.env.process(self.collect())
-        self.env.process(self.monitor_process())
-
-        self.emit_observable(
-            event_type="sink_started",
-            details={
-                "collection_rate": self.collection_rate,
-                "quality_threshold": self.quality_threshold,
-                "target_throughput": self.target_throughput,
-            },
-        )
-
-    def collect(self) -> Generator:
-        """Main collection process for products."""
+        self.is_collecting = False
+        
+        # Process reference
+        self.process = None
+        
+        logger.info(f"Sink {self.config.id} initialized for {self.line_id}")
+    
+    def set_upstream(self, upstream: Union[simpy.Store, Any]) -> None:
+        """Set upstream connection.
+        
+        Args:
+            upstream: Equipment output queue or equipment with output_queue
+        """
+        # Handle both direct queue and equipment with queue
+        if hasattr(upstream, 'output_queue'):
+            self.upstream = upstream.output_queue
+        else:
+            self.upstream = upstream
+            
+        logger.debug(f"{self.config.id}: Connected to upstream")
+    
+    def register_order(self, order_id: str, target_quantity: int) -> None:
+        """Register a production order for tracking.
+        
+        Args:
+            order_id: Order identifier
+            target_quantity: Expected quantity
+        """
+        if self.order_tracking_enabled:
+            self.active_orders[order_id] = OrderTracking(
+                order_id=order_id,
+                target_quantity=target_quantity,
+                start_time=self.env.now
+            )
+            
+            logger.info(f"{self.config.id}: Registered order {order_id} for {target_quantity} units")
+    
+    def run(self) -> Generator:
+        """Main sink collection process."""
         while self.is_running:
             try:
-                # Calculate collection interval based on rate
-                if self.collection_rate != float("inf"):
-                    collection_time = 1.0 / self.collection_rate
-                    yield self.env.timeout(collection_time)
-
-                # Get product from upstream if available
-                if self.upstream:
-                    if hasattr(self.upstream, "get"):
-                        # Get from buffer
-                        items = yield from self.upstream.get(1)
-                        if items:
-                            product_info = items[0] if isinstance(items, list) else items
-                            yield from self._process_product(product_info)
-                    elif hasattr(self.upstream, "is_empty"):
-                        # Check if upstream has products
-                        if not self.upstream.is_empty():
-                            # Simulate collection
-                            yield from self._process_product({"product_id": "UNKNOWN"})
-                        else:
-                            # Wait if no products available
-                            yield self.env.timeout(0.1)
-                    else:
-                        # Direct collection without buffer
-                        yield from self._process_product({"product_id": "DIRECT"})
-                else:
-                    # No upstream, just track time
-                    yield self.env.timeout(1.0)
-
-            except simpy.Interrupt as interrupt:
-                # Handle collection interruptions
-                yield from self._handle_interrupt(interrupt)
-
-    def _process_product(self, product_info: Any) -> Generator:
-        """Process a collected product.
-
-        Args:
-            product_info: Product information (dict or BufferItem)
-        """
-        # Extract product details
-        if hasattr(product_info, "product_id"):
-            product_id = product_info.product_id
-            quality = getattr(product_info, "quality", "good")
-            metadata = getattr(product_info, "metadata", {})
-        elif isinstance(product_info, dict):
-            product_id = product_info.get("product_id", "UNKNOWN")
-            quality = product_info.get("quality", "good")
-            metadata = product_info
-        else:
-            product_id = "UNKNOWN"
-            quality = "good"
-            metadata = {}
-
-        # Quality check
-        quality_score = metadata.get("quality_score", 1.0 if quality == "good" else 0.0)
-
-        if quality_score >= self.quality_threshold:
-            # Accept product
-            order_id = metadata.get("order_id")
-
-            collected = CollectedProduct(
-                product_id=product_id,
-                order_id=order_id,
-                collection_time=self.env.now,
-                quality=quality,
-                metadata=metadata,
-            )
-
+                # Check for products to collect
+                if not self.upstream:
+                    logger.warning(f"{self.config.id}: No upstream connection")
+                    yield self.env.timeout(1)
+                    continue
+                
+                if hasattr(self.upstream, 'items') and len(self.upstream.items) == 0:
+                    # No products available
+                    self.is_collecting = False
+                    yield self.env.timeout(0.1)  # Check every 0.1 minutes
+                    continue
+                
+                # Collect product
+                yield from self._collect_product()
+                
+                # Rate limiting
+                collection_interval = 1.0 / self.collection_rate
+                yield self.env.timeout(collection_interval)
+                
+            except Exception as e:
+                logger.error(f"{self.config.id}: Error in collection: {e}")
+                yield self.env.timeout(1)
+    
+    def _collect_product(self) -> Generator:
+        """Collect a single product from upstream."""
+        self.is_collecting = True
+        
+        # Get product from upstream queue
+        if hasattr(self.upstream, 'get'):
+            product = yield self.upstream.get()
+            
+            # Check if it's a ProductionUnit
+            from .equipment import ProductionUnit
+            if isinstance(product, ProductionUnit):
+                # Quality check
+                if product.quality < self.quality_threshold:
+                    self.total_rejected += 1
+                    self.emit_observable("product_rejected", {
+                        "sink_id": self.config.id,
+                        "product_id": product.product_id,
+                        "quality": product.quality
+                    })
+                    return
+                
+                # Create collected product record
+                collected = CollectedProduct(
+                    product_id=product.product_id,
+                    order_id=product.order_id,
+                    quality=product.quality,
+                    collected_time=self.env.now
+                )
+            else:
+                # Generic product
+                collected = CollectedProduct(
+                    product_id="UNKNOWN",
+                    order_id=None,
+                    quality=1.0,
+                    collected_time=self.env.now
+                )
+            
+            # Store collected product
             self.collected_products.append(collected)
             self.total_collected += 1
-
-            # Update product type tracking
-            self.products_by_type[product_id] = self.products_by_type.get(product_id, 0) + 1
-
+            self.total_units_collected += 1  # Update alias
+            
             # Update order tracking
-            if order_id:
-                self.products_by_order[order_id] = self.products_by_order.get(order_id, 0) + 1
-                yield from self._update_order_fulfillment(order_id, product_id)
-
-            self.emit_observable(
-                event_type="product_collected",
-                details={
-                    "product": product_id,
-                    "order": order_id,
-                    "quality": quality,
-                    "quality_score": quality_score,
-                    "total_collected": self.total_collected,
-                    "collection_rate": self._calculate_current_rate(),
-                },
-            )
-
-        else:
-            # Reject product
-            self.total_rejected += 1
-
-            self.emit_observable(
-                event_type="product_rejected",
-                details={
-                    "product": product_id,
-                    "quality_score": quality_score,
-                    "threshold": self.quality_threshold,
-                    "total_rejected": self.total_rejected,
-                },
-                severity="WARNING",
-            )
-
-        # Small processing time
-        yield self.env.timeout(0.01)
-
-    def _update_order_fulfillment(self, order_id: str, product_id: str) -> Generator:
-        """Update order fulfillment tracking.
-
+            if self.order_tracking_enabled and collected.order_id:
+                self._update_order_tracking(collected.order_id)
+            
+            # Update throughput tracking
+            self.recent_collections.append(self.env.now)
+            self._clean_throughput_window()
+            
+            # Emit collection event
+            self.emit_observable("product_collected", {
+                "sink_id": self.config.id,
+                "product_id": collected.product_id,
+                "order_id": collected.order_id,
+                "total_collected": self.total_collected
+            })
+    
+    def _update_order_tracking(self, order_id: str) -> None:
+        """Update order tracking for collected product.
+        
         Args:
-            order_id: Production order ID
-            product_id: Product ID
+            order_id: Order identifier
         """
-        if order_id not in self.pending_orders:
-            # New order
-            self.pending_orders[order_id] = {
-                "start_time": self.env.now,
-                "products": {},
-                "target_quantity": 1000,  # Would come from manifest
-            }
-
-        order = self.pending_orders[order_id]
-        order["products"][product_id] = order["products"].get(product_id, 0) + 1
-
-        # Check if order is complete
-        total_produced = sum(order["products"].values())
-        if total_produced >= order["target_quantity"]:
-            # Order complete
-            order["end_time"] = self.env.now
-            order["lead_time"] = order["end_time"] - order["start_time"]
-
-            self.completed_orders.append(order)
-            del self.pending_orders[order_id]
-
-            self.emit_observable(
-                event_type="order_completed",
-                details={
+        if order_id in self.active_orders:
+            order = self.active_orders[order_id]
+            order.collected_quantity += 1
+            
+            # Check if order is complete
+            if order.is_complete:
+                order.completion_time = self.env.now
+                self.completed_orders.append(order)
+                del self.active_orders[order_id]
+                
+                self.emit_observable("order_completed", {
+                    "sink_id": self.config.id,
                     "order_id": order_id,
-                    "lead_time": order["lead_time"],
-                    "total_quantity": total_produced,
-                    "product_mix": order["products"],
-                },
-            )
-
-        yield self.env.timeout(0)  # No actual delay
-
-    def _handle_interrupt(self, interrupt: simpy.Interrupt) -> Generator:
-        """Handle collection interruption.
-
-        Args:
-            interrupt: Interruption information
-        """
-        cause = interrupt.cause if isinstance(interrupt.cause, dict) else {}
-
-        self.emit_observable(
-            event_type="collection_interrupted",
-            details={
-                "reason": cause.get("reason", "unknown"),
-                "duration": cause.get("duration", 0),
-            },
-            severity="WARNING",
-        )
-
-        # Wait for interruption to clear
-        duration = cause.get("duration", 1.0)
-        yield self.env.timeout(duration)
-
-    def monitor_process(self) -> Generator:
-        """Background monitoring process."""
-        window_size = 5  # 5-minute windows for rate calculation
-
-        while self.is_running:
-            # Monitor every 5 minutes
-            yield self.env.timeout(window_size)
-
-            # Calculate throughput
-            current_rate = self._calculate_current_rate(window_size)
-            self.throughput_history.append(current_rate)
-
-            # Calculate quality rate
-            recent_products = [p for p in self.collected_products if p.collection_time >= self.env.now - window_size]
-
-            if recent_products:
-                quality_rate = sum(1 for p in recent_products if p.quality == "good") / len(recent_products)
-            else:
-                quality_rate = 0.0
-
-            self.quality_history.append(quality_rate)
-
-            # Check performance against target
-            performance = current_rate / self.target_throughput if self.target_throughput > 0 else 0
-
-            self.emit_observable(
-                event_type="sink_monitor",
-                details={
-                    "throughput": current_rate,
-                    "target_throughput": self.target_throughput,
-                    "performance": performance,
-                    "quality_rate": quality_rate,
-                    "total_collected": self.total_collected,
-                    "total_rejected": self.total_rejected,
-                    "pending_orders": len(self.pending_orders),
-                    "completed_orders": len(self.completed_orders),
-                },
-                severity="DEBUG",
-            )
-
-            # Alert if below target
-            if performance < 0.9:  # Below 90% of target
-                self.emit_observable(
-                    event_type="throughput_below_target",
-                    details={
-                        "actual": current_rate,
-                        "target": self.target_throughput,
-                        "gap": self.target_throughput - current_rate,
-                    },
-                    severity="WARNING",
-                )
-
-    def _calculate_current_rate(self, window: float = 1.0) -> float:
-        """Calculate current collection rate.
-
-        Args:
-            window: Time window in minutes
-
+                    "quantity": order.collected_quantity,
+                    "duration": order.completion_time - order.start_time
+                })
+                
+                logger.info(f"{self.config.id}: Order {order_id} completed")
+    
+    def _clean_throughput_window(self) -> None:
+        """Remove old timestamps from throughput tracking."""
+        cutoff_time = self.env.now - self.throughput_window
+        self.recent_collections = [
+            t for t in self.recent_collections if t > cutoff_time
+        ]
+    
+    def get_current_throughput(self) -> float:
+        """Calculate current throughput rate.
+        
         Returns:
-            Collection rate (units/minute)
+            Units per minute
         """
-        recent_count = sum(1 for p in self.collected_products if p.collection_time >= self.env.now - window)
-        return recent_count / window if window > 0 else 0
-
+        self._clean_throughput_window()
+        
+        if len(self.recent_collections) < 2:
+            return 0.0
+        
+        time_span = self.env.now - self.recent_collections[0]
+        if time_span > 0:
+            return len(self.recent_collections) / time_span * 60  # Convert to per minute
+        
+        return 0.0
+    
     def get_statistics(self) -> Dict[str, Any]:
         """Get sink statistics.
-
+        
         Returns:
-            Dictionary of sink metrics
+            Statistics dictionary
         """
-        total_processed = self.total_collected + self.total_rejected
-        acceptance_rate = self.total_collected / total_processed if total_processed > 0 else 0
-
-        avg_throughput = sum(self.throughput_history) / len(self.throughput_history) if self.throughput_history else 0
-
-        avg_quality = sum(self.quality_history) / len(self.quality_history) if self.quality_history else 0
-
-        return {
+        throughput = self.get_current_throughput()
+        
+        stats = {
             "total_collected": self.total_collected,
             "total_rejected": self.total_rejected,
-            "acceptance_rate": acceptance_rate,
-            "average_throughput": avg_throughput,
-            "current_throughput": self._calculate_current_rate(),
-            "average_quality": avg_quality,
-            "products_by_type": dict(self.products_by_type),
-            "completed_orders": len(self.completed_orders),
-            "pending_orders": len(self.pending_orders),
-            "performance_vs_target": avg_throughput / self.target_throughput if self.target_throughput > 0 else 0,
+            "current_throughput": throughput,
+            "target_throughput": self.target_throughput,
+            "throughput_achievement": (throughput / self.target_throughput * 100) if self.target_throughput > 0 else 0,
+            "active_orders": len(self.active_orders),
+            "completed_orders": len(self.completed_orders)
         }
-
-    def get_order_metrics(self) -> Dict[str, Any]:
-        """Get order fulfillment metrics.
-
+        
+        # Add quality statistics
+        if self.collected_products:
+            qualities = [p.quality for p in self.collected_products[-100:]]  # Last 100
+            stats["average_quality"] = sum(qualities) / len(qualities)
+            stats["min_quality"] = min(qualities)
+            stats["max_quality"] = max(qualities)
+        
+        return stats
+    
+    def get_order_status(self, order_id: Optional[str] = None) -> Union[OrderTracking, Dict[str, OrderTracking], None]:
+        """Get status of specific order or all orders.
+        
+        Args:
+            order_id: Optional specific order ID
+            
         Returns:
-            Dictionary of order-related metrics
+            Order tracking information
         """
-        if not self.completed_orders:
-            return {"orders_completed": 0, "avg_lead_time": 0, "on_time_delivery": 0}
-
-        lead_times = [o["lead_time"] for o in self.completed_orders]
-        avg_lead_time = sum(lead_times) / len(lead_times)
-
-        # Consider on-time if lead time < target (would come from manifest)
-        target_lead_time = 480  # 8 hours default
-        on_time = sum(1 for lt in lead_times if lt <= target_lead_time)
-        on_time_rate = on_time / len(lead_times)
-
-        return {
-            "orders_completed": len(self.completed_orders),
-            "orders_pending": len(self.pending_orders),
-            "avg_lead_time": avg_lead_time,
-            "min_lead_time": min(lead_times),
-            "max_lead_time": max(lead_times),
-            "on_time_delivery": on_time_rate,
-            "products_by_order": dict(self.products_by_order),
-        }
+        if order_id:
+            # Check active orders
+            if order_id in self.active_orders:
+                return self.active_orders[order_id]
+            
+            # Check completed orders
+            for order in self.completed_orders:
+                if order.order_id == order_id:
+                    return order
+            
+            return None
+        else:
+            # Return all orders
+            return {
+                "active": self.active_orders,
+                "completed": self.completed_orders
+            }
+    
+    def get_products_by_order(self, order_id: str) -> List[CollectedProduct]:
+        """Get all products collected for a specific order.
+        
+        Args:
+            order_id: Order identifier
+            
+        Returns:
+            List of collected products
+        """
+        return [p for p in self.collected_products if p.order_id == order_id]
+    
+    def stop(self) -> None:
+        """Stop sink collection."""
+        self.is_running = False
+        logger.info(f"{self.config.id}: Sink stopped")
+    
+    def reset_statistics(self) -> None:
+        """Reset collection statistics."""
+        self.collected_products.clear()
+        self.total_collected = 0
+        self.total_rejected = 0
+        self.recent_collections.clear()
+        
+        logger.info(f"{self.config.id}: Statistics reset")
+    
+    def start(self) -> None:
+        """Start the sink collection process.
+        
+        Implements the abstract start method from BasePrimitive.
+        """
+        self.process = self.env.process(self.run())

@@ -1,0 +1,335 @@
+# Control Mappings Configuration
+# Defines how actionable controls affect simulation parameters
+# Based on research and industry best practices
+
+metadata:
+  name: "Control to Parameter Mappings"
+  version: "1.0.0"
+  description: "Mathematical relationships between plant manager controls and simulation behavior"
+  created: "2024-12-20"
+  author: "Virtual Twin System"
+
+# ====================================================================================
+# MAPPING FUNCTIONS - Reusable transformation functions
+# ====================================================================================
+mapping_functions:
+  linear:
+    description: "Linear relationship: output = base + coefficient * input"
+    parameters: ["base", "coefficient", "min", "max"]
+    
+  exponential:
+    description: "Exponential growth: output = base * exp(coefficient * input)"
+    parameters: ["base", "coefficient", "max"]
+    
+  logarithmic:
+    description: "Diminishing returns: output = base * log(1 + coefficient * input)"
+    parameters: ["base", "coefficient"]
+    
+  stepped:
+    description: "Discrete steps based on input thresholds"
+    parameters: ["thresholds", "values"]
+    
+  polynomial:
+    description: "Polynomial relationship: output = sum(coefficients[i] * input^i)"
+    parameters: ["coefficients"]
+    
+  sigmoid:
+    description: "S-curve: output = max / (1 + exp(-steepness * (input - midpoint)))"
+    parameters: ["max", "steepness", "midpoint"]
+
+# ====================================================================================
+# CONTROL MAPPINGS - How each control affects parameters
+# ====================================================================================
+control_mappings:
+  
+  # Changeover Reduction (SMED Implementation)
+  changeover_reduction_level:
+    affects:
+      changeover_duration:
+        function: "stepped"
+        thresholds: [0, 1, 2]
+        values: [1.0, 0.5, 0.2]  # 0%, 50%, 80% reduction
+        description: "SMED levels directly reduce changeover times"
+        
+      setup_scrap_rate:
+        function: "stepped"
+        thresholds: [0, 1, 2]
+        values: [0.15, 0.10, 0.05]  # Better first-article quality
+        description: "Better changeover procedures reduce startup scrap"
+        
+  # Operator Training
+  operator_training_hours:
+    affects:
+      micro_stop_recovery_time:
+        function: "exponential"
+        base: 1.0
+        coefficient: -0.02  # ~40% reduction at 40 hours
+        min: 0.6
+        description: "Trained operators clear jams faster"
+        
+      scrap_rate:
+        function: "linear"
+        base: 1.0
+        coefficient: -0.005  # 0.5% reduction per hour
+        min: 0.8  # 20% max reduction
+        description: "Training improves quality awareness"
+        
+      performance_factor:
+        function: "logarithmic"
+        base: 1.0
+        coefficient: 0.05
+        max: 1.12  # 12% max improvement
+        description: "Diminishing returns on performance improvement"
+        
+      issue_detection_time:
+        function: "linear"
+        base: 1.0
+        coefficient: -0.01
+        min: 0.6
+        description: "Trained operators spot problems earlier"
+        
+  # Line Speed Setting
+  line_speed_setting:
+    affects:
+      base_rate:
+        function: "linear"
+        base: 0.0
+        coefficient: 1.0  # Direct percentage
+        description: "Speed directly affects production rate"
+        
+      micro_stop_frequency:
+        function: "exponential"
+        base: 1.0
+        coefficient: 0.015  # Per % over 85%
+        reference_point: 85
+        description: "Higher speeds cause exponentially more jams"
+        
+      scrap_rate:
+        function: "polynomial"
+        coefficients: [0.05, 0.0, 0.0002]  # Base + speed^2 term
+        reference_point: 85
+        description: "Quality degrades non-linearly with speed"
+        
+      equipment_wear_rate:
+        function: "linear"
+        base: 1.0
+        coefficient: 0.01  # Per % over 85%
+        reference_point: 85
+        description: "Faster operation increases wear"
+        
+  # Sensor Calibration Frequency
+  sensor_calibration_frequency:
+    affects:
+      sensor_drift_factor:
+        function: "exponential"
+        base: 1.0
+        coefficient: 0.05  # Per day after optimal
+        reference_point: 7  # Optimal calibration frequency
+        description: "Drift accelerates without calibration"
+        
+      false_reject_rate:
+        function: "sigmoid"
+        max: 2.0  # Can double false rejects
+        steepness: 0.2
+        midpoint: 14  # Problems start after 2 weeks
+        description: "False rejects increase with drift"
+        
+      micro_stop_probability:
+        function: "linear"
+        base: 1.0
+        coefficient: 0.03  # Per day after optimal
+        reference_point: 7
+        max: 1.5
+        description: "Sensor issues cause micro-stops"
+        
+  # Product Sequencing Strategy
+  product_sequencing_strategy:
+    affects:
+      changeover_frequency:
+        function: "stepped"
+        thresholds: ["random", "changeover_optimized", "campaign_mode"]
+        values: [1.0, 0.6, 0.3]
+        description: "Smart sequencing reduces changeovers"
+        
+      inventory_variance:
+        function: "stepped"
+        thresholds: ["random", "changeover_optimized", "campaign_mode"]
+        values: [1.0, 1.2, 2.0]
+        description: "Batching increases inventory variation"
+        
+      schedule_adherence:
+        function: "stepped"
+        thresholds: ["random", "changeover_optimized", "campaign_mode"]
+        values: [0.7, 0.85, 0.95]
+        description: "Campaign mode improves predictability"
+        
+  # Preventive Maintenance Compliance
+  pm_schedule_compliance:
+    affects:
+      mtbf:
+        function: "linear"
+        base: 1.0
+        coefficient: 0.003  # 0.3% per % compliance
+        max: 1.3  # 30% max improvement
+        description: "PM prevents failures"
+        
+      major_failure_probability:
+        function: "exponential"
+        base: 1.0
+        coefficient: -0.005  # Per % compliance
+        min: 0.5  # 50% max reduction
+        description: "PM dramatically reduces major failures"
+        
+      equipment_degradation_rate:
+        function: "linear"
+        base: 1.0
+        coefficient: -0.002
+        min: 0.8
+        description: "PM slows equipment wear"
+        
+      minor_failure_probability:
+        function: "linear"
+        base: 1.0
+        coefficient: -0.002
+        min: 0.7
+        description: "PM reduces minor failures"
+        
+  # Staffing Level
+  staffing_level:
+    affects:
+      issue_response_time:
+        function: "polynomial"
+        coefficients: [2.0, -1.0, 0.2]  # 1/x relationship with floor
+        description: "More staff means faster response"
+        
+      preventable_stops:
+        function: "exponential"
+        base: 1.5
+        coefficient: -0.3  # Per additional operator
+        min: 0.5
+        description: "Staff can prevent issues"
+        
+      break_coverage_factor:
+        function: "stepped"
+        thresholds: [1, 2, 3, 4]
+        values: [0.5, 0.7, 1.0, 1.0]
+        description: "Need 3+ for full coverage"
+        
+      parallel_task_capability:
+        function: "stepped"
+        thresholds: [1, 2, 3, 4]
+        values: [0, 0.5, 1.0, 1.0]
+        description: "Multiple operators enable parallel work"
+        
+  # Autonomous Maintenance Level
+  autonomous_maintenance_level:
+    affects:
+      micro_stop_frequency:
+        function: "stepped"
+        thresholds: [0, 1, 2, 3]
+        values: [1.0, 0.8, 0.6, 0.5]
+        description: "Operator maintenance prevents micro-stops"
+        
+      equipment_cleanliness:
+        function: "linear"
+        base: 0.5
+        coefficient: 0.15
+        max: 0.95
+        description: "Higher levels mean cleaner equipment"
+        
+      minor_failure_detection:
+        function: "stepped"
+        thresholds: [0, 1, 2, 3]
+        values: [0.3, 0.5, 0.7, 0.9]
+        description: "Operators detect issues early"
+        
+      lubrication_effectiveness:
+        function: "stepped"
+        thresholds: [0, 1, 2, 3]
+        values: [0.7, 0.85, 0.95, 1.0]
+        description: "Proper lubrication reduces wear"
+
+# ====================================================================================
+# COMPOSITE EFFECTS - Combined control interactions
+# ====================================================================================
+composite_effects:
+  
+  # Training + Staffing Synergy
+  training_staffing_interaction:
+    controls: ["operator_training_hours", "staffing_level"]
+    interaction_type: "multiplicative"
+    affects: "issue_resolution_time"
+    formula: "base * training_effect * (1 / staffing_level)"
+    description: "Trained staff work more efficiently together"
+    
+  # Speed + Maintenance Trade-off
+  speed_maintenance_balance:
+    controls: ["line_speed_setting", "pm_schedule_compliance"]
+    interaction_type: "compensating"
+    affects: "equipment_lifetime"
+    formula: "base * (1 - speed_wear) * (1 + pm_benefit)"
+    description: "Good PM can offset high-speed wear"
+    
+  # Autonomous Maintenance + Training
+  am_training_synergy:
+    controls: ["autonomous_maintenance_level", "operator_training_hours"]
+    interaction_type: "enhancing"
+    affects: "maintenance_effectiveness"
+    formula: "am_level * (1 + 0.01 * training_hours)"
+    description: "Training makes autonomous maintenance more effective"
+
+# ====================================================================================
+# PARAMETER BOUNDS - Limits on final computed values
+# ====================================================================================
+parameter_bounds:
+  micro_stop_probability:
+    min: 0.05  # Always some risk
+    max: 0.8   # Can't exceed 80% probability
+    
+  micro_stop_duration:
+    min: 0.5   # Minimum 30 seconds
+    max: 5.0   # Maximum 5 minutes (else becomes minor failure)
+    
+  performance_factor:
+    min: 0.5   # Can't go below 50% speed
+    max: 1.2   # Can't exceed 120% of theoretical
+    
+  scrap_rate:
+    min: 0.01  # Always some scrap
+    max: 0.3   # Maximum 30% scrap
+    
+  mtbf:
+    min: 10    # Minimum 10 minutes between failures
+    max: 2880  # Maximum 48 hours
+    
+  mttr:
+    min: 1     # Minimum 1 minute to fix
+    max: 480   # Maximum 8 hours
+
+# ====================================================================================
+# DISCOVERY HINTS - Guidance for LLM exploration
+# ====================================================================================
+discovery_hints:
+  optimization_targets:
+    - "Find the sweet spot between line speed and quality"
+    - "Balance PM investment against failure costs"
+    - "Optimize changeover sequences for product mix"
+    - "Determine optimal staffing for each shift"
+    
+  trade_offs:
+    - "Higher speed vs quality loss"
+    - "PM downtime vs failure prevention"
+    - "Inventory costs vs changeover reduction"
+    - "Training investment vs productivity gains"
+    
+  experiments:
+    - "Vary one control while holding others constant"
+    - "Test control combinations for synergies"
+    - "Find threshold values where behavior changes"
+    - "Identify diminishing returns points"
+    
+  patterns_to_detect:
+    - "Non-linear relationships (exponential, logarithmic)"
+    - "Threshold effects (sudden changes)"
+    - "Synergies between controls"
+    - "Time-delayed effects"

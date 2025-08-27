@@ -1,718 +1,556 @@
-"""Scheduler primitive for production order management.
+"""Enhanced scheduler primitive V2 with smart production sequencing.
 
-This module provides a scheduler primitive that manages production orders,
-product changeovers, shift schedules, and maintenance windows. It coordinates
-the timing and sequencing of production activities.
+This module provides advanced scheduling capabilities including:
+- Product sequencing strategies (random, changeover-optimized, campaign)
+- Changeover matrices for product-to-product transition times
+- Shift-specific scheduling
+- ABC analysis for prioritization
+- Control system integration
 """
 
-from typing import Optional, Generator, Dict, Any, List
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Dict, Generator, List, Optional, Tuple
+
+import numpy as np
 import simpy
 
-from .base import BasePrimitive, PrimitiveConfig
+from .base import BasePrimitive, PrimitiveConfig, SamplingConfig
 
 
-class ScheduleEventType(str, Enum):
-    """Types of schedule events."""
+class SequencingStrategy(Enum):
+    """Product sequencing strategies."""
+    
+    RANDOM = "random"
+    CHANGEOVER_OPTIMIZED = "changeover_optimized"
+    CAMPAIGN_MODE = "campaign_mode"
+    PRIORITY_BASED = "priority_based"
+    DUE_DATE = "due_date"
 
-    PRODUCTION_ORDER = "PRODUCTION_ORDER"
-    CHANGEOVER = "CHANGEOVER"
-    MAINTENANCE = "MAINTENANCE"
-    SHIFT_CHANGE = "SHIFT_CHANGE"
-    BREAK = "BREAK"
-    SHUTDOWN = "SHUTDOWN"
+
+class ProductCategory(Enum):
+    """ABC analysis categories."""
+    
+    A = "A"  # High volume, high priority
+    B = "B"  # Medium volume, medium priority
+    C = "C"  # Low volume, low priority
 
 
 @dataclass
-class ScheduleEvent:
-    """A scheduled event in the production schedule.
-
-    Attributes:
-        event_type: Type of scheduled event
-        start_time: Scheduled start time (minutes from sim start)
-        duration: Expected duration in minutes
-        product_id: Product ID for production orders
-        order_id: Production order ID
-        line_id: Production line affected
-        priority: Priority level (lower = higher priority)
-        metadata: Additional event-specific data
-    """
-
-    event_type: ScheduleEventType
-    start_time: float
-    duration: float
-    product_id: Optional[str] = None
-    order_id: Optional[str] = None
-    line_id: Optional[str] = None
-    priority: int = 5
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def __lt__(self, other: "ScheduleEvent") -> bool:
-        """Compare events for priority queue."""
-        if self.start_time == other.start_time:
-            return self.priority < other.priority
-        return self.start_time < other.start_time
+class Product:
+    """Product definition with changeover characteristics."""
+    
+    product_id: str
+    category: ProductCategory
+    family: str  # Product family for grouping
+    volume_rank: int  # 1 = highest volume
+    margin: float  # Profit margin
+    complexity: float  # Production complexity (0-1)
+    typical_batch_size: int
+    min_batch_size: int
+    max_batch_size: int
 
 
 @dataclass
 class ProductionOrder:
-    """Production order details.
-
-    Attributes:
-        order_id: Unique order identifier
-        product_id: Product to produce
-        target_quantity: Target production quantity
-        due_time: Due date/time for order completion
-        line_id: Assigned production line
-        priority: Order priority
-        status: Current order status
-    """
-
+    """Enhanced production order with scheduling metadata."""
+    
     order_id: str
-    product_id: str
-    target_quantity: int
-    due_time: float
-    line_id: str
-    priority: int = 5
-    status: str = "pending"
-    actual_quantity: int = 0
-    start_time: Optional[float] = None
-    end_time: Optional[float] = None
+    product: Product
+    quantity: int
+    due_date: float
+    priority: int
+    release_date: float = 0.0
+    scheduled_start: Optional[float] = None
+    actual_start: Optional[float] = None
+    actual_end: Optional[float] = None
+    completed_quantity: int = 0
+    scrap_quantity: int = 0
+    
+    @property
+    def is_complete(self) -> bool:
+        """Check if order is complete."""
+        return self.completed_quantity >= self.quantity
+    
+    @property
+    def tardiness(self) -> float:
+        """Calculate order tardiness."""
+        if self.actual_end is None:
+            return 0.0
+        return max(0.0, self.actual_end - self.due_date)
+    
+    @property
+    def urgency(self) -> float:
+        """Calculate urgency score for scheduling."""
+        return self.priority / max(1.0, self.due_date - self.release_date)
 
 
-class SchedulerPrimitive(BasePrimitive):
-    """Scheduler for coordinating production activities.
-
-    Emits observables for:
-    - Order scheduling and completion
-    - Changeover events
-    - Shift transitions
-    - Schedule adherence metrics
-    - Order tardiness
-    - Resource conflicts
-    """
-
-    def __init__(self, env: simpy.Environment, config: PrimitiveConfig) -> None:
-        """Initialize scheduler with configuration.
-
-        Args:
-            env: SimPy environment
-            config: Scheduler configuration containing:
-                - schedule_horizon: Planning horizon in minutes
-                - changeover_matrix: Product-to-product changeover times
-                - shift_schedule: Shift timing configuration
-                - maintenance_schedule: Planned maintenance windows
-                - optimization_mode: Scheduling algorithm to use
-        """
-        super().__init__(env, config)
-
-        # Scheduler parameters
-        self.schedule_horizon = config.get_property("schedule_horizon", 10080)  # 1 week
-        self.changeover_matrix = config.get_property("changeover_matrix", {})
-        self.shift_schedule = config.get_property("shift_schedule", {})
-        self.maintenance_schedule = config.get_property("maintenance_schedule", [])
-        self.optimization_mode = config.get_property("optimization_mode", "FIFO")
-
-        # Schedule storage
-        self.schedule_events: List[ScheduleEvent] = []
-        self.production_orders: Dict[str, ProductionOrder] = {}
-        self.active_order: Optional[ProductionOrder] = None
-
-        # Tracking metrics
-        self.orders_scheduled = 0
-        self.orders_completed = 0
-        self.total_changeover_time: float = 0.0
-        self.schedule_adherence = 1.0
-        self.tardiness_total: float = 0.0
-
-        # Current state
-        self.current_product: Optional[str] = None
-        self.current_shift: Optional[str] = None
-        self.current_line: Optional[str] = None
-
-        # Registered equipment to control
-        self.controlled_equipment: Dict[str, Any] = {}
-        
-        # Order queue for each line
-        self.order_queues: Dict[str, List[ProductionOrder]] = {}
-        
-        # References to sources
-        self.line_sources: Dict[str, Any] = {}
-
-    def register_source(self, line_id: str, source: Any) -> None:
-        """Register a source for a production line.
-        
-        Args:
-            line_id: Production line identifier
-            source: Source primitive to control
-        """
-        self.line_sources[line_id] = source
-        if line_id not in self.order_queues:
-            self.order_queues[line_id] = []
-
-    def start(self) -> None:
-        """Start the scheduler process."""
-        self.is_running = True
-        self.process = self.env.process(self.schedule_process())
-        self.env.process(self.monitor_process())
-
-        # Load initial schedule if provided
-        initial_schedule = self.config.get_property("initial_schedule", [])
-        if initial_schedule:
-            self.load_schedule(initial_schedule)
-
-        self.emit_observable(
-            event_type="scheduler_started",
-            details={
-                "horizon": self.schedule_horizon,
-                "optimization_mode": self.optimization_mode,
-                "initial_orders": len(self.production_orders),
-            },
-        )
-
-    def schedule_process(self) -> Generator:
-        """Main scheduling process."""
-        while self.is_running:
-            # Get next scheduled event
-            next_event = self._get_next_event()
-
-            if next_event:
-                # Wait until event start time
-                wait_time = next_event.start_time - self.env.now
-                if wait_time > 0:
-                    yield self.env.timeout(wait_time)
-
-                # Process the event
-                yield from self._process_event(next_event)
-            else:
-                # No events scheduled, wait
-                yield self.env.timeout(1.0)
-
-    def _get_next_event(self) -> Optional[ScheduleEvent]:
-        """Get the next scheduled event.
-
-        Returns:
-            Next event to process or None
-        """
-        # Filter future events
-        future_events = [e for e in self.schedule_events if e.start_time >= self.env.now]
-
-        if not future_events:
-            return None
-
-        # Sort by start time and priority
-        future_events.sort()
-        return future_events[0]
-
-    def _process_event(self, event: ScheduleEvent) -> Generator:
-        """Process a scheduled event.
-
-        Args:
-            event: Event to process
-        """
-        self.emit_observable(
-            event_type="schedule_event_started",
-            details={
-                "event_type": event.event_type.value,
-                "order_id": event.order_id,
-                "product_id": event.product_id,
-                "duration": event.duration,
-            },
-        )
-
-        if event.event_type == ScheduleEventType.PRODUCTION_ORDER:
-            yield from self._process_production_order(event)
-        elif event.event_type == ScheduleEventType.CHANGEOVER:
-            yield from self._process_changeover(event)
-        elif event.event_type == ScheduleEventType.MAINTENANCE:
-            yield from self._process_maintenance(event)
-        elif event.event_type == ScheduleEventType.SHIFT_CHANGE:
-            yield from self._process_shift_change(event)
-
-        # Remove processed event
-        if event in self.schedule_events:
-            self.schedule_events.remove(event)
-
-    def add_production_order(self, order: ProductionOrder) -> None:
-        """Add a production order to the schedule.
-        
-        Args:
-            order: Production order to schedule
-        """
-        self.production_orders[order.order_id] = order
-        
-        # Create schedule event for the order
-        event = ScheduleEvent(
-            event_type=ScheduleEventType.PRODUCTION_ORDER,
-            start_time=self.env.now,  # Schedule immediately or use more complex logic
-            duration=order.target_quantity / 60.0,  # Estimate based on rate
-            product_id=order.product_id,
-            order_id=order.order_id,
-            line_id=order.line_id,
-            priority=order.priority,
-            metadata={"quantity": order.target_quantity}
-        )
-        self.schedule_events.append(event)
-        self.schedule_events.sort()
-        
-        self.emit_observable(
-            event_type="order_scheduled",
-            details={
-                "order_id": order.order_id,
-                "product_id": order.product_id,
-                "quantity": order.target_quantity,
-                "line_id": order.line_id
-            }
-        )
-
-    def _release_order_to_production(self, order: ProductionOrder) -> Generator:
-        """Release an order to the production line.
-        
-        Args:
-            order: Order to release
-        """
-        line_id = order.line_id
-        
-        # Find the source for this line
-        if line_id in self.line_sources:
-            source = self.line_sources[line_id]
-            
-            # Set the production order on the source
-            if hasattr(source, 'set_production_order'):
-                source.set_production_order(order)
-                
-            self.emit_observable(
-                event_type="order_released",
-                details={
-                    "order_id": order.order_id,
-                    "product_id": order.product_id,
-                    "quantity": order.target_quantity,
-                    "line_id": line_id
-                }
-            )
-        else:
-            self.logger.warning(f"No source registered for line {line_id}")
-        
-        yield self.env.timeout(0)
-
-    def _process_production_order(self, event: ScheduleEvent) -> Generator:
-        """Process a production order event.
-
-        Args:
-            event: Production order event
-        """
-        order_id = event.order_id
-
-        if order_id not in self.production_orders:
-            # Create order if not exists
-            order = ProductionOrder(
-                order_id=order_id or "DEFAULT",
-                product_id=event.product_id or "UNKNOWN",
-                target_quantity=event.metadata.get("quantity", 1000),
-                due_time=event.start_time + event.duration,
-                line_id=event.line_id or "LINE1",
-            )
-            self.production_orders[order_id or "DEFAULT"] = order
-        else:
-            order = self.production_orders[order_id]
-
-        # Check if changeover needed
-        if self.current_product and self.current_product != order.product_id:
-            changeover_time = self._get_changeover_time(self.current_product, order.product_id)
-
-            if changeover_time > 0:
-                # Schedule changeover first
-                yield from self._process_changeover(
-                    ScheduleEvent(
-                        event_type=ScheduleEventType.CHANGEOVER,
-                        start_time=self.env.now,
-                        duration=changeover_time,
-                        product_id=order.product_id,
-                        metadata={
-                            "from_product": self.current_product,
-                            "to_product": order.product_id,
-                        },
-                    )
-                )
-
-        # Start production
-        order.start_time = self.env.now
-        order.status = "in_progress"
-        self.active_order = order
-        self.current_product = order.product_id
-        
-        # Release order to production line
-        yield from self._release_order_to_production(order)
-
-        # Configure equipment for this product
-        self._configure_equipment_for_product(order.product_id, order.order_id)
-
-        self.emit_observable(
-            event_type="order_started",
-            details={
-                "order_id": order.order_id,
-                "product": order.product_id,
-                "target_quantity": order.target_quantity,
-                "due_time": order.due_time,
-                "line": order.line_id,
-            },
-        )
-
-        # Wait for order duration
-        yield self.env.timeout(event.duration)
-
-        # Complete order
-        order.end_time = self.env.now
-        order.status = "completed"
-        self.orders_completed += 1
-
-        # Calculate tardiness
-        if order.end_time > order.due_time:
-            tardiness = order.end_time - order.due_time
-            self.tardiness_total += float(tardiness)
-
-            self.emit_observable(
-                event_type="order_tardy",
-                details={
-                    "order_id": order.order_id,
-                    "tardiness": tardiness,
-                    "due_time": order.due_time,
-                    "completion_time": order.end_time,
-                },
-                severity="WARNING",
-            )
-
-        self.emit_observable(
-            event_type="order_completed",
-            details={
-                "order_id": order.order_id,
-                "actual_quantity": order.actual_quantity,
-                "target_quantity": order.target_quantity,
-                "completion_rate": order.actual_quantity / order.target_quantity if order.target_quantity > 0 else 0,
-                "lead_time": order.end_time - order.start_time,
-            },
-        )
-
-        self.active_order = None
-
-    def _process_changeover(self, event: ScheduleEvent) -> Generator:
-        """Process a changeover event.
-
-        Args:
-            event: Changeover event
-        """
-        from_product = event.metadata.get("from_product", self.current_product)
-        to_product = event.metadata.get("to_product", event.product_id)
-
-        self.emit_observable(
-            event_type="changeover_started",
-            details={
-                "from_product": from_product,
-                "to_product": to_product,
-                "duration": event.duration,
-                "line": event.line_id,
-            },
-        )
-
-        # Stop equipment for changeover
-        self._stop_equipment_for_changeover()
-
-        # Changeover duration
-        yield self.env.timeout(event.duration)
-
-        self.total_changeover_time += float(event.duration)
-        self.current_product = to_product
-
-        # Restart equipment with new product
-        if to_product:
-            self._configure_equipment_for_product(to_product, None)
-
-        self.emit_observable(
-            event_type="changeover_completed",
-            details={
-                "new_product": to_product,
-                "changeover_time": event.duration,
-                "total_changeover_time": self.total_changeover_time,
-            },
-        )
-
-    def _process_maintenance(self, event: ScheduleEvent) -> Generator:
-        """Process a maintenance event.
-
-        Args:
-            event: Maintenance event
-        """
-        self.emit_observable(
-            event_type="maintenance_started",
-            details={
-                "maintenance_type": event.metadata.get("type", "planned"),
-                "duration": event.duration,
-                "equipment": event.metadata.get("equipment", []),
-            },
-        )
-
-        # Stop affected equipment
-        for eq_id in event.metadata.get("equipment", []):
-            if eq_id in self.controlled_equipment:
-                # Trigger maintenance on equipment
-                equipment = self.controlled_equipment[eq_id]
-                if hasattr(equipment, "process"):
-                    equipment.process.interrupt({"type": "maintenance", "duration": event.duration})
-
-        # Maintenance duration
-        yield self.env.timeout(event.duration)
-
-        self.emit_observable(event_type="maintenance_completed", details={"duration": event.duration})
-
-    def _process_shift_change(self, event: ScheduleEvent) -> Generator:
-        """Process a shift change event.
-
-        Args:
-            event: Shift change event
-        """
-        old_shift = self.current_shift
-        new_shift = event.metadata.get("shift_id", "shift1")
-
-        self.current_shift = new_shift
-
-        self.emit_observable(
-            event_type="shift_change",
-            details={
-                "old_shift": old_shift,
-                "new_shift": new_shift,
-                "handover_duration": event.duration,
-            },
-        )
-
-        # Update equipment with new shift
-        for equipment in self.controlled_equipment.values():
-            if hasattr(equipment, "set_shift"):
-                equipment.set_shift(new_shift)
-
-        # Handover time
-        yield self.env.timeout(event.duration)
-
-    def _get_changeover_time(self, from_product: str, to_product: str) -> float:
+@dataclass
+class ChangeoverMatrix:
+    """Product-to-product changeover times."""
+    
+    products: List[str]
+    base_times: np.ndarray  # NxN matrix of changeover times
+    
+    def get_changeover_time(self, from_product: str, to_product: str) -> float:
         """Get changeover time between products.
-
+        
         Args:
             from_product: Current product
             to_product: Next product
-
+        
         Returns:
             Changeover time in minutes
         """
-        if not self.changeover_matrix:
-            return 30.0  # Default changeover time
-
-        # Check matrix
-        if from_product in self.changeover_matrix:
-            if to_product in self.changeover_matrix[from_product]:
-                return self.changeover_matrix[from_product][to_product]  # type: ignore[no-any-return]
-
-        # Default based on product similarity
         if from_product == to_product:
             return 0.0
-        elif from_product[:3] == to_product[:3]:  # Same family
-            return 15.0
-        else:
-            return 45.0  # Different families
+        
+        try:
+            from_idx = self.products.index(from_product)
+            to_idx = self.products.index(to_product)
+            return float(self.base_times[from_idx, to_idx])
+        except (ValueError, IndexError):
+            # Default changeover time if products not in matrix
+            return 30.0
 
-    def _configure_equipment_for_product(self, product_id: str, order_id: Optional[str]) -> None:
-        """Configure equipment for a specific product.
 
+class SchedulerPrimitiveV2(BasePrimitive):
+    """Enhanced scheduler with intelligent production sequencing.
+    
+    Key features:
+    - Multiple sequencing strategies
+    - Changeover optimization
+    - Campaign production support
+    - Shift-aware scheduling
+    - ABC prioritization
+    - Control system integration
+    """
+    
+    def __init__(
+        self,
+        env: simpy.Environment,
+        config: PrimitiveConfig,
+        sampling_config: Optional[SamplingConfig] = None
+    ) -> None:
+        """Initialize enhanced scheduler.
+        
         Args:
-            product_id: Product to configure for
-            order_id: Associated order ID
+            env: SimPy environment
+            config: Scheduler configuration
+            sampling_config: Optional sampling configuration
         """
-        for equipment in self.controlled_equipment.values():
-            if hasattr(equipment, "set_product"):
-                equipment.set_product(product_id, order_id)
-
-    def _stop_equipment_for_changeover(self) -> None:
-        """Stop equipment for changeover."""
-        for equipment in self.controlled_equipment.values():
-            if hasattr(equipment, "process"):
-                equipment.process.interrupt({"type": "changeover", "duration": 0})
-
-    def register_equipment(self, equipment_id: str, equipment: Any) -> None:
-        """Register equipment to be controlled by scheduler.
-
-        Args:
-            equipment_id: Equipment identifier
-            equipment: Equipment primitive instance
-        """
-        self.controlled_equipment[equipment_id] = equipment
-
-        self.emit_observable(
-            event_type="equipment_registered",
-            details={
-                "equipment_id": equipment_id,
-                "total_registered": len(self.controlled_equipment),
-            },
+        super().__init__(env, config, sampling_config)
+        
+        # Scheduling parameters from config
+        self.strategy = SequencingStrategy(
+            config.get_property("sequencing_strategy", "changeover_optimized")
         )
-
+        self.campaign_size = config.get_property("campaign_size", 100)
+        self.lookahead_horizon = config.get_property("lookahead_horizon", 480.0)
+        
+        # Initialize product catalog
+        self.products: Dict[str, Product] = {}
+        self._initialize_products()
+        
+        # Initialize changeover matrix
+        self.changeover_matrix = self._initialize_changeover_matrix()
+        
+        # Order management
+        self.pending_orders: List[ProductionOrder] = []
+        self.active_order: Optional[ProductionOrder] = None
+        self.completed_orders: List[ProductionOrder] = []
+        self.order_queue = simpy.Store(env)
+        
+        # Current production state
+        self.current_product: Optional[str] = None
+        self.last_changeover_time: float = 0.0
+        self.total_changeover_time: float = 0.0
+        self.changeover_count: int = 0
+        
+        # Shift management
+        self.current_shift: int = 1
+        self.shift_start_time: float = 0.0
+        self.shifts_config = config.get_property("shifts", {
+            1: {"start": 0, "duration": 480, "efficiency": 1.0},
+            2: {"start": 480, "duration": 480, "efficiency": 0.95},
+            3: {"start": 960, "duration": 480, "efficiency": 0.9}
+        })
+        
+        # Performance tracking
+        self.orders_scheduled: int = 0
+        self.orders_completed: int = 0
+        self.total_tardiness: float = 0.0
+        self.schedule_adherence: float = 0.0
+        
+        # Process reference
+        self.process = None
+    
+    def _initialize_products(self) -> None:
+        """Initialize product catalog from configuration."""
+        products_config = self.config.get_property("products", {})
+        
+        # Default products if none configured
+        if not products_config:
+            products_config = {
+                "SKU-1001": {"family": "A", "volume_rank": 1, "margin": 0.35, "complexity": 0.3},
+                "SKU-1002": {"family": "A", "volume_rank": 2, "margin": 0.30, "complexity": 0.4},
+                "SKU-2001": {"family": "B", "volume_rank": 3, "margin": 0.40, "complexity": 0.5},
+                "SKU-2002": {"family": "B", "volume_rank": 4, "margin": 0.38, "complexity": 0.6},
+                "SKU-3001": {"family": "C", "volume_rank": 5, "margin": 0.45, "complexity": 0.7}
+            }
+        
+        for product_id, props in products_config.items():
+            # Determine category based on volume rank
+            volume_rank = props.get("volume_rank", 5)
+            if volume_rank <= 2:
+                category = ProductCategory.A
+            elif volume_rank <= 4:
+                category = ProductCategory.B
+            else:
+                category = ProductCategory.C
+            
+            self.products[product_id] = Product(
+                product_id=product_id,
+                category=category,
+                family=props.get("family", "Default"),
+                volume_rank=volume_rank,
+                margin=props.get("margin", 0.3),
+                complexity=props.get("complexity", 0.5),
+                typical_batch_size=props.get("typical_batch", 50),
+                min_batch_size=props.get("min_batch", 10),
+                max_batch_size=props.get("max_batch", 200)
+            )
+    
+    def _initialize_changeover_matrix(self) -> ChangeoverMatrix:
+        """Initialize product changeover matrix.
+        
+        Returns:
+            ChangeoverMatrix with product-to-product times
+        """
+        product_list = list(self.products.keys())
+        n_products = len(product_list)
+        
+        # Base changeover times (minutes)
+        base_times = np.full((n_products, n_products), 30.0)
+        
+        # Set changeover times based on product families
+        for i, prod1 in enumerate(product_list):
+            for j, prod2 in enumerate(product_list):
+                if i == j:
+                    base_times[i, j] = 0.0  # Same product, no changeover
+                elif self.products[prod1].family == self.products[prod2].family:
+                    base_times[i, j] = 10.0  # Same family, quick changeover
+                else:
+                    # Different families, complexity-based changeover
+                    complexity_diff = abs(
+                        self.products[prod1].complexity - 
+                        self.products[prod2].complexity
+                    )
+                    base_times[i, j] = 20.0 + complexity_diff * 40.0
+        
+        return ChangeoverMatrix(products=product_list, base_times=base_times)
+    
+    def run(self) -> Generator:
+        """Main scheduler process."""
+        while True:
+            # Update shift if needed
+            self._update_shift()
+            
+            # Check for new orders
+            if self.pending_orders:
+                # Sequence orders based on strategy
+                sequenced_orders = self._sequence_orders()
+                
+                # Release orders to production
+                for order in sequenced_orders:
+                    yield self.order_queue.put(order)
+                    self.orders_scheduled += 1
+                    
+                    self.emit_observable("order_scheduled", {
+                        "order_id": order.order_id,
+                        "product_id": order.product.product_id,
+                        "quantity": order.quantity,
+                        "scheduled_start": order.scheduled_start
+                    })
+            
+            # Wait before next scheduling cycle
+            yield self.env.timeout(5.0)  # Check every 5 minutes
+    
     def add_order(self, order: ProductionOrder) -> None:
         """Add a production order to the schedule.
-
+        
         Args:
             order: Production order to add
         """
-        self.production_orders[order.order_id] = order
-        self.orders_scheduled += 1
-
-        # Create schedule event
-        event = ScheduleEvent(
-            event_type=ScheduleEventType.PRODUCTION_ORDER,
-            start_time=self.env.now,  # Or calculate based on optimization
-            duration=(order.target_quantity / 60.0),  # Estimate based on rate
-            product_id=order.product_id,
-            order_id=order.order_id,
-            line_id=order.line_id,
-            priority=order.priority,
-            metadata={"quantity": order.target_quantity},
-        )
-
-        self.schedule_events.append(event)
-
-        self.emit_observable(
-            event_type="order_added",
-            details={
-                "order_id": order.order_id,
-                "product": order.product_id,
-                "quantity": order.target_quantity,
-                "due_time": order.due_time,
-            },
-        )
-
-    def load_schedule(self, schedule_data: List[Dict[str, Any]]) -> None:
-        """Load a complete schedule.
-
-        Args:
-            schedule_data: List of schedule events
-        """
-        for event_data in schedule_data:
-            event_type = ScheduleEventType(event_data.get("type", "PRODUCTION_ORDER"))
-
-            event = ScheduleEvent(
-                event_type=event_type,
-                start_time=event_data.get("start_time", 0),
-                duration=event_data.get("duration", 60),
-                product_id=event_data.get("product_id"),
-                order_id=event_data.get("order_id"),
-                line_id=event_data.get("line_id"),
-                priority=event_data.get("priority", 5),
-                metadata=event_data.get("metadata", {}),
-            )
-
-            self.schedule_events.append(event)
-
-            # Create order if production order
-            if event_type == ScheduleEventType.PRODUCTION_ORDER:
-                order = ProductionOrder(
-                    order_id=event.order_id or "DEFAULT",
-                    product_id=event.product_id or "UNKNOWN",
-                    target_quantity=event_data.get("quantity", 1000),
-                    due_time=event.start_time + event.duration,
-                    line_id=event.line_id or "LINE1",
-                    priority=event.priority,
-                )
-                self.production_orders[order.order_id] = order
-                self.orders_scheduled += 1
-
-        self.emit_observable(
-            event_type="schedule_loaded",
-            details={
-                "total_events": len(self.schedule_events),
-                "total_orders": self.orders_scheduled,
-            },
-        )
-
-    def optimize_schedule(self) -> None:
-        """Optimize the current schedule based on mode."""
-        if self.optimization_mode == "FIFO":
-            # First in, first out
-            self.schedule_events.sort(key=lambda e: e.start_time)
-        elif self.optimization_mode == "SPT":
-            # Shortest processing time
-            self.schedule_events.sort(key=lambda e: e.duration)
-        elif self.optimization_mode == "EDD":
-            # Earliest due date
-            production_events = [e for e in self.schedule_events if e.event_type == ScheduleEventType.PRODUCTION_ORDER]
-            production_events.sort(
-                key=lambda e: self.production_orders[e.order_id].due_time
-                if e.order_id in self.production_orders
-                else float("inf")
-            )
-
-        self.emit_observable(
-            event_type="schedule_optimized",
-            details={
-                "mode": self.optimization_mode,
-                "total_events": len(self.schedule_events),
-            },
-        )
-
-    def monitor_process(self) -> Generator:
-        """Background monitoring process."""
-        while self.is_running:
-            # Monitor every 5 minutes
-            yield self.env.timeout(5.0)
-
-            # Calculate schedule adherence
-            if self.active_order:
-                start_time = self.active_order.start_time or 0
-                due_time = self.active_order.due_time or self.env.now + 1
-                planned_progress = min(
-                    1.0,
-                    (self.env.now - start_time) / max(1, (due_time - start_time)),
-                )
-                actual_progress = (
-                    self.active_order.actual_quantity / self.active_order.target_quantity
-                    if self.active_order.target_quantity > 0
-                    else 0
-                )
-
-                self.schedule_adherence = actual_progress / planned_progress if planned_progress > 0 else 1.0
-
-            # Calculate metrics
-            avg_tardiness = self.tardiness_total / self.orders_completed if self.orders_completed > 0 else 0
-            changeover_ratio = self.total_changeover_time / self.env.now if self.env.now > 0 else 0
-
-            self.emit_observable(
-                event_type="scheduler_monitor",
-                details={
-                    "active_order": self.active_order.order_id if self.active_order else None,
-                    "current_product": self.current_product,
-                    "current_shift": self.current_shift,
-                    "orders_scheduled": self.orders_scheduled,
-                    "orders_completed": self.orders_completed,
-                    "schedule_adherence": self.schedule_adherence,
-                    "avg_tardiness": avg_tardiness,
-                    "changeover_ratio": changeover_ratio,
-                    "pending_events": len(self.schedule_events),
-                },
-                severity="DEBUG",
-            )
-
-    def get_statistics(self) -> Dict[str, Any]:
-        """Get scheduler statistics.
-
+        self.pending_orders.append(order)
+        
+        self.emit_observable("order_received", {
+            "order_id": order.order_id,
+            "product_id": order.product.product_id,
+            "quantity": order.quantity,
+            "due_date": order.due_date
+        })
+    
+    def _sequence_orders(self) -> List[ProductionOrder]:
+        """Sequence orders based on current strategy.
+        
         Returns:
-            Dictionary of scheduler metrics
+            List of orders in execution sequence
         """
-        completion_rate = self.orders_completed / self.orders_scheduled if self.orders_scheduled > 0 else 0
-        avg_tardiness = self.tardiness_total / self.orders_completed if self.orders_completed > 0 else 0
-
+        if not self.pending_orders:
+            return []
+        
+        if self.strategy == SequencingStrategy.RANDOM:
+            # Random sequencing (baseline)
+            np.random.shuffle(self.pending_orders)
+            sequenced = self.pending_orders[:5]  # Take next 5 orders
+            
+        elif self.strategy == SequencingStrategy.CHANGEOVER_OPTIMIZED:
+            # Minimize total changeover time
+            sequenced = self._optimize_changeovers(self.pending_orders[:10])
+            
+        elif self.strategy == SequencingStrategy.CAMPAIGN_MODE:
+            # Group same products together
+            sequenced = self._create_campaigns(self.pending_orders)
+            
+        elif self.strategy == SequencingStrategy.PRIORITY_BASED:
+            # Sort by priority and urgency
+            self.pending_orders.sort(key=lambda o: (-o.priority, o.urgency), reverse=True)
+            sequenced = self.pending_orders[:5]
+            
+        elif self.strategy == SequencingStrategy.DUE_DATE:
+            # Earliest due date first
+            self.pending_orders.sort(key=lambda o: o.due_date)
+            sequenced = self.pending_orders[:5]
+            
+        else:
+            sequenced = self.pending_orders[:5]
+        
+        # Remove sequenced orders from pending
+        for order in sequenced:
+            if order in self.pending_orders:
+                self.pending_orders.remove(order)
+            order.scheduled_start = self.env.now
+        
+        return sequenced
+    
+    def _optimize_changeovers(self, orders: List[ProductionOrder]) -> List[ProductionOrder]:
+        """Optimize order sequence to minimize changeover time.
+        
+        Uses a greedy nearest-neighbor approach for simplicity.
+        
+        Args:
+            orders: Orders to sequence
+        
+        Returns:
+            Optimized order sequence
+        """
+        if not orders:
+            return []
+        
+        sequenced = []
+        remaining = orders.copy()
+        
+        # Start with current product if available
+        if self.current_product:
+            # Find orders for current product
+            same_product = [o for o in remaining if o.product.product_id == self.current_product]
+            if same_product:
+                sequenced.append(same_product[0])
+                remaining.remove(same_product[0])
+        
+        # If no current product or no matching orders, start with highest priority
+        if not sequenced and remaining:
+            sequenced.append(max(remaining, key=lambda o: o.priority))
+            remaining.remove(sequenced[0])
+        
+        # Greedy selection: always pick next order with minimum changeover
+        while remaining:
+            last_product = sequenced[-1].product.product_id
+            
+            # Calculate changeover times to all remaining orders
+            changeover_times = []
+            for order in remaining:
+                time = self.changeover_matrix.get_changeover_time(
+                    last_product, order.product.product_id
+                )
+                changeover_times.append((order, time))
+            
+            # Select order with minimum changeover
+            next_order = min(changeover_times, key=lambda x: x[1])[0]
+            sequenced.append(next_order)
+            remaining.remove(next_order)
+        
+        return sequenced
+    
+    def _create_campaigns(self, orders: List[ProductionOrder]) -> List[ProductionOrder]:
+        """Create production campaigns by grouping same products.
+        
+        Args:
+            orders: Orders to group into campaigns
+        
+        Returns:
+            Orders sequenced in campaigns
+        """
+        # Group orders by product
+        product_groups: Dict[str, List[ProductionOrder]] = {}
+        for order in orders:
+            product_id = order.product.product_id
+            if product_id not in product_groups:
+                product_groups[product_id] = []
+            product_groups[product_id].append(order)
+        
+        # Sort groups by total volume (descending)
+        sorted_groups = sorted(
+            product_groups.items(),
+            key=lambda x: sum(o.quantity for o in x[1]),
+            reverse=True
+        )
+        
+        # Create campaigns
+        sequenced = []
+        for product_id, group_orders in sorted_groups:
+            # Sort orders within group by priority
+            group_orders.sort(key=lambda o: -o.priority)
+            
+            # Add orders up to campaign size
+            campaign_quantity = 0
+            for order in group_orders:
+                if campaign_quantity + order.quantity <= self.campaign_size:
+                    sequenced.append(order)
+                    campaign_quantity += order.quantity
+                else:
+                    break
+            
+            # Stop if we have enough orders
+            if len(sequenced) >= 5:
+                break
+        
+        return sequenced[:5]
+    
+    def _update_shift(self) -> None:
+        """Update current shift based on simulation time."""
+        # Simple 3-shift pattern
+        shift_duration = 480.0  # 8 hours
+        shifts_per_day = 3
+        
+        current_shift_index = int((self.env.now % (shift_duration * shifts_per_day)) / shift_duration) + 1
+        
+        if current_shift_index != self.current_shift:
+            # Shift change
+            self.emit_observable("shift_change", {
+                "from_shift": self.current_shift,
+                "to_shift": current_shift_index,
+                "time": self.env.now
+            })
+            
+            self.current_shift = current_shift_index
+            self.shift_start_time = self.env.now
+    
+    def complete_order(self, order: ProductionOrder, completed_quantity: int, 
+                      scrap_quantity: int = 0) -> None:
+        """Mark an order as complete.
+        
+        Args:
+            order: Order that was completed
+            completed_quantity: Good units produced
+            scrap_quantity: Scrapped units
+        """
+        order.completed_quantity = completed_quantity
+        order.scrap_quantity = scrap_quantity
+        order.actual_end = self.env.now
+        
+        self.completed_orders.append(order)
+        self.orders_completed += 1
+        
+        # Update tardiness tracking
+        if order.tardiness > 0:
+            self.total_tardiness += order.tardiness
+        
+        self.emit_observable("order_completed", {
+            "order_id": order.order_id,
+            "product_id": order.product.product_id,
+            "target_quantity": order.quantity,
+            "completed_quantity": completed_quantity,
+            "scrap_quantity": scrap_quantity,
+            "tardiness": order.tardiness
+        })
+    
+    def request_changeover(self, from_product: str, to_product: str) -> float:
+        """Request changeover time for product switch.
+        
+        Args:
+            from_product: Current product
+            to_product: Next product
+        
+        Returns:
+            Required changeover time in minutes
+        """
+        changeover_time = self.changeover_matrix.get_changeover_time(from_product, to_product)
+        
+        # Apply changeover reduction from controls
+        reduction_factor = self.config.get_property("changeover_reduction_factor", 1.0)
+        changeover_time *= reduction_factor
+        
+        # Track changeover
+        self.total_changeover_time += changeover_time
+        self.changeover_count += 1
+        self.last_changeover_time = self.env.now
+        self.current_product = to_product
+        
+        self.emit_observable("changeover_started", {
+            "from_product": from_product,
+            "to_product": to_product,
+            "duration": changeover_time,
+            "time": self.env.now
+        })
+        
+        return changeover_time
+    
+    def get_schedule_metrics(self) -> Dict[str, float]:
+        """Calculate scheduling performance metrics.
+        
+        Returns:
+            Dictionary of scheduling KPIs
+        """
+        total_time = self.env.now if self.env.now > 0 else 1.0
+        
+        # Calculate schedule adherence
+        if self.completed_orders:
+            on_time = sum(1 for o in self.completed_orders if o.tardiness == 0)
+            self.schedule_adherence = on_time / len(self.completed_orders)
+        
         return {
             "orders_scheduled": self.orders_scheduled,
             "orders_completed": self.orders_completed,
-            "completion_rate": completion_rate,
-            "average_tardiness": avg_tardiness,
-            "total_changeover_time": self.total_changeover_time,
+            "orders_pending": len(self.pending_orders),
             "schedule_adherence": self.schedule_adherence,
-            "current_product": self.current_product,
-            "active_order": self.active_order.order_id if self.active_order else None,
-            "pending_events": len(self.schedule_events),
+            "average_tardiness": self.total_tardiness / max(1, self.orders_completed),
+            "changeover_count": self.changeover_count,
+            "total_changeover_time": self.total_changeover_time,
+            "changeover_percentage": self.total_changeover_time / total_time,
+            "current_strategy": self.strategy.value
         }
+    
+    def get_next_order(self) -> Optional[ProductionOrder]:
+        """Get next order from schedule.
+        
+        Returns:
+            Next production order or None
+        """
+        try:
+            # Non-blocking get from order queue
+            if len(self.order_queue.items) > 0:
+                return self.order_queue.items[0]
+        except:
+            pass
+        return None
+    
+    def start(self) -> None:
+        """Start the scheduler process.
+        
+        Implements the abstract start method from BasePrimitive.
+        """
+        self.process = self.env.process(self.run())

@@ -18,16 +18,16 @@ from .primitives import (
     SinkPrimitive as Sink,
     CollectedProduct,
     SchedulerPrimitive as Scheduler,
-    ScheduleEvent,
-    ScheduleEventType,
     ProductionOrder,
+    Product,
+    ProductCategory,
     MonitorPrimitive as Monitor,
     KPIType,
     KPIMetric,
 )
 
 # Import model builder
-from .model_builder import OntologyDrivenModelBuilder
+from .model_builder import OntologyDrivenModelBuilderV2 as OntologyDrivenModelBuilder
 
 # Import transduction
 from .transduction import MESTransducer
@@ -52,9 +52,9 @@ __all__ = [
     "CollectedProduct",
     # Scheduler
     "Scheduler",
-    "ScheduleEvent",
-    "ScheduleEventType",
     "ProductionOrder",
+    "Product",
+    "ProductCategory",
     # Monitor
     "Monitor",
     "KPIType",
