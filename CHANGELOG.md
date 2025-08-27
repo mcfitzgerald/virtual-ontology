@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integration tests for full system validation (test_full_integration.py, test_oee_baseline.py)
 - Failure tracking counters (failure_count, micro_stop_count) in equipment primitives
 - PEP 8, PEP 257, and PEP 484 compliance throughout new code
+- Simulation parameters base values in control_mappings.yaml for proper parameter initialization
+- Test suites for control mappings validation (test_control_mappings.py, test_specific_mappings.py)
+- Material flow test suite (test_material_flow.py) to validate equipment connections
 
 ### Changed
 - Complete refactor to v2 primitives with internal queues only (no separate buffers)
@@ -27,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Failure generation fixed to properly trigger micro-stops and failures
 - State duration tracking improved with proper finalization
 - Performance factor, scrap rate, and micro-stop probability now properly applied
+- Control manager now correctly applies base values and multipliers for parameter computation
+- Logarithmic mapping function improved to produce proper multipliers starting at 1.0
 
 ### Fixed
 - Failure generation not triggering (warmup_complete now properly enables failures)
@@ -34,6 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - State duration tracking incomplete (added finalization step)
 - Control parameter application to equipment (direct instance variable updates)
 - Source generation timing issues (fixed exponential distribution calculations)
+- Critical material flow issues causing excessive STARVED/BLOCKED states (65% → 2-17%)
+- Double-queuing bug in equipment where units were put in output queue then transferred
+- Blocking detection now properly checks downstream equipment capacity
+- Control mapping calculations producing wrong values (mtbf: 10→283, performance: 0.5→0.85)
+- Control manager not applying base parameter values from simulation_parameters section
+- Logarithmic mapping function returning 0 for zero input (now starts at 1.0)
 
 ### Removed
 - All v1 primitives (moved to archive/legacy_v1_files/)

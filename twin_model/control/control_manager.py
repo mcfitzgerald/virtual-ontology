@@ -263,13 +263,27 @@ class ControlManager:
                 
             param_value = self._apply_mapping(control_value, mapping)
             
-            # Apply to parameter (multiplicative or additive based on context)
+            # Apply to parameter based on mapping type
             if mapping.parameter_name in params:
-                # For factors/multipliers, multiply
-                if 'factor' in mapping.parameter_name or 'multiplier' in mapping.parameter_name:
-                    params[mapping.parameter_name] *= param_value
+                base_value = params[mapping.parameter_name]
+                
+                # Determine if this is a multiplier or direct value
+                # Multipliers are typically around 1.0 and modify base values
+                if mapping.function in [MappingFunction.LINEAR, MappingFunction.EXPONENTIAL] and \
+                   mapping.config.get('base', 0) == 1.0:
+                    # This is likely a multiplier
+                    params[mapping.parameter_name] = base_value * param_value
+                elif mapping.function == MappingFunction.LOGARITHMIC:
+                    # Logarithmic functions produce multipliers starting at 1.0
+                    params[mapping.parameter_name] = base_value * param_value
+                elif mapping.parameter_name in ['mtbf', 'mttr', 'changeover_duration']:
+                    # Time-based parameters typically use multipliers
+                    if 0.5 <= param_value <= 2.0:
+                        params[mapping.parameter_name] = base_value * param_value
+                    else:
+                        params[mapping.parameter_name] = param_value
                 else:
-                    # For others, replace or add
+                    # Direct value replacement
                     params[mapping.parameter_name] = param_value
             else:
                 params[mapping.parameter_name] = param_value
@@ -310,7 +324,14 @@ class ControlManager:
         elif function == MappingFunction.LOGARITHMIC:
             base = config.get('base', 1)
             coefficient = config.get('coefficient', 0.1)
-            value = base * np.log(1 + coefficient * control_value)
+            # For multipliers, we want log to start at 1.0, not 0
+            # So we add 1 to make it: 1 + base * log(1 + coefficient * control_value)
+            if base == 1.0:
+                # This is a multiplier, start at 1.0
+                value = 1.0 + np.log(1 + coefficient * control_value)
+            else:
+                # Direct logarithmic scaling
+                value = base * np.log(1 + coefficient * control_value)
             
         elif function == MappingFunction.STEPPED:
             thresholds = config.get('thresholds', [])

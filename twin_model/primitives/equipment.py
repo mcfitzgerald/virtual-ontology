@@ -165,8 +165,8 @@ class EquipmentPrimitiveV2(BasePrimitive):
                     yield from self._handle_starved()
                     continue
                 
-                # Check if output queue is full
-                if len(self.output_queue.items) >= self.output_queue.capacity:
+                # Check if downstream is blocked
+                if self._is_blocked():
                     # Output blocked - go to BLOCKED
                     yield from self._handle_blocked()
                     continue
@@ -229,7 +229,14 @@ class EquipmentPrimitiveV2(BasePrimitive):
                     timestamp=self.env.now
                 )
             
-            yield self.output_queue.put(unit)
+            # Transfer directly to downstream or output queue
+            if self.downstream_equipment and hasattr(self.downstream_equipment, 'input_queue'):
+                # Direct transfer to downstream equipment (no double queuing)
+                yield self.downstream_equipment.input_queue.put(unit)
+            else:
+                # No downstream equipment or it's a sink - put in output queue
+                yield self.output_queue.put(unit)
+            
             self.units_produced += 1
             
             self.emit_observable("unit_produced", {
@@ -237,15 +244,20 @@ class EquipmentPrimitiveV2(BasePrimitive):
                 "product_id": self.current_product,
                 "order_id": self.current_order
             })
-            
-            # Transfer to downstream equipment if connected (not for sinks)
-            if self.downstream_equipment and hasattr(self.downstream_equipment, 'input_queue'):
-                # Only transfer if downstream is equipment (has input_queue)
-                # Sinks will pull from our output_queue themselves
-                if len(self.output_queue.items) > 0 and \
-                   len(self.downstream_equipment.input_queue.items) < self.downstream_equipment.input_queue.capacity:
-                    unit = yield self.output_queue.get()
-                    yield self.downstream_equipment.input_queue.put(unit)
+    
+    def _is_blocked(self) -> bool:
+        """Check if equipment is blocked by downstream.
+        
+        Returns:
+            True if blocked, False otherwise
+        """
+        if self.downstream_equipment and hasattr(self.downstream_equipment, 'input_queue'):
+            # Check if downstream input queue is full
+            downstream_queue = self.downstream_equipment.input_queue
+            return len(downstream_queue.items) >= downstream_queue.capacity
+        else:
+            # No downstream equipment, check our output queue
+            return len(self.output_queue.items) >= self.output_queue.capacity
     
     def _handle_starved(self) -> Generator:
         """Handle starved state (no input material)."""

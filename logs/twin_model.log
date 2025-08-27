@@ -51626,3 +51626,265 @@
 [2025-08-27T00:54:07.050062+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 14.9, repair: 0.8 min
 [2025-08-27T00:54:07.117850+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 40.2, repair: 0.5 min
 [2025-08-27T00:54:07.164905+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PCK: micro_stop occurred at 54.6, repair: 2.2 min
+[2025-08-27T01:18:45.825113+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T01:18:46.342980+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T01:18:46.343175+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T01:18:46.482616+00:00] [INFO] [twin_model.model_builder] Model builder V2 initialized with ontology from ontology/twin_ontology.yaml
+[2025-08-27T01:18:46.482757+00:00] [INFO] [twin_model.model_builder] Loaded 28 entities from manifests
+[2025-08-27T01:18:46.482825+00:00] [INFO] [twin_model.model_builder] Organized 3 production lines
+[2025-08-27T01:18:46.482912+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=failure_timing_config
+[2025-08-27T01:18:46.482994+00:00] [INFO] [twin_model.primitives.equipment] Equipment failure_timing_config initialized with internal queues (size=20)
+[2025-08-27T01:18:46.483055+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-FIL
+[2025-08-27T01:18:46.483114+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-FIL initialized with internal queues (size=20)
+[2025-08-27T01:18:46.483163+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PAL
+[2025-08-27T01:18:46.483212+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PAL initialized with internal queues (size=20)
+[2025-08-27T01:18:46.483259+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PCK
+[2025-08-27T01:18:46.483314+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PCK initialized with internal queues (size=20)
+[2025-08-27T01:18:46.483366+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE1-SINK
+[2025-08-27T01:18:46.483412+00:00] [INFO] [twin_model.primitives.sink] Sink LINE1-SINK initialized for LINE1
+[2025-08-27T01:18:46.483459+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE1-SRC
+[2025-08-27T01:18:46.483506+00:00] [INFO] [twin_model.primitives.source] Source LINE1-SRC initialized for LINE1
+[2025-08-27T01:18:46.483553+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-FIL
+[2025-08-27T01:18:46.483611+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-FIL initialized with internal queues (size=20)
+[2025-08-27T01:18:46.483656+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PAL
+[2025-08-27T01:18:46.483704+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PAL initialized with internal queues (size=20)
+[2025-08-27T01:18:46.483746+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PCK
+[2025-08-27T01:18:46.483800+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PCK initialized with internal queues (size=20)
+[2025-08-27T01:18:46.483848+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE2-SINK
+[2025-08-27T01:18:46.483889+00:00] [INFO] [twin_model.primitives.sink] Sink LINE2-SINK initialized for LINE2
+[2025-08-27T01:18:46.483942+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE2-SRC
+[2025-08-27T01:18:46.483982+00:00] [INFO] [twin_model.primitives.source] Source LINE2-SRC initialized for LINE2
+[2025-08-27T01:18:46.484026+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-FIL
+[2025-08-27T01:18:46.484072+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-FIL initialized with internal queues (size=20)
+[2025-08-27T01:18:46.484115+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PAL
+[2025-08-27T01:18:46.484159+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PAL initialized with internal queues (size=20)
+[2025-08-27T01:18:46.484201+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PCK
+[2025-08-27T01:18:46.484246+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PCK initialized with internal queues (size=20)
+[2025-08-27T01:18:46.484289+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE3-SINK
+[2025-08-27T01:18:46.484328+00:00] [INFO] [twin_model.primitives.sink] Sink LINE3-SINK initialized for LINE3
+[2025-08-27T01:18:46.484370+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE3-SRC
+[2025-08-27T01:18:46.484410+00:00] [INFO] [twin_model.primitives.source] Source LINE3-SRC initialized for LINE3
+[2025-08-27T01:18:46.484448+00:00] [INFO] [twin_model.model_builder] Created 16 primitives
+[2025-08-27T01:18:46.484519+00:00] [INFO] [twin_model.model_builder] Wiring complete - internal queues only, no buffers!
+[2025-08-27T01:18:46.484572+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE1
+[2025-08-27T01:18:46.484644+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE2
+[2025-08-27T01:18:46.484700+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE3
+[2025-08-27T01:18:46.484747+00:00] [INFO] [twin_model.model_builder] Created 3 monitors
+[2025-08-27T01:18:46.484796+00:00] [INFO] [twin_model.model_builder] Applied control parameters to primitives
+[2025-08-27T01:18:46.506972+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PCK: micro_stop occurred at 7.6, repair: 0.5 min
+[2025-08-27T01:18:46.524614+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 9.8, repair: 1.7 min
+[2025-08-27T01:18:46.560017+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PAL: micro_stop occurred at 20.6, repair: 2.7 min
+[2025-08-27T11:28:47.090125+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T11:30:12.495505+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T11:35:48.982519+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T11:38:48.436029+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T11:38:48.954767+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T11:38:48.954963+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T11:38:49.096913+00:00] [INFO] [twin_model.model_builder] Model builder V2 initialized with ontology from ontology/twin_ontology.yaml
+[2025-08-27T11:38:49.097073+00:00] [INFO] [twin_model.model_builder] Loaded 28 entities from manifests
+[2025-08-27T11:38:49.097143+00:00] [INFO] [twin_model.model_builder] Organized 3 production lines
+[2025-08-27T11:38:49.097243+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=failure_timing_config
+[2025-08-27T11:38:49.097339+00:00] [INFO] [twin_model.primitives.equipment] Equipment failure_timing_config initialized with internal queues (size=20)
+[2025-08-27T11:38:49.097400+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-FIL
+[2025-08-27T11:38:49.097458+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-FIL initialized with internal queues (size=20)
+[2025-08-27T11:38:49.097509+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PAL
+[2025-08-27T11:38:49.097559+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PAL initialized with internal queues (size=20)
+[2025-08-27T11:38:49.097608+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PCK
+[2025-08-27T11:38:49.097657+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PCK initialized with internal queues (size=20)
+[2025-08-27T11:38:49.097714+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE1-SINK
+[2025-08-27T11:38:49.097763+00:00] [INFO] [twin_model.primitives.sink] Sink LINE1-SINK initialized for LINE1
+[2025-08-27T11:38:49.097818+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE1-SRC
+[2025-08-27T11:38:49.097870+00:00] [INFO] [twin_model.primitives.source] Source LINE1-SRC initialized for LINE1
+[2025-08-27T11:38:49.097918+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-FIL
+[2025-08-27T11:38:49.097984+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-FIL initialized with internal queues (size=20)
+[2025-08-27T11:38:49.098028+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PAL
+[2025-08-27T11:38:49.098074+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PAL initialized with internal queues (size=20)
+[2025-08-27T11:38:49.098116+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PCK
+[2025-08-27T11:38:49.098161+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PCK initialized with internal queues (size=20)
+[2025-08-27T11:38:49.098211+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE2-SINK
+[2025-08-27T11:38:49.098252+00:00] [INFO] [twin_model.primitives.sink] Sink LINE2-SINK initialized for LINE2
+[2025-08-27T11:38:49.098295+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE2-SRC
+[2025-08-27T11:38:49.098335+00:00] [INFO] [twin_model.primitives.source] Source LINE2-SRC initialized for LINE2
+[2025-08-27T11:38:49.098380+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-FIL
+[2025-08-27T11:38:49.098426+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-FIL initialized with internal queues (size=20)
+[2025-08-27T11:38:49.098468+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PAL
+[2025-08-27T11:38:49.098512+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PAL initialized with internal queues (size=20)
+[2025-08-27T11:38:49.098554+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PCK
+[2025-08-27T11:38:49.098598+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PCK initialized with internal queues (size=20)
+[2025-08-27T11:38:49.098641+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE3-SINK
+[2025-08-27T11:38:49.098679+00:00] [INFO] [twin_model.primitives.sink] Sink LINE3-SINK initialized for LINE3
+[2025-08-27T11:38:49.098721+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE3-SRC
+[2025-08-27T11:38:49.098758+00:00] [INFO] [twin_model.primitives.source] Source LINE3-SRC initialized for LINE3
+[2025-08-27T11:38:49.098794+00:00] [INFO] [twin_model.model_builder] Created 16 primitives
+[2025-08-27T11:38:49.098865+00:00] [INFO] [twin_model.model_builder] Wiring complete - internal queues only, no buffers!
+[2025-08-27T11:38:49.098919+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE1
+[2025-08-27T11:38:49.098988+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE2
+[2025-08-27T11:38:49.099045+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE3
+[2025-08-27T11:38:49.099091+00:00] [INFO] [twin_model.model_builder] Created 3 monitors
+[2025-08-27T11:38:49.099138+00:00] [INFO] [twin_model.model_builder] Applied control parameters to primitives
+[2025-08-27T11:38:49.126209+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 8.9, repair: 0.5 min
+[2025-08-27T11:38:49.136888+00:00] [INFO] [twin_model.primitives.equipment] LINE1-FIL: micro_stop occurred at 10.5, repair: 0.9 min
+[2025-08-27T11:38:49.212214+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 20.3, repair: 0.8 min
+[2025-08-27T11:38:49.226945+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 22.0, repair: 0.6 min
+[2025-08-27T11:38:49.238396+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 23.3, repair: 1.0 min
+[2025-08-27T11:38:49.255330+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PCK: micro_stop occurred at 25.2, repair: 2.1 min
+[2025-08-27T11:38:49.295551+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PAL: micro_stop occurred at 29.8, repair: 1.0 min
+[2025-08-27T11:38:49.298025+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 30.1, repair: 1.5 min
+[2025-08-27T11:38:49.344928+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 34.6, repair: 2.2 min
+[2025-08-27T11:38:49.383524+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 38.6, repair: 1.0 min
+[2025-08-27T11:38:49.433655+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 42.9, repair: 0.7 min
+[2025-08-27T11:38:49.453390+00:00] [INFO] [twin_model.primitives.equipment] LINE1-FIL: micro_stop occurred at 44.6, repair: 0.5 min
+[2025-08-27T11:38:49.454698+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 44.7, repair: 1.1 min
+[2025-08-27T11:38:49.462501+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 45.5, repair: 1.0 min
+[2025-08-27T11:38:49.475267+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 46.9, repair: 0.8 min
+[2025-08-27T11:38:49.511700+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PCK: micro_stop occurred at 49.9, repair: 1.0 min
+[2025-08-27T11:38:49.551784+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PAL: micro_stop occurred at 52.8, repair: 0.5 min
+[2025-08-27T11:38:49.623632+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 57.6, repair: 2.0 min
+[2025-08-27T12:17:21.926499+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T12:17:22.524791+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T12:17:22.525009+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T12:17:22.666697+00:00] [INFO] [twin_model.model_builder] Model builder V2 initialized with ontology from ontology/twin_ontology.yaml
+[2025-08-27T12:17:22.666851+00:00] [INFO] [twin_model.model_builder] Loaded 28 entities from manifests
+[2025-08-27T12:17:22.666919+00:00] [INFO] [twin_model.model_builder] Organized 3 production lines
+[2025-08-27T12:17:22.667010+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=failure_timing_config
+[2025-08-27T12:17:22.667097+00:00] [INFO] [twin_model.primitives.equipment] Equipment failure_timing_config initialized with internal queues (size=20)
+[2025-08-27T12:17:22.667159+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-FIL
+[2025-08-27T12:17:22.667215+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-FIL initialized with internal queues (size=20)
+[2025-08-27T12:17:22.667265+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PAL
+[2025-08-27T12:17:22.667316+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PAL initialized with internal queues (size=20)
+[2025-08-27T12:17:22.667364+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PCK
+[2025-08-27T12:17:22.667422+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PCK initialized with internal queues (size=20)
+[2025-08-27T12:17:22.667476+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE1-SINK
+[2025-08-27T12:17:22.667524+00:00] [INFO] [twin_model.primitives.sink] Sink LINE1-SINK initialized for LINE1
+[2025-08-27T12:17:22.667575+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE1-SRC
+[2025-08-27T12:17:22.667624+00:00] [INFO] [twin_model.primitives.source] Source LINE1-SRC initialized for LINE1
+[2025-08-27T12:17:22.667672+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-FIL
+[2025-08-27T12:17:22.667723+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-FIL initialized with internal queues (size=20)
+[2025-08-27T12:17:22.667767+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PAL
+[2025-08-27T12:17:22.667814+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PAL initialized with internal queues (size=20)
+[2025-08-27T12:17:22.667856+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PCK
+[2025-08-27T12:17:22.667902+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PCK initialized with internal queues (size=20)
+[2025-08-27T12:17:22.667952+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE2-SINK
+[2025-08-27T12:17:22.667993+00:00] [INFO] [twin_model.primitives.sink] Sink LINE2-SINK initialized for LINE2
+[2025-08-27T12:17:22.668037+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE2-SRC
+[2025-08-27T12:17:22.668077+00:00] [INFO] [twin_model.primitives.source] Source LINE2-SRC initialized for LINE2
+[2025-08-27T12:17:22.668148+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-FIL
+[2025-08-27T12:17:22.668242+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-FIL initialized with internal queues (size=20)
+[2025-08-27T12:17:22.668309+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PAL
+[2025-08-27T12:17:22.668364+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PAL initialized with internal queues (size=20)
+[2025-08-27T12:17:22.668416+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PCK
+[2025-08-27T12:17:22.668473+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PCK initialized with internal queues (size=20)
+[2025-08-27T12:17:22.668531+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE3-SINK
+[2025-08-27T12:17:22.668583+00:00] [INFO] [twin_model.primitives.sink] Sink LINE3-SINK initialized for LINE3
+[2025-08-27T12:17:22.668634+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE3-SRC
+[2025-08-27T12:17:22.668676+00:00] [INFO] [twin_model.primitives.source] Source LINE3-SRC initialized for LINE3
+[2025-08-27T12:17:22.668714+00:00] [INFO] [twin_model.model_builder] Created 16 primitives
+[2025-08-27T12:17:22.668783+00:00] [INFO] [twin_model.model_builder] Wiring complete - internal queues only, no buffers!
+[2025-08-27T12:17:22.668838+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE1
+[2025-08-27T12:17:22.668910+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE2
+[2025-08-27T12:17:22.668970+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE3
+[2025-08-27T12:17:22.669022+00:00] [INFO] [twin_model.model_builder] Created 3 monitors
+[2025-08-27T12:17:22.669073+00:00] [INFO] [twin_model.model_builder] Applied control parameters to primitives
+[2025-08-27T12:17:22.672522+00:00] [INFO] [twin_model.primitives.equipment] LINE1-FIL: micro_stop occurred at 5.3, repair: 0.8 min
+[2025-08-27T12:17:22.676204+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 6.0, repair: 2.6 min
+[2025-08-27T12:17:22.680221+00:00] [INFO] [twin_model.primitives.equipment] LINE1-FIL: micro_stop occurred at 7.1, repair: 0.5 min
+[2025-08-27T12:17:22.688093+00:00] [INFO] [twin_model.primitives.equipment] LINE1-FIL: micro_stop occurred at 9.1, repair: 0.6 min
+[2025-08-27T12:17:22.714478+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 13.1, repair: 1.5 min
+[2025-08-27T12:17:22.786908+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PCK: micro_stop occurred at 22.4, repair: 2.0 min
+[2025-08-27T12:17:22.798949+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PCK: micro_stop occurred at 24.2, repair: 1.0 min
+[2025-08-27T12:17:22.806795+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 25.3, repair: 0.7 min
+[2025-08-27T12:17:22.831257+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 27.9, repair: 1.1 min
+[2025-08-27T12:17:22.865972+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PCK: micro_stop occurred at 31.4, repair: 2.7 min
+[2025-08-27T12:17:22.872078+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 31.9, repair: 1.5 min
+[2025-08-27T12:17:22.909928+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PCK: micro_stop occurred at 36.3, repair: 1.0 min
+[2025-08-27T12:17:22.929040+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 38.1, repair: 0.9 min
+[2025-08-27T12:17:22.939314+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 39.0, repair: 0.9 min
+[2025-08-27T12:17:22.959395+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PAL: micro_stop occurred at 40.8, repair: 1.6 min
+[2025-08-27T12:17:22.960911+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 40.9, repair: 1.9 min
+[2025-08-27T12:17:22.986336+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 43.8, repair: 1.4 min
+[2025-08-27T12:17:23.004689+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PCK: micro_stop occurred at 45.3, repair: 1.1 min
+[2025-08-27T12:17:23.066711+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PAL: micro_stop occurred at 48.1, repair: 0.7 min
+[2025-08-27T12:17:23.073537+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PCK: micro_stop occurred at 48.7, repair: 0.8 min
+[2025-08-27T12:17:23.197858+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PCK: micro_stop occurred at 57.4, repair: 1.3 min
+[2025-08-27T12:17:23.204450+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 57.8, repair: 1.2 min
+[2025-08-27T12:19:28.976858+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T12:19:29.492729+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T12:19:29.492908+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T12:20:41.525025+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T12:20:42.007231+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T12:20:42.007420+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T12:21:30.019252+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T12:21:30.404324+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T12:21:30.404509+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T12:22:26.269088+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T12:22:26.655853+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T12:22:26.656036+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T12:22:58.505662+00:00] [INFO] [twin_model.logging_config] Logging configured
+[2025-08-27T12:22:58.875055+00:00] [INFO] [twin_model.control.control_manager] Loaded control settings from manifests/control_settings.yaml
+[2025-08-27T12:22:58.875268+00:00] [INFO] [twin_model.control.control_manager] Control manager initialized with 8 controls
+[2025-08-27T12:22:59.016522+00:00] [INFO] [twin_model.model_builder] Model builder V2 initialized with ontology from ontology/twin_ontology.yaml
+[2025-08-27T12:22:59.016652+00:00] [INFO] [twin_model.model_builder] Loaded 28 entities from manifests
+[2025-08-27T12:22:59.016718+00:00] [INFO] [twin_model.model_builder] Organized 3 production lines
+[2025-08-27T12:22:59.016805+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=failure_timing_config
+[2025-08-27T12:22:59.016887+00:00] [INFO] [twin_model.primitives.equipment] Equipment failure_timing_config initialized with internal queues (size=20)
+[2025-08-27T12:22:59.016950+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-FIL
+[2025-08-27T12:22:59.017007+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-FIL initialized with internal queues (size=20)
+[2025-08-27T12:22:59.017056+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PAL
+[2025-08-27T12:22:59.017107+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PAL initialized with internal queues (size=20)
+[2025-08-27T12:22:59.017155+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE1-PCK
+[2025-08-27T12:22:59.017203+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE1-PCK initialized with internal queues (size=20)
+[2025-08-27T12:22:59.017259+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE1-SINK
+[2025-08-27T12:22:59.017306+00:00] [INFO] [twin_model.primitives.sink] Sink LINE1-SINK initialized for LINE1
+[2025-08-27T12:22:59.017355+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE1-SRC
+[2025-08-27T12:22:59.017403+00:00] [INFO] [twin_model.primitives.source] Source LINE1-SRC initialized for LINE1
+[2025-08-27T12:22:59.017451+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-FIL
+[2025-08-27T12:22:59.017501+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-FIL initialized with internal queues (size=20)
+[2025-08-27T12:22:59.017546+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PAL
+[2025-08-27T12:22:59.017594+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PAL initialized with internal queues (size=20)
+[2025-08-27T12:22:59.017638+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE2-PCK
+[2025-08-27T12:22:59.017682+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE2-PCK initialized with internal queues (size=20)
+[2025-08-27T12:22:59.017731+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE2-SINK
+[2025-08-27T12:22:59.017772+00:00] [INFO] [twin_model.primitives.sink] Sink LINE2-SINK initialized for LINE2
+[2025-08-27T12:22:59.017817+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE2-SRC
+[2025-08-27T12:22:59.017859+00:00] [INFO] [twin_model.primitives.source] Source LINE2-SRC initialized for LINE2
+[2025-08-27T12:22:59.017904+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-FIL
+[2025-08-27T12:22:59.017949+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-FIL initialized with internal queues (size=20)
+[2025-08-27T12:22:59.017992+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PAL
+[2025-08-27T12:22:59.018036+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PAL initialized with internal queues (size=20)
+[2025-08-27T12:22:59.018078+00:00] [INFO] [twin_model.primitives.base] Initialized EquipmentPrimitiveV2 primitive_id=LINE3-PCK
+[2025-08-27T12:22:59.018123+00:00] [INFO] [twin_model.primitives.equipment] Equipment LINE3-PCK initialized with internal queues (size=20)
+[2025-08-27T12:22:59.018166+00:00] [INFO] [twin_model.primitives.base] Initialized SinkPrimitiveV2 primitive_id=LINE3-SINK
+[2025-08-27T12:22:59.018203+00:00] [INFO] [twin_model.primitives.sink] Sink LINE3-SINK initialized for LINE3
+[2025-08-27T12:22:59.018246+00:00] [INFO] [twin_model.primitives.base] Initialized SourcePrimitiveV2 primitive_id=LINE3-SRC
+[2025-08-27T12:22:59.018285+00:00] [INFO] [twin_model.primitives.source] Source LINE3-SRC initialized for LINE3
+[2025-08-27T12:22:59.018322+00:00] [INFO] [twin_model.model_builder] Created 16 primitives
+[2025-08-27T12:22:59.018390+00:00] [INFO] [twin_model.model_builder] Wiring complete - internal queues only, no buffers!
+[2025-08-27T12:22:59.018442+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE1
+[2025-08-27T12:22:59.018514+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE2
+[2025-08-27T12:22:59.018570+00:00] [INFO] [twin_model.primitives.base] Initialized MonitorPrimitive primitive_id=MONITOR-LINE3
+[2025-08-27T12:22:59.018617+00:00] [INFO] [twin_model.model_builder] Created 3 monitors
+[2025-08-27T12:22:59.018664+00:00] [INFO] [twin_model.model_builder] Applied control parameters to primitives
+[2025-08-27T12:22:59.052665+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 9.9, repair: 0.7 min
+[2025-08-27T12:22:59.094762+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PCK: micro_stop occurred at 15.7, repair: 1.5 min
+[2025-08-27T12:22:59.095790+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PCK: micro_stop occurred at 15.9, repair: 1.6 min
+[2025-08-27T12:22:59.102038+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 17.3, repair: 1.3 min
+[2025-08-27T12:22:59.107058+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 18.3, repair: 1.3 min
+[2025-08-27T12:22:59.108734+00:00] [INFO] [twin_model.primitives.equipment] LINE1-PCK: micro_stop occurred at 18.6, repair: 1.0 min
+[2025-08-27T12:22:59.130272+00:00] [INFO] [twin_model.primitives.equipment] LINE1-FIL: micro_stop occurred at 21.7, repair: 1.6 min
+[2025-08-27T12:22:59.146730+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PCK: micro_stop occurred at 23.9, repair: 0.5 min
+[2025-08-27T12:22:59.156705+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PCK: micro_stop occurred at 24.9, repair: 0.5 min
+[2025-08-27T12:22:59.164884+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 25.9, repair: 1.4 min
+[2025-08-27T12:22:59.182280+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 28.1, repair: 0.9 min
+[2025-08-27T12:22:59.191110+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 29.1, repair: 1.8 min
+[2025-08-27T12:22:59.193424+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 29.3, repair: 1.0 min
+[2025-08-27T12:22:59.227018+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PAL: micro_stop occurred at 33.1, repair: 0.5 min
+[2025-08-27T12:22:59.269980+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 37.0, repair: 1.3 min
+[2025-08-27T12:22:59.296998+00:00] [INFO] [twin_model.primitives.equipment] LINE1-FIL: micro_stop occurred at 39.3, repair: 2.0 min
+[2025-08-27T12:22:59.309755+00:00] [INFO] [twin_model.primitives.equipment] LINE3-PAL: micro_stop occurred at 40.6, repair: 0.8 min
+[2025-08-27T12:22:59.356336+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 44.6, repair: 0.8 min
+[2025-08-27T12:22:59.365289+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 45.4, repair: 0.5 min
+[2025-08-27T12:22:59.366301+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 45.5, repair: 1.5 min
+[2025-08-27T12:22:59.377757+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 46.7, repair: 0.7 min
+[2025-08-27T12:22:59.433713+00:00] [INFO] [twin_model.primitives.equipment] LINE2-FIL: micro_stop occurred at 51.0, repair: 1.8 min
+[2025-08-27T12:22:59.475147+00:00] [INFO] [twin_model.primitives.equipment] LINE2-PAL: micro_stop occurred at 54.3, repair: 1.2 min
+[2025-08-27T12:22:59.507455+00:00] [INFO] [twin_model.primitives.equipment] LINE3-FIL: micro_stop occurred at 56.8, repair: 0.5 min

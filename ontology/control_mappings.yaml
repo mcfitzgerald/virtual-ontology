@@ -77,7 +77,7 @@ control_mappings:
       performance_factor:
         function: "logarithmic"
         base: 1.0
-        coefficient: 0.05
+        coefficient: 0.01  # Smaller coefficient for reasonable growth
         max: 1.12  # 12% max improvement
         description: "Diminishing returns on performance improvement"
         
@@ -277,6 +277,63 @@ composite_effects:
     affects: "maintenance_effectiveness"
     formula: "am_level * (1 + 0.01 * training_hours)"
     description: "Training makes autonomous maintenance more effective"
+
+# ====================================================================================
+# SIMULATION PARAMETERS - Base values before control effects
+# ====================================================================================
+simulation_parameters:
+  # Equipment performance parameters
+  performance_factor:
+    base_value: 0.85
+    description: "Base equipment performance (85% of theoretical)"
+    
+  micro_stop_probability:
+    base_value: 0.15
+    description: "Base probability of micro-stop per 5-minute interval"
+    
+  micro_stop_duration:
+    base_value: 0.5
+    description: "Base micro-stop duration in minutes"
+    
+  # Failure parameters
+  mtbf:
+    base_value: 240
+    description: "Base mean time between failures (4 hours)"
+    
+  mttr:
+    base_value: 15
+    description: "Base mean time to repair in minutes"
+    
+  minor_failure_probability:
+    base_value: 0.02
+    description: "Base probability of minor failure"
+    
+  major_failure_probability:
+    base_value: 0.01
+    description: "Base probability of major failure"
+    
+  # Quality parameters
+  scrap_rate:
+    base_value: 0.05
+    description: "Base scrap rate (5%)"
+    
+  # Changeover parameters
+  changeover_duration:
+    base_value: 30
+    description: "Base changeover duration in minutes"
+    
+  changeover_frequency:
+    base_value: 1.0
+    description: "Base changeover frequency multiplier"
+    
+  # Other parameters
+  base_rate:
+    base_value: 80
+    description: "Base production rate in units per minute"
+    
+  equipment_wear_rate:
+    base_value: 1.0
+    description: "Base equipment wear multiplier"
 
 # ====================================================================================
 # PARAMETER BOUNDS - Limits on final computed values
