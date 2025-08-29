@@ -48,7 +48,7 @@ control_mappings:
       changeover_duration:
         function: "stepped"
         thresholds: [0, 1, 2]
-        values: [1.0, 0.5, 0.2]  # 0%, 50%, 80% reduction
+        values: [1.0, 0.5, 0.3]  # 0%, 50%, 70% reduction
         description: "SMED levels directly reduce changeover times"
         
       setup_scrap_rate:
@@ -56,6 +56,12 @@ control_mappings:
         thresholds: [0, 1, 2]
         values: [0.15, 0.10, 0.05]  # Better first-article quality
         description: "Better changeover procedures reduce startup scrap"
+        
+      changeover_efficiency:
+        function: "stepped"
+        thresholds: [0, 1, 2]
+        values: [0.85, 0.92, 0.98]  # Effectiveness of changeover
+        description: "SMED improves changeover execution efficiency"
         
   # Operator Training
   operator_training_hours:

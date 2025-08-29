@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Repository cleanup and organization** - comprehensive restructuring for maintainability
+- .gitignore file with comprehensive Python and project-specific patterns
+- Documentation index (docs/README.md) for easy navigation
+- Organized documentation structure with architecture/, guides/, reference/, and development/ folders
+- Scripts folder for utility shell scripts (twin.sh, query-log.sh)
+- __init__.py files for all test packages to ensure proper Python module structure
+- **Phase 7: Complete LLM Documentation** - comprehensive documentation for AI understanding
+- TWIN_ARCHITECTURE.md - System overview, design philosophy, and component descriptions
+- ONTOLOGY_GUIDE.md - TBox/RBox structure, manifest system, and extension guidelines
+- CONTROL_SYSTEM_GUIDE.md - Two-layer control architecture, mapping functions, and optimization strategies
+- PRIMITIVE_REFERENCE.md - Detailed specifications for all primitive types with examples
+- SIMULATION_PATTERNS.md - Common patterns for failure modeling, changeovers, and optimization
+- TROUBLESHOOTING.md - Diagnostic procedures, common issues, and debugging techniques
+- **Phase 5: Changeover Modeling** implementation with realistic product-to-product transitions
+- Enhanced changeover matrix in SchedulerPrimitiveV2 with family-based and allergen-aware calculations
+- Changeover execution process in SourcePrimitiveV2 with state tracking and setup units
+- Setup scrap modeling during changeovers with configurable rates
+- SMED (Single-Minute Exchange of Die) reduction effects on changeover times
+- Changeover test suite (test_changeover_modeling.py) validating matrix calculations, execution, and optimization
+- Campaign mode vs mixed production comparison tests
+- Changeover metrics tracking (total time, count, setup scrap) in sources
 - Production order system with scheduler-to-source dispatch mechanism
 - SchedulerPrimitiveV2 with order queue management and line-specific tracking
 - Order-aware generation in SourcePrimitiveV2 with progress tracking
@@ -31,6 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Material flow test suite (test_material_flow.py) to validate equipment connections
 
 ### Changed
+- Changeover matrix calculation now considers product families, complexity, and allergen requirements
+- Source primitive enhanced with changeover state management and product tracking
+- Control mappings updated with changeover_efficiency parameter for SMED effects
 - Scheduler now manages per-line active orders instead of single active order
 - Model builder extended to load entities from scheduler manifest
 - Source primitive enhanced with order queue and completion tracking

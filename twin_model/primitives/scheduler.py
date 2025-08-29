@@ -230,7 +230,12 @@ class SchedulerPrimitiveV2(BasePrimitive):
             )
     
     def _initialize_changeover_matrix(self) -> ChangeoverMatrix:
-        """Initialize product changeover matrix.
+        """Initialize product changeover matrix with realistic times.
+        
+        Changeover times based on:
+        - Product family (cleaning requirements)
+        - Complexity difference (setup adjustments)
+        - Allergen considerations (deep cleaning)
         
         Returns:
             ChangeoverMatrix with product-to-product times
@@ -241,20 +246,51 @@ class SchedulerPrimitiveV2(BasePrimitive):
         # Base changeover times (minutes)
         base_times = np.full((n_products, n_products), 30.0)
         
-        # Set changeover times based on product families
+        # Define allergen families that require deep cleaning
+        allergen_families = {"Kids", "Sports"}  # Example allergen-containing families
+        
+        # Set changeover times based on product characteristics
         for i, prod1 in enumerate(product_list):
             for j, prod2 in enumerate(product_list):
                 if i == j:
-                    base_times[i, j] = 0.0  # Same product, no changeover
-                elif self.products[prod1].family == self.products[prod2].family:
-                    base_times[i, j] = 10.0  # Same family, quick changeover
+                    # Same product, no changeover
+                    base_times[i, j] = 0.0
                 else:
-                    # Different families, complexity-based changeover
-                    complexity_diff = abs(
-                        self.products[prod1].complexity - 
-                        self.products[prod2].complexity
-                    )
-                    base_times[i, j] = 20.0 + complexity_diff * 40.0
+                    p1 = self.products[prod1]
+                    p2 = self.products[prod2]
+                    
+                    # Calculate base changeover time
+                    if p1.family == p2.family:
+                        # Same family: quick rinse/adjustment
+                        base_time = 8.0
+                    else:
+                        # Different family: full cleaning
+                        base_time = 20.0
+                    
+                    # Add complexity adjustment (setup/calibration time)
+                    complexity_diff = abs(p1.complexity - p2.complexity)
+                    complexity_adjustment = complexity_diff * 15.0  # 0-15 minutes
+                    
+                    # Add allergen cleaning if needed
+                    allergen_adjustment = 0.0
+                    if (p1.family in allergen_families and 
+                        p2.family not in allergen_families):
+                        # Going from allergen to non-allergen: deep clean
+                        allergen_adjustment = 25.0
+                    elif (p1.family not in allergen_families and 
+                          p2.family in allergen_families):
+                        # Going to allergen product: moderate clean
+                        allergen_adjustment = 10.0
+                    
+                    # Volume rank difference (different speeds/settings)
+                    volume_adjustment = abs(p1.volume_rank - p2.volume_rank) * 2.0
+                    
+                    # Total changeover time
+                    total_time = (base_time + complexity_adjustment + 
+                                  allergen_adjustment + volume_adjustment)
+                    
+                    # Cap at reasonable maximum (60 minutes)
+                    base_times[i, j] = min(total_time, 60.0)
         
         return ChangeoverMatrix(products=product_list, base_times=base_times)
     

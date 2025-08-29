@@ -16,9 +16,34 @@ An alternative data access pattern:
 
 ![Virtual Ontology Architecture](virtual_ontology_diagram.png)
 
+## Project Structure
+
+```
+virtual-ontology/
+├── twin_model/           # Core simulation model
+│   ├── primitives/       # Equipment, Source, Sink primitives
+│   ├── control/          # Control system implementation
+│   └── tests/            # Organized test suites
+├── docs/                 # Comprehensive documentation
+│   ├── architecture/     # System design docs
+│   ├── guides/          # User and troubleshooting guides
+│   └── reference/       # API and pattern references
+├── manifests/           # Configuration files
+├── ontology/            # Ontology definitions
+├── scripts/             # Utility scripts
+└── database/            # FastAPI experiment tracking
+```
+
+## Documentation
+
+All documentation is located in the `docs/` folder:
+- **Getting Started**: See [docs/guides/SYSTEM_USAGE_GUIDE.md](docs/guides/SYSTEM_USAGE_GUIDE.md)
+- **Architecture**: See [docs/architecture/TWIN_ARCHITECTURE.md](docs/architecture/TWIN_ARCHITECTURE.md)
+- **Full Index**: See [docs/README.md](docs/README.md)
+
 ## Quickstart
 
-Clone the repo, open a Claude Code session, load @sys_prompt.md in chat.
+Clone the repo, open a Claude Code session, load @CLAUDE.md in chat.
 
 ## Code Walkthrough Video (30 minutes - short gif below)
 

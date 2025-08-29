@@ -78,6 +78,15 @@ class SourcePrimitiveV2(BasePrimitive):
         self.units_generated = 0  # Alias for compatibility
         self.total_rejected = 0
         
+        # Changeover tracking
+        self.last_product = None
+        self.is_changing_over = False
+        self.changeover_start_time = 0.0
+        self.total_changeover_time = 0.0
+        self.changeover_count = 0
+        self.setup_units_produced = 0
+        self.setup_units_scrapped = 0
+        
         # State tracking
         self.is_running = True
         self.is_disrupted = False
@@ -102,11 +111,17 @@ class SourcePrimitiveV2(BasePrimitive):
         logger.debug(f"{self.config.id}: Connected to downstream")
     
     def set_production_order(self, order: 'ProductionOrder') -> None:
-        """Set current production order.
+        """Set current production order and check if changeover is needed.
         
         Args:
             order: Production order to process
         """
+        # Check if changeover is needed
+        needs_changeover = False
+        if order and self.last_product and hasattr(order, 'product'):
+            if self.last_product != order.product.product_id:
+                needs_changeover = True
+        
         self.current_order = order
         self.units_remaining = order.quantity if order else 0
         
@@ -114,14 +129,21 @@ class SourcePrimitiveV2(BasePrimitive):
         if order:
             order.actual_start = self.env.now
         
+        # Mark changeover needed
+        if needs_changeover:
+            self.is_changing_over = True
+            self.changeover_start_time = self.env.now
+        
         self.emit_observable("order_started", {
             "source_id": self.config.id,
             "order_id": order.order_id if order else None,
             "product_id": order.product.product_id if order and hasattr(order, 'product') else "DEFAULT",
-            "target_quantity": order.quantity if order else 0
+            "target_quantity": order.quantity if order else 0,
+            "needs_changeover": needs_changeover
         })
         
-        logger.info(f"{self.config.id}: Started order {order.order_id if order else 'None'}")
+        logger.info(f"{self.config.id}: Started order {order.order_id if order else 'None'}" +
+                    (f" (changeover required)" if needs_changeover else ""))
     
     def add_order_to_queue(self, order: 'ProductionOrder') -> None:
         """Add order to queue for processing.
@@ -158,6 +180,11 @@ class SourcePrimitiveV2(BasePrimitive):
                 # No orders - wait
                 yield self.env.timeout(1)
                 return
+        
+        # Execute changeover if needed
+        if self.is_changing_over:
+            yield from self._execute_changeover()
+            return
         
         # Check if order is complete
         if self.units_remaining <= 0:
@@ -222,17 +249,114 @@ class SourcePrimitiveV2(BasePrimitive):
             # Wait for next generation
             yield self.env.timeout(interval)
     
+    def _execute_changeover(self) -> Generator:
+        """Execute product changeover process.
+        
+        Yields:
+            Changeover duration and setup production
+        """
+        if not self.current_order or not hasattr(self.current_order, 'product'):
+            self.is_changing_over = False
+            return
+        
+        # Get changeover duration from scheduler if available
+        changeover_duration = 30.0  # Default 30 minutes
+        
+        # Try to get actual changeover time from scheduler
+        from .scheduler import SchedulerPrimitiveV2
+        scheduler = None
+        
+        # Find scheduler in environment (if available)
+        if hasattr(self.env, 'scheduler'):
+            scheduler = self.env.scheduler
+        
+        if scheduler and isinstance(scheduler, SchedulerPrimitiveV2):
+            if self.last_product:
+                changeover_duration = scheduler.changeover_matrix.get_changeover_time(
+                    self.last_product,
+                    self.current_order.product.product_id
+                )
+                
+                # Apply SMED reduction if available
+                from ..control.control_manager import ControlManager
+                if hasattr(self.env, 'control_manager'):
+                    control_mgr = self.env.control_manager
+                    if isinstance(control_mgr, ControlManager):
+                        smed_level = control_mgr.get_control_value('changeover_reduction_level', 0)
+                        if smed_level == 1:
+                            changeover_duration *= 0.5  # 50% reduction
+                        elif smed_level == 2:
+                            changeover_duration *= 0.3  # 70% reduction
+        
+        self.emit_observable("changeover_started", {
+            "source_id": self.config.id,
+            "from_product": self.last_product,
+            "to_product": self.current_order.product.product_id,
+            "duration": changeover_duration
+        })
+        
+        logger.info(f"{self.config.id}: Starting changeover from {self.last_product} to "
+                   f"{self.current_order.product.product_id} ({changeover_duration:.1f} min)")
+        
+        # Execute changeover
+        yield self.env.timeout(changeover_duration)
+        
+        # Update tracking
+        self.total_changeover_time += changeover_duration
+        self.changeover_count += 1
+        
+        # Setup production (first units have higher scrap)
+        setup_units = min(10, self.units_remaining)  # First 10 units are setup
+        setup_scrap_rate = 0.15  # 15% scrap during setup
+        
+        for i in range(setup_units):
+            if random.random() < setup_scrap_rate:
+                self.setup_units_scrapped += 1
+                self.units_remaining -= 1
+                if self.current_order:
+                    self.current_order.scrap_quantity += 1
+            else:
+                # Generate good unit
+                unit_generated = yield from self._generate_unit()
+                if unit_generated:
+                    self.setup_units_produced += 1
+                    self.units_remaining -= 1
+                    if self.current_order:
+                        self.current_order.completed_quantity += 1
+            
+            # Small delay between setup units
+            yield self.env.timeout(0.1)
+        
+        # Changeover complete
+        self.is_changing_over = False
+        self.last_product = self.current_order.product.product_id
+        
+        self.emit_observable("changeover_completed", {
+            "source_id": self.config.id,
+            "product": self.current_order.product.product_id,
+            "duration": changeover_duration,
+            "setup_units": setup_units,
+            "setup_scrap": self.setup_units_scrapped
+        })
+        
+        logger.info(f"{self.config.id}: Changeover complete, now producing {self.current_order.product.product_id}")
+    
     def _complete_current_order(self) -> None:
         """Complete the current production order."""
         if self.current_order:
             self.current_order.actual_end = self.env.now
+            
+            # Update last product for changeover tracking
+            if hasattr(self.current_order, 'product'):
+                self.last_product = self.current_order.product.product_id
             
             self.emit_observable("order_completed", {
                 "source_id": self.config.id,
                 "order_id": self.current_order.order_id,
                 "product_id": self.current_order.product.product_id if hasattr(self.current_order, 'product') else "DEFAULT",
                 "completed_quantity": self.current_order.completed_quantity,
-                "target_quantity": self.current_order.quantity
+                "target_quantity": self.current_order.quantity,
+                "scrap_quantity": getattr(self.current_order, 'scrap_quantity', 0)
             })
             
             logger.info(f"{self.config.id}: Completed order {self.current_order.order_id} "
