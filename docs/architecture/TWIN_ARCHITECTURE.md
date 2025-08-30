@@ -126,7 +126,7 @@ Handles:
 - Quality inspection at source
 - Direct equipment feeding
 
-##### Equipment Primitive (equipment_v2_fixed.py)
+##### Equipment Primitive (equipment.py)
 - Processing with internal queues
 - State management (IDLE, RUNNING, FAILED, etc.)
 - Failure generation (MTBF/MTTR patterns)

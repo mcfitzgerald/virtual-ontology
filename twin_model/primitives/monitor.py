@@ -43,6 +43,7 @@ class KPIMetric:
         history: Historical values
         unit: Measurement unit
         aggregation: How to aggregate (avg, sum, max, min)
+
     """
 
     name: str
@@ -114,6 +115,7 @@ class MonitorPrimitive(BasePrimitive):
                 - aggregation_window: Time window for aggregations
                 - alert_thresholds: Thresholds for alerts
                 - monitored_primitives: List of primitives to monitor
+
         """
         super().__init__(env, config)
 
@@ -202,7 +204,7 @@ class MonitorPrimitive(BasePrimitive):
         )
 
     def monitor_process(self) -> Generator:
-        """Main monitoring process."""
+        """Run monitoring process."""
         while self.is_running:
             # Wait for update interval
             yield self.env.timeout(self.update_interval)
@@ -300,6 +302,7 @@ class MonitorPrimitive(BasePrimitive):
 
         Returns:
             Production count in window
+
         """
         if not hasattr(primitive, "observables"):
             return 0
@@ -321,6 +324,7 @@ class MonitorPrimitive(BasePrimitive):
 
         Returns:
             Availability percentage
+
         """
         if not hasattr(primitive, "observables"):
             return 0.0
@@ -507,6 +511,7 @@ class MonitorPrimitive(BasePrimitive):
             kpi_name: KPI that triggered alert
             severity: Alert severity
             message: Alert message
+
         """
         alert = {
             "timestamp": self.env.now,
@@ -552,6 +557,7 @@ class MonitorPrimitive(BasePrimitive):
         Args:
             name: Primitive identifier
             primitive: Primitive instance
+
         """
         self.monitored_primitives[name] = primitive
 
@@ -572,6 +578,7 @@ class MonitorPrimitive(BasePrimitive):
 
         Returns:
             Current KPI value or None
+
         """
         if kpi_name in self.kpis:
             return self.kpis[kpi_name].value
@@ -586,6 +593,7 @@ class MonitorPrimitive(BasePrimitive):
 
         Returns:
             List of (timestamp, value) tuples
+
         """
         if kpi_name not in self.kpis:
             return []
@@ -603,6 +611,7 @@ class MonitorPrimitive(BasePrimitive):
 
         Returns:
             Dictionary with dashboard data
+
         """
         return {
             "timestamp": self.env.now,
@@ -627,6 +636,7 @@ class MonitorPrimitive(BasePrimitive):
 
         Returns:
             Dictionary of monitor metrics
+
         """
         return {
             "kpis_tracked": len(self.kpis),

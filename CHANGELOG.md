@@ -8,6 +8,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **HOW_TO_RUN.md** - Comprehensive guide for running simulations with practical examples
+- Configuration loading system with three-tier hierarchy (ontology defaults → manifest properties → runtime config)
+- Helper methods in BasePrimitive for configuration access (get_system_config, get_technical_config, get_failure_config)
+- Test files for configuration loading (test_config_loading.py) and failure configuration (test_failure_config.py)
+- Test plan documentation (docs/development/test_plan.md) for comprehensive test coverage
+
+### Changed
+- **Major refactor: Removed all V2 suffixes** from class names throughout codebase
+  - OntologyDrivenModelBuilderV2 → OntologyDrivenModelBuilder
+  - EquipmentPrimitiveV2 → EquipmentPrimitive (and all other primitives)
+  - Updated all imports and references to use non-V2 names
+- Enhanced model_builder.py to load configuration from config/twin_model.yaml
+- Updated all primitives to use configuration values instead of hardcoded defaults
+  - Equipment: Failure patterns now use system_config.yaml distributions
+  - Source: Changeover parameters from configuration
+  - Sink: Throughput window from configuration
+- Documentation updates to reflect current architecture
+  - Fixed V2 references in SYSTEM_USAGE_GUIDE.md, PRIMITIVE_REFERENCE.md, TWIN_ARCHITECTURE.md
+  - Updated docs/README.md with prominent HOW_TO_RUN.md reference
+  - Updated documentation date to August 30, 2024
+
+### Fixed
+- ProductionOrder import and constructor usage in model_builder.py
+- Type checking errors with mypy (reduced from 60 to 31 cosmetic issues)
+- Linting issues with ruff (44 issues fixed)
+- Configuration access throughout primitives using proper helper methods
+- Failure configuration to use system_config.yaml instead of hardcoded values
+
+### Removed
+- Legacy V2 files and duplicate code:
+  - equipment_v2_fixed.py (duplicate of equipment.py)
+  - buffer.py (contradicts NO BUFFERS architecture)
+  - state_manager.py (unused)
+  - config.py (replaced by configuration loading in model_builder)
+  - Various obsolete test files (test_final_verification.py, test_logging.py, test_phases_verification.py)
+  - serve_docs.py (unused documentation server)
+  - README.md (duplicate at root level)
+- Archived TWIN_MODEL_REFACTOR_PLAN.md to docs/archive/ (completed and outdated)
+
+### Added
 - **Repository cleanup and organization** - comprehensive restructuring for maintainability
 - .gitignore file with comprehensive Python and project-specific patterns
 - Documentation index (docs/README.md) for easy navigation

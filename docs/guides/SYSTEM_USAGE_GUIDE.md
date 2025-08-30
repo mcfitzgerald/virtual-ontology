@@ -96,9 +96,9 @@ system:
 
 **Usage**:
 ```python
-from twin_model.model_builder import OntologyDrivenModelBuilderV2
+from twin_model.model_builder import OntologyDrivenModelBuilder
 
-builder = ModelBuilderV2(
+builder = OntologyDrivenModelBuilder(
     env=simpy_env,
     ontology_path="ontology/twin_ontology.yaml",
     manifest_dir="manifests/",
@@ -125,10 +125,12 @@ Example: training_hours=16 → micro_stop_duration×0.8 → faster recovery → 
 
 ## How to Use the System
 
+**For complete runnable examples, see [HOW_TO_RUN.md](../HOW_TO_RUN.md)**
+
 ### 1. Basic Simulation Run
 ```python
 import simpy
-from twin_model.model_builder import OntologyDrivenModelBuilderV2
+from twin_model.model_builder import OntologyDrivenModelBuilder
 from twin_model.control.control_manager import ControlManager
 
 # Setup
@@ -140,7 +142,7 @@ control_mgr = ControlManager(
 )
 
 # Build model
-builder = ModelBuilderV2(env, "ontology/twin_ontology.yaml", "manifests/", control_mgr)
+builder = OntologyDrivenModelBuilder(env, "ontology/twin_ontology.yaml", "manifests/", control_mgr)
 model = builder.build_model()
 
 # Start processes

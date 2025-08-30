@@ -56,6 +56,7 @@ class PrimitiveConfig:
         properties: Type-checked properties from manifest
         relationships: Dict of relationship type to related primitive IDs
         metadata: Additional context for debugging and analysis
+
     """
 
     id: str
@@ -73,6 +74,7 @@ class PrimitiveConfig:
 
         Returns:
             Property value or default
+
         """
         return self.properties.get(key, default)
 
@@ -81,6 +83,7 @@ class PrimitiveConfig:
 
         Raises:
             ValueError: If required properties are missing or invalid
+
         """
         if not self.id:
             raise ValueError("Primitive ID is required")
@@ -115,6 +118,7 @@ class SamplingConfig:
         critical_events: Event types that bypass sampling (always recorded)
         buffer_size: Maximum events to keep in memory per primitive
         enable_global_observables: Whether to emit to global event bus
+
     """
 
     def __init__(
@@ -133,6 +137,7 @@ class SamplingConfig:
             aggregation_interval: Time window for metric aggregation in minutes
             buffer_size: Maximum events to keep in circular buffer
             enable_global_observables: Whether to duplicate events to global bus
+
         """
         self.mode = mode
         self.sampling_rate = max(1, sampling_rate)  # Ensure at least 1
@@ -163,6 +168,7 @@ class SamplingConfig:
 
         Returns:
             True if event should be recorded, False otherwise
+
         """
         # Always record if explicitly marked as critical
         if is_critical:
@@ -198,6 +204,7 @@ class ObservableBuffer:
         flush_callback: Optional callback for persisting data
         total_events: Counter of all events seen (including discarded)
         discarded_events: Counter of events dropped due to buffer overflow
+
     """
 
     def __init__(
@@ -208,6 +215,7 @@ class ObservableBuffer:
         Args:
             buffer_size: Maximum events to keep (default 1000)
             flush_callback: Optional function to call when flushing data
+
         """
         # Use deque with maxlen for automatic circular buffer behavior
         # As noted in Python docs, when maxlen is set, older items are
@@ -223,6 +231,7 @@ class ObservableBuffer:
 
         Args:
             event: Event dictionary to add to buffer
+
         """
         # Track if we're about to discard an event
         if len(self.buffer) == self.buffer_size:
@@ -236,6 +245,7 @@ class ObservableBuffer:
 
         Returns:
             List of flushed events
+
         """
         if not self.buffer:
             return []
@@ -264,6 +274,7 @@ class ObservableBuffer:
 
         Returns:
             List of n most recent events (or all if fewer than n)
+
         """
         if n >= len(self.buffer):
             return list(self.buffer)
@@ -276,6 +287,7 @@ class ObservableBuffer:
 
         Returns:
             Dictionary with buffer statistics
+
         """
         return {
             "buffer_size": self.buffer_size,
@@ -298,6 +310,7 @@ class EventBatcher:
         batch_size: Maximum events per batch before forcing flush
         pending_batches: Dict of pending event batches by type and window
         current_window: Current time window being processed
+
     """
 
     def __init__(self, batch_window: float = 5.0, batch_size: int = 100) -> None:
@@ -306,6 +319,7 @@ class EventBatcher:
         Args:
             batch_window: Time window for grouping events (default 5 minutes)
             batch_size: Maximum batch size before forcing flush (default 100)
+
         """
         self.batch_window = batch_window
         self.batch_size = batch_size
@@ -324,6 +338,7 @@ class EventBatcher:
 
         Returns:
             Completed batch if ready, None otherwise
+
         """
         # Calculate time window for this event
         window = int(timestamp // self.batch_window)
@@ -361,6 +376,7 @@ class EventBatcher:
 
         Returns:
             List of flushed batches
+
         """
         flushed_batches = []
 
@@ -380,6 +396,7 @@ class EventBatcher:
 
         Returns:
             List of all flushed batches
+
         """
         all_batches = []
 
@@ -396,6 +413,7 @@ class EventBatcher:
 
         Returns:
             Dictionary with batching statistics
+
         """
         total_pending = sum(len(batch) for batch in self.pending_batches.values())
 
@@ -420,6 +438,7 @@ class IncrementalAggregator:
         window_size: Time window for aggregation (simulation minutes)
         metrics: Dict of metric aggregators by name
         current_window_start: Start time of current aggregation window
+
     """
 
     def __init__(self, window_size: float = 5.0) -> None:
@@ -427,6 +446,7 @@ class IncrementalAggregator:
 
         Args:
             window_size: Time window for aggregation in minutes (default 5)
+
         """
         self.window_size = window_size
         self.metrics: Dict[str, "MetricAggregator"] = {}
@@ -443,6 +463,7 @@ class IncrementalAggregator:
 
         Returns:
             Completed window statistics if window finished, None otherwise
+
         """
         # Check if we need to start a new window
         window_end = self.current_window_start + self.window_size
@@ -469,6 +490,7 @@ class IncrementalAggregator:
 
         Returns:
             MetricAggregator for the metric
+
         """
         if metric_name not in self.metrics:
             self.metrics[metric_name] = MetricAggregator()
@@ -482,6 +504,7 @@ class IncrementalAggregator:
 
         Returns:
             Dictionary of aggregated statistics for the window
+
         """
         summary = {
             "window_start": self.current_window_start,
@@ -509,6 +532,7 @@ class IncrementalAggregator:
 
         Returns:
             Current window statistics
+
         """
         return {
             "window_start": self.current_window_start,
@@ -524,6 +548,7 @@ class IncrementalAggregator:
 
         Returns:
             List of completed window summaries
+
         """
         return self.completed_windows[-n:] if n > 0 else []
 
@@ -551,6 +576,7 @@ class MetricAggregator:
 
         Args:
             value: Numeric value to add to aggregation
+
         """
         self.count += 1
 
@@ -571,6 +597,7 @@ class MetricAggregator:
 
         Returns:
             Dictionary with count, mean, variance, stddev, min, max
+
         """
         if self.count == 0:
             return {"count": 0, "mean": 0.0, "variance": 0.0, "stddev": 0.0, "min": 0.0, "max": 0.0}
@@ -594,6 +621,7 @@ class MetricAggregator:
 
         Args:
             other: Another MetricAggregator to merge
+
         """
         if other.count == 0:
             return
@@ -651,6 +679,7 @@ class ProgressCallback(ABC):
             events_processed: Number of events processed so far
             memory_usage_mb: Current memory usage in MB
             **kwargs: Additional metrics (e.g., cache_size, db_inserts)
+
         """
         pass
 
@@ -665,6 +694,7 @@ class ConsoleProgressReporter(ProgressCallback):
         report_interval: Seconds between progress reports
         last_report_time: Last time progress was reported
         start_time: Real-world start time of simulation
+
     """
 
     def __init__(self, report_interval: float = 5.0) -> None:
@@ -672,6 +702,7 @@ class ConsoleProgressReporter(ProgressCallback):
 
         Args:
             report_interval: Seconds between progress reports
+
         """
         import time
 
@@ -691,6 +722,7 @@ class ConsoleProgressReporter(ProgressCallback):
             events_processed: Number of events processed
             memory_usage_mb: Current memory usage
             **kwargs: Additional metrics
+
         """
         import time
 
@@ -744,6 +776,7 @@ class SimulationMonitor:
         event_rate_threshold: Minimum acceptable event rate
         check_interval: Minutes between health checks
         metrics: Performance metrics dictionary
+
     """
 
     def __init__(
@@ -760,6 +793,7 @@ class SimulationMonitor:
             memory_threshold_mb: Memory usage warning threshold (from config if None)
             event_rate_threshold: Minimum events/second threshold (from config if None)
             check_interval: Simulation minutes between checks (from config if None)
+
         """
         self.env = env
         # Use config values if not provided
@@ -784,6 +818,7 @@ class SimulationMonitor:
 
         Yields:
             Timeout events for periodic checking
+
         """
         import tracemalloc
         import time
@@ -834,6 +869,7 @@ class SimulationMonitor:
 
         Returns:
             Dictionary of performance metrics
+
         """
         import time
 
@@ -878,6 +914,7 @@ class BasePrimitive(ABC):
             env: SimPy environment for discrete event simulation
             config: Primitive configuration from manifest
             sampling_config: Optional sampling configuration for performance
+
         """
         self.env = env
         self.config = config
@@ -930,6 +967,69 @@ class BasePrimitive(ABC):
                 }
             },
         )
+    
+    def get_system_config(self, key: str, default: Any = None) -> Any:
+        """Get value from system configuration.
+        
+        Args:
+            key: Configuration key (supports dot notation like 'failure_distributions.micro_stops')
+            default: Default value if key not found
+            
+        Returns:
+            Configuration value or default
+        """
+        system_config = self.config.get_property("_system_config", {})
+        
+        # Support dot notation for nested keys
+        keys = key.split(".")
+        value = system_config
+        for k in keys:
+            if isinstance(value, dict):
+                value = value.get(k)
+                if value is None:
+                    return default
+            else:
+                return default
+        
+        return value if value is not None else default
+    
+    def get_technical_config(self, key: str, default: Any = None) -> Any:
+        """Get value from technical configuration.
+        
+        Args:
+            key: Configuration key (supports dot notation)
+            default: Default value if key not found
+            
+        Returns:
+            Configuration value or default
+        """
+        tech_config = self.config.get_property("_technical_config", {})
+        
+        # Support dot notation for nested keys
+        keys = key.split(".")
+        value = tech_config
+        for k in keys:
+            if isinstance(value, dict):
+                value = value.get(k)
+                if value is None:
+                    return default
+            else:
+                return default
+        
+        return value if value is not None else default
+    
+    def get_failure_config(self, failure_type: str, key: str, default: Any = None) -> Any:
+        """Get failure configuration value.
+        
+        Args:
+            failure_type: Type of failure (micro_stops, minor_failures, major_failures)
+            key: Configuration key within failure type
+            default: Default value if not found
+            
+        Returns:
+            Configuration value or default
+        """
+        return self.get_system_config(f"failure_distributions.{failure_type}.{key}", default)
 
     @abstractmethod
     def start(self) -> None:
@@ -955,6 +1055,7 @@ class BasePrimitive(ABC):
             details: Event-specific details with rich context
             severity: Event severity (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             is_critical: Mark event as critical to bypass sampling
+
         """
         # Track total events for metrics
         self.events_emitted += 1
@@ -1024,6 +1125,7 @@ class BasePrimitive(ABC):
 
         Returns:
             Filtered list of observable events
+
         """
         # Get all events from buffer (already limited by buffer size)
         result = list(self.observable_buffer.buffer)
@@ -1045,6 +1147,7 @@ class BasePrimitive(ABC):
         Args:
             other: Target primitive to connect to
             relationship_type: Type of relationship (feeds_into, controls, monitors)
+
         """
         if relationship_type not in self.config.relationships:
             self.config.relationships[relationship_type] = []
@@ -1096,6 +1199,7 @@ class BasePrimitive(ABC):
 
         Returns:
             Completed window statistics if window finished, None otherwise
+
         """
         return self.metric_aggregator.add_value(metric_name, value, self.env.now)
 
@@ -1115,6 +1219,7 @@ class BasePrimitive(ABC):
 
         Returns:
             Completed batch if ready, None otherwise
+
         """
         # Build the event
         event = {
@@ -1137,6 +1242,7 @@ class BasePrimitive(ABC):
 
         Returns:
             List of completed batches
+
         """
         return self.event_batcher.flush_all()
 
@@ -1145,6 +1251,7 @@ class BasePrimitive(ABC):
 
         Returns:
             Current window statistics and history
+
         """
         return {
             "current": self.metric_aggregator.get_current_stats(),
@@ -1159,6 +1266,7 @@ class BasePrimitive(ABC):
 
         Returns:
             List of flushed events
+
         """
         return self.observable_buffer.flush()
 
@@ -1167,6 +1275,7 @@ class BasePrimitive(ABC):
 
         Returns:
             Dictionary containing performance statistics
+
         """
         buffer_stats = self.observable_buffer.get_stats()
 
@@ -1188,6 +1297,7 @@ class BasePrimitive(ABC):
 
         Returns:
             Dictionary describing current primitive state and performance
+
         """
         buffer_stats = self.observable_buffer.get_stats()
 
@@ -1209,5 +1319,5 @@ class BasePrimitive(ABC):
         }
 
     def __repr__(self) -> str:
-        """String representation for debugging."""
+        """Return string representation for debugging."""
         return f"{self.__class__.__name__}(id={self.config.id}, type={self.config.type})"

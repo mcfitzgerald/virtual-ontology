@@ -20,20 +20,21 @@ Located in `docs/reference/`:
 
 ### Development Documentation
 Located in `docs/development/`:
-- **[TWIN_MODEL_REFACTOR_PLAN.md](development/TWIN_MODEL_REFACTOR_PLAN.md)** - Original refactor plan (COMPLETED)
 - **[CONTROL_EFFECTS_DOCUMENTATION.md](development/CONTROL_EFFECTS_DOCUMENTATION.md)** - Control effects validation and relationships
+- **[test_plan.md](development/test_plan.md)** - Test coverage and validation plans
 
 ## 🚀 Quick Start
 
-1. New to the system? Start with [SYSTEM_USAGE_GUIDE.md](guides/SYSTEM_USAGE_GUIDE.md)
-2. Understanding the architecture? Read [TWIN_ARCHITECTURE.md](architecture/TWIN_ARCHITECTURE.md)
-3. Configuring controls? See [CONTROL_SYSTEM_GUIDE.md](guides/CONTROL_SYSTEM_GUIDE.md)
-4. Having issues? Check [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md)
+1. **Want to run a simulation?** Start with **[HOW_TO_RUN.md](HOW_TO_RUN.md)** 
+2. New to the system? Read [SYSTEM_USAGE_GUIDE.md](guides/SYSTEM_USAGE_GUIDE.md)
+3. Understanding the architecture? See [TWIN_ARCHITECTURE.md](architecture/TWIN_ARCHITECTURE.md)
+4. Configuring controls? Check [CONTROL_SYSTEM_GUIDE.md](guides/CONTROL_SYSTEM_GUIDE.md)
+5. Having issues? Review [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md)
 
 ## 📖 Documentation Status
 
-All documentation is current as of **August 28, 2024** and reflects:
-- ✅ V2 primitive architecture with direct equipment connections
+All documentation is current as of **August 30, 2024** and reflects:
+- ✅ Current primitive architecture with direct equipment connections (NO BUFFERS)
 - ✅ Production order system with scheduler integration
 - ✅ Changeover modeling with SMED effects
 - ✅ Two-layer control system

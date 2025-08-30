@@ -34,6 +34,7 @@ class MESTransducer:
 
         Args:
             time_bucket: Time bucket in minutes (default 5 for 5-minute intervals)
+
         """
         self.time_bucket = time_bucket
         self.mes_records: List[Dict[str, Any]] = []
@@ -70,6 +71,7 @@ class MESTransducer:
 
         Returns:
             DataFrame in MES format
+
         """
         # Sort observables by timestamp
         sorted_obs = sorted(observables, key=lambda x: x.get("timestamp", 0))
@@ -96,6 +98,7 @@ class MESTransducer:
         Args:
             obs: Observable event
             manifests: Optional manifests for context
+
         """
         event_type = obs.get("event_type")
         primitive_type = obs.get("primitive_type")
@@ -127,6 +130,7 @@ class MESTransducer:
             obs: Equipment observable
             bucket_key: Time bucket and equipment ID
             manifests: Optional manifests
+
         """
         event_type = obs.get("event_type")
         # equipment_id = obs.get('primitive_id')  # May be used for future enhancements
@@ -180,6 +184,7 @@ class MESTransducer:
         Args:
             obs: Order assignment observable
             bucket_key: Time bucket and equipment ID
+
         """
         order_id = obs.get("order_id")
         line_id = obs.get("line_id")
@@ -197,6 +202,7 @@ class MESTransducer:
 
         Returns:
             List of MES records
+
         """
         mes_records = []
 
@@ -306,6 +312,7 @@ class MESTransducer:
 
         Returns:
             MES machine status
+
         """
         state_mapping = {
             "RUNNING": "Running",
@@ -328,6 +335,7 @@ class MESTransducer:
 
         Returns:
             Equipment type string
+
         """
         # Try manifest first
         if equipment_info and "type" in equipment_info:
@@ -354,6 +362,7 @@ class MESTransducer:
 
         Returns:
             Line ID
+
         """
         # Try manifest first
         if equipment_info and "line_id" in equipment_info:
@@ -376,6 +385,7 @@ class MESTransducer:
 
         Returns:
             Product name
+
         """
         if manifests and "production_manifest" in manifests:
             prod_manifest = manifests["production_manifest"]
@@ -404,6 +414,7 @@ class MESTransducer:
 
         Returns:
             Availability percentage
+
         """
         total_time = self.time_bucket  # Total bucket time in minutes
         downtime = metrics["downtime_minutes"]
@@ -429,6 +440,7 @@ class MESTransducer:
 
         Returns:
             Performance percentage
+
         """
         try:
             # Get target rate with fallback
@@ -502,6 +514,7 @@ class MESTransducer:
 
         Returns:
             Quality percentage
+
         """
         total_units = metrics["good_units"] + metrics["scrap_units"]
 
@@ -517,6 +530,7 @@ class MESTransducer:
         Args:
             df: MES DataFrame
             filepath: Output file path
+
         """
         df.to_csv(filepath, index=False)
         print(f"✓ MES data saved to {filepath}")
@@ -529,6 +543,7 @@ class MESTransducer:
 
         Returns:
             Dictionary of summary statistics
+
         """
         if df.empty:
             return {}

@@ -27,6 +27,7 @@ class ObservableCache:
         write_index: Current write position in cache
         event_count: Total events written
         file_count: Number of cache files created
+
     """
 
     def __init__(
@@ -41,6 +42,7 @@ class ObservableCache:
             cache_dir: Directory for cache storage (created if not exists)
             max_size: Maximum cache entries per file before rotation
             dtype_size: Maximum bytes per event (default 1KB)
+
         """
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -121,6 +123,7 @@ class ObservableCache:
 
         Returns:
             Global event index
+
         """
         # Check if we need a new file
         if self.write_index >= self.max_size:
@@ -178,6 +181,7 @@ class ObservableCache:
 
         Returns:
             List of global event indices
+
         """
         indices = []
         for event in events:
@@ -198,6 +202,7 @@ class ObservableCache:
 
         Returns:
             Event dictionary or None if not found
+
         """
         if global_index >= self.event_count or global_index < 0:
             return None
@@ -254,6 +259,7 @@ class ObservableCache:
 
         Returns:
             List of event dictionaries
+
         """
         events = []
 
@@ -286,6 +292,7 @@ class ObservableCache:
 
         Returns:
             List of matching events
+
         """
         results: list[Dict[str, Any]] = []
 
@@ -364,6 +371,7 @@ class ObservableCache:
 
         Returns:
             Tuple of (file_index, local_index) or (None, None) if not found
+
         """
         current_offset = 0
 
@@ -396,6 +404,7 @@ class ObservableCache:
 
         Returns:
             Dictionary with cache statistics
+
         """
         total_size = sum(
             (self.cache_dir / f["filename"]).stat().st_size

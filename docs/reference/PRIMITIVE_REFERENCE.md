@@ -28,7 +28,7 @@ class BasePrimitive:
                 callback(data)
 ```
 
-## Source Primitive V2
+## Source Primitive
 
 ### Purpose
 Generates material/units and feeds them directly into production lines.
@@ -104,7 +104,7 @@ LINE1-SRC:
     batch_size: 100
 ```
 
-## Equipment Primitive V2
+## Equipment Primitive
 
 ### Purpose
 Processes units with realistic equipment behavior including failures, performance variation, and quality impacts.
@@ -144,7 +144,7 @@ stateDiagram-v2
 ### Internal Architecture
 
 ```python
-class EquipmentPrimitiveV2:
+class EquipmentPrimitive:
     def __init__(self, ...):
         # Internal queues (NO SEPARATE BUFFERS!)
         self.input_queue = simpy.Store(env, capacity=queue_capacity)
@@ -211,7 +211,7 @@ LINE1-FIL:
     scrap_rate_base: 0.02
 ```
 
-## Sink Primitive V2
+## Sink Primitive
 
 ### Purpose
 Collects processed units, calculates KPIs, and tracks order completion.
@@ -289,7 +289,7 @@ LINE1-SINK:
     kpi_window: 60
 ```
 
-## Scheduler Primitive V2
+## Scheduler Primitive
 
 ### Purpose
 Manages production orders, optimizes sequencing, and coordinates changeovers across lines.
@@ -356,7 +356,7 @@ class ProductionOrder:
 def add_order(self, order: ProductionOrder):
     """Add order to pending queue"""
     
-def register_source(self, line_id: str, source: SourcePrimitiveV2):
+def register_source(self, line_id: str, source: SourcePrimitive):
     """Connect scheduler to source"""
     
 def _sequence_orders(self) -> List[ProductionOrder]:

@@ -1,5 +1,4 @@
-"""
-Centralized logging configuration for the twin_model framework.
+"""Centralized logging configuration for the twin_model framework.
 
 This module provides a unified logging setup that:
 - Uses Python's standard logging module with structured formatting
@@ -33,8 +32,7 @@ class LogLevel(Enum):
 
 
 class StructuredFormatter(logging.Formatter):
-    """
-    Custom formatter that outputs structured log records.
+    """Custom formatter that outputs structured log records.
 
     Features:
     - JSON output for production
@@ -44,13 +42,13 @@ class StructuredFormatter(logging.Formatter):
     """
 
     def __init__(self, json_format: bool = False, include_context: bool = True, include_timestamp: bool = True):
-        """
-        Initialize the structured formatter.
+        """Initialize the structured formatter.
 
         Args:
             json_format: Output JSON if True, human-readable if False
             include_context: Include context data in output
             include_timestamp: Include timestamps in output
+
         """
         super().__init__()
         self.json_format = json_format
@@ -58,14 +56,14 @@ class StructuredFormatter(logging.Formatter):
         self.include_timestamp = include_timestamp
 
     def format(self, record: logging.LogRecord) -> str:
-        """
-        Format the log record.
+        """Format the log record.
 
         Args:
             record: The log record to format
 
         Returns:
             Formatted log string
+
         """
         # Base log data
         log_data = {
@@ -126,8 +124,7 @@ class StructuredFormatter(logging.Formatter):
 
 
 class SimulationLogger:
-    """
-    Centralized logger configuration for simulation framework.
+    """Centralized logger configuration for simulation framework.
 
     Features:
     - Hierarchical logger structure
@@ -153,8 +150,7 @@ class SimulationLogger:
         correlation_id: Optional[str] = None,
         json_format: bool = False,
     ) -> None:
-        """
-        Configure logging for the entire twin_model framework.
+        """Configure logging for the entire twin_model framework.
 
         Args:
             log_dir: Directory for log files
@@ -165,6 +161,7 @@ class SimulationLogger:
             backup_count: Number of backup files to keep
             correlation_id: Optional correlation ID for tracking
             json_format: Use JSON format for logs
+
         """
         if cls._configured:
             logging.getLogger(__name__).warning("Logging already configured, skipping setup")
@@ -238,14 +235,14 @@ class SimulationLogger:
 
     @classmethod
     def get_logger(cls, name: str) -> logging.Logger:
-        """
-        Get a logger instance with the given name.
+        """Get a logger instance with the given name.
 
         Args:
             name: Logger name (usually __name__)
 
         Returns:
             Configured logger instance
+
         """
         if not cls._configured:
             cls.setup_logging()
@@ -258,14 +255,14 @@ class SimulationLogger:
 
     @classmethod
     def log_with_context(cls, logger: logging.Logger, level: int, message: str, **context) -> None:
-        """
-        Log a message with additional context.
+        """Log a message with additional context.
 
         Args:
             logger: Logger instance
             level: Log level
             message: Log message
             **context: Additional context data
+
         """
         # Add correlation ID if set
         if cls._correlation_id:
@@ -286,8 +283,7 @@ class SimulationLogger:
 
 
 def log_performance(func):
-    """
-    Decorator to log function performance.
+    """Log function performance.
 
     Usage:
         @log_performance
@@ -332,27 +328,25 @@ def log_performance(func):
 
 
 class EventInspector:
-    """
-    Analyze and debug event streams.
+    """Analyze and debug event streams.
 
     Provides utilities for inspecting and analyzing simulation events
     for debugging and optimization purposes.
     """
 
     def __init__(self, logger: Optional[logging.Logger] = None):
-        """
-        Initialize event inspector.
+        """Initialize event inspector.
 
         Args:
             logger: Logger instance to use
+
         """
         self.logger = logger or SimulationLogger.get_logger(__name__)
 
     def analyze_event_distribution(
         self, events: list[Dict[str, Any]], sample_size: Optional[int] = None
     ) -> Dict[str, Any]:
-        """
-        Analyze distribution of event types.
+        """Analyze distribution of event types.
 
         Args:
             events: List of event dictionaries
@@ -360,6 +354,7 @@ class EventInspector:
 
         Returns:
             Analysis results with statistics
+
         """
         from collections import Counter
 
@@ -405,14 +400,14 @@ class EventInspector:
         return analysis
 
     def find_anomalies(self, events: list[Dict[str, Any]]) -> list[Dict[str, Any]]:
-        """
-        Find anomalous events in the stream.
+        """Find anomalous events in the stream.
 
         Args:
             events: List of event dictionaries
 
         Returns:
             List of anomalous events
+
         """
         anomalies = []
 
@@ -451,13 +446,13 @@ class EventInspector:
 
 # Convenience function for quick setup
 def setup_default_logging(level: str = "INFO", enable_file: bool = True, json_format: bool = False) -> None:
-    """
-    Quick setup with sensible defaults.
+    """Quick setup with sensible defaults.
 
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         enable_file: Enable file logging
         json_format: Use JSON format for file logs
+
     """
     SimulationLogger.setup_logging(
         log_level=level, enable_console=True, enable_file=enable_file, json_format=json_format

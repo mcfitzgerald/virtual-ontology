@@ -11,8 +11,7 @@ from .primitives import (
     PrimitiveConfig,
     EquipmentPrimitive as Equipment,
     EquipmentState,
-    BufferPrimitive as Buffer,
-    BufferItem,
+    ProductionUnit,
     SourcePrimitive as Source,
     ArrivalPattern,
     SinkPrimitive as Sink,
@@ -27,7 +26,7 @@ from .primitives import (
 )
 
 # Import model builder
-from .model_builder import OntologyDrivenModelBuilderV2 as OntologyDrivenModelBuilder
+from .model_builder import OntologyDrivenModelBuilder
 
 # Import transduction
 from .transduction import MESTransducer
@@ -41,9 +40,7 @@ __all__ = [
     # Equipment
     "Equipment",
     "EquipmentState",
-    # Buffer
-    "Buffer",
-    "BufferItem",
+    "ProductionUnit",
     # Source
     "Source",
     "ArrivalPattern",
