@@ -1,57 +1,82 @@
-[tool.poetry]
-name = "virtual-ontology"
-version = "0.1.0"
-description = "Digital Twin Simulation and Optimization System"
-authors = ["Michael Fitzgerald <michael.craig.fitzgerald@gmail.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.12"
-# Core computation
-numpy = "^1.26"
-pandas = "^2.3"
-simpy = "^4.1"
-scipy = "^1.16"
-
-# Web/API
-fastapi = "^0.115"
-uvicorn = "^0.35"
-sqlmodel = "^0.0.24"
-pydantic = "^2.11"
-
-# Visualization
-matplotlib = "^3.10"
-dash = "^2.14"
-dash-cytoscape = "^0.3"
-networkx = "^3.2"
-pyvis = "^0.3"
-
-# Utilities
-click = "^8.2"
-pyyaml = "^6.0"
-dill = "^0.4"
-requests = "^2.32"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.4"
-mypy = "^1.14"
-ruff = "^0.9"
-ipython = "^8.12"
-ipdb = "^0.13"
-
-[tool.poetry.group.docs.dependencies]
-sphinx = "^8.2"
-sphinx-rtd-theme = "^3.0"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.ruff]
-line-length = 120
-target-version = "py312"
+[project]
+name = "twin-model"
+version = "1.0.0"
+description = "Ontology-driven discrete event simulation framework for manufacturing systems"
+readme = "README.md"
+authors = [
+    {name = "Virtual Ontology Team", email = "contact@example.com"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = [
+    "simpy>=4.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "numpy>=1.20",
+    "pandas>=1.3",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "mypy>=1.0",
+    "ruff>=0.1",
+    "sphinx>=7.0",
+    "sphinx-autoapi>=3.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/twin-model"
+Documentation = "https://twin-model.readthedocs.io"
+Repository = "https://github.com/yourusername/twin-model.git"
+Issues = "https://github.com/yourusername/twin-model/issues"
+
+[tool.setuptools.packages.find]
+include = ["twin_model*"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py38"
+line-length = 120
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.isort]
+known-first-party = ["twin_model"]
