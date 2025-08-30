@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Comprehensive API documentation system**:
+  - Sphinx-based HTML documentation with full API reference
+  - LLM-optimized documentation in markdown format (60KB)
+  - Custom documentation generator script (generate_llm_docs.py)
+  - AutoAPI integration for automatic code documentation extraction
+- **Documentation infrastructure**:
+  - Sphinx configuration with AutoAPI, MyST parser, and RTD theme
+  - Custom templates for LLM-friendly output
+  - Documentation build system with HTML and markdown outputs
 - **HOW_TO_RUN.md** - Comprehensive guide for running simulations with practical examples
 - Configuration loading system with three-tier hierarchy (ontology defaults → manifest properties → runtime config)
 - Helper methods in BasePrimitive for configuration access (get_system_config, get_technical_config, get_failure_config)
@@ -15,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test plan documentation (docs/development/test_plan.md) for comprehensive test coverage
 
 ### Changed
+- **docs/README.md** - Updated to include new API documentation sections:
+  - Added section for Sphinx HTML documentation
+  - Added section for LLM-optimized documentation
+  - Enhanced Quick Start with API reference options
+  - Added documentation regeneration commands
 - **Major refactor: Removed all V2 suffixes** from class names throughout codebase
   - OntologyDrivenModelBuilderV2 → OntologyDrivenModelBuilder
   - EquipmentPrimitiveV2 → EquipmentPrimitive (and all other primitives)

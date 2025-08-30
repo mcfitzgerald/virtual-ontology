@@ -1,0 +1,2088 @@
+# Twin Model API Documentation
+*Auto-generated documentation for LLM consumption*
+---
+
+## Core Modules
+
+### Module: __init__
+*File: __init__.py*
+
+Ontology-driven virtual twin model.
+
+This package provides an ontology-driven simulation framework for generating
+synthetic MES (Manufacturing Execution System) data using SimPy discrete event
+simulation with rich observables for pattern discovery.
+
+---
+
+### Module: logging_config
+*File: logging_config.py*
+
+Centralized logging configuration for the twin_model framework.
+
+This module provides a unified logging setup that:
+- Uses Python's standard logging module with structured formatting
+- Supports different log levels for different scenarios
+- Includes file rotation and console output
+- Provides context-aware logging with correlation IDs
+- Optimizes performance in production mode
+
+#### Classes
+
+##### LogLevel(Enum)
+
+Logging levels for different scenarios.
+
+##### StructuredFormatter(logging.Formatter)
+
+Custom formatter that outputs structured log records.
+
+Features:
+- JSON output for production
+- Human-readable output for development
+- Includes context and performance data
+- Handles exceptions gracefully
+
+**Methods:**
+- `__init__(json_format: bool, include_context: bool, include_timestamp: bool)`
+  Initialize the structured formatter.
+  
+  Args:
+      json_format: Output JSON if True, human-readable if False
+      include_context: Include context data in output
+      include_timestamp: Include timestamps in output
+- `format(record: logging.LogRecord) -> str`
+  Format the log record.
+  
+  Args:
+      record: The log record to format
+  
+  Returns:
+      Formatted log string
+
+##### SimulationLogger
+
+Centralized logger configuration for simulation framework.
+
+Features:
+- Hierarchical logger structure
+- File and console handlers
+- Structured logging with context
+- Performance monitoring
+- Event correlation
+
+**Attributes:**
+- `_correlation_id: Optional[str]`
+- `_log_dir: Optional[Path]`
+
+**Methods:**
+- `setup_logging(cls, log_dir: Path, log_level: Union[(LogLevel, str)], enable_console: bool, enable_file: bool, max_bytes: int, backup_count: int, correlation_id: Optional[str], json_format: bool) -> None`
+  Configure logging for the entire twin_model framework.
+  
+  Args:
+      log_dir: Directory for log files
+      log_level: Minimum log level to capture
+      enable_console: Enable console output
+      enable_file: Enable file output
+      max_bytes: Maximum size per log file
+      backup_count: Number of backup files to keep
+      correlation_id: Optional correlation ID for tracking
+      json_format: Use JSON format for logs
+- `get_logger(cls, name: str) -> logging.Logger`
+  Get a logger instance with the given name.
+  
+  Args:
+      name: Logger name (usually __name__)
+  
+  Returns:
+      Configured logger instance
+- `log_with_context(cls, logger: logging.Logger, level: int, message: str) -> None`
+  Log a message with additional context.
+  
+  Args:
+      logger: Logger instance
+      level: Log level
+      message: Log message
+      **context: Additional context data
+- `set_correlation_id(cls, correlation_id: str) -> None`
+  Set the correlation ID for all subsequent logs.
+- `clear_correlation_id(cls) -> None`
+  Clear the correlation ID.
+
+##### EventInspector
+
+Analyze and debug event streams.
+
+Provides utilities for inspecting and analyzing simulation events
+for debugging and optimization purposes.
+
+**Methods:**
+- `__init__(logger: Optional[logging.Logger])`
+  Initialize event inspector.
+  
+  Args:
+      logger: Logger instance to use
+- `analyze_event_distribution(events: list[Dict[(str, Any)]], sample_size: Optional[int]) -> Dict[(str, Any)]`
+  Analyze distribution of event types.
+  
+  Args:
+      events: List of event dictionaries
+      sample_size: Optional sample size limit
+  
+  Returns:
+      Analysis results with statistics
+- `find_anomalies(events: list[Dict[(str, Any)]]) -> list[Dict[(str, Any)]]`
+  Find anomalous events in the stream.
+  
+  Args:
+      events: List of event dictionaries
+  
+  Returns:
+      List of anomalous events
+
+#### Functions
+
+##### `log_performance(func)`
+
+Log function performance.
+
+Usage:
+    @log_performance
+    def my_function():
+        pass
+
+##### `setup_default_logging(level: str, enable_file: bool, json_format: bool) -> None`
+
+Quick setup with sensible defaults.
+
+Args:
+    level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    enable_file: Enable file logging
+    json_format: Use JSON format for file logs
+
+---
+
+### Module: model_builder
+*File: model_builder.py*
+
+Ontology-driven model builder for SimPy simulations.
+
+This module builds SimPy models from the twin ontology structure and manifests.
+Key features:
+- NO BUFFERS - only internal equipment queues
+- Direct equipment-to-equipment connections
+- Two-layer control system integration
+- Proper ontology interpretation
+
+#### Classes
+
+##### EntityDefinition
+
+Definition of an entity from ontology.
+
+**Attributes:**
+- `entity_id: str`
+- `entity_class: str`
+- `properties: Dict[(str, Any)]`
+- `relationships: Dict[(str, List[str])]`
+- `primitive_type: Optional[str]`
+
+##### LineConfiguration
+
+Configuration for a production line.
+
+**Attributes:**
+- `line_id: str`
+- `source: Optional[EntityDefinition]`
+- `equipment: List[EntityDefinition]`
+- `sink: Optional[EntityDefinition]`
+
+**Methods:**
+- `get_equipment_sequence() -> List[EntityDefinition]`
+  Get equipment sorted by position.
+
+##### OntologyDrivenModelBuilder
+
+Builds SimPy models from ontology structure and manifests.
+
+This builder:
+1. Interprets the twin ontology to understand structure
+2. Loads configuration from manifests
+3. Creates primitives with internal queues only
+4. Wires direct equipment connections
+5. Integrates two-layer control system
+
+**Methods:**
+- `__init__(env: simpy.Environment, ontology_path: Path, manifest_dir: Path, control_manager: Optional[ControlManager], config_path: Optional[Path]) -> None`
+  Initialize model builder.
+  
+  Args:
+      env: SimPy environment
+      ontology_path: Path to twin_ontology.yaml
+      manifest_dir: Directory containing manifest files
+      control_manager: Optional control manager for two-layer system
+      config_path: Optional path to twin_model.yaml config file
+- `_load_yaml(path: Path) -> Dict[(str, Any)]`
+  Load YAML file.
+- `_load_manifests(manifest_dir: Path) -> Dict[(str, Any)]`
+  Load all manifest files from directory.
+- `_parse_classes() -> Dict[(str, Any)]`
+  Parse class definitions from TBox.
+- `_get_ontology_defaults(class_name: str) -> Dict[(str, Any)]`
+  Get default property values from ontology class definition.
+  
+  Args:
+      class_name: Name of the class to get defaults for
+      
+  Returns:
+      Dictionary of property defaults
+- `_parse_relationships() -> Dict[(str, Any)]`
+  Parse relationships from RBox.
+- `_parse_mappings() -> Dict[(str, str)]`
+  Parse primitive mappings.
+- `build_model() -> Dict[(str, Any)]`
+  Build complete simulation model from ontology and manifests.
+  
+  Returns:
+      Dictionary containing model components
+- `_load_entities() -> None`
+  Load entity definitions from manifests.
+- `_organize_lines() -> None`
+  Organize entities into production lines.
+- `_create_primitives() -> None`
+  Create SimPy primitives from entity definitions.
+- `_wire_connections() -> None`
+  Wire direct equipment-to-equipment connections using internal queues.
+  
+  This is the key architecture:
+  - NO separate buffer entities
+  - Direct equipment connections via internal queues
+  - Source feeds first equipment's input queue
+  - Sink collects from last equipment's output queue
+- `_create_scheduler() -> Optional[SchedulerPrimitive]`
+  Create scheduler with order management.
+- `_create_scheduler() -> Optional[SchedulerPrimitive]`
+  Create scheduler and load production orders.
+- `_create_monitors() -> List[MonitorPrimitive]`
+  Create monitors for KPI tracking.
+- `_apply_control_parameters() -> None`
+  Apply control system parameters to primitives.
+- `start_processes() -> None`
+  Start all simulation processes.
+- `get_line_status(line_id: str) -> Dict[(str, Any)]`
+  Get current status of a production line.
+  
+  Args:
+      line_id: Line identifier
+  
+  Returns:
+      Status dictionary
+- `describe_model() -> str`
+  Get human-readable description of the model.
+  
+  Returns:
+      Description string
+
+---
+
+## Package: control
+
+### Module: __init__
+*File: control/__init__.py*
+
+Control system for virtual twin.
+
+This module provides the two-layer control system that maps
+actionable controls (what plant managers change) to simulation
+parameters (internal model behavior).
+
+---
+
+### Module: control_manager
+*File: control/control_manager.py*
+
+Control manager for two-layer control system.
+
+This module manages the mapping between actionable controls (what plant managers change)
+and simulation parameters (internal model behavior). It loads mappings from the ontology
+and applies transformations based on control values.
+
+#### Classes
+
+##### MappingFunction(str, Enum)
+
+Types of mapping functions supported.
+
+##### ControlDefinition
+
+Definition of an actionable control.
+
+**Attributes:**
+- `name: str`
+- `datatype: str`
+- `bounds: List[float]`
+- `default: float`
+- `description: str`
+- `options: Optional[List[str]]`
+
+##### ParameterMapping
+
+Mapping from control to parameter.
+
+**Attributes:**
+- `control_name: str`
+- `parameter_name: str`
+- `function: MappingFunction`
+- `config: Dict[(str, Any)]`
+- `description: str`
+
+##### ControlState
+
+Current state of all controls.
+
+**Attributes:**
+- `values: Dict[(str, Any)]`
+- `computed_parameters: Dict[(str, float)]`
+
+**Methods:**
+- `get(control_name: str, default: Any) -> Any`
+  Get control value with default.
+- `set(control_name: str, value: Any) -> None`
+  Set control value.
+
+##### ControlManager
+
+Manages the two-layer control system.
+
+This class:
+1. Loads control definitions from ontology
+2. Loads control mappings from configuration
+3. Applies current control settings
+4. Computes simulation parameters from controls
+
+**Methods:**
+- `__init__(ontology_path: Path, mappings_path: Path, settings_path: Optional[Path]) -> None`
+  Initialize control manager.
+  
+  Args:
+      ontology_path: Path to twin ontology with control definitions
+      mappings_path: Path to control mappings configuration
+      settings_path: Optional path to current control settings
+- `_load_yaml(path: Path) -> Dict[(str, Any)]`
+  Load YAML configuration file.
+- `_parse_controls() -> Dict[(str, ControlDefinition)]`
+  Parse control definitions from ontology.
+- `_parse_mappings() -> List[ParameterMapping]`
+  Parse control to parameter mappings.
+- `_apply_defaults() -> None`
+  Apply default control values.
+- `load_settings(path: Path) -> None`
+  Load control settings from file.
+  
+  Args:
+      path: Path to control settings YAML
+- `save_settings(path: Path) -> None`
+  Save current control settings to file.
+  
+  Args:
+      path: Path to save settings
+- `get_control_value(name: str) -> Any`
+  Get current value of a control.
+  
+  Args:
+      name: Control name
+  
+  Returns:
+      Current control value
+- `set_control_value(name: str, value: Any) -> None`
+  Set control value and recompute parameters.
+  
+  Args:
+      name: Control name
+      value: New value
+- `update_parameters() -> None`
+  Recompute all simulation parameters from current controls.
+- `_apply_mapping(control_value: Any, mapping: ParameterMapping) -> float`
+  Apply a mapping function to transform control to parameter.
+  
+  Args:
+      control_value: Current control value
+      mapping: Mapping configuration
+  
+  Returns:
+      Computed parameter value
+- `_apply_bounds(params: Dict[(str, float)]) -> Dict[(str, float)]`
+  Apply parameter bounds from configuration.
+  
+  Args:
+      params: Computed parameters
+  
+  Returns:
+      Bounded parameters
+- `get_parameter(name: str, default: float) -> float`
+  Get computed simulation parameter.
+  
+  Args:
+      name: Parameter name
+      default: Default value if not found
+  
+  Returns:
+      Parameter value
+- `get_all_parameters() -> Dict[(str, float)]`
+  Get all computed parameters.
+  
+  Returns:
+      Dictionary of parameter values
+- `get_scenario(scenario_name: str) -> Optional[Dict[(str, Any)]]`
+  Get predefined scenario configuration.
+  
+  Args:
+      scenario_name: Name of scenario
+  
+  Returns:
+      Scenario configuration or None
+- `apply_scenario(scenario_name: str) -> bool`
+  Apply a predefined scenario.
+  
+  Args:
+      scenario_name: Name of scenario to apply
+  
+  Returns:
+      True if scenario was applied
+- `describe_control(name: str) -> str`
+  Get human-readable description of a control.
+  
+  Args:
+      name: Control name
+  
+  Returns:
+      Description string
+- `get_recommendations() -> List[Dict[(str, Any)]]`
+  Get recommendations for control improvements.
+  
+  Returns:
+      List of recommendations with expected impact
+
+---
+
+### Module: parameter_effects
+*File: control/parameter_effects.py*
+
+Parameter effects module for simulation parameter management.
+
+This module defines how simulation parameters affect the actual behavior
+of equipment and other primitives in the virtual twin model.
+
+#### Classes
+
+##### ParameterCategory(Enum)
+
+Categories of simulation parameters.
+
+##### ParameterEffect
+
+Defines how a parameter affects simulation behavior.
+
+**Attributes:**
+- `name: str`
+- `category: ParameterCategory`
+- `description: str`
+- `base_value: float`
+- `current_value: float`
+- `unit: Optional[str]`
+- `bounds: tuple[(float, float)]`
+- `affects_primitives: List[str]`
+- `application_function: Optional[Callable]`
+
+##### ParameterEffectsManager
+
+Manages how simulation parameters affect model behavior.
+
+This class:
+1. Defines all simulation parameters
+2. Tracks current parameter values
+3. Applies parameters to primitives
+4. Validates parameter interactions
+5. Provides parameter recommendations
+
+**Methods:**
+- `__init__()`
+  Initialize parameter effects manager.
+- `_define_parameters() -> None`
+  Define all simulation parameters and their effects.
+- `get_parameter(name: str) -> Optional[ParameterEffect]`
+  Get a parameter by name.
+  
+  Args:
+      name: Parameter name
+  
+  Returns:
+      ParameterEffect or None if not found
+- `set_parameter_value(name: str, value: float) -> None`
+  Set a parameter value.
+  
+  Args:
+      name: Parameter name
+      value: New value
+  
+  Raises:
+      ValueError: If parameter doesn't exist or value out of bounds
+- `get_parameters_by_category(category: ParameterCategory) -> Dict[(str, ParameterEffect)]`
+  Get all parameters in a category.
+  
+  Args:
+      category: Parameter category
+  
+  Returns:
+      Dictionary of parameters in category
+- `get_parameters_for_primitive(primitive_type: str) -> Dict[(str, ParameterEffect)]`
+  Get parameters that affect a specific primitive type.
+  
+  Args:
+      primitive_type: Type of primitive (e.g., 'EquipmentPrimitive')
+  
+  Returns:
+      Dictionary of relevant parameters
+- `apply_to_config(config: Dict[(str, Any)], primitive_type: str) -> Dict[(str, Any)]`
+  Apply current parameter values to a primitive configuration.
+  
+  Args:
+      config: Primitive configuration dictionary
+      primitive_type: Type of primitive
+  
+  Returns:
+      Updated configuration with parameter values
+- `update_from_control_manager(computed_parameters: Dict[(str, float)]) -> None`
+  Update parameter values from control manager output.
+  
+  Args:
+      computed_parameters: Dictionary of computed parameter values
+- `get_all_current_values() -> Dict[(str, float)]`
+  Get current values of all parameters.
+  
+  Returns:
+      Dictionary of parameter name to current value
+- `reset_to_base_values() -> None`
+  Reset all parameters to their base values.
+- `validate_parameter_set() -> List[str]`
+  Validate current parameter set for conflicts or issues.
+  
+  Returns:
+      List of validation warnings/errors
+- `get_recommendations() -> List[Dict[(str, Any)]]`
+  Get recommendations for parameter improvements.
+  
+  Returns:
+      List of parameter adjustment recommendations
+
+---
+
+## Package: primitives
+
+### Module: __init__
+*File: primitives/__init__.py*
+
+SimPy Primitives Framework for Ontology-Driven Virtual Twin.
+
+This module provides generic building blocks (primitives) that compose into
+complex manufacturing systems. Primitives emit rich observables for
+discovery-based learning without prescriptive mappings.
+
+---
+
+### Module: base
+*File: primitives/base.py*
+
+Base primitive class for SimPy-based building blocks.
+
+This module defines the foundational primitive that all other primitives
+extend. It provides core functionality for observable emission and
+configuration management.
+
+#### Classes
+
+##### PrimitiveConfig
+
+Configuration for a primitive instance.
+
+This dataclass holds all configuration values loaded from manifests,
+providing a clean separation between structure (ontology) and
+values (manifests).
+
+Attributes:
+    id: Unique identifier for this primitive instance
+    type: Type of primitive (Equipment, Buffer, Source, etc.)
+    properties: Type-checked properties from manifest
+    relationships: Dict of relationship type to related primitive IDs
+    metadata: Additional context for debugging and analysis
+
+**Attributes:**
+- `id: str`
+- `type: str`
+- `properties: Dict[(str, Any)]`
+- `relationships: Dict[(str, List[str])]`
+- `metadata: Dict[(str, Any)]`
+
+**Methods:**
+- `get_property(key: str, default: Any) -> Any`
+  Get a property value with optional default.
+  
+  Args:
+      key: Property name to retrieve
+      default: Value to return if property not found
+  
+  Returns:
+      Property value or default
+- `validate() -> None`
+  Validate configuration against expected schema.
+  
+  Raises:
+      ValueError: If required properties are missing or invalid
+
+##### SimulationMode(str, Enum)
+
+Simulation data collection modes.
+
+Modes:
+    DETAILED: Full observables, every event recorded
+    PRODUCTION: Sampled data at configurable intervals
+    FAST: Minimal logging, critical events and KPIs only
+
+##### SamplingConfig
+
+Configuration for observable sampling and performance optimization.
+
+This class controls how events are collected and stored during simulation,
+providing trade-offs between data completeness and performance.
+
+Attributes:
+    mode: Simulation mode controlling data collection strategy
+    sampling_rate: Record every Nth event (1 = all events)
+    aggregation_interval: Time window for aggregating metrics (minutes)
+    critical_events: Event types that bypass sampling (always recorded)
+    buffer_size: Maximum events to keep in memory per primitive
+    enable_global_observables: Whether to emit to global event bus
+
+**Methods:**
+- `__init__(mode: SimulationMode, sampling_rate: int, aggregation_interval: float, buffer_size: int, enable_global_observables: bool) -> None`
+  Initialize sampling configuration.
+  
+  Args:
+      mode: Data collection mode (DETAILED, PRODUCTION, or FAST)
+      sampling_rate: Event sampling frequency (1 = every event, 10 = every 10th)
+      aggregation_interval: Time window for metric aggregation in minutes
+      buffer_size: Maximum events to keep in circular buffer
+      enable_global_observables: Whether to duplicate events to global bus
+- `should_record_event(event_type: str, is_critical: bool) -> bool`
+  Determine if an event should be recorded based on sampling config.
+  
+  Args:
+      event_type: Type of event being emitted
+      is_critical: Override flag to mark event as critical
+  
+  Returns:
+      True if event should be recorded, False otherwise
+
+##### ObservableBuffer
+
+Circular buffer for observables with automatic memory management.
+
+Uses collections.deque with maxlen for efficient circular buffer behavior.
+When the buffer is full, oldest events are automatically discarded.
+Optionally supports flushing to external storage via callback.
+
+Attributes:
+    buffer: Deque with maximum length for circular behavior
+    buffer_size: Maximum number of events to keep in memory
+    flush_callback: Optional callback for persisting data
+    total_events: Counter of all events seen (including discarded)
+    discarded_events: Counter of events dropped due to buffer overflow
+
+**Methods:**
+- `__init__(buffer_size: int, flush_callback: Optional[Callable[([List[Dict[str, Any]]], None)]]) -> None`
+  Initialize circular buffer with optional flush callback.
+  
+  Args:
+      buffer_size: Maximum events to keep (default 1000)
+      flush_callback: Optional function to call when flushing data
+- `append(event: Dict[(str, Any)]) -> None`
+  Add event to buffer, potentially discarding oldest.
+  
+  Args:
+      event: Event dictionary to add to buffer
+- `flush() -> List[Dict[(str, Any)]]`
+  Flush buffer contents and optionally persist via callback.
+  
+  Returns:
+      List of flushed events
+- `get_recent(n: int) -> List[Dict[(str, Any)]]`
+  Get n most recent events without removing them.
+  
+  Args:
+      n: Number of recent events to retrieve
+  
+  Returns:
+      List of n most recent events (or all if fewer than n)
+- `get_stats() -> Dict[(str, int)]`
+  Get buffer statistics for monitoring.
+  
+  Returns:
+      Dictionary with buffer statistics
+
+##### EventBatcher
+
+Batch similar events for efficient processing.
+
+Groups events by type and time window to reduce individual callbacks
+and improve performance. This reduces the overhead of processing
+each event individually, especially useful for high-frequency events.
+
+Attributes:
+    batch_window: Time window for batching (simulation minutes)
+    batch_size: Maximum events per batch before forcing flush
+    pending_batches: Dict of pending event batches by type and window
+    current_window: Current time window being processed
+
+**Methods:**
+- `__init__(batch_window: float, batch_size: int) -> None`
+  Initialize event batcher with window and size parameters.
+  
+  Args:
+      batch_window: Time window for grouping events (default 5 minutes)
+      batch_size: Maximum batch size before forcing flush (default 100)
+- `add_event(event: Dict[(str, Any)], timestamp: float) -> Optional[List[Dict[(str, Any)]]]`
+  Add event to batch, return batch if ready.
+  
+  Groups events by type and time window. Returns completed batches
+  when either the window changes or batch size is exceeded.
+  
+  Args:
+      event: Event data to batch
+      timestamp: Current simulation time
+  
+  Returns:
+      Completed batch if ready, None otherwise
+- `_flush_old_windows(new_window: int) -> List[List[Dict[(str, Any)]]]`
+  Flush all batches from windows older than the current one.
+  
+  Args:
+      new_window: The new current window number
+  
+  Returns:
+      List of flushed batches
+- `flush_all() -> List[List[Dict[(str, Any)]]]`
+  Force flush all pending batches.
+  
+  Returns:
+      List of all flushed batches
+- `get_stats() -> Dict[(str, Any)]`
+  Get batcher statistics.
+  
+  Returns:
+      Dictionary with batching statistics
+
+##### IncrementalAggregator
+
+Incremental statistics aggregator for time-windowed metrics.
+
+Efficiently computes running statistics without storing all data points.
+Uses Welford's algorithm for numerically stable variance calculation.
+This allows for constant memory usage regardless of data size.
+
+Attributes:
+    window_size: Time window for aggregation (simulation minutes)
+    metrics: Dict of metric aggregators by name
+    current_window_start: Start time of current aggregation window
+
+**Methods:**
+- `__init__(window_size: float) -> None`
+  Initialize aggregator with window size.
+  
+  Args:
+      window_size: Time window for aggregation in minutes (default 5)
+- `add_value(metric_name: str, value: float, timestamp: float) -> Optional[Dict[(str, Any)]]`
+  Add value to aggregator, return window summary if complete.
+  
+  Args:
+      metric_name: Name of the metric being tracked
+      value: Numeric value to add
+      timestamp: Current simulation time
+  
+  Returns:
+      Completed window statistics if window finished, None otherwise
+- `_ensure_metric(metric_name: str) -> 'MetricAggregator'`
+  Ensure metric aggregator exists.
+  
+  Args:
+      metric_name: Name of the metric
+  
+  Returns:
+      MetricAggregator for the metric
+- `_complete_window(timestamp: float) -> Dict[(str, Any)]`
+  Complete current window and return statistics.
+  
+  Args:
+      timestamp: Current simulation time
+  
+  Returns:
+      Dictionary of aggregated statistics for the window
+- `get_current_stats() -> Dict[(str, Any)]`
+  Get statistics for current incomplete window.
+  
+  Returns:
+      Current window statistics
+- `get_history(n: int) -> List[Dict[(str, Any)]]`
+  Get last n completed windows.
+  
+  Args:
+      n: Number of windows to retrieve
+  
+  Returns:
+      List of completed window summaries
+
+##### MetricAggregator
+
+Single metric aggregator using Welford's algorithm.
+
+Computes mean, variance, min, max incrementally without storing values.
+This provides O(1) memory usage and numerically stable calculations.
+
+Reference: Welford, B. P. (1962). "Note on a method for calculating
+corrected sums of squares and products". Technometrics. 4 (3): 419–420.
+
+**Methods:**
+- `__init__() -> None`
+  Initialize empty aggregator.
+- `add(value: float) -> None`
+  Add value using Welford's online algorithm.
+  
+  Args:
+      value: Numeric value to add to aggregation
+- `get_stats() -> Dict[(str, float)]`
+  Get current aggregated statistics.
+  
+  Returns:
+      Dictionary with count, mean, variance, stddev, min, max
+- `merge(other: 'MetricAggregator') -> None`
+  Merge another aggregator into this one.
+  
+  Uses parallel algorithm for combining statistics.
+  
+  Args:
+      other: Another MetricAggregator to merge
+
+##### ProgressCallback(ABC)
+
+Abstract base class for progress reporting.
+
+Implement this class to create custom progress reporters
+for long-running simulations. Callbacks are invoked periodically
+during simulation execution.
+
+**Methods:**
+- `__call__(current_time: float, total_time: float, events_processed: int, memory_usage_mb: float) -> None`
+  Report simulation progress.
+  
+  Args:
+      current_time: Current simulation time
+      total_time: Total simulation duration
+      events_processed: Number of events processed so far
+      memory_usage_mb: Current memory usage in MB
+      **kwargs: Additional metrics (e.g., cache_size, db_inserts)
+
+##### ConsoleProgressReporter(ProgressCallback)
+
+Console-based progress reporter with configurable intervals.
+
+Prints progress updates to console showing percentage complete,
+time remaining, memory usage, and event processing rate.
+
+Attributes:
+    report_interval: Seconds between progress reports
+    last_report_time: Last time progress was reported
+    start_time: Real-world start time of simulation
+
+**Methods:**
+- `__init__(report_interval: float) -> None`
+  Initialize console reporter.
+  
+  Args:
+      report_interval: Seconds between progress reports
+- `__call__(current_time: float, total_time: float, events_processed: int, memory_usage_mb: float) -> None`
+  Report progress to console.
+  
+  Args:
+      current_time: Current simulation time
+      total_time: Total simulation duration
+      events_processed: Number of events processed
+      memory_usage_mb: Current memory usage
+      **kwargs: Additional metrics
+
+##### SimulationMonitor
+
+Monitor simulation health and performance metrics.
+
+Tracks memory usage, event rates, and simulation performance
+to detect issues and provide diagnostics during execution.
+
+Attributes:
+    env: SimPy environment
+    memory_threshold_mb: Memory warning threshold
+    event_rate_threshold: Minimum acceptable event rate
+    check_interval: Minutes between health checks
+    metrics: Performance metrics dictionary
+
+**Methods:**
+- `__init__(env: simpy.Environment, memory_threshold_mb: Optional[float], event_rate_threshold: Optional[float], check_interval: Optional[float]) -> None`
+  Initialize simulation monitor.
+  
+  Args:
+      env: SimPy environment to monitor
+      memory_threshold_mb: Memory usage warning threshold (from config if None)
+      event_rate_threshold: Minimum events/second threshold (from config if None)
+      check_interval: Simulation minutes between checks (from config if None)
+- `_monitor_process() -> Generator[(simpy.Event, Any, Any)]`
+  Background process for health monitoring.
+  
+  Yields:
+      Timeout events for periodic checking
+- `record_event() -> None`
+  Record that an event was processed.
+- `get_metrics() -> Dict[(str, Any)]`
+  Get current monitoring metrics.
+  
+  Returns:
+      Dictionary of performance metrics
+
+##### BasePrimitive(ABC)
+
+Base class for all SimPy primitives.
+
+All primitives must emit observables for discovery-based learning.
+This base class provides core functionality for:
+- Observable emission and storage
+- Configuration management
+- SimPy environment integration
+- Common event patterns
+
+The observable stream is the primary mechanism through which the
+LLM discovers relationships and patterns without prescriptive rules.
+
+**Methods:**
+- `__init__(env: simpy.Environment, config: PrimitiveConfig, sampling_config: Optional[SamplingConfig]) -> None`
+  Initialize primitive with configuration and performance optimization.
+  
+  Args:
+      env: SimPy environment for discrete event simulation
+      config: Primitive configuration from manifest
+      sampling_config: Optional sampling configuration for performance
+- `get_system_config(key: str, default: Any) -> Any`
+  Get value from system configuration.
+  
+  Args:
+      key: Configuration key (supports dot notation like 'failure_distributions.micro_stops')
+      default: Default value if key not found
+      
+  Returns:
+      Configuration value or default
+- `get_technical_config(key: str, default: Any) -> Any`
+  Get value from technical configuration.
+  
+  Args:
+      key: Configuration key (supports dot notation)
+      default: Default value if key not found
+      
+  Returns:
+      Configuration value or default
+- `get_failure_config(failure_type: str, key: str, default: Any) -> Any`
+  Get failure configuration value.
+  
+  Args:
+      failure_type: Type of failure (micro_stops, minor_failures, major_failures)
+      key: Configuration key within failure type
+      default: Default value if not found
+      
+  Returns:
+      Configuration value or default
+- `start() -> None`
+  Start the primitive's processes.
+  
+  This method should be called after all primitives are created
+  and wired together. It typically starts one or more SimPy
+  processes that represent the primitive's behavior.
+- `emit_observable(event_type: str, details: Dict[(str, Any)], severity: str, is_critical: bool) -> None`
+  Emit an observable event with sampling and performance optimization.
+  
+  This is the primary mechanism for primitives to communicate
+  their state and behavior. Events are now sampled based on
+  configuration to prevent memory exhaustion in long simulations.
+  
+  Args:
+      event_type: Type of event (state_change, production, failure, etc.)
+      details: Event-specific details with rich context
+      severity: Event severity (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+      is_critical: Mark event as critical to bypass sampling
+- `get_observables(event_type: Optional[str], start_time: Optional[float], end_time: Optional[float]) -> List[Dict[(str, Any)]]`
+  Retrieve observables with optional filtering from circular buffer.
+  
+  Args:
+      event_type: Filter by specific event type
+      start_time: Filter events after this simulation time
+      end_time: Filter events before this simulation time
+  
+  Returns:
+      Filtered list of observable events
+- `connect_to(other: 'BasePrimitive', relationship_type: str) -> None`
+  Connect this primitive to another via relationship.
+  
+  Args:
+      other: Target primitive to connect to
+      relationship_type: Type of relationship (feeds_into, controls, monitors)
+- `initialize() -> None`
+  Initialize primitive before starting processes.
+  
+  Override this method to perform setup that requires all
+  primitives to be created first (e.g., wiring relationships).
+- `shutdown() -> None`
+  Gracefully shutdown the primitive.
+  
+  Override this method to perform cleanup when simulation ends.
+- `emit_metric(metric_name: str, value: float) -> Optional[Dict[(str, Any)]]`
+  Emit a metric value for aggregation.
+  
+  This method tracks numeric metrics over time windows using
+  incremental statistics. Useful for KPIs like OEE, throughput, etc.
+  
+  Args:
+      metric_name: Name of the metric (e.g., "oee", "throughput")
+      value: Numeric value to aggregate
+  
+  Returns:
+      Completed window statistics if window finished, None otherwise
+- `batch_emit_observable(event_type: str, details: Dict[(str, Any)], severity: str) -> Optional[List[Dict[(str, Any)]]]`
+  Emit observable through batcher for efficient processing.
+  
+  Events are grouped by type and time window to reduce processing
+  overhead. Use this for high-frequency events that can be processed
+  in batches.
+  
+  Args:
+      event_type: Type of event
+      details: Event details
+      severity: Event severity
+  
+  Returns:
+      Completed batch if ready, None otherwise
+- `process_batches() -> List[List[Dict[(str, Any)]]]`
+  Process any pending batches.
+  
+  Call this periodically to flush pending batches.
+  
+  Returns:
+      List of completed batches
+- `get_aggregated_metrics() -> Dict[(str, Any)]`
+  Get current aggregated metrics.
+  
+  Returns:
+      Current window statistics and history
+- `flush_observables() -> List[Dict[(str, Any)]]`
+  Flush observable buffer and return events.
+  
+  This method can be called periodically to persist events to external
+  storage and free memory. Useful for long-running simulations.
+  
+  Returns:
+      List of flushed events
+- `get_performance_metrics() -> Dict[(str, Any)]`
+  Get detailed performance metrics for monitoring.
+  
+  Returns:
+      Dictionary containing performance statistics
+- `get_state() -> Dict[(str, Any)]`
+  Get current primitive state including performance metrics.
+  
+  Returns:
+      Dictionary describing current primitive state and performance
+- `__repr__() -> str`
+  Return string representation for debugging.
+
+---
+
+### Module: equipment
+*File: primitives/equipment.py*
+
+Equipment primitive with internal queues only.
+
+This module provides equipment primitives that use internal queues
+for material handling. NO EXTERNAL BUFFERS - direct equipment connections only.
+
+#### Classes
+
+##### EquipmentState(str, Enum)
+
+Equipment operational states.
+
+##### FailureType(str, Enum)
+
+Types of equipment failures.
+
+##### ProductionUnit
+
+Represents a unit of production.
+
+**Attributes:**
+- `product_id: str`
+- `order_id: Optional[str]`
+- `quality: float`
+- `timestamp: float`
+
+**Methods:**
+- `is_good() -> bool`
+  Check if unit meets quality threshold.
+
+##### EquipmentPrimitive(BasePrimitive)
+
+Equipment with internal queues only - no external buffers.
+
+Key features:
+- Internal input and output queues (SimPy Stores)
+- Direct equipment-to-equipment connections
+- Realistic failure modeling
+- Product-specific performance
+- State-based operation
+
+**Methods:**
+- `__init__(env: simpy.Environment, config: PrimitiveConfig, sampling_config: Optional[SamplingConfig]) -> None`
+  Initialize equipment with internal queues.
+  
+  Args:
+      env: SimPy environment
+      config: Equipment configuration
+      sampling_config: Optional sampling configuration
+- `connect_to(other: BasePrimitive, relationship_type: str) -> None`
+  Connect this equipment to downstream equipment.
+  
+  Args:
+      other: Next equipment in line
+      relationship_type: Type of relationship (default: feeds_into)
+- `run() -> Generator`
+  Run main equipment process.
+- `_process_unit() -> Generator`
+  Process a single unit of production.
+- `_is_blocked() -> bool`
+  Check if equipment is blocked by downstream.
+  
+  Returns:
+      True if blocked, False otherwise
+- `_handle_starved() -> Generator`
+  Handle starved state (no input material).
+- `_handle_blocked() -> Generator`
+  Handle blocked state (output queue full).
+- `_handle_interrupt(interrupt: simpy.Interrupt) -> Generator`
+  Handle process interruption.
+  
+  Args:
+      interrupt: Interruption cause
+- `_failure_process() -> Generator`
+  Generate equipment failures based on realistic patterns.
+- `_get_next_failure() -> Tuple[(FailureType, float)]`
+  Determine next failure using competing risks model.
+  
+  Based on research findings:
+  - 80% of stops are micro-stops (jams, sensor trips, adjustments)
+  - 15% are minor failures (component issues, calibration)
+  - 5% are major failures (equipment breakdown)
+  
+  Returns:
+      Tuple of (failure_type, time_to_failure)
+- `_get_repair_duration(failure_type: FailureType) -> float`
+  Get repair duration based on failure type and root causes.
+  
+  Based on research:
+  - Micro-stops (80%): 0.5-3 minutes (jams, sensor trips)
+  - Minor failures (15%): 5-30 minutes (component adjust, calibration)
+  - Major failures (5%): 30+ minutes (breakdown, part replacement)
+  
+  Args:
+      failure_type: Type of failure
+  
+  Returns:
+      Repair duration in minutes
+- `_change_state(new_state: EquipmentState) -> None`
+  Change equipment state and track duration.
+  
+  Args:
+      new_state: New equipment state
+- `get_queue_status() -> Dict[(str, Any)]`
+  Get current queue status.
+  
+  Returns:
+      Queue status dictionary
+- `get_kpis() -> Dict[(str, float)]`
+  Calculate equipment KPIs.
+  
+  Returns:
+      KPI dictionary
+- `start() -> None`
+  Start the equipment processes.
+  
+  Implements the abstract start method from BasePrimitive.
+
+---
+
+### Module: monitor
+*File: primitives/monitor.py*
+
+Monitor primitive for KPI tracking and aggregation.
+
+This module provides a monitor primitive that tracks key performance indicators,
+aggregates metrics across the system, and provides real-time visibility into
+production performance.
+
+#### Classes
+
+##### KPIType(str, Enum)
+
+Types of KPIs tracked.
+
+##### KPIMetric
+
+A KPI metric with history.
+
+Attributes:
+    name: KPI name
+    type: KPI type
+    value: Current value
+    target: Target value
+    history: Historical values
+    unit: Measurement unit
+    aggregation: How to aggregate (avg, sum, max, min)
+
+**Attributes:**
+- `name: str`
+- `type: KPIType`
+- `value: float`
+- `target: Optional[float]`
+- `history: List[Tuple[(float, float)]]`
+- `unit: str`
+- `aggregation: str`
+
+**Methods:**
+- `add_value(timestamp: float, value: float) -> None`
+  Add a value to history.
+- `get_average(window: Optional[float], current_time: Optional[float]) -> float`
+  Get average value over time window.
+- `get_trend() -> str`
+  Get trend direction.
+
+##### MonitorPrimitive(BasePrimitive)
+
+Monitor for tracking system-wide KPIs and metrics.
+
+Emits observables for:
+- KPI updates and trends
+- Target violations
+- Performance alerts
+- Aggregated metrics
+- Real-time dashboards
+
+**Methods:**
+- `__init__(env: simpy.Environment, config: PrimitiveConfig) -> None`
+  Initialize monitor with configuration.
+  
+  Args:
+      env: SimPy environment
+      config: Monitor configuration containing:
+          - kpi_definitions: KPIs to track
+          - update_interval: How often to update KPIs (minutes)
+          - aggregation_window: Time window for aggregations
+          - alert_thresholds: Thresholds for alerts
+          - monitored_primitives: List of primitives to monitor
+- `_init_kpis() -> None`
+  Initialize KPI definitions from config.
+- `start() -> None`
+  Start the monitoring process.
+- `monitor_process() -> Generator`
+  Run monitoring process.
+- `_update_kpis() -> None`
+  Update all KPI values from monitored primitives.
+- `_get_production_in_window(primitive: Any) -> int`
+  Get production count in recent window.
+  
+  Args:
+      primitive: Primitive to check
+  
+  Returns:
+      Production count in window
+- `_calculate_availability(primitive: Any) -> float`
+  Calculate availability for a primitive.
+  
+  Args:
+      primitive: Primitive to calculate for
+  
+  Returns:
+      Availability percentage
+- `_update_aggregations() -> None`
+  Update aggregated metrics by line, product, shift.
+- `_group_by_line() -> Dict[(str, List[Any])]`
+  Group monitored primitives by production line.
+- `_group_by_product() -> Dict[(str, List[Any])]`
+  Group monitored primitives by current product.
+- `_aggregate_oee(primitives: List[Any]) -> float`
+  Calculate aggregated OEE for a group of primitives.
+- `_aggregate_throughput(primitives: List[Any]) -> float`
+  Calculate aggregated throughput for a group of primitives.
+- `_aggregate_availability(primitives: List[Any]) -> float`
+  Calculate aggregated availability for a group of primitives.
+- `_aggregate_volume(primitives: List[Any]) -> int`
+  Calculate total volume for a group of primitives.
+- `_aggregate_quality(primitives: List[Any]) -> float`
+  Calculate aggregated quality for a group of primitives.
+- `_aggregate_cycle_time(primitives: List[Any]) -> float`
+  Calculate average cycle time for a group of primitives.
+- `_get_current_shift() -> Optional[str]`
+  Determine current shift based on time.
+- `_check_thresholds() -> None`
+  Check KPIs against configured thresholds.
+- `_create_alert(kpi_name: str, severity: str, message: str) -> None`
+  Create an alert.
+  
+  Args:
+      kpi_name: KPI that triggered alert
+      severity: Alert severity
+      message: Alert message
+- `alert_process() -> Generator`
+  Process for managing alerts.
+- `register_primitive(name: str, primitive: Any) -> None`
+  Register a primitive to monitor.
+  
+  Args:
+      name: Primitive identifier
+      primitive: Primitive instance
+- `get_kpi_value(kpi_name: str) -> Optional[float]`
+  Get current value of a KPI.
+  
+  Args:
+      kpi_name: Name of KPI
+  
+  Returns:
+      Current KPI value or None
+- `get_kpi_history(kpi_name: str, window: Optional[float]) -> List[Tuple[(float, float)]]`
+  Get historical values of a KPI.
+  
+  Args:
+      kpi_name: Name of KPI
+      window: Time window to retrieve
+  
+  Returns:
+      List of (timestamp, value) tuples
+- `get_dashboard() -> Dict[(str, Any)]`
+  Get dashboard summary of all metrics.
+  
+  Returns:
+      Dictionary with dashboard data
+- `get_statistics() -> Dict[(str, Any)]`
+  Get monitor statistics.
+  
+  Returns:
+      Dictionary of monitor metrics
+
+---
+
+### Module: scheduler
+*File: primitives/scheduler.py*
+
+Enhanced scheduler primitive with smart production sequencing.
+
+This module provides advanced scheduling capabilities including:
+- Product sequencing strategies (random, changeover-optimized, campaign)
+- Changeover matrices for product-to-product transition times
+- Shift-specific scheduling
+- ABC analysis for prioritization
+- Control system integration
+
+#### Classes
+
+##### SequencingStrategy(Enum)
+
+Product sequencing strategies.
+
+##### ProductCategory(Enum)
+
+ABC analysis categories.
+
+##### Product
+
+Product definition with changeover characteristics.
+
+**Attributes:**
+- `product_id: str`
+- `category: ProductCategory`
+- `family: str`
+- `volume_rank: int`
+- `margin: float`
+- `complexity: float`
+- `typical_batch_size: int`
+- `min_batch_size: int`
+- `max_batch_size: int`
+
+##### ProductionOrder
+
+Enhanced production order with scheduling metadata.
+
+**Attributes:**
+- `order_id: str`
+- `product: Product`
+- `quantity: int`
+- `due_date: float`
+- `priority: int`
+- `release_date: float`
+- `scheduled_start: Optional[float]`
+- `actual_start: Optional[float]`
+- `actual_end: Optional[float]`
+- `completed_quantity: int`
+- `scrap_quantity: int`
+
+**Methods:**
+- `is_complete() -> bool`
+  Check if order is complete.
+- `tardiness() -> float`
+  Calculate order tardiness.
+- `urgency() -> float`
+  Calculate urgency score for scheduling.
+
+##### ChangeoverMatrix
+
+Product-to-product changeover times.
+
+**Attributes:**
+- `products: List[str]`
+- `base_times: np.ndarray`
+
+**Methods:**
+- `get_changeover_time(from_product: str, to_product: str) -> float`
+  Get changeover time between products.
+  
+  Args:
+      from_product: Current product
+      to_product: Next product
+  
+  Returns:
+      Changeover time in minutes
+
+##### SchedulerPrimitive(BasePrimitive)
+
+Enhanced scheduler with intelligent production sequencing.
+
+Key features:
+- Multiple sequencing strategies
+- Changeover optimization
+- Campaign production support
+- Shift-aware scheduling
+- ABC prioritization
+- Control system integration
+
+**Methods:**
+- `__init__(env: simpy.Environment, config: PrimitiveConfig, sampling_config: Optional[SamplingConfig]) -> None`
+  Initialize enhanced scheduler.
+  
+  Args:
+      env: SimPy environment
+      config: Scheduler configuration
+      sampling_config: Optional sampling configuration
+- `_initialize_products() -> None`
+  Initialize product catalog from configuration.
+- `_initialize_changeover_matrix() -> ChangeoverMatrix`
+  Initialize product changeover matrix with realistic times.
+  
+  Changeover times based on:
+  - Product family (cleaning requirements)
+  - Complexity difference (setup adjustments)
+  - Allergen considerations (deep cleaning)
+  
+  Returns:
+      ChangeoverMatrix with product-to-product times
+- `run() -> Generator`
+  Run scheduler process.
+- `register_source(line_id: str, source: 'SourcePrimitive') -> None`
+  Register a source for a production line.
+  
+  Args:
+      line_id: Production line ID (e.g., 'LINE1')
+      source: Source primitive for the line
+- `add_order(order: ProductionOrder) -> None`
+  Add a production order to the schedule.
+  
+  Args:
+      order: Production order to add
+- `_sequence_orders() -> List[ProductionOrder]`
+  Sequence orders based on current strategy.
+  
+  Returns:
+      List of orders in execution sequence
+- `_optimize_changeovers(orders: List[ProductionOrder]) -> List[ProductionOrder]`
+  Optimize order sequence to minimize changeover time.
+  
+  Uses a greedy nearest-neighbor approach for simplicity.
+  
+  Args:
+      orders: Orders to sequence
+  
+  Returns:
+      Optimized order sequence
+- `_create_campaigns(orders: List[ProductionOrder]) -> List[ProductionOrder]`
+  Create production campaigns by grouping same products.
+  
+  Args:
+      orders: Orders to group into campaigns
+  
+  Returns:
+      Orders sequenced in campaigns
+- `_update_shift() -> None`
+  Update current shift based on simulation time.
+- `complete_order(order: ProductionOrder, completed_quantity: int, scrap_quantity: int) -> None`
+  Mark an order as complete.
+  
+  Args:
+      order: Order that was completed
+      completed_quantity: Good units produced
+      scrap_quantity: Scrapped units
+- `request_changeover(from_product: str, to_product: str) -> float`
+  Request changeover time for product switch.
+  
+  Args:
+      from_product: Current product
+      to_product: Next product
+  
+  Returns:
+      Required changeover time in minutes
+- `get_schedule_metrics() -> Dict[(str, float)]`
+  Calculate scheduling performance metrics.
+  
+  Returns:
+      Dictionary of scheduling KPIs
+- `get_next_order() -> Optional[ProductionOrder]`
+  Get next order from schedule.
+  
+  Returns:
+      Next production order or None
+- `start() -> None`
+  Start the scheduler process.
+  
+  Implements the abstract start method from BasePrimitive.
+
+---
+
+### Module: sink
+*File: primitives/sink.py*
+
+Sink primitive for collecting from equipment output queues.
+
+This module provides sink primitives that collect directly from
+equipment output queues. NO BUFFERS - direct connection only.
+
+#### Classes
+
+##### CollectedProduct
+
+Represents a collected finished product.
+
+**Attributes:**
+- `product_id: str`
+- `order_id: Optional[str]`
+- `quality: float`
+- `collected_time: float`
+- `source_equipment: Optional[str]`
+
+##### OrderTracking
+
+Tracks order completion.
+
+**Attributes:**
+- `order_id: str`
+- `target_quantity: int`
+- `collected_quantity: int`
+- `start_time: float`
+- `completion_time: Optional[float]`
+
+**Methods:**
+- `is_complete() -> bool`
+  Check if order is complete.
+- `completion_percentage() -> float`
+  Get completion percentage.
+
+##### SinkPrimitive(BasePrimitive)
+
+Sink that collects from equipment output queues.
+
+Key features:
+- Direct connection to last equipment's output queue
+- Order tracking and completion
+- Throughput monitoring
+- Quality tracking
+- Collection rate limiting
+
+**Methods:**
+- `__init__(env: simpy.Environment, config: PrimitiveConfig, upstream: Optional[Union[(simpy.Store, Any)]], sampling_config: Optional[SamplingConfig]) -> None`
+  Initialize sink primitive.
+  
+  Args:
+      env: SimPy environment
+      config: Sink configuration
+      upstream: Equipment output queue or equipment with output_queue
+      sampling_config: Optional sampling configuration
+- `set_upstream(upstream: Union[(simpy.Store, Any)]) -> None`
+  Set upstream connection.
+  
+  Args:
+      upstream: Equipment output queue or equipment with output_queue
+- `register_order(order_id: str, target_quantity: int) -> None`
+  Register a production order for tracking.
+  
+  Args:
+      order_id: Order identifier
+      target_quantity: Expected quantity
+- `run() -> Generator`
+  Run sink collection process.
+- `_collect_product() -> Generator`
+  Collect a single product from upstream.
+- `_update_order_tracking(order_id: str) -> None`
+  Update order tracking for collected product.
+  
+  Args:
+      order_id: Order identifier
+- `_clean_throughput_window() -> None`
+  Remove old timestamps from throughput tracking.
+- `get_current_throughput() -> float`
+  Calculate current throughput rate.
+  
+  Returns:
+      Units per minute
+- `get_statistics() -> Dict[(str, Any)]`
+  Get sink statistics.
+  
+  Returns:
+      Statistics dictionary
+- `get_order_status(order_id: Optional[str]) -> Union[(OrderTracking, Dict[(str, OrderTracking)], None)]`
+  Get status of specific order or all orders.
+  
+  Args:
+      order_id: Optional specific order ID
+  
+  Returns:
+      Order tracking information
+- `get_products_by_order(order_id: str) -> List[CollectedProduct]`
+  Get all products collected for a specific order.
+  
+  Args:
+      order_id: Order identifier
+  
+  Returns:
+      List of collected products
+- `stop() -> None`
+  Stop sink collection.
+- `reset_statistics() -> None`
+  Reset collection statistics.
+- `start() -> None`
+  Start the sink collection process.
+  
+  Implements the abstract start method from BasePrimitive.
+
+---
+
+### Module: source
+*File: primitives/source.py*
+
+Source primitive for direct equipment feeding.
+
+This module provides source primitives that feed directly into
+equipment input queues. NO BUFFERS - direct connection only.
+
+#### Classes
+
+##### ArrivalPattern(str, Enum)
+
+Material arrival patterns.
+
+##### SourcePrimitive(BasePrimitive)
+
+Source that feeds directly into equipment input queues.
+
+Key features:
+- Direct connection to first equipment's input queue
+- Order-driven generation
+- Multiple arrival patterns
+- Quality inspection at source
+- Supply disruption modeling
+
+**Methods:**
+- `__init__(env: simpy.Environment, config: PrimitiveConfig, downstream: Optional[Union[(simpy.Store, Any)]], sampling_config: Optional[SamplingConfig]) -> None`
+  Initialize source primitive.
+  
+  Args:
+      env: SimPy environment
+      config: Source configuration
+      downstream: Equipment input queue or equipment with input_queue
+      sampling_config: Optional sampling configuration
+- `set_downstream(downstream: Union[(simpy.Store, Any)]) -> None`
+  Set downstream connection.
+  
+  Args:
+      downstream: Equipment input queue or equipment with input_queue
+- `set_production_order(order: 'ProductionOrder') -> None`
+  Set current production order and check if changeover is needed.
+  
+  Args:
+      order: Production order to process
+- `add_order_to_queue(order: 'ProductionOrder') -> None`
+  Add order to queue for processing.
+  
+  Args:
+      order: Production order to queue
+- `run() -> Generator`
+  Run source generation process.
+- `_order_driven_generation() -> Generator`
+  Generate material based on production orders.
+- `_continuous_generation() -> Generator`
+  Generate material continuously.
+- `_execute_changeover() -> Generator`
+  Execute product changeover process.
+  
+  Yields:
+      Changeover duration and setup production
+- `_complete_current_order() -> None`
+  Complete the current production order.
+- `_generate_batch(size: int) -> Generator`
+  Generate a batch of units.
+  
+  Args:
+      size: Batch size
+- `_generate_unit() -> Generator`
+  Generate a single unit.
+  
+  Sets self.last_unit_generated to indicate success.
+- `_handle_disruption() -> Generator`
+  Handle supply disruption.
+- `stop() -> None`
+  Stop source generation.
+- `get_statistics() -> dict`
+  Get source statistics.
+  
+  Returns:
+      Statistics dictionary
+- `initialize_wip(level: float) -> Generator`
+  Initialize work-in-progress in downstream equipment.
+  
+  Args:
+      level: Fill level as fraction of capacity (0-1)
+- `start() -> None`
+  Start the source generation process.
+  
+  Implements the abstract start method from BasePrimitive.
+
+---
+
+## Package: storage
+
+### Module: cache
+*File: storage/cache.py*
+
+Write-through cache for simulation observables.
+
+This module provides efficient storage of simulation events using
+memory-mapped files and numpy arrays, preventing memory exhaustion
+in long simulations while maintaining fast access.
+
+#### Classes
+
+##### ObservableCache
+
+Write-through cache for simulation observables using memory-mapped files.
+
+Uses numpy memory-mapped files for efficient storage without keeping
+all data in RAM. Supports incremental writes and fast retrieval.
+This enables handling of millions of events with minimal memory footprint.
+
+Attributes:
+    cache_dir: Directory for cache files
+    max_size: Maximum cache entries before rotation
+    mmap_file: Memory-mapped numpy array for event storage
+    metadata_file: JSON file for event metadata
+    write_index: Current write position in cache
+    event_count: Total events written
+    file_count: Number of cache files created
+
+**Methods:**
+- `__init__(cache_dir: Union[(str, Path)], max_size: int, dtype_size: int) -> None`
+  Initialize cache with memory mapping.
+  
+  Args:
+      cache_dir: Directory for cache storage (created if not exists)
+      max_size: Maximum cache entries per file before rotation
+      dtype_size: Maximum bytes per event (default 1KB)
+- `_create_new_cache_file() -> None`
+  Create a new memory-mapped cache file.
+  
+  Creates a new numpy memmap file for storing events and updates
+  metadata tracking. Previous file is flushed and closed if exists.
+- `write_event(event: Dict[(str, Any)]) -> int`
+  Write single event to cache.
+  
+  Serializes event to bytes and stores in memory-mapped array.
+  Automatically rotates to new file when current is full.
+  
+  Args:
+      event: Event dictionary to cache
+  
+  Returns:
+      Global event index
+- `write_batch(events: List[Dict[(str, Any)]]) -> List[int]`
+  Write batch of events to cache.
+  
+  Args:
+      events: List of event dictionaries
+  
+  Returns:
+      List of global event indices
+- `read_event(global_index: int) -> Optional[Dict[(str, Any)]]`
+  Read single event by global index.
+  
+  Args:
+      global_index: Global event index across all files
+  
+  Returns:
+      Event dictionary or None if not found
+- `read_range(start_index: int, end_index: int) -> List[Dict[(str, Any)]]`
+  Read range of events by indices.
+  
+  Args:
+      start_index: Starting global index (inclusive)
+      end_index: Ending global index (exclusive)
+  
+  Returns:
+      List of event dictionaries
+- `query_events(event_type: Optional[str], primitive_id: Optional[str], start_time: Optional[float], end_time: Optional[float], limit: int) -> List[Dict[(str, Any)]]`
+  Query events with filters.
+  
+  Efficiently queries cached events using memory-mapped arrays
+  without loading all data into memory.
+  
+  Args:
+      event_type: Filter by event type
+      primitive_id: Filter by primitive ID
+      start_time: Minimum timestamp
+      end_time: Maximum timestamp
+      limit: Maximum events to return
+  
+  Returns:
+      List of matching events
+- `_find_event_location(global_index: int) -> Tuple[(Optional[int], Optional[int])]`
+  Find which file and local index for a global event index.
+  
+  Args:
+      global_index: Global event index
+  
+  Returns:
+      Tuple of (file_index, local_index) or (None, None) if not found
+- `_save_metadata() -> None`
+  Save metadata to JSON file.
+- `flush() -> None`
+  Flush current cache file to disk.
+- `get_stats() -> Dict[(str, Any)]`
+  Get cache statistics.
+  
+  Returns:
+      Dictionary with cache statistics
+- `clear() -> None`
+  Clear all cache files and reset state.
+- `__del__()`
+  Cleanup on deletion.
+
+---
+
+## Package: tests
+
+### Module: __init__
+*File: tests/__init__.py*
+
+Test suite for Virtual Twin Model.
+
+---
+
+## Package: tests/integration
+
+### Module: __init__
+*File: tests/integration/__init__.py*
+
+Integration tests for Virtual Twin Model.
+
+---
+
+## Package: tests/scenarios
+
+### Module: __init__
+*File: tests/scenarios/__init__.py*
+
+Scenario tests for Virtual Twin Model.
+
+---
+
+## Package: tests/unit
+
+### Module: __init__
+*File: tests/unit/__init__.py*
+
+Unit tests for Virtual Twin Model.
+
+---
+
+## Package: transduction
+
+### Module: __init__
+*File: transduction/__init__.py*
+
+Transduction layer for converting SimPy observables to MES format.
+
+This module provides the transduction layer that extracts MES-visible
+information from the comprehensive SimPy event stream.
+
+---
+
+### Module: mes_transducer
+*File: transduction/mes_transducer.py*
+
+MES Transduction Layer.
+
+This module converts rich SimPy observables into MES-compatible data format
+matching the structure of mes_data_with_kpis.csv. It extracts the subset
+of information visible to a real MES system from comprehensive simulation events.
+
+#### Classes
+
+##### MESTransducer
+
+Converts SimPy observables to MES data format.
+
+The transducer extracts MES-visible events from the comprehensive
+observable stream and formats them into the standard MES structure.
+
+**Methods:**
+- `__init__(time_bucket: int)`
+  Initialize MES transducer.
+  
+  Args:
+      time_bucket: Time bucket in minutes (default 5 for 5-minute intervals)
+- `process_observables(observables: List[Dict[(str, Any)]], manifests: Optional[Dict[(str, Any)]]) -> pd.DataFrame`
+  Process observables into MES format.
+  
+  Args:
+      observables: List of observable events from simulation
+      manifests: Optional manifests for product/equipment details
+  
+  Returns:
+      DataFrame in MES format
+- `_process_observable(obs: Dict[(str, Any)], manifests: Optional[Dict[(str, Any)]]) -> None`
+  Process single observable event.
+  
+  Args:
+      obs: Observable event
+      manifests: Optional manifests for context
+- `_process_equipment_event(obs: Dict[(str, Any)], bucket_key: Tuple[(int, str)], manifests: Optional[Dict[(str, Any)]]) -> None`
+  Process equipment-specific events.
+  
+  Args:
+      obs: Equipment observable
+      bucket_key: Time bucket and equipment ID
+      manifests: Optional manifests
+- `_process_order_assignment(obs: Dict[(str, Any)], bucket_key: Tuple[(int, str)]) -> None`
+  Process order assignment events.
+  
+  Args:
+      obs: Order assignment observable
+      bucket_key: Time bucket and equipment ID
+- `_generate_mes_records(manifests: Optional[Dict[(str, Any)]]) -> List[Dict[(str, Any)]]`
+  Generate MES records from bucket metrics.
+  
+  Args:
+      manifests: Optional manifests for equipment details
+  
+  Returns:
+      List of MES records
+- `_map_state_to_mes(state: str) -> str`
+  Map SimPy state to MES status.
+  
+  Args:
+      state: SimPy equipment state
+  
+  Returns:
+      MES machine status
+- `_determine_equipment_type(equipment_id: str, equipment_info: Dict[(str, Any)]) -> str`
+  Determine equipment type from ID or manifest.
+  
+  Args:
+      equipment_id: Equipment identifier
+      equipment_info: Equipment manifest data
+  
+  Returns:
+      Equipment type string
+- `_extract_line_id(equipment_id: str, equipment_info: Dict[(str, Any)]) -> str`
+  Extract line ID from equipment ID or manifest.
+  
+  Args:
+      equipment_id: Equipment identifier
+      equipment_info: Equipment manifest data
+  
+  Returns:
+      Line ID
+- `_get_product_name(product_id: str, manifests: Optional[Dict[(str, Any)]]) -> str`
+  Get product name from manifests.
+  
+  Args:
+      product_id: Product identifier
+      manifests: Optional manifests
+  
+  Returns:
+      Product name
+- `_calculate_availability(metrics: Dict[(str, Any)]) -> float`
+  Calculate availability score.
+  
+  Args:
+      metrics: Bucket metrics
+  
+  Returns:
+      Availability percentage
+- `_calculate_performance(metrics: Dict[(str, Any)], equipment_info: Dict[(str, Any)], product_info: Dict[(str, Any)]) -> float`
+  Calculate performance score with safety checks.
+  
+  Args:
+      metrics: Bucket metrics
+      equipment_info: Equipment manifest data
+      product_info: Product manifest data
+  
+  Returns:
+      Performance percentage
+- `_calculate_quality(metrics: Dict[(str, Any)]) -> float`
+  Calculate quality score.
+  
+  Args:
+      metrics: Bucket metrics
+  
+  Returns:
+      Quality percentage
+- `save_to_csv(df: pd.DataFrame, filepath: Path) -> None`
+  Save MES data to CSV file.
+  
+  Args:
+      df: MES DataFrame
+      filepath: Output file path
+- `generate_summary_statistics(df: pd.DataFrame) -> Dict[(str, Any)]`
+  Generate summary statistics from MES data.
+  
+  Args:
+      df: MES DataFrame
+  
+  Returns:
+      Dictionary of summary statistics
+
+---
+
