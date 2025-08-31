@@ -1,18 +1,24 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
+[project]
 name = "twin-model"
 version = "1.0.0"
 description = "Ontology-driven discrete event simulation framework for manufacturing systems"
-authors = ["Virtual Ontology Team <contact@example.com>"]
-license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/yourusername/twin-model"
-repository = "https://github.com/yourusername/twin-model.git"
-documentation = "https://twin-model.readthedocs.io"
-keywords = ["simulation", "manufacturing", "digital-twin", "discrete-event"]
+authors = [
+    {name = "Virtual Ontology Team", email = "contact@example.com"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+dependencies = [
+    "simpy>=4.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "numpy>=1.20",
+    "pandas>=1.3",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -26,27 +32,26 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-packages = [{include = "twin_model"}]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-simpy = "^4.0"
-pydantic = "^2.0"
-pyyaml = "^6.0"
-numpy = "^1.20"
-pandas = "^1.3"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "mypy>=1.0",
+    "ruff>=0.1",
+    "sphinx>=7.0",
+    "sphinx-autoapi>=3.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.0"
-mypy = "^1.0"
-ruff = "^0.1"
-sphinx = "^7.0"
-sphinx-autoapi = "^3.0"
-sphinx-rtd-theme = "^2.0"
-myst-parser = "^2.0"
+[project.urls]
+Homepage = "https://github.com/yourusername/twin-model"
+Documentation = "https://twin-model.readthedocs.io"
+Repository = "https://github.com/yourusername/twin-model.git"
+Issues = "https://github.com/yourusername/twin-model/issues"
 
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/yourusername/twin-model/issues"
+[tool.setuptools.packages.find]
+include = ["twin_model*"]
 
 [tool.mypy]
 python_version = "3.8"

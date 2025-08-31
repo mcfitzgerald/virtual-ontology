@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Fresh Container-based architecture specification** (TWIN_MODEL_FRESH_SPEC.md):
+  - Complete ground-up rewrite plan using pure SimPy Containers
+  - Continuous flow modeling (volume/time) instead of discrete units
+  - Configuration-driven architecture with zero hardcoding
+  - Target OEE improvement from 7% to 40-50%
+- **Archive plan documentation** (ARCHIVE_PLAN.md):
+  - Clear separation of essential files vs legacy code
+  - Step-by-step archiving instructions
+- **Poetry dependency management**:
+  - Converted from setuptools to Poetry project format
+  - Created poetry.lock for reproducible builds
+  - In-project virtual environment configuration (.venv)
+
+### Changed
+- **Project structure overhaul**:
+  - Archived mixed Store/Container implementation to archive/20240831_store_based/
+  - Created fresh twin_model/ directory structure for pure Container implementation
+  - Removed all legacy Store-based primitive code
+  - Cleared confusing documentation references to old architecture
+
+### Removed
+- **Legacy implementation files**:
+  - All Store-based primitives (equipment.py, source.py, sink.py)
+  - Mixed Container/Store refactor attempts
+  - Old control system implementation
+  - MES transducer for Store-based model
+  - All tests for Store-based architecture
+- **Documentation for old architecture**:
+  - Removed entire docs/ folder with Store-based references
+  - Deleted old migration plans and test scripts
+  - Cleared test output CSV files
 - **MES (Manufacturing Execution System) simulation and analysis tools**:
   - run_mes_simulation.py - Orchestration script for running twin model simulations with MES output
   - profile_mes_data.py - Comprehensive MES data profiling with OEE analysis  

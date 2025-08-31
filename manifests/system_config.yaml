@@ -14,9 +14,19 @@ metadata:
 system:
   # Material flow configuration
   material_flow:
-    mode: "internal_queues"  # Only option in v2
-    queue_implementation: "simpy.Store"
-    default_queue_size: 20
+    mode: "continuous_flow"  # Container-based continuous flow
+    implementation: "simpy.Container"
+    default_queue_size: 20  # Legacy - kept for compatibility
+  
+  # Container flow control settings
+  flow_control:
+    default_buffer_capacity: 1000  # units
+    default_production_interval: 0.1  # minutes (6 seconds)
+    default_batch_size_min: 5  # minimum batch size
+    monitoring_interval: 1.0  # minutes
+    throughput_window: 5.0  # minutes for throughput calculation
+    flow_rate_samples: 100  # number of samples to keep
+    utilization_threshold: 0.8  # threshold for bottleneck detection
     
   # Startup configuration
   startup:
