@@ -154,8 +154,11 @@ class MESTransducer:
             self.bucket_metrics[bucket_key]["last_status"] = self._map_state_to_mes(new_state or "")
 
             # Track downtime reason if stopped
-            if new_state in ["STOPPED_FAILURE", "STOPPED_MATERIAL"]:
-                self.bucket_metrics[bucket_key]["downtime_reason"] = obs.get("failure_mode", "UNP-OTH")
+            if new_state in ["STOPPED_FAILURE", "STOPPED_MATERIAL", "STOPPED_MAINTENANCE"]:
+                # Map failure modes to MES downtime reasons
+                failure_mode = obs.get("failure_mode", "")
+                downtime_reason = self._map_failure_to_downtime_reason(failure_mode)
+                self.bucket_metrics[bucket_key]["downtime_reason"] = downtime_reason
                 self.bucket_metrics[bucket_key]["last_status"] = "Stopped"
 
         # Track production
@@ -175,7 +178,8 @@ class MESTransducer:
 
         # Track failures
         elif event_type == "equipment_failure":
-            self.bucket_metrics[bucket_key]["downtime_reason"] = obs.get("failure_mode", "UNP-OTH")
+            failure_mode = obs.get("failure_mode", "")
+            self.bucket_metrics[bucket_key]["downtime_reason"] = self._map_failure_to_downtime_reason(failure_mode)
             self.bucket_metrics[bucket_key]["last_status"] = "Stopped"
 
     def _process_order_assignment(self, obs: Dict[str, Any], bucket_key: Tuple[int, str]) -> None:
@@ -268,7 +272,10 @@ class MESTransducer:
             line_id = self._extract_line_id(equipment_id, equipment_info)
 
             # Get product details
-            product_id = metrics["product_id"] or "UNKNOWN"
+            # Skip records with no product_id (equipment not assigned)
+            product_id = metrics["product_id"]
+            if not product_id:
+                continue  # Skip equipment without active production
             product_info = product_data.get(product_id, {})
 
             # Calculate KPIs
@@ -285,7 +292,7 @@ class MESTransducer:
                 "EquipmentID": equipment_id,
                 "EquipmentType": equipment_type,
                 "ProductID": product_id,
-                "ProductName": metrics["product_name"] or product_info.get("name", "Unknown Product"),
+                "ProductName": metrics["product_name"] or product_info.get("name", self._get_product_name(product_id, manifests)),
                 "MachineStatus": metrics["last_status"],
                 "DowntimeReason": metrics["downtime_reason"] if metrics["last_status"] == "Stopped" else "",
                 "GoodUnitsProduced": metrics["good_units"],
@@ -304,6 +311,29 @@ class MESTransducer:
 
         return mes_records
 
+    def _map_failure_to_downtime_reason(self, failure_mode: str) -> str:
+        """Map failure mode to MES downtime reason.
+        
+        Args:
+            failure_mode: Failure mode from simulation
+            
+        Returns:
+            MES downtime reason code
+        """
+        failure_mapping = {
+            "micro_stop": "UNP-JAM",
+            "minor_failure": "UNP-MECH", 
+            "major_failure": "UNP-ELEC",
+            "material_shortage": "UNP-MAT",
+            "quality_issue": "UNP-QC",
+            "sensor_fault": "UNP-SENS",
+            "operator_error": "UNP-OPR",
+            "changeover": "PLN-CO",
+            "cleaning": "PLN-CLN",
+            "maintenance": "PLN-PM",
+        }
+        return failure_mapping.get(failure_mode, "UNP-OTH")
+    
     def _map_state_to_mes(self, state: str) -> str:
         """Map SimPy state to MES status.
 
@@ -324,7 +354,8 @@ class MESTransducer:
             "CHANGEOVER": "Changeover",
             "MAINTENANCE": "Maintenance",
         }
-        return state_mapping.get(state, "Unknown")
+        # Default to Idle instead of Unknown for better data quality
+        return state_mapping.get(state, "Idle")
 
     def _determine_equipment_type(self, equipment_id: str, equipment_info: Dict[str, Any]) -> str:
         """Determine equipment type from ID or manifest.

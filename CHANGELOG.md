@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **MES (Manufacturing Execution System) simulation and analysis tools**:
+  - run_mes_simulation.py - Orchestration script for running twin model simulations with MES output
+  - profile_mes_data.py - Comprehensive MES data profiling with OEE analysis  
+  - CLAUDE.md - Project-specific instructions for Claude Code assistant
+  - Support for realistic MES data generation in standard CSV format
 - **Comprehensive API documentation system**:
   - Sphinx-based HTML documentation with full API reference
   - LLM-optimized documentation in markdown format (60KB)
@@ -24,6 +29,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test plan documentation (docs/development/test_plan.md) for comprehensive test coverage
 
 ### Changed
+- **Equipment configuration overhaul** for realistic OEE alignment:
+  - Updated base_rate values to units per minute (8-52 units/min)
+  - Adjusted performance_by_product factors to 0.85-0.95 range
+  - Reduced MTBF values to 15-25 minutes for ~67% availability target
+  - Added micro-stop timing configurations (5-10 minute intervals)
+- **Production manifest updates**:
+  - Aligned target_rate_units_per_5min with equipment capabilities (180-280 units)
+  - Adjusted product scrap rates to realistic levels (3-10%)
+  - Modified production order timings for immediate simulation start
+- **Control settings optimization**:
+  - Increased operator_training_hours to 16
+  - Set line_speed_setting to 75%
+  - Changed product_sequencing_strategy to "changeover_optimized"
+  - Enabled autonomous_maintenance_level 1
+- **MES transducer enhancements**:
+  - Fixed performance calculation to use proper target rates
+  - Added runtime inference for equipment with production but no recorded runtime
+  - Improved failure mode to downtime reason mapping
+  - Enhanced data quality handling to eliminate UNKNOWN values
+- **Equipment primitive fixes**:
+  - Fixed critical bug in performance factor calculation (was dividing instead of multiplying cycle time)
+  - Corrected combined performance calculation for product-specific factors
+- **Scheduler improvements**:
+  - Added line_id field to ProductionOrder class for proper line assignment
+  - Fixed order dispatch to enable all three production lines
 - **docs/README.md** - Updated to include new API documentation sections:
   - Added section for Sphinx HTML documentation
   - Added section for LLM-optimized documentation
@@ -44,6 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated documentation date to August 30, 2024
 
 ### Fixed
+- **Critical performance calculation bug** - Equipment was incorrectly dividing by performance factors instead of multiplying, causing inverse performance behavior
+- **Production line dispatch issue** - All three lines now properly receive and process orders (was only LINE1 before)
+- **Data quality issues in MES output** - Eliminated UNKNOWN values through improved state mapping and data handling
 - ProductionOrder import and constructor usage in model_builder.py
 - Type checking errors with mypy (reduced from 60 to 31 cosmetic issues)
 - Linting issues with ruff (44 issues fixed)

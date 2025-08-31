@@ -68,6 +68,7 @@ class ProductionOrder:
     quantity: int
     due_date: float
     priority: int
+    line_id: str = "LINE1"  # Production line assignment
     release_date: float = 0.0
     scheduled_start: Optional[float] = None
     actual_start: Optional[float] = None
@@ -308,8 +309,8 @@ class SchedulerPrimitive(BasePrimitive):
 
                 # Dispatch orders to appropriate line sources
                 for order in sequenced_orders:
-                    # Find the line for this order
-                    line_id = getattr(order, "line_id", "LINE1")
+                    # Use the line_id from the order
+                    line_id = order.line_id
 
                     # Check if line has a source
                     if line_id in self.line_sources:

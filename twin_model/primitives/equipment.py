@@ -197,11 +197,17 @@ class EquipmentPrimitive(BasePrimitive):
 
         # Calculate processing time
         base_time = 1.0 / self.base_rate  # Minutes per unit
-        actual_time = base_time / self.performance_factor
-
+        
+        # Apply performance factors (lower performance = slower processing)
+        # Performance factor of 0.5 means running at 50% speed, so takes 2x longer
+        combined_performance = self.performance_factor
+        
         # Apply product-specific performance if available
         product_performance = self.config.get_property(f"performance_by_product.{self.current_product}", 1.0)
-        actual_time = actual_time / product_performance
+        combined_performance *= product_performance
+        
+        # Calculate actual time (slower performance = longer time)
+        actual_time = base_time / combined_performance if combined_performance > 0 else base_time
 
         # Process the unit (interruptible for failures)
         try:

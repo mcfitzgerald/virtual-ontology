@@ -79,70 +79,70 @@ equipment:
     quality_rate: 0.9
     type: Buffer
   LINE1-FIL:
-    base_rate: 80
+    base_rate: 50  # Units per minute (target ~250 units/5min)
     base_scrap_rate: 0.05
     energy_consumption_rate: 8.5
     line_id: LINE1
-    mtbf: 21
-    mttr: 85
+    mtbf: 15  # Failure every 15 minutes for lower availability
+    mttr: 8
     use_internal_queues: true
     internal_queue_size: 20
     # Failure timing for mixture model (equipment-specific overrides)
-    micro_stop_mean_time: 15.0  # More frequent for fillers
-    minor_failure_mean_time: 180.0  # 3 hours
-    major_failure_mean_time: 2160.0  # 36 hours
+    micro_stop_mean_time: 5.0  # More frequent micro-stops for lower availability
+    minor_failure_mean_time: 120.0  # 2 hours
+    major_failure_mean_time: 1440.0  # 24 hours
     micro_stop_duration_mean: -0.22  # ln(0.8) for shorter micro-stops
     micro_stop_duration_sigma: 0.4
     performance_by_product:
-      SKU-1001: 0.86
-      SKU-1002: 0.85
-      SKU-2001: 0.81
-      SKU-2002: 0.77
-      SKU-3002: 0.85
+      SKU-1001: 0.90  # Higher performance factor for target alignment
+      SKU-1002: 0.88
+      SKU-2001: 0.85
+      SKU-2002: 0.82
+      SKU-3002: 0.95
     position: 1
     quality_rate: 0.95
     type: Filler
   LINE1-PAL:
-    base_rate: 80
+    base_rate: 50  # Units per minute (target ~250 units/5min)
     base_scrap_rate: 0.05
     energy_consumption_rate: 5.0
     line_id: LINE1
-    mtbf: 27
-    mttr: 75
+    mtbf: 25
+    mttr: 10
     use_internal_queues: true
     internal_queue_size: 20
     # Failure timing for mixture model
-    micro_stop_mean_time: 25.0  # Palletizers more stable
-    minor_failure_mean_time: 300.0
-    major_failure_mean_time: 3600.0
+    micro_stop_mean_time: 10.0  # More frequent for lower availability
+    minor_failure_mean_time: 200.0
+    major_failure_mean_time: 2400.0
     performance_by_product:
-      SKU-1001: 0.95
-      SKU-1002: 0.95
-      SKU-2001: 0.92
-      SKU-2002: 0.79
+      SKU-1001: 0.92  # Higher performance for target alignment
+      SKU-1002: 0.90
+      SKU-2001: 0.87
+      SKU-2002: 0.84
       SKU-3002: 0.95
     position: 3
     quality_rate: 0.95
     type: Palletizer
   LINE1-PCK:
-    base_rate: 80
-    base_scrap_rate: 0.05
+    base_rate: 52  # Units per minute (target ~260 units/5min)
+    base_scrap_rate: 0.08  # 8% scrap
     energy_consumption_rate: 6.5
     line_id: LINE1
-    mtbf: 24
-    mttr: 80
+    mtbf: 20  # Failure every 20 minutes
+    mttr: 7  # 7 min repair
     use_internal_queues: true
     internal_queue_size: 20
     # Failure timing for mixture model
-    micro_stop_mean_time: 18.0  # Packers have moderate micro-stops
-    minor_failure_mean_time: 200.0
-    major_failure_mean_time: 2400.0
+    micro_stop_mean_time: 7.0  # More frequent micro-stops
+    minor_failure_mean_time: 150.0
+    major_failure_mean_time: 1800.0
     performance_by_product:
-      SKU-1001: 0.9
-      SKU-1002: 0.88
-      SKU-2001: 0.77
-      SKU-2002: 0.65
-      SKU-3002: 0.83
+      SKU-1001: 0.88  # Higher performance for target alignment
+      SKU-1002: 0.86
+      SKU-2001: 0.83
+      SKU-2002: 0.80
+      SKU-3002: 0.93
     position: 2
     quality_rate: 0.95
     type: Packer
@@ -215,68 +215,68 @@ equipment:
     quality_rate: 0.9
     type: Buffer
   LINE2-FIL:
-    base_rate: 80
-    base_scrap_rate: 0.05
+    base_rate: 50  # Units per minute (target ~250 units/5min)
+    base_scrap_rate: 0.07  # 7% scrap
     energy_consumption_rate: 7.5
     line_id: LINE2
-    mtbf: 18
-    mttr: 90
+    mtbf: 15  # More frequent failures
+    mttr: 8
     use_internal_queues: true
     internal_queue_size: 20
     # Failure timing for mixture model
-    micro_stop_mean_time: 12.0  # LINE2 less reliable
-    minor_failure_mean_time: 150.0
-    major_failure_mean_time: 1800.0
+    micro_stop_mean_time: 5.0  # More frequent micro-stops
+    minor_failure_mean_time: 100.0
+    major_failure_mean_time: 1200.0
     performance_by_product:
-      SKU-1001: 0.83
-      SKU-1002: 0.86
-      SKU-2002: 0.59
-      SKU-3001: 0.95
-      SKU-3002: 0.77
+      SKU-1001: 0.88
+      SKU-1002: 0.90
+      SKU-2002: 0.84
+      SKU-3001: 0.92
+      SKU-3002: 0.87
     position: 1
     quality_rate: 0.95
     type: Filler
   LINE2-PAL:
-    base_rate: 80
-    base_scrap_rate: 0.05
+    base_rate: 48  # Units per minute (target ~240 units/5min)
+    base_scrap_rate: 0.06  # 6% scrap
     energy_consumption_rate: 4.5
     line_id: LINE2
-    mtbf: 25
-    mttr: 78
+    mtbf: 22
+    mttr: 9
     use_internal_queues: true
     internal_queue_size: 20
     # Failure timing for mixture model
-    micro_stop_mean_time: 22.0
-    minor_failure_mean_time: 280.0
-    major_failure_mean_time: 3200.0
+    micro_stop_mean_time: 9.0
+    minor_failure_mean_time: 180.0
+    major_failure_mean_time: 2000.0
     performance_by_product:
-      SKU-1001: 0.83
-      SKU-1002: 0.83
-      SKU-2002: 0.68
-      SKU-3001: 0.86
-      SKU-3002: 0.85
+      SKU-1001: 0.90
+      SKU-1002: 0.88
+      SKU-2002: 0.85
+      SKU-3001: 0.91
+      SKU-3002: 0.95
     position: 3
     quality_rate: 0.95
     type: Palletizer
   LINE2-PCK:
-    base_rate: 80
-    base_scrap_rate: 0.05
+    base_rate: 52  # Units per minute (target ~260 units/5min)
+    base_scrap_rate: 0.08  # 8% scrap
     energy_consumption_rate: 5.5
     line_id: LINE2
-    mtbf: 21
-    mttr: 85
+    mtbf: 18
+    mttr: 7
     use_internal_queues: true
     internal_queue_size: 20
     # Failure timing for mixture model
-    micro_stop_mean_time: 14.0
-    minor_failure_mean_time: 160.0
-    major_failure_mean_time: 2000.0
+    micro_stop_mean_time: 6.0
+    minor_failure_mean_time: 120.0
+    major_failure_mean_time: 1500.0
     performance_by_product:
-      SKU-1001: 0.77
-      SKU-1002: 0.81
-      SKU-2002: 0.63
-      SKU-3001: 0.86
-      SKU-3002: 0.79
+      SKU-1001: 0.87
+      SKU-1002: 0.91
+      SKU-2002: 0.83
+      SKU-3001: 0.96
+      SKU-3002: 0.89
     position: 2
     quality_rate: 0.95
     type: Packer
@@ -349,31 +349,39 @@ equipment:
     quality_rate: 0.9
     type: Buffer
   LINE3-FIL:
-    base_rate: 80
-    base_scrap_rate: 0.05
+    base_rate: 50  # Units per minute (target ~250 units/5min)
+    base_scrap_rate: 0.07  # 7% scrap
     energy_consumption_rate: 7.0
     line_id: LINE3
-    mtbf: 22
-    mttr: 82
+    mtbf: 17  # More frequent failures for lower availability
+    mttr: 8  # 8 min repair time
     use_internal_queues: true
     internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 6.0  # More frequent micro-stops
+    minor_failure_mean_time: 110.0
+    major_failure_mean_time: 1300.0
     performance_by_product:
       SKU-2001: 0.92
-      SKU-2002: 0.81
-      SKU-3001: 0.76
-      SKU-3002: 0.79
+      SKU-2002: 0.91
+      SKU-3001: 0.86
+      SKU-3002: 0.89
     position: 1
     quality_rate: 0.95
     type: Filler
   LINE3-PAL:
-    base_rate: 80
-    base_scrap_rate: 0.05
+    base_rate: 48  # Units per minute (target ~240 units/5min)
+    base_scrap_rate: 0.06  # 6% scrap
     energy_consumption_rate: 4.0
     line_id: LINE3
-    mtbf: 27
-    mttr: 74
+    mtbf: 23  # More frequent failures
+    mttr: 9  # 9 min repair
     use_internal_queues: true
     internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 8.0  # More frequent micro-stops
+    minor_failure_mean_time: 170.0
+    major_failure_mean_time: 1900.0
     performance_by_product:
       SKU-2001: 0.95
       SKU-2002: 0.85
@@ -383,19 +391,23 @@ equipment:
     quality_rate: 0.95
     type: Palletizer
   LINE3-PCK:
-    base_rate: 80
-    base_scrap_rate: 0.05
+    base_rate: 52  # Units per minute (target ~260 units/5min)
+    base_scrap_rate: 0.08  # 8% scrap
     energy_consumption_rate: 5.0
     line_id: LINE3
-    mtbf: 25
-    mttr: 77
+    mtbf: 19  # More frequent failures
+    mttr: 7  # 7 min repair
     use_internal_queues: true
     internal_queue_size: 20
+    # Failure timing for mixture model
+    micro_stop_mean_time: 7.0  # More frequent micro-stops
+    minor_failure_mean_time: 130.0
+    major_failure_mean_time: 1600.0
     performance_by_product:
       SKU-2001: 0.88
-      SKU-2002: 0.74
-      SKU-3001: 0.79
-      SKU-3002: 0.85
+      SKU-2002: 0.84
+      SKU-3001: 0.89
+      SKU-3002: 0.95
     position: 2
     quality_rate: 0.95
     type: Packer

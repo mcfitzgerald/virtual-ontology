@@ -14,7 +14,7 @@ products:
     name: "12oz Sparkling Water"
     product_family: "Beverages"
     container_type: "Bottle"
-    target_rate_units_per_5min: 500
+    target_rate_units_per_5min: 250  # Target aligned with base rates
     standard_cost_per_unit: 0.15
     sale_price_per_unit: 0.50
     margin: 0.35
@@ -50,7 +50,7 @@ products:
     name: "32oz Premium Juice"
     product_family: "Juices"
     container_type: "Bottle"
-    target_rate_units_per_5min: 350
+    target_rate_units_per_5min: 200  # Target for juice products
     standard_cost_per_unit: 0.45
     sale_price_per_unit: 1.95
     margin: 1.50
@@ -69,7 +69,7 @@ products:
     name: "64oz Family Juice"
     product_family: "Juices"
     container_type: "Jug"
-    target_rate_units_per_5min: 250
+    target_rate_units_per_5min: 180  # Target for large containers
     standard_cost_per_unit: 0.75
     sale_price_per_unit: 3.50
     margin: 2.75
@@ -87,7 +87,7 @@ products:
     name: "8oz Kids Drink"
     product_family: "Kids"
     container_type: "Pouch"
-    target_rate_units_per_5min: 600
+    target_rate_units_per_5min: 280  # Target for small products
     standard_cost_per_unit: 0.10
     sale_price_per_unit: 0.35
     margin: 0.25
@@ -149,58 +149,58 @@ production_orders:
   - order_id: "ORD-1001"
     product_id: "SKU-1001"
     line_id: "LINE1"
-    start_time: 0  # 6:00 AM
-    duration: 240  # 4 hours
-    target_quantity: 10000
+    start_time: 0  # Start immediately
+    duration: 30  # 30 minutes
+    target_quantity: 2500
     priority: 1
     
   - order_id: "ORD-1002"
     product_id: "SKU-2001"
     line_id: "LINE1"
-    start_time: 285  # After changeover
-    duration: 180
-    target_quantity: 6000
+    start_time: 35  # After changeover
+    duration: 25
+    target_quantity: 1500
     priority: 2
     
   - order_id: "ORD-1003"
     product_id: "SKU-1002"
     line_id: "LINE2"
-    start_time: 0
-    duration: 300
-    target_quantity: 8000
+    start_time: 0  # Start immediately
+    duration: 30
+    target_quantity: 2000
     priority: 1
     
   - order_id: "ORD-1004"
     product_id: "SKU-3001"
     line_id: "LINE3"
-    start_time: 0
-    duration: 360
-    target_quantity: 15000
+    start_time: 0  # Start immediately
+    duration: 30
+    target_quantity: 3000
     priority: 1
     
-  # Day 2 - Tuesday
+  # Additional orders within first hour
   - order_id: "ORD-2001"
     product_id: "SKU-2002"
     line_id: "LINE1"
-    start_time: 1440  # Day 2 start
-    duration: 240
-    target_quantity: 5000
+    start_time: 65  # After ORD-1002
+    duration: 20
+    target_quantity: 1000
     priority: 1
     
   - order_id: "ORD-2002"
     product_id: "SKU-3002"
-    line_id: "LINE1"
-    start_time: 1725
-    duration: 200
-    target_quantity: 8500
+    line_id: "LINE2"
+    start_time: 35  # After ORD-1003
+    duration: 25
+    target_quantity: 2200
     priority: 2
     
   - order_id: "ORD-2003"
-    product_id: "SKU-1001"
-    line_id: "LINE2"
-    start_time: 1440
-    duration: 360
-    target_quantity: 12000
+    product_id: "SKU-2001"
+    line_id: "LINE3"
+    start_time: 35  # After ORD-1004
+    duration: 25
+    target_quantity: 1800
     priority: 1
     
   - order_id: "ORD-2004"

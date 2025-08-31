@@ -45,6 +45,34 @@ system:
     batch_size: 100
 
 # ====================================================================================
+# FAILURE DISTRIBUTIONS - Realistic failure patterns for equipment
+# ====================================================================================
+failure_distributions:
+  micro_stops:
+    percentage: 0.60  # 60% of all failures are micro-stops
+    occurrence:
+      base_rate: 15.0  # One micro-stop every 15 minutes on average
+    duration:
+      mean: 1.0  # Average 1 minute duration
+      sigma: 0.5  # Log-normal sigma for variation
+      
+  minor_failures:
+    percentage: 0.30  # 30% of failures are minor
+    base_interval: 120.0  # Every 2 hours on average
+    weibull_shape: 2.0  # Shape > 1 indicates wear-out failures
+    duration:
+      mean: 15.0  # Average 15 minutes to repair
+      range: [5.0, 30.0]
+      
+  major_failures:
+    percentage: 0.10  # 10% of failures are major
+    base_interval: 480.0  # Every 8 hours on average
+    lognormal_sigma: 1.0  # High variability in major failures
+    duration:
+      mean: 60.0  # Average 1 hour to repair
+      range: [30.0, 180.0]
+
+# ====================================================================================
 # CONTROL SETTINGS - Current values for actionable controls
 # ====================================================================================
 control_settings:

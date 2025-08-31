@@ -21,34 +21,34 @@ controls:
   # 2 = Advanced SMED (<10 min)
   
   # Operator Training
-  operator_training_hours: 8
+  operator_training_hours: 16
   # Monthly training hours per operator
   # Industry average: 8-12 hours
   # Best practice: 20-30 hours
   # World class: 30-40 hours
   
   # Production Speed
-  line_speed_setting: 90
+  line_speed_setting: 75
   # Percentage of theoretical maximum
   # Higher = more output but more issues
   # Sweet spot typically 80-85%
   
   # Sensor Maintenance
-  sensor_calibration_frequency: 14
+  sensor_calibration_frequency: 7
   # Days between calibrations
   # Best practice: 3-7 days
   # Typical: 7-14 days
   # Poor: >14 days
   
   # Production Scheduling
-  product_sequencing_strategy: "random"
+  product_sequencing_strategy: "changeover_optimized"
   # Options: random, changeover_optimized, campaign_mode
   # random = No optimization
   # changeover_optimized = Group similar products
   # campaign_mode = Long runs of same product
   
   # Preventive Maintenance
-  pm_schedule_compliance: 60
+  pm_schedule_compliance: 75
   # Percentage of PM tasks completed on time
   # World class: >95%
   # Good: 80-95%
@@ -63,7 +63,7 @@ controls:
   # Optimal: 4 (coverage + float)
   
   # Autonomous Maintenance
-  autonomous_maintenance_level: 0
+  autonomous_maintenance_level: 1
   # 0 = None (maintenance dept only)
   # 1 = Basic (clean, inspect)
   # 2 = Intermediate (+ lubricate, adjust)

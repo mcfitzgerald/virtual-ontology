@@ -526,6 +526,7 @@ class OntologyDrivenModelBuilder:
                 quantity=order_data.get("target_quantity"),
                 due_date=order_data.get("due_date", float("inf")),
                 priority=order_data.get("priority", 1),
+                line_id=order_data.get("line_id", "LINE1"),  # Add line assignment
                 release_date=order_data.get("start_time", 0),
             )
 
