@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Complete Container-based flow simulation implementation**:
+  - Pure SimPy Container architecture for continuous flow modeling
+  - BaseFlowPrimitive foundation with state tracking and metrics
+  - EquipmentFlow with realistic failure patterns and quality modeling
+  - SourceFlow with order-based and continuous generation modes
+  - SinkFlow with integrated OEE calculation (Availability × Performance × Quality)
+  - FlowMonitor for real-time performance tracking and MES record generation
+  - FlowTransducer for MES-style time-bucketed records
+- **Model builder system** (model_builder.py):
+  - YAML configuration loading for equipment chains
+  - Automatic buffer creation and connection
+  - Observable pattern integration
+  - OEE validation and monitoring setup
+- **Comprehensive test suite**:
+  - Unit tests for all flow primitives (container_flow.py)
+  - Integration tests for OEE alignment (test_oee_alignment.py)
+  - Model builder validation tests (test_model_builder.py)
+  - Bottleneck behavior verification
+  - Material conservation validation
 - **Fresh Container-based architecture specification** (TWIN_MODEL_FRESH_SPEC.md):
   - Complete ground-up rewrite plan using pure SimPy Containers
   - Continuous flow modeling (volume/time) instead of discrete units
