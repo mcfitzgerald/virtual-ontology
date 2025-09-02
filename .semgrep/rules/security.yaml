@@ -1,0 +1,126 @@
+rules:
+  # SQL Injection
+  - id: sql-injection-concat
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $QUERY = "..." + $VAR + "..."
+              $CURSOR.execute($QUERY)
+          - pattern: |
+              $QUERY = f"...{$VAR}..."
+              $CURSOR.execute($QUERY)
+          - pattern: |
+              execute("..." + $VAR)
+          - pattern: |
+              execute(f"...{$VAR}...")
+    message: "Potential SQL injection. Use parameterized queries instead."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89"
+      owasp: "A03:2021"
+
+  # Command Injection
+  - id: command-injection
+    patterns:
+      - pattern-either:
+          - pattern: os.system($VAR)
+          - pattern: subprocess.call($VAR, shell=True)
+          - pattern: subprocess.run($VAR, shell=True)
+          - pattern: subprocess.Popen($VAR, shell=True)
+      - pattern-not: |
+          $VAR = "..."
+    message: "Potential command injection with shell=True. Use shell=False with list arguments."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-78"
+
+  # Path Traversal
+  - id: path-traversal
+    patterns:
+      - pattern-either:
+          - pattern: open($PATH, ...)
+          - pattern: pathlib.Path($PATH)
+      - pattern-not: |
+          $PATH = "..."
+      - pattern: |
+          $PATH = ... + $USER_INPUT + ...
+    message: "Potential path traversal vulnerability. Validate and sanitize user input."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-22"
+
+  # Unsafe Deserialization
+  - id: unsafe-pickle
+    patterns:
+      - pattern-either:
+          - pattern: pickle.load(...)
+          - pattern: pickle.loads(...)
+          - pattern: cPickle.load(...)
+          - pattern: cPickle.loads(...)
+      - pattern-not-inside: |
+          # $COMMENT
+    message: "Pickle can execute arbitrary code during deserialization. Use JSON or other safe formats."
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-502"
+
+  # Weak Cryptography
+  - id: weak-crypto-md5
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.md5(...)
+          - pattern: hashlib.sha1(...)
+    message: "MD5 and SHA1 are cryptographically weak. Use SHA256 or stronger."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-327"
+
+  # Insecure Random
+  - id: insecure-random
+    patterns:
+      - pattern-either:
+          - pattern: random.random()
+          - pattern: random.randint(...)
+          - pattern: random.choice(...)
+      - pattern-inside: |
+          def $FUNC(...):
+              ...
+              $PASSWORD = ...
+              ...
+    message: "Using non-cryptographic random for security-sensitive operation. Use secrets module."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-330"
+
+  # Hardcoded Secrets
+  - id: hardcoded-aws-key
+    pattern-regex: "AKIA[0-9A-Z]{16}"
+    message: "Potential AWS access key found"
+    languages: [python]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-798"
+
+  # YAML Load Unsafe
+  - id: yaml-load-unsafe
+    pattern: yaml.load(...)
+    message: "yaml.load() is unsafe. Use yaml.safe_load() instead."
+    languages: [python]
+    severity: ERROR
+    fix: yaml.safe_load(...)
+    metadata:
+      category: security
+      cwe: "CWE-502"

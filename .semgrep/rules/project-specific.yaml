@@ -1,0 +1,146 @@
+rules:
+  # Twin Model Specific Patterns
+  
+  # SimPy environment patterns
+  - id: simpy-env-hardcoded-timeout
+    patterns:
+      - pattern: env.run(until=$NUM)
+      - metavariable-comparison:
+          metavariable: $NUM
+          comparison: $NUM > 100
+    message: "Hardcoded SimPy simulation timeout $NUM. Move to configuration."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: twin-model
+      
+  # Container capacity hardcodes
+  - id: container-hardcoded-capacity
+    patterns:
+      - pattern-either:
+          - pattern: simpy.Container(..., capacity=$NUM, ...)
+          - pattern: Container(..., capacity=$NUM, ...)
+      - metavariable-comparison:
+          metavariable: $NUM
+          comparison: $NUM > 1
+    message: "Hardcoded container capacity $NUM. Use configuration."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: twin-model
+
+  # Hardcoded flow rates
+  - id: hardcoded-flow-rate
+    patterns:
+      - pattern-either:
+          - pattern: flow_rate = $NUM
+          - pattern: rate = $NUM
+          - pattern: base_rate = $NUM
+      - metavariable-regex:
+          metavariable: $NUM
+          regex: '\d+\.?\d*'
+    message: "Hardcoded flow rate $NUM. Move to manifest or config."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: twin-model
+
+  # MTBF/MTTR hardcodes
+  - id: hardcoded-reliability-params
+    patterns:
+      - pattern-either:
+          - pattern: mtbf = $NUM
+          - pattern: MTBF = $NUM
+          - pattern: mttr = $NUM
+          - pattern: MTTR = $NUM
+      - metavariable-comparison:
+          metavariable: $NUM
+          comparison: $NUM > 0
+    message: "Hardcoded reliability parameter $NUM. Use equipment manifest."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: twin-model
+
+  # OEE calculation magic numbers
+  - id: oee-magic-numbers
+    patterns:
+      - pattern-either:
+          - pattern: availability = $NUM
+          - pattern: performance = $NUM
+          - pattern: quality = $NUM
+      - metavariable-regex:
+          metavariable: $NUM
+          regex: '0\.\d+'
+    message: "Hardcoded OEE factor $NUM. Calculate from metrics."
+    languages: [python]
+    severity: INFO
+    metadata:
+      category: twin-model
+
+  # Direct state assignments
+  - id: direct-state-assignment
+    pattern: |
+      self.state = "..."
+    message: "Direct state assignment. Use state management methods."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: twin-model
+
+  # Hardcoded product IDs
+  - id: hardcoded-product-id
+    patterns:
+      - pattern-either:
+          - pattern: product_id = "..."
+          - pattern: product = "..."
+      - pattern-not: |
+          product_id = None
+    message: "Hardcoded product ID. Use manifest or configuration."
+    languages: [python]
+    severity: INFO
+    metadata:
+      category: twin-model
+
+  # Test data in production code
+  - id: test-data-in-production
+    patterns:
+      - pattern-either:
+          - pattern: "test_..."
+          - pattern: "dummy_..."
+          - pattern: "fake_..."
+          - pattern: "mock_..."
+      - pattern-not-inside: |
+          def test_$FUNC(...):
+              ...
+      - pattern-not-inside: |
+          class Test$CLASS:
+              ...
+    message: "Test/dummy data found in production code."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: twin-model
+
+  # Old V2 patterns (should be removed)
+  - id: legacy-v2-pattern
+    pattern-regex: "(V2|v2|_v2|Fixed|FIXED|_fixed)"
+    message: "Legacy V2/Fixed pattern found. Should be cleaned up."
+    languages: [python]
+    severity: INFO
+    metadata:
+      category: cleanup
+
+  # Direct file writes without config
+  - id: direct-file-write
+    patterns:
+      - pattern-either:
+          - pattern: open("...", "w")
+          - pattern: open('...', 'w')
+      - pattern-not: |
+          open($CONFIG_PATH, ...)
+    message: "Writing to hardcoded file path. Use configuration."
+    languages: [python]
+    severity: WARNING
+    metadata:
+      category: maintainability

@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Claude Code custom commands suite** (`.claude/commands/`):
+  - `housekeeping.md`: Aggressive project cleanup with timestamp analysis, unused code detection, Poetry dependency management
+  - `documentation.md`: Documentation enforcement ensuring required docs exist and stay synchronized with codebase
+  - `lint.md`: Code quality checks using mypy and ruff with auto-fix capabilities
+  - `sweep.md`: Hardcode and anti-pattern detection using semgrep with custom rules
+  - All commands generate proposals requiring user confirmation before execution
+- **Semgrep configuration** (`.semgrep/`):
+  - `combined_rules.yaml`: Intentionally overbroad ruleset to catch all potential hardcodes
+  - `security.yaml`: Security-specific patterns (SQL injection, command injection, weak crypto)
+  - `python-smells.yaml`: Python anti-patterns and code quality issues
+  - `project-specific.yaml`: Twin-model specific patterns (SimPy hardcodes, OEE magic numbers)
+  - `.semgrepignore`: Files and directories to exclude from scanning
 - **Comprehensive documentation overhaul**:
   - Created LLM-optimized documentation structure in `docs/llm-ready/`
   - Added numbered, descriptive filenames for clear learning path (01-architecture-overview, 02-quickstart-api, etc.)

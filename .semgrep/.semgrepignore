@@ -1,0 +1,45 @@
+# Semgrep ignore file
+# Directories and files to skip during scanning
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Archive directories
+archive/
+
+# Build directories
+docs/build/
+dist/
+build/
+*.egg-info/
+
+# Cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+.coverage
+htmlcov/
+*.cover
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*~
