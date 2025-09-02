@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Generator
 
 import numpy as np
 import simpy
@@ -48,12 +48,7 @@ class BottleneckInfo:
 class FlowMonitor:
     """Monitors flow and detects bottlenecks in real-time."""
 
-    def __init__(
-        self,
-        env: simpy.Environment,
-        monitoring_interval: float = 1.0,
-        history_size: int = 100
-    ) -> None:
+    def __init__(self, env: simpy.Environment, monitoring_interval: float = 1.0, history_size: int = 100) -> None:
         """Initialize flow monitor.
 
         Args:
@@ -68,7 +63,7 @@ class FlowMonitor:
         # Monitoring data
         self.snapshots: dict[str, deque] = {}
         self.bottlenecks: list[BottleneckInfo] = []
-        self.current_bottleneck: Optional[BottleneckInfo] = None
+        self.current_bottleneck: BottleneckInfo | None = None
 
         # Performance metrics
         self.line_throughput: dict[str, float] = {}
@@ -79,12 +74,10 @@ class FlowMonitor:
         self.topology: dict[str, list[str]] = {}
 
         # Monitoring process
-        self.monitoring_process: Optional[simpy.Process] = None
+        self.monitoring_process: simpy.Process | None = None
 
     def register_primitives(
-        self,
-        primitives: dict[str, BaseFlowPrimitive],
-        topology: Optional[dict[str, list[str]]] = None
+        self, primitives: dict[str, BaseFlowPrimitive], topology: dict[str, list[str]] | None = None
     ) -> None:
         """Register primitives to monitor.
 
@@ -107,7 +100,7 @@ class FlowMonitor:
             self.monitoring_process = self.env.process(self._monitor_flow())
             logger.info("Flow monitoring started")
 
-    def _monitor_flow(self) -> simpy.core.Generator:
+    def _monitor_flow(self) -> Generator[Any, None, None]:
         """Main monitoring process."""
         while True:
             # Take snapshots of all primitives
@@ -132,11 +125,7 @@ class FlowMonitor:
             if snapshot:
                 self.snapshots[primitive_id].append(snapshot)
 
-    def _create_snapshot(
-        self,
-        primitive_id: str,
-        primitive: BaseFlowPrimitive
-    ) -> Optional[FlowSnapshot]:
+    def _create_snapshot(self, primitive_id: str, primitive: BaseFlowPrimitive) -> FlowSnapshot | None:
         """Create a snapshot of primitive state.
 
         Args:
@@ -177,7 +166,7 @@ class FlowMonitor:
             output_level=output_level,
             throughput_rate=throughput_rate,
             utilization=utilization,
-            oee=oee
+            oee=oee,
         )
 
     def _calculate_throughput(self, primitive_id: str) -> float:
@@ -204,14 +193,14 @@ class FlowMonitor:
         time_span = recent[-1].timestamp - recent[0].timestamp
 
         if time_span > 0:
-            return abs(output_change) / time_span
+            return float(abs(output_change) / time_span)
 
         return 0.0
 
     def _analyze_flow(self) -> None:
         """Analyze flow patterns across the system."""
         # Identify flow imbalances
-        for primitive_id, primitive in self.primitives.items():
+        for primitive_id, _primitive in self.primitives.items():
             history = self.snapshots.get(primitive_id, deque())
 
             if len(history) < 5:
@@ -246,9 +235,7 @@ class FlowMonitor:
             # Create or update bottleneck info
             if self.current_bottleneck and self.current_bottleneck.equipment_id == bottleneck_id:
                 # Update existing bottleneck
-                self.current_bottleneck.duration = (
-                    self.env.now - (self.current_bottleneck.duration or self.env.now)
-                )
+                self.current_bottleneck.duration = self.env.now - (self.current_bottleneck.duration or self.env.now)
                 self.current_bottleneck.severity = severity
             else:
                 # New bottleneck detected
@@ -342,11 +329,7 @@ class FlowMonitor:
 
         return throughputs
 
-    def _create_bottleneck_info(
-        self,
-        bottleneck_id: str,
-        severity: float
-    ) -> BottleneckInfo:
+    def _create_bottleneck_info(self, bottleneck_id: str, severity: float) -> BottleneckInfo:
         """Create bottleneck information.
 
         Args:
@@ -356,11 +339,7 @@ class FlowMonitor:
         Returns:
             BottleneckInfo instance
         """
-        info = BottleneckInfo(
-            equipment_id=bottleneck_id,
-            severity=severity,
-            duration=self.env.now
-        )
+        info = BottleneckInfo(equipment_id=bottleneck_id, severity=severity, duration=self.env.now)
 
         # Find affected upstream equipment
         for upstream_id, downstream_list in self.topology.items():
@@ -415,12 +394,12 @@ class FlowMonitor:
         Returns:
             Dictionary with current status information
         """
-        status = {
+        status: dict[str, Any] = {
             "timestamp": self.env.now,
             "monitored_equipment": len(self.primitives),
             "current_bottleneck": None,
             "line_metrics": {},
-            "warnings": []
+            "warnings": [],
         }
 
         # Add bottleneck info
@@ -430,16 +409,15 @@ class FlowMonitor:
                 "severity": self.current_bottleneck.severity,
                 "impact": self.current_bottleneck.impact,
                 "affected_equipment": (
-                    len(self.current_bottleneck.upstream_blocked) +
-                    len(self.current_bottleneck.downstream_starved)
-                )
+                    len(self.current_bottleneck.upstream_blocked) + len(self.current_bottleneck.downstream_starved)
+                ),
             }
 
         # Add line metrics
         for line_id in self.line_throughput:
             status["line_metrics"][line_id] = {
                 "throughput": self.line_throughput.get(line_id, 0),
-                "oee": self.line_oee.get(line_id, 0)
+                "oee": self.line_oee.get(line_id, 0),
             }
 
         # Check for warnings
@@ -447,9 +425,13 @@ class FlowMonitor:
             if history:
                 latest = history[-1]
                 if latest.utilization < 20:
-                    status["warnings"].append(f"{primitive_id}: Very low utilization ({latest.utilization:.1f}%)")
+                    warnings_list = status["warnings"]
+                    if isinstance(warnings_list, list):
+                        warnings_list.append(f"{primitive_id}: Very low utilization ({latest.utilization:.1f}%)")
                 elif latest.oee < 30:
-                    status["warnings"].append(f"{primitive_id}: Poor OEE ({latest.oee:.1f}%)")
+                    warnings_list = status["warnings"]
+                    if isinstance(warnings_list, list):
+                        warnings_list.append(f"{primitive_id}: Poor OEE ({latest.oee:.1f}%)")
 
         return status
 
@@ -462,25 +444,29 @@ class FlowMonitor:
         history = []
 
         for bottleneck in self.bottlenecks:
-            history.append({
-                "equipment": bottleneck.equipment_id,
-                "severity": bottleneck.severity,
-                "duration": bottleneck.duration,
-                "impact": bottleneck.impact,
-                "upstream_blocked": bottleneck.upstream_blocked,
-                "downstream_starved": bottleneck.downstream_starved
-            })
+            history.append(
+                {
+                    "equipment": bottleneck.equipment_id,
+                    "severity": bottleneck.severity,
+                    "duration": bottleneck.duration,
+                    "impact": bottleneck.impact,
+                    "upstream_blocked": bottleneck.upstream_blocked,
+                    "downstream_starved": bottleneck.downstream_starved,
+                }
+            )
 
         # Add current bottleneck
         if self.current_bottleneck:
-            history.append({
-                "equipment": self.current_bottleneck.equipment_id,
-                "severity": self.current_bottleneck.severity,
-                "duration": self.env.now - self.current_bottleneck.duration,
-                "impact": self.current_bottleneck.impact,
-                "upstream_blocked": self.current_bottleneck.upstream_blocked,
-                "downstream_starved": self.current_bottleneck.downstream_starved,
-                "current": True
-            })
+            history.append(
+                {
+                    "equipment": self.current_bottleneck.equipment_id,
+                    "severity": self.current_bottleneck.severity,
+                    "duration": self.env.now - self.current_bottleneck.duration,
+                    "impact": self.current_bottleneck.impact,
+                    "upstream_blocked": self.current_bottleneck.upstream_blocked,
+                    "downstream_starved": self.current_bottleneck.downstream_starved,
+                    "current": True,
+                }
+            )
 
         return history

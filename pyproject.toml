@@ -6,12 +6,12 @@ build-backend = "poetry.core.masonry.api"
 name = "twin-model"
 version = "1.0.0"
 description = "Ontology-driven discrete event simulation framework for manufacturing systems"
-authors = ["Virtual Ontology Team <contact@example.com>"]
+authors = ["Virtual Ontology Team"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/yourusername/twin-model"
-repository = "https://github.com/yourusername/twin-model.git"
-documentation = "https://twin-model.readthedocs.io"
+homepage = "https://github.com/virtual-ontology/twin-model"
+repository = "https://github.com/virtual-ontology/twin-model.git"
+documentation = "https://github.com/virtual-ontology/twin-model/tree/main/docs"
 keywords = ["simulation", "manufacturing", "digital-twin", "discrete-event"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -29,7 +29,7 @@ classifiers = [
 packages = [{include = "twin_model"}]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 simpy = "^4.0"
 pydantic = "^2.0"
 pyyaml = "^6.0"
@@ -41,12 +41,15 @@ pytest = "^7.0"
 mypy = "^1.0"
 ruff = "^0.1"
 sphinx = "^7.0"
-sphinx-autoapi = "^3.0"
 sphinx-rtd-theme = "^2.0"
 myst-parser = "^2.0"
+types-pyyaml = "^6.0.12.20250822"
+lazydocs = "^0.4.8"
+sphinx-llms-txt = "^0.5.2"
+sphinx-autoapi = "^3.6.0"
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/yourusername/twin-model/issues"
+"Bug Tracker" = "https://github.com/virtual-ontology/twin-model/issues"
 
 [tool.mypy]
 python_version = "3.9"

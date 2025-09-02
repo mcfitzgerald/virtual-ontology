@@ -8,6 +8,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Comprehensive documentation overhaul**:
+  - Created LLM-optimized documentation structure in `docs/llm-ready/`
+  - Added numbered, descriptive filenames for clear learning path (01-architecture-overview, 02-quickstart-api, etc.)
+  - Generated complete API reference using sphinx-autoapi
+  - Created DOCS_TOC.md as comprehensive navigation guide
+  - Added YAML examples directory with ontology, manifest, and config templates
+  - Implemented Sphinx documentation system with AutoAPI, MyST parser, and sphinx-llms-txt
+  - Added MIT License to the project
+- **OntologyModelBuilder system**:
+  - New class replacing model_builder.py with three-file configuration approach
+  - Ontology-driven architecture using TBox definitions
+  - Manifest-based equipment and product configurations
+  - Runtime tunable parameters via config files
+- **Manual test suite** in `twin_model/tests/manual/`:
+  - Debug scripts for buffer behavior and internal queuing
+  - Ontology simulation runners with real-world scenarios
+  - Equipment flow debugging utilities
+  - Simple flow tests for rapid prototyping
+
+### Changed
+- **Documentation restructuring**:
+  - Reorganized docs/ folder with clear separation between LLM-ready and Sphinx source
+  - Renamed documentation files to be descriptive of contents
+  - Updated README.md with correct SimPy usage examples and API patterns
+  - Fixed Quick Start section with proper three-file configuration approach
+  - Added Production Orders section with clear examples
+- **Project configuration**:
+  - Updated CLAUDE.md with reminder to use poetry for Python commands
+  - Modified .gitignore for better coverage of build artifacts
+
+### Removed
+- **Legacy documentation and files**:
+  - Deleted TWIN_MODEL_FRESH_SPEC.md (implementation complete)
+  - Removed ARCHIVE_PLAN.md (archiving complete)
+  - Deleted obsolete config/twin_model.yaml
+  - Removed legacy manifests (control_settings, production_manifest, scheduler_manifest, system_config)
+  - Deleted old ontology files (mes_ontology, twin_ontology, control_mappings)
+  - Removed templates/twin_ontology_template.yaml
+  - Deleted twin_model/model_builder.py (replaced by OntologyModelBuilder)
+  - Removed transduction module (flow_transducer.py)
+  - Deleted integration test for old model_builder
+  - Removed pyproject.toml.setuptools-backup
+
+### Added
 - **Complete Container-based flow simulation implementation**:
   - Pure SimPy Container architecture for continuous flow modeling
   - BaseFlowPrimitive foundation with state tracking and metrics

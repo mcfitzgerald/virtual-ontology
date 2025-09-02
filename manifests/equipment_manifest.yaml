@@ -14,136 +14,79 @@ energy_config:
   - 20
   peak_rate: 0.15
 equipment:
-  # Global failure timing parameters for mixture model
   failure_timing_config:
-    # Mean time between failure events (in minutes)
-    micro_stop_mean_time: 20.0  # Frequent micro-stops
-    minor_failure_mean_time: 240.0  # 4 hours on average
-    major_failure_mean_time: 2880.0  # 48 hours on average
-    
-    # Repair duration distributions
-    # Micro-stops: Log-normal distribution (mostly 0.5-3 min)
-    micro_stop_duration_mean: 0.0  # ln(1) = 0 for median of 1 minute
+    micro_stop_mean_time: 20.0
+    minor_failure_mean_time: 240.0
+    major_failure_mean_time: 2880.0
+    micro_stop_duration_mean: 0.0
     micro_stop_duration_sigma: 0.5
-    
-    # Minor failures: Gamma distribution (5-30 min)
     minor_failure_duration_shape: 2.0
     minor_failure_duration_scale: 5.0
-    
-    # Major failures: Weibull distribution (30+ min with long tail)  
     major_failure_duration_shape: 2.0
     major_failure_duration_scale: 60.0
-    
-  LINE1-BUF-1:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 225
-    line_id: LINE1
-    max_dwell_time: 45.0
-    min_level: 15
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE1-BUF-2:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 150
-    line_id: LINE1
-    max_dwell_time: 30.0
-    min_level: 10
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE1-BUF-IN:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 300
-    line_id: LINE1
-    max_dwell_time: 60.0
-    min_level: 20
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE1-BUF-OUT:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 450
-    line_id: LINE1
-    max_dwell_time: 120.0
-    min_level: 0
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
   LINE1-FIL:
-    base_rate: 50  # Units per minute (target ~250 units/5min)
+    base_rate: 50
     base_scrap_rate: 0.05
     energy_consumption_rate: 8.5
     line_id: LINE1
-    mtbf: 15  # Failure every 15 minutes for lower availability
+    mtbf: 15
     mttr: 8
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model (equipment-specific overrides)
-    micro_stop_mean_time: 5.0  # More frequent micro-stops for lower availability
-    minor_failure_mean_time: 120.0  # 2 hours
-    major_failure_mean_time: 1440.0  # 24 hours
-    micro_stop_duration_mean: -0.22  # ln(0.8) for shorter micro-stops
+    micro_stop_mean_time: 5.0
+    minor_failure_mean_time: 120.0
+    major_failure_mean_time: 1440.0
+    micro_stop_duration_mean: -0.22
     micro_stop_duration_sigma: 0.4
     performance_by_product:
-      SKU-1001: 0.90  # Higher performance factor for target alignment
+      SKU-1001: 0.9
       SKU-1002: 0.88
       SKU-2001: 0.85
       SKU-2002: 0.82
       SKU-3002: 0.95
-    position: 1
+    position: 10
     quality_rate: 0.95
     type: Filler
   LINE1-PAL:
-    base_rate: 50  # Units per minute (target ~250 units/5min)
+    base_rate: 50
     base_scrap_rate: 0.05
     energy_consumption_rate: 5.0
     line_id: LINE1
+    position: 30
     mtbf: 25
     mttr: 10
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
-    micro_stop_mean_time: 10.0  # More frequent for lower availability
+    micro_stop_mean_time: 10.0
     minor_failure_mean_time: 200.0
     major_failure_mean_time: 2400.0
     performance_by_product:
-      SKU-1001: 0.92  # Higher performance for target alignment
-      SKU-1002: 0.90
+      SKU-1001: 0.92
+      SKU-1002: 0.9
       SKU-2001: 0.87
       SKU-2002: 0.84
       SKU-3002: 0.95
-    position: 3
     quality_rate: 0.95
     type: Palletizer
   LINE1-PCK:
-    base_rate: 52  # Units per minute (target ~260 units/5min)
-    base_scrap_rate: 0.08  # 8% scrap
+    base_rate: 52
+    base_scrap_rate: 0.08
     energy_consumption_rate: 6.5
     line_id: LINE1
-    mtbf: 20  # Failure every 20 minutes
-    mttr: 7  # 7 min repair
+    mtbf: 20
+    mttr: 7
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
-    micro_stop_mean_time: 7.0  # More frequent micro-stops
+    micro_stop_mean_time: 7.0
     minor_failure_mean_time: 150.0
     major_failure_mean_time: 1800.0
     performance_by_product:
-      SKU-1001: 0.88  # Higher performance for target alignment
+      SKU-1001: 0.88
       SKU-1002: 0.86
       SKU-2001: 0.83
-      SKU-2002: 0.80
+      SKU-2002: 0.8
       SKU-3002: 0.93
-    position: 2
+    position: 20
     quality_rate: 0.95
     type: Packer
   LINE1-SINK:
@@ -153,121 +96,62 @@ equipment:
     mtbf: 480
     mttr: 30
     order_tracking: true
+    position: 100
     quality_rate: 0.9
     quality_threshold: 0.0
     target_throughput: 50.0
     type: Sink
-  LINE1-SRC:
-    arrival_pattern: EXPONENTIAL
-    arrival_rate: 85
-    base_rate: 70
-    disruption_probability: 0.02
-    line_id: LINE1
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    supply_variability: 0.1
-    order_mode: true
-    batch_size: 100
-    type: Source
-  LINE2-BUF-1:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 180
-    line_id: LINE2
-    max_dwell_time: 40.0
-    min_level: 12
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE2-BUF-2:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 120
-    line_id: LINE2
-    max_dwell_time: 25.0
-    min_level: 8
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE2-BUF-IN:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 270
-    line_id: LINE2
-    max_dwell_time: 50.0
-    min_level: 18
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE2-BUF-OUT:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 375
-    line_id: LINE2
-    max_dwell_time: 100.0
-    min_level: 0
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
   LINE2-FIL:
-    base_rate: 50  # Units per minute (target ~250 units/5min)
-    base_scrap_rate: 0.07  # 7% scrap
+    base_rate: 50
+    base_scrap_rate: 0.07
     energy_consumption_rate: 7.5
     line_id: LINE2
-    mtbf: 15  # More frequent failures
+    mtbf: 15
     mttr: 8
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
-    micro_stop_mean_time: 5.0  # More frequent micro-stops
+    micro_stop_mean_time: 5.0
     minor_failure_mean_time: 100.0
     major_failure_mean_time: 1200.0
     performance_by_product:
       SKU-1001: 0.88
-      SKU-1002: 0.90
+      SKU-1002: 0.9
       SKU-2002: 0.84
       SKU-3001: 0.92
       SKU-3002: 0.87
-    position: 1
+    position: 10
     quality_rate: 0.95
     type: Filler
   LINE2-PAL:
-    base_rate: 48  # Units per minute (target ~240 units/5min)
-    base_scrap_rate: 0.06  # 6% scrap
+    base_rate: 48
+    base_scrap_rate: 0.06
     energy_consumption_rate: 4.5
     line_id: LINE2
     mtbf: 22
     mttr: 9
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
     micro_stop_mean_time: 9.0
     minor_failure_mean_time: 180.0
     major_failure_mean_time: 2000.0
     performance_by_product:
-      SKU-1001: 0.90
+      SKU-1001: 0.9
       SKU-1002: 0.88
       SKU-2002: 0.85
       SKU-3001: 0.91
       SKU-3002: 0.95
-    position: 3
+    position: 30
     quality_rate: 0.95
     type: Palletizer
   LINE2-PCK:
-    base_rate: 52  # Units per minute (target ~260 units/5min)
-    base_scrap_rate: 0.08  # 8% scrap
+    base_rate: 52
+    base_scrap_rate: 0.08
     energy_consumption_rate: 5.5
     line_id: LINE2
     mtbf: 18
     mttr: 7
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
     micro_stop_mean_time: 6.0
     minor_failure_mean_time: 120.0
     major_failure_mean_time: 1500.0
@@ -277,7 +161,7 @@ equipment:
       SKU-2002: 0.83
       SKU-3001: 0.96
       SKU-3002: 0.89
-    position: 2
+    position: 20
     quality_rate: 0.95
     type: Packer
   LINE2-SINK:
@@ -287,78 +171,21 @@ equipment:
     mtbf: 480
     mttr: 30
     order_tracking: true
+    position: 100
     quality_rate: 0.9
     quality_threshold: 0.0
     target_throughput: 45.0
     type: Sink
-  LINE2-SRC:
-    arrival_pattern: NORMAL
-    arrival_rate: 85
-    base_rate: 70
-    disruption_probability: 0.025
-    line_id: LINE2
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    supply_variability: 0.15
-    order_mode: true
-    batch_size: 100
-    type: Source
-  LINE3-BUF-1:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 150
-    line_id: LINE3
-    max_dwell_time: 35.0
-    min_level: 10
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE3-BUF-2:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 90
-    line_id: LINE3
-    max_dwell_time: 20.0
-    min_level: 6
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE3-BUF-IN:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 240
-    line_id: LINE3
-    max_dwell_time: 55.0
-    min_level: 16
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
-  LINE3-BUF-OUT:
-    base_rate: 70
-    buffer_type: FIFO
-    capacity: 300
-    line_id: LINE3
-    max_dwell_time: 90.0
-    min_level: 0
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    type: Buffer
   LINE3-FIL:
-    base_rate: 50  # Units per minute (target ~250 units/5min)
-    base_scrap_rate: 0.07  # 7% scrap
+    base_rate: 50
+    base_scrap_rate: 0.07
     energy_consumption_rate: 7.0
     line_id: LINE3
-    mtbf: 17  # More frequent failures for lower availability
-    mttr: 8  # 8 min repair time
+    mtbf: 17
+    mttr: 8
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
-    micro_stop_mean_time: 6.0  # More frequent micro-stops
+    micro_stop_mean_time: 6.0
     minor_failure_mean_time: 110.0
     major_failure_mean_time: 1300.0
     performance_by_product:
@@ -366,20 +193,19 @@ equipment:
       SKU-2002: 0.91
       SKU-3001: 0.86
       SKU-3002: 0.89
-    position: 1
+    position: 10
     quality_rate: 0.95
     type: Filler
   LINE3-PAL:
-    base_rate: 48  # Units per minute (target ~240 units/5min)
-    base_scrap_rate: 0.06  # 6% scrap
+    base_rate: 48
+    base_scrap_rate: 0.06
     energy_consumption_rate: 4.0
     line_id: LINE3
-    mtbf: 23  # More frequent failures
-    mttr: 9  # 9 min repair
+    mtbf: 23
+    mttr: 9
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
-    micro_stop_mean_time: 8.0  # More frequent micro-stops
+    micro_stop_mean_time: 8.0
     minor_failure_mean_time: 170.0
     major_failure_mean_time: 1900.0
     performance_by_product:
@@ -387,20 +213,19 @@ equipment:
       SKU-2002: 0.85
       SKU-3001: 0.88
       SKU-3002: 0.92
-    position: 3
+    position: 30
     quality_rate: 0.95
     type: Palletizer
   LINE3-PCK:
-    base_rate: 52  # Units per minute (target ~260 units/5min)
-    base_scrap_rate: 0.08  # 8% scrap
+    base_rate: 52
+    base_scrap_rate: 0.08
     energy_consumption_rate: 5.0
     line_id: LINE3
-    mtbf: 19  # More frequent failures
-    mttr: 7  # 7 min repair
+    mtbf: 19
+    mttr: 7
     use_internal_queues: true
     internal_queue_size: 20
-    # Failure timing for mixture model
-    micro_stop_mean_time: 7.0  # More frequent micro-stops
+    micro_stop_mean_time: 7.0
     minor_failure_mean_time: 130.0
     major_failure_mean_time: 1600.0
     performance_by_product:
@@ -408,7 +233,7 @@ equipment:
       SKU-2002: 0.84
       SKU-3001: 0.89
       SKU-3002: 0.95
-    position: 2
+    position: 20
     quality_rate: 0.95
     type: Packer
   LINE3-SINK:
@@ -418,23 +243,11 @@ equipment:
     mtbf: 480
     mttr: 30
     order_tracking: true
+    position: 100
     quality_rate: 0.9
     quality_threshold: 0.0
     target_throughput: 40.0
     type: Sink
-  LINE3-SRC:
-    arrival_pattern: BATCH
-    arrival_rate: 85
-    base_rate: 70
-    batch_size: 100
-    disruption_probability: 0.03
-    line_id: LINE3
-    mtbf: 480
-    mttr: 30
-    quality_rate: 0.9
-    supply_variability: 0.2
-    order_mode: true
-    type: Source
 failure_patterns:
   Filler:
     micro_stops:

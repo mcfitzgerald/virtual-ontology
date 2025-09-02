@@ -7,7 +7,7 @@ based on production orders or continuous generation patterns.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Generator, Optional
+from typing import Any, Generator
 
 import simpy
 
@@ -35,8 +35,7 @@ class ProductionOrder:
             raise ValueError(f"completed_volume cannot be negative, got {self.completed_volume}")
         if self.completed_volume > self.target_volume:
             raise ValueError(
-                f"completed_volume ({self.completed_volume}) cannot exceed "
-                f"target_volume ({self.target_volume})"
+                f"completed_volume ({self.completed_volume}) cannot exceed " f"target_volume ({self.target_volume})"
             )
 
     @property
@@ -61,7 +60,7 @@ class SourceFlow(BaseFlowPrimitive):
         config: dict[str, Any],
         flow_capacity: FlowCapacity,
         generation_rate: float,
-        generation_interval: float = 0.1
+        generation_interval: float = 0.1,
     ) -> None:
         """Initialize source flow.
 
@@ -76,7 +75,7 @@ class SourceFlow(BaseFlowPrimitive):
         self.generation_rate = generation_rate
         self.generation_interval = generation_interval
         self.order_queue: list[ProductionOrder] = []
-        self.current_order: Optional[ProductionOrder] = None
+        self.current_order: ProductionOrder | None = None
         self.completed_orders: list[ProductionOrder] = []
 
         # Mode of operation
@@ -106,11 +105,14 @@ class SourceFlow(BaseFlowPrimitive):
                 if self.order_queue:
                     self.current_order = self._get_next_order()
                     if self.current_order:  # Add check for None
-                        self.emit_observable("order_started", {
-                            "order_id": self.current_order.order_id,
-                            "product_id": self.current_order.product_id,
-                            "target_volume": self.current_order.target_volume
-                        })
+                        self.emit_observable(
+                            "order_started",
+                            {
+                                "order_id": self.current_order.order_id,
+                                "product_id": self.current_order.product_id,
+                                "target_volume": self.current_order.target_volume,
+                            },
+                        )
                 else:
                     # Wait for new orders
                     yield self.env.timeout(self.generation_interval)
@@ -135,32 +137,41 @@ class SourceFlow(BaseFlowPrimitive):
             self.current_order.completed_volume += volume
             self.flow_metrics.total_output += volume
 
-            self.emit_observable("material_generated", {
-                "order_id": self.current_order.order_id,
-                "product_id": self.current_order.product_id,
-                "volume": volume,
-                "completion_percentage": self.current_order.completion_percentage
-            })
+            self.emit_observable(
+                "material_generated",
+                {
+                    "order_id": self.current_order.order_id,
+                    "product_id": self.current_order.product_id,
+                    "volume": volume,
+                    "completion_percentage": self.current_order.completion_percentage,
+                },
+            )
 
             # Check if order is complete
             if self.current_order.completed_volume >= self.current_order.target_volume:
-                self.emit_observable("order_completed", {
-                    "order_id": self.current_order.order_id,
-                    "product_id": self.current_order.product_id,
-                    "total_volume": self.current_order.target_volume,
-                    "completion_time": self.env.now
-                })
+                self.emit_observable(
+                    "order_completed",
+                    {
+                        "order_id": self.current_order.order_id,
+                        "product_id": self.current_order.product_id,
+                        "total_volume": self.current_order.target_volume,
+                        "completion_time": self.env.now,
+                    },
+                )
 
                 # Move to completed orders
                 self.completed_orders.append(self.current_order)
                 self.current_order = self._get_next_order()
 
                 if self.current_order:
-                    self.emit_observable("order_started", {
-                        "order_id": self.current_order.order_id,
-                        "product_id": self.current_order.product_id,
-                        "target_volume": self.current_order.target_volume
-                    })
+                    self.emit_observable(
+                        "order_started",
+                        {
+                            "order_id": self.current_order.order_id,
+                            "product_id": self.current_order.product_id,
+                            "target_volume": self.current_order.target_volume,
+                        },
+                    )
         else:
             # Cannot generate - output buffer full
             self.change_state(FlowState.BLOCKED_DOWNSTREAM)
@@ -185,18 +196,17 @@ class SourceFlow(BaseFlowPrimitive):
             yield self.output_buffer.put(volume)
             self.flow_metrics.total_output += volume
 
-            self.emit_observable("material_generated", {
-                "product_id": self.default_product,
-                "volume": volume,
-                "rate": self.generation_rate
-            })
+            self.emit_observable(
+                "material_generated",
+                {"product_id": self.default_product, "volume": volume, "rate": self.generation_rate},
+            )
         else:
             # Cannot generate - output buffer full
             self.change_state(FlowState.BLOCKED_DOWNSTREAM)
 
         yield self.env.timeout(self.generation_interval)
 
-    def _get_next_order(self) -> Optional[ProductionOrder]:
+    def _get_next_order(self) -> ProductionOrder | None:
         """Get next order from queue based on priority.
 
         Returns:
@@ -217,23 +227,29 @@ class SourceFlow(BaseFlowPrimitive):
         """
         self.order_queue.append(order)
 
-        self.emit_observable("order_queued", {
-            "order_id": order.order_id,
-            "product_id": order.product_id,
-            "target_volume": order.target_volume,
-            "priority": order.priority,
-            "queue_length": len(self.order_queue)
-        })
+        self.emit_observable(
+            "order_queued",
+            {
+                "order_id": order.order_id,
+                "product_id": order.product_id,
+                "target_volume": order.target_volume,
+                "priority": order.priority,
+                "queue_length": len(self.order_queue),
+            },
+        )
 
         # If no current order and not in continuous mode, start processing
         if not self.current_order and not self.continuous_mode:
             self.current_order = self._get_next_order()
             if self.current_order:
-                self.emit_observable("order_started", {
-                    "order_id": self.current_order.order_id,
-                    "product_id": self.current_order.product_id,
-                    "target_volume": self.current_order.target_volume
-                })
+                self.emit_observable(
+                    "order_started",
+                    {
+                        "order_id": self.current_order.order_id,
+                        "product_id": self.current_order.product_id,
+                        "target_volume": self.current_order.target_volume,
+                    },
+                )
 
     def cancel_order(self, order_id: str) -> bool:
         """Cancel a production order.
@@ -246,11 +262,14 @@ class SourceFlow(BaseFlowPrimitive):
         """
         # Check if it's the current order
         if self.current_order and self.current_order.order_id == order_id:
-            self.emit_observable("order_cancelled", {
-                "order_id": order_id,
-                "completed_volume": self.current_order.completed_volume,
-                "target_volume": self.current_order.target_volume
-            })
+            self.emit_observable(
+                "order_cancelled",
+                {
+                    "order_id": order_id,
+                    "completed_volume": self.current_order.completed_volume,
+                    "target_volume": self.current_order.target_volume,
+                },
+            )
             self.current_order = self._get_next_order()
             return True
 
@@ -258,11 +277,14 @@ class SourceFlow(BaseFlowPrimitive):
         for i, order in enumerate(self.order_queue):
             if order.order_id == order_id:
                 cancelled_order = self.order_queue.pop(i)
-                self.emit_observable("order_cancelled", {
-                    "order_id": order_id,
-                    "completed_volume": cancelled_order.completed_volume,
-                    "target_volume": cancelled_order.target_volume
-                })
+                self.emit_observable(
+                    "order_cancelled",
+                    {
+                        "order_id": order_id,
+                        "completed_volume": cancelled_order.completed_volume,
+                        "target_volume": cancelled_order.target_volume,
+                    },
+                )
                 return True
 
         return False
@@ -281,7 +303,9 @@ class SourceFlow(BaseFlowPrimitive):
             "current_order": {
                 "order_id": self.current_order.order_id,
                 "product_id": self.current_order.product_id,
-                "completion_percentage": self.current_order.completion_percentage
-            } if self.current_order else None,
-            "completed_orders": len(self.completed_orders)
+                "completion_percentage": self.current_order.completion_percentage,
+            }
+            if self.current_order
+            else None,
+            "completed_orders": len(self.completed_orders),
         }

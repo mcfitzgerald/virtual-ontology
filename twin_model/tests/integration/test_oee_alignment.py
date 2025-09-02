@@ -26,60 +26,48 @@ class TestOEEAlignment:
         source = SourceFlow(
             env=env,
             config={"id": "LINE1-SOURCE", "continuous_mode": True},
-            flow_capacity=FlowCapacity(
-                max_input_rate=300,
-                max_output_rate=250,
-                internal_capacity=1000
-            ),
-            generation_rate=250.0  # units/minute
+            flow_capacity=FlowCapacity(max_input_rate=300, max_output_rate=250, internal_capacity=1000),
+            generation_rate=250.0,  # units/minute
         )
 
         # Filler with realistic failures
         filler = EquipmentFlow(
             env=env,
             config={"id": "LINE1-FILLER"},
-            flow_capacity=FlowCapacity(
-                max_input_rate=260,
-                max_output_rate=250,
-                internal_capacity=500
-            ),
+            flow_capacity=FlowCapacity(max_input_rate=260, max_output_rate=250, internal_capacity=500),
             processing=ProcessingParameters(
                 nominal_rate=250.0,
                 quality_rate=0.93,  # 93% quality
                 performance_factor=0.85,  # 85% performance
                 batch_size=10.0,
-                processing_interval=0.1
+                processing_interval=0.1,
             ),
             failures=FailureParameters(
                 mtbf=35.0,  # Failure every 35 minutes on average
-                mttr=5.0,   # 5 minutes to repair
+                mttr=5.0,  # 5 minutes to repair
                 micro_stop_rate=8.0,  # 8 micro-stops per hour
-                micro_stop_duration=15.0  # 15 seconds each
-            )
+                micro_stop_duration=15.0,  # 15 seconds each
+            ),
         )
 
         # Packer with slightly lower capacity
         packer = EquipmentFlow(
             env=env,
             config={"id": "LINE1-PACKER"},
-            flow_capacity=FlowCapacity(
-                max_input_rate=250,
-                max_output_rate=245,
-                internal_capacity=400
-            ),
+            flow_capacity=FlowCapacity(max_input_rate=250, max_output_rate=245, internal_capacity=400),
             processing=ProcessingParameters(
                 nominal_rate=245.0,
                 quality_rate=0.92,  # 92% quality
                 performance_factor=0.80,  # 80% performance
                 batch_size=10.0,
-                processing_interval=0.1
+                processing_interval=0.1,
             ),
             failures=FailureParameters(
                 mtbf=40.0,  # Failure every 40 minutes on average
-                mttr=6.0,   # 6 minutes to repair
+                mttr=6.0,  # 6 minutes to repair
                 micro_stop_rate=6.0,  # 6 micro-stops per hour
-                micro_stop_duration=20.0  # 20 seconds each
-            )
+                micro_stop_duration=20.0,  # 20 seconds each
+            ),
         )
 
         # Sink to collect products
@@ -91,14 +79,10 @@ class TestOEEAlignment:
             config={
                 "id": "LINE1-SINK",
                 "nominal_rate": 150.0,  # Target rate balanced for realistic OEE
-                "window_duration": 5.0  # 5-minute windows
+                "window_duration": 5.0,  # 5-minute windows
             },
-            flow_capacity=FlowCapacity(
-                max_input_rate=250,
-                max_output_rate=250,
-                internal_capacity=10000
-            ),
-            collection_rate=250.0
+            flow_capacity=FlowCapacity(max_input_rate=250, max_output_rate=250, internal_capacity=10000),
+            collection_rate=250.0,
         )
 
         # Wire connections with shared Container buffers
@@ -113,7 +97,7 @@ class TestOEEAlignment:
         buffer3 = simpy.Container(env, capacity=1000, init=0)
         packer.output_buffer = buffer3
         sink.input_buffer = buffer3
-        
+
         # Register upstream equipment with sink for quality tracking
         sink.upstream_equipment = [filler, packer]
 
@@ -169,7 +153,7 @@ class TestOEEValidation:
             env=env,
             config={"id": "SOURCE", "continuous_mode": True},
             flow_capacity=FlowCapacity(1000, 100, 1000),
-            generation_rate=100.0
+            generation_rate=100.0,
         )
 
         equipment = EquipmentFlow(
@@ -181,21 +165,21 @@ class TestOEEValidation:
                 quality_rate=0.90,  # 90% quality - predictable
                 performance_factor=1.0,  # 100% performance to ensure processing
                 batch_size=10.0,
-                processing_interval=0.1
+                processing_interval=0.1,
             ),
             failures=FailureParameters(
                 mtbf=100.0,  # Infrequent failures for predictability
                 mttr=10.0,
                 micro_stop_rate=0,  # No micro-stops for simplicity
-                micro_stop_duration=0
-            )
+                micro_stop_duration=0,
+            ),
         )
 
         sink = SinkFlow(
             env=env,
             config={"id": "SINK", "nominal_rate": 100.0, "window_duration": 5.0},
             flow_capacity=FlowCapacity(100, 100, 10000),
-            collection_rate=100.0
+            collection_rate=100.0,
         )
 
         # Wire connections
@@ -206,7 +190,7 @@ class TestOEEValidation:
         buffer2 = simpy.Container(env, 1000, init=0)
         equipment.output_buffer = buffer2
         sink.input_buffer = buffer2
-        
+
         # Register upstream equipment with sink for quality tracking
         sink.upstream_equipment = [equipment]
 
@@ -244,7 +228,7 @@ class TestBottleneckBehavior:
             env=env,
             config={"id": "FAST-SOURCE", "continuous_mode": True},
             flow_capacity=FlowCapacity(1000, 200, 1000),
-            generation_rate=200.0  # Fast generation
+            generation_rate=200.0,  # Fast generation
         )
 
         # Fast equipment
@@ -253,7 +237,7 @@ class TestBottleneckBehavior:
             config={"id": "FAST-EQUIPMENT"},
             flow_capacity=FlowCapacity(200, 180, 500),
             processing=ProcessingParameters(180, 0.95, 1.0, 10, 0.1),
-            failures=FailureParameters(1000, 10, 0, 0)  # No failures
+            failures=FailureParameters(1000, 10, 0, 0),  # No failures
         )
 
         # Slow equipment (bottleneck)
@@ -262,7 +246,7 @@ class TestBottleneckBehavior:
             config={"id": "SLOW-EQUIPMENT"},
             flow_capacity=FlowCapacity(180, 100, 300),  # Much slower
             processing=ProcessingParameters(100, 0.95, 1.0, 10, 0.1),
-            failures=FailureParameters(1000, 10, 0, 0)
+            failures=FailureParameters(1000, 10, 0, 0),
         )
 
         # Sink
@@ -270,7 +254,7 @@ class TestBottleneckBehavior:
             env=env,
             config={"id": "SINK", "nominal_rate": 100.0},
             flow_capacity=FlowCapacity(100, 100, 10000),
-            collection_rate=100.0
+            collection_rate=100.0,
         )
 
         # Wire with limited buffer before bottleneck
@@ -296,9 +280,7 @@ class TestBottleneckBehavior:
         env.run(until=60)
 
         # Fast equipment should be blocked frequently
-        blocked_time = fast_equipment.flow_metrics.state_durations.get(
-            FlowState.BLOCKED_DOWNSTREAM, 0
-        )
+        blocked_time = fast_equipment.flow_metrics.state_durations.get(FlowState.BLOCKED_DOWNSTREAM, 0)
 
         # Should have some blocking (adjusted expectation due to processing synchronization)
         assert blocked_time > 2, f"Fast equipment not blocked enough: {blocked_time:.1f} minutes"

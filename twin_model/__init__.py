@@ -1,6 +1,6 @@
 """Twin Model - Container-based continuous flow simulation framework."""
 
-from .model_builder import FlowModelBuilder
+from .ontology_model_builder import OntologyModelBuilder
 from .primitives import (
     BaseFlowPrimitive,
     EquipmentFlow,
@@ -20,7 +20,7 @@ __version__ = "1.0.0"
 
 __all__ = [
     # Model builder
-    "FlowModelBuilder",
+    "OntologyModelBuilder",
     # Base classes
     "BaseFlowPrimitive",
     "FlowCapacity",

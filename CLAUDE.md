@@ -31,3 +31,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **NEVER** use hardcodes, always use config patterns, ask if you are unsure
 - Use `semgrep` and appropriate rules files to scan for misplaced hardcodes
 - Maintain a CHANGELOG.md file and remind me to use the custom claude code `/commit` command
+
+# TODOs
+- create a housekeeping claude command
+- create a doc update claude command

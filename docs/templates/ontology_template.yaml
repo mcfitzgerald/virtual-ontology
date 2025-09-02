@@ -1,0 +1,196 @@
+# Generic Ontology Template
+# A reusable structure for knowledge representation in YAML
+# Can be used for simulation models, data analysis, or any domain
+
+# ==============================================================================
+# METADATA - Ontology identification and context
+# ==============================================================================
+metadata:
+  name: "Ontology Name"
+  version: "1.0.0"
+  description: "Purpose and scope of this ontology"
+  namespace: "domain-namespace"  # Unique identifier for this ontology
+  author: "Author or Team"
+  created: "2025-01-01"  # ISO-8601 date
+  modified: "2025-01-01"
+  
+  # Context provides domain-specific information
+  context:
+    domain: "target-domain"  # e.g., manufacturing, healthcare, finance
+    purpose: "intended-use"  # e.g., simulation, analysis, reasoning
+    compatibility: []  # List of systems this ontology works with
+
+# ==============================================================================
+# TBOX - Terminological Box (Schema/Types/Classes)
+# Defines WHAT entities can exist and their properties
+# ==============================================================================
+tbox:
+  # Entity types/classes that exist in the domain
+  types:
+    ExampleEntity:
+      description: "What this entity represents in the domain"
+      
+      # Properties this type can have
+      properties:
+        property_name:
+          type: "datatype"  # string, float, integer, boolean, datetime
+          description: "What this property represents"
+          unit: "unit-of-measure"  # Optional, e.g., "units/minute"
+          default: null  # Default value if not specified
+          required: false  # Whether this property must be present
+          constraints:  # Value constraints
+            - "min: 0"
+            - "max: 100"
+          enum: []  # Allowed values if restricted set
+      
+      # Relationships this type can have
+      relationships:
+        can_connect_to: []  # List of types this can connect to
+        can_receive_from: []  # For directional relationships
+        can_send_to: []  # For directional relationships
+      
+      # External mappings
+      maps_to:
+        framework_class: "ClassName"  # Maps to implementation class
+        database_table: "table_name"  # Maps to database structure
+        external_concept: "URI"  # Maps to external ontology
+      
+      # Constraints on the type itself
+      constraints:
+        - "description of constraint"
+      
+      # Inheritance (optional)
+      extends: "ParentType"  # Inherits from another type
+      abstract: false  # If true, cannot be instantiated directly
+
+# ==============================================================================
+# RBOX - Role/Relationship Box
+# Defines HOW entities relate to each other
+# ==============================================================================
+rbox:
+  # Relationship definitions
+  relationships:
+    example_relationship:
+      description: "What this relationship represents"
+      type: "relationship-type"  # directional, bidirectional, hierarchical
+      
+      # Valid participants
+      from_types: []  # List of types that can be source
+      to_types: []  # List of types that can be target
+      cardinality: "1:N"  # 1:1, 1:N, N:1, N:M
+      
+      # Relationship properties
+      properties:
+        relationship_property:
+          type: "datatype"
+          description: "Property of the relationship itself"
+      
+      # Constraints on the relationship
+      constraints:
+        - "constraint description"
+      
+      # Semantic meaning
+      semantics: "Formal or informal description of what this relationship means"
+      inverse_of: "inverse_relationship_name"  # If bidirectional
+  
+  # Global property definitions (optional)
+  properties:
+    global_property:
+      description: "Property that can apply to multiple types"
+      domain: []  # List of types this property applies to
+      range: "datatype"  # Value type
+      functional: true  # If true, only one value allowed
+
+# ==============================================================================
+# ABOX - Assertional Box (Instance patterns and templates)
+# Defines patterns for creating instances (not actual instances)
+# ==============================================================================
+abox:
+  # Reusable templates for common patterns
+  templates:
+    example_template:
+      description: "What this template represents"
+      parameters:  # Template parameters
+        - {name: "param1", type: "string", description: "Parameter description"}
+      
+      # Components that make up this template
+      components:
+        - type: "EntityType"
+          id_pattern: "{param1}-SUFFIX"  # How to generate IDs
+          properties:  # Property values or patterns
+            property1: "value or {param1}"
+      
+      # Connections between components
+      connections:
+        - from: 0  # Index in components array
+          to: 1
+          relationship: "relationship_name"
+          properties: {}
+  
+  # Validation rules for instances
+  validation_rules:
+    - rule: "Rule name"
+      description: "What this rule validates"
+      scope: "where-applied"  # e.g., global, per-type, per-instance
+      constraint: "formal or pseudo-code constraint"
+      severity: "error"  # error, warning, info
+      message: "Message when validation fails"
+  
+  # Inference rules for deriving new facts
+  inference_rules:
+    - name: "Rule name"
+      description: "What this rule infers"
+      if:  # Conditions
+        - "condition1"
+        - "condition2"
+      then:  # Conclusions
+        - "derived fact or action"
+      confidence: 1.0  # Confidence level if probabilistic
+
+# ==============================================================================
+# CONTEXT - Domain-specific semantics and mappings
+# Bridge between ontology and implementation
+# ==============================================================================
+context:
+  # External system mappings
+  mappings:
+    # Map to specific implementation
+    system_name:
+      EntityType: "ImplementationClass"
+      relationship_name: "implementation_method"
+    
+    # Map to database
+    database:
+      EntityType: "SELECT * FROM table WHERE conditions"
+  
+  # Domain semantics
+  semantics:
+    # Domain-specific calculations or interpretations
+    derived_metric:
+      formula: "mathematical or logical formula"
+      description: "What this metric means"
+      unit: "unit-of-measure"
+  
+  # Domain constraints
+  constraints:
+    global:
+      - "Global constraint description"
+    per_type:
+      EntityType:
+        - "Type-specific constraint"
+  
+  # Namespace definitions
+  namespaces:
+    prefix: "http://example.org/ontology#"
+    imports: []  # Other ontologies to import
+
+# ==============================================================================
+# USAGE NOTES
+# ==============================================================================
+# 1. This template provides a generic structure for knowledge representation
+# 2. Not all sections are required - use what's needed for your domain
+# 3. The structure is flexible and can be extended with domain-specific sections
+# 4. Avoid deep nesting - keep the structure readable and maintainable
+# 5. Use clear, descriptive names for all entities and properties
+# 6. Document constraints and rules in human-readable form
+# 7. This is NOT a formal ontology language like OWL - it's a practical YAML format

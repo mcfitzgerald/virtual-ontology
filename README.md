@@ -1,219 +1,183 @@
-# Twin Model - Ontology-Driven Manufacturing Simulation
+# Twin Model
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![SimPy](https://img.shields.io/badge/SimPy-4.0+-green.svg)](https://simpy.readthedocs.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+An ontology-driven simulation framework for manufacturing systems using SimPy containers.
 
 ## Overview
 
-Twin Model is an ontology-driven discrete event simulation framework for manufacturing systems. It provides a flexible, configuration-based approach to modeling production lines with realistic equipment behavior, failure patterns, and control systems.
+Twin Model provides a flexible, ontology-driven architecture for simulating production lines and manufacturing systems. It separates concerns into three distinct layers:
 
-### Key Features
+1. **Structure** (Ontology) - Defines equipment types and their properties
+2. **Instances** (Manifest) - Declares specific equipment and topology
+3. **Parameters** (Config) - Contains tunable simulation parameters
 
-- **Ontology-Driven Architecture**: Define equipment types and behaviors using YAML ontologies
-- **NO BUFFERS Design**: Direct equipment-to-equipment connections for realistic material flow
-- **Two-Layer Control System**: Map high-level controls to simulation parameters
-- **Realistic Failure Modeling**: Micro-stops, minor failures, and major breakdowns
-- **Production Order Management**: Schedule-based production with changeover support
-- **OEE Metrics**: Built-in availability, performance, and quality tracking
-- **MES Data Generation**: Produce realistic manufacturing execution system data
+## Features
 
-## Quick Start
+- **Container-based flow simulation** - Continuous material flow using SimPy containers
+- **Ontology-driven architecture** - Clear separation between structure, instances, and parameters
+- **Real-time monitoring** - Track OEE, throughput, quality metrics
+- **Flexible configuration** - YAML-based configuration system
+- **Failure modeling** - MTBF/MTTR and micro-stops simulation
+- **Production order support** - Batch and continuous production modes
+- **Bottleneck detection** - Real-time identification of production constraints
+- **Observable events** - Event-driven architecture for monitoring and control
 
-### Installation
+## Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/virtual-ontology/twin-model.git
+cd virtual-ontology
+
+# Install with Poetry
+poetry install
+
+# Or install with pip
 pip install -e .
 ```
 
-Or install dependencies directly:
-
-```bash
-pip install simpy pydantic pyyaml numpy pandas
-```
-
-### Basic Usage
+## Quick Start
 
 ```python
+from twin_model import OntologyModelBuilder
 import simpy
-from pathlib import Path
-from twin_model.model_builder import OntologyDrivenModelBuilder
-from twin_model.control.control_manager import ControlManager
 
-# Create SimPy environment
+# Create environment
 env = simpy.Environment()
 
-# Initialize control manager (optional)
-control_mgr = ControlManager(
-    ontology_path=Path("ontology/twin_ontology.yaml"),
-    mappings_path=Path("ontology/control_mappings.yaml")
-)
-
-# Build model from ontology
-builder = OntologyDrivenModelBuilder(
+# Build model from configuration files
+builder = OntologyModelBuilder(
     env=env,
-    ontology_path=Path("ontology/twin_ontology.yaml"),
-    manifest_dir=Path("manifests"),
-    control_manager=control_mgr
+    ontology_path="ontology/filling_line_ontology.yaml",
+    manifest_path="manifests/equipment_manifest.yaml", 
+    config_path="config/tunable_parameters.yaml"
 )
 
+# Build and run simulation
 model = builder.build_model()
+env.run(until=60)  # Run for 60 minutes
 
-# Run simulation
-env.run(until=480)  # 8 hours
+# Access metrics
+metrics = builder.get_metrics()
+for equip_id, equip_metrics in metrics.items():
+    print(f"{equip_id}: OEE={equip_metrics.get('oee', 0):.1%}")
+```
 
-# Get metrics
-for equipment in model.equipment_list:
-    print(f"{equipment.name}: OEE = {equipment.oee:.2%}")
+## Configuration Files
+
+### Ontology File (Structure)
+Defines equipment types and their capabilities:
+
+```yaml
+tbox:
+  types:
+    FillingStation:
+      maps_to:
+        framework_primitive: "EquipmentFlow"
+      required_properties:
+        - nominal_rate
+        - quality_rate
+      relationships:
+        can_connect_to: ["PackingStation", "QualityControl"]
+```
+
+### Manifest File (Instances)
+Declares equipment instances and connections:
+
+```yaml
+equipment:
+  LINE1-FIL:
+    type: "FillingStation"
+    line_id: "LINE1"
+    position: 10
+
+connections:
+  - from: "LINE1-SOURCE"
+    to: "LINE1-FIL"
+    type: "material_flow"
+```
+
+### Config File (Parameters)
+Contains tunable parameters:
+
+```yaml
+equipment_parameters:
+  LINE1-FIL:
+    nominal_rate: 50.0
+    quality_rate: 0.95
+    mtbf: 60.0
+    mttr: 10.0
+```
+
+## Production Orders
+
+The framework supports both continuous and order-based production:
+
+```python
+from twin_model import ProductionOrder
+
+# Create a production order
+order = ProductionOrder(
+    order_id="ORD-2025-001",
+    product_id="SKU-1001",
+    target_volume=1000.0,
+    due_time=120.0,  # Due in 120 minutes
+    priority=8       # Higher priority = more urgent
+)
+
+# Add to source (if not in continuous mode)
+source = model['primitives']['LINE1-SOURCE']
+source.add_order(order)
+```
+
+## Documentation
+
+- [Documentation Overview](docs/DOCS_TOC.md) - Complete guide to all documentation
+- [Architecture Guide](docs/llm-ready/01-architecture-overview.md) - Ontology-driven architecture explained
+- [Quick Start API](docs/llm-ready/02-quickstart-api.md) - API guide with three-file pathway
+- [Complete API Reference](docs/llm-ready/03-complete-api-reference.md) - Full API documentation
+- [Example Configurations](docs/llm-ready/yaml-examples/) - Sample YAML files
+
+## Development
+
+```bash
+# Run tests
+poetry run pytest
+
+# Type checking
+poetry run mypy twin_model
+
+# Linting
+poetry run ruff check twin_model
+
+# Format code
+poetry run ruff format twin_model
+
+# Build documentation
+poetry run sphinx-build -b html docs/sphinx-source docs/build
 ```
 
 ## Project Structure
 
 ```
-twin-model/
-├── twin_model/              # Core simulation module
-│   ├── primitives/         # Equipment, source, sink, scheduler
-│   ├── control/            # Control system implementation
-│   ├── model_builder.py    # Main model construction
-│   └── tests/              # Unit and integration tests
-├── ontology/               # Equipment type definitions
-│   ├── twin_ontology.yaml  # Main ontology
-│   └── control_mappings.yaml # Control parameter mappings
-├── manifests/              # Equipment instances and configuration
-│   ├── equipment_manifest.yaml
-│   ├── production_manifest.yaml
-│   └── system_config.yaml
-├── config/                 # Runtime configuration
-│   └── twin_model.yaml
-├── templates/              # Ontology templates
-├── docs/                   # Documentation
-│   ├── HOW_TO_RUN.md      # Detailed usage guide
-│   └── llm_output/        # API documentation
-└── mes_data_sample.csv    # Example output format
+twin_model/
+├── twin_model/           # Main package
+│   ├── primitives/       # Flow primitives (Source, Equipment, Sink)
+│   ├── monitoring/       # Real-time monitoring
+│   └── tests/           # Unit and integration tests
+├── ontology/            # Ontology definitions
+├── manifests/           # Equipment manifests
+├── config/              # Configuration files
+└── docs/               # Documentation
 ```
-
-## Documentation
-
-- **[HOW_TO_RUN.md](docs/HOW_TO_RUN.md)** - Comprehensive usage guide with examples
-- **[API Documentation](docs/llm_output/twin_model_api.md)** - Complete API reference
-- **[Architecture Guide](docs/architecture/TWIN_ARCHITECTURE.md)** - System design and concepts
-- **[Primitive Reference](docs/reference/PRIMITIVE_REFERENCE.md)** - Equipment types and behaviors
-
-### Generating Documentation
-
-```bash
-# Generate LLM-optimized documentation
-python docs/generate_llm_docs.py
-
-# Generate HTML documentation (requires sphinx)
-sphinx-build -M html docs/source docs/build -c docs/source
-```
-
-## Configuration
-
-### Ontology (Equipment Types)
-
-Define equipment types in `ontology/twin_ontology.yaml`:
-
-```yaml
-Equipment:
-  properties:
-    cycle_time:
-      type: float
-      default: 60.0
-    mtbf:
-      type: float
-      default: 1000.0
-```
-
-### Manifests (Equipment Instances)
-
-Specify equipment instances in `manifests/equipment_manifest.yaml`:
-
-```yaml
-equipment:
-  - id: "LATHE_001"
-    type: "Lathe"
-    properties:
-      cycle_time: 45.0
-      quality_rate: 0.99
-```
-
-### Control Mappings
-
-Configure control effects in `ontology/control_mappings.yaml`:
-
-```yaml
-speed_setpoint:
-  parameters:
-    - name: cycle_time
-      effect_type: inverse_linear
-      magnitude: 0.5
-```
-
-## Testing
-
-Run the test suite:
-
-```bash
-# All tests
-python -m pytest twin_model/tests/
-
-# Unit tests only
-python -m pytest twin_model/tests/unit/
-
-# Integration tests
-python -m pytest twin_model/tests/integration/
-```
-
-## Example Output
-
-The simulation generates MES-compatible data (see `mes_data_sample.csv`):
-
-| Timestamp | EquipmentID | MachineStatus | GoodUnitsProduced | OEE_Score |
-|-----------|-------------|---------------|-------------------|-----------|
-| 00:00:00  | LINE1-FIL   | Running       | 218              | 48.4      |
-| 00:05:00  | LINE1-FIL   | Running       | 235              | 52.2      |
-
-## Development
-
-### Setting up for development
-
-```bash
-# Install with dev dependencies
-pip install -e ".[dev]"
-
-# Run type checking
-mypy twin_model
-
-# Run linting
-ruff check twin_model
-
-# Format code
-ruff format twin_model
-```
-
-## Contributing
-
-Contributions are welcome! Please ensure:
-- All tests pass
-- Code follows the existing style
-- Documentation is updated
-- Type hints are provided
 
 ## License
 
 MIT License - see LICENSE file for details
 
-## Citation
+## Contributing
 
-If you use this software in your research, please cite:
+Contributions are welcome! Please see CONTRIBUTING.md for guidelines.
 
-```bibtex
-@software{twin_model,
-  title = {Twin Model: Ontology-Driven Manufacturing Simulation},
-  author = {Virtual Ontology Team},
-  year = {2024},
-  url = {https://github.com/yourusername/twin-model}
-}
-```
+## Support
+
+For questions and support, please open an issue on GitHub.

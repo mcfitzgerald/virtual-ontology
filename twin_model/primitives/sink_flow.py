@@ -54,7 +54,7 @@ class OEEMetrics:
             "performance": self.performance,
             "quality": self.quality,
             "timestamp": self.timestamp,
-            "window_duration": self.window_duration
+            "window_duration": self.window_duration,
         }
 
 
@@ -67,7 +67,7 @@ class SinkFlow(BaseFlowPrimitive):
         config: dict[str, Any],
         flow_capacity: FlowCapacity,
         collection_rate: float,
-        collection_interval: float = 0.1
+        collection_interval: float = 0.1,
     ) -> None:
         """Initialize sink flow.
 
@@ -99,7 +99,7 @@ class SinkFlow(BaseFlowPrimitive):
 
         # Nominal rate for performance calculation
         self.nominal_rate = config.get("nominal_rate", collection_rate)
-        
+
         # Track upstream equipment for quality metrics
         self.upstream_equipment: list[Any] = []
 
@@ -140,12 +140,15 @@ class SinkFlow(BaseFlowPrimitive):
                     self.products_collected[self.current_product] += volume
 
                     # Emit observable
-                    self.emit_observable("products_collected", {
-                        "volume": volume,
-                        "total": self.total_collected,
-                        "rate": volume / self.collection_interval,
-                        "product": self.current_product
-                    })
+                    self.emit_observable(
+                        "products_collected",
+                        {
+                            "volume": volume,
+                            "total": self.total_collected,
+                            "rate": volume / self.collection_interval,
+                            "product": self.current_product,
+                        },
+                    )
                 else:
                     # No material available
                     self.change_state(FlowState.STARVED_UPSTREAM)
@@ -169,7 +172,7 @@ class SinkFlow(BaseFlowPrimitive):
                 good_volume=self._get_window_good_volume(),
                 scrap_volume=self._get_window_scrap_volume(),
                 downtime=self._get_window_downtime(),
-                product_id=self.current_product
+                product_id=self.current_product,
             )
 
             self.production_windows.append(window)
@@ -205,9 +208,9 @@ class SinkFlow(BaseFlowPrimitive):
         # Aggregate scrap from all upstream equipment
         total_scrap = 0.0
         for equipment in self.upstream_equipment:
-            if hasattr(equipment, 'flow_metrics') and hasattr(equipment.flow_metrics, 'total_scrap'):
+            if hasattr(equipment, "flow_metrics") and hasattr(equipment.flow_metrics, "total_scrap"):
                 total_scrap += equipment.flow_metrics.total_scrap
-        
+
         # Calculate scrap for this window (approximate)
         if len(self.production_windows) > 0:
             # Use recent scrap rate
@@ -240,9 +243,9 @@ class SinkFlow(BaseFlowPrimitive):
         # Get total scrap from upstream
         total_upstream_scrap = 0.0
         for equipment in self.upstream_equipment:
-            if hasattr(equipment, 'flow_metrics') and hasattr(equipment.flow_metrics, 'total_scrap'):
+            if hasattr(equipment, "flow_metrics") and hasattr(equipment.flow_metrics, "total_scrap"):
                 total_upstream_scrap += equipment.flow_metrics.total_scrap
-        
+
         total_output = window.good_volume + total_upstream_scrap
         quality = (window.good_volume / total_output * 100) if total_output > 0 else 100
         quality = max(0, min(100, quality))
@@ -256,7 +259,7 @@ class SinkFlow(BaseFlowPrimitive):
             performance=performance,
             quality=quality,
             timestamp=window.timestamp,
-            window_duration=window.duration
+            window_duration=window.duration,
         )
 
     def calculate_oee(self, window_minutes: float = 60) -> tuple[float, float, float, float]:
@@ -278,13 +281,13 @@ class SinkFlow(BaseFlowPrimitive):
                 # Calculate system availability from worst equipment
                 min_availability = 100.0
                 for equipment in self.upstream_equipment:
-                    if hasattr(equipment, 'get_availability'):
+                    if hasattr(equipment, "get_availability"):
                         equip_avail = equipment.get_availability()
                         min_availability = min(min_availability, equip_avail)
                 availability = min_availability
             else:
                 # Fall back to sink's own state if no upstream equipment
-                flowing_time = self.flow_metrics.state_durations.get(FlowState.FLOWING, 0.0)
+                self.flow_metrics.state_durations.get(FlowState.FLOWING, 0.0)
                 idle_time = self.flow_metrics.state_durations.get(FlowState.IDLE, 0.0)
                 starved_time = self.flow_metrics.state_durations.get(FlowState.STARVED_UPSTREAM, 0.0)
                 blocked_time = self.flow_metrics.state_durations.get(FlowState.BLOCKED_DOWNSTREAM, 0.0)
@@ -301,12 +304,12 @@ class SinkFlow(BaseFlowPrimitive):
             # Quality - calculate from upstream equipment
             total_good = self.total_collected
             total_scrap = 0.0
-            
+
             # Aggregate scrap from all upstream equipment
             for equipment in self.upstream_equipment:
-                if hasattr(equipment, 'flow_metrics') and hasattr(equipment.flow_metrics, 'total_scrap'):
+                if hasattr(equipment, "flow_metrics") and hasattr(equipment.flow_metrics, "total_scrap"):
                     total_scrap += equipment.flow_metrics.total_scrap
-            
+
             # Calculate quality
             total_output = total_good + total_scrap
             quality = (total_good / total_output * 100) if total_output > 0 else 100.0
@@ -345,9 +348,9 @@ class SinkFlow(BaseFlowPrimitive):
         # Need to get scrap from upstream equipment
         if not total_scrap and self.upstream_equipment:
             for equipment in self.upstream_equipment:
-                if hasattr(equipment, 'flow_metrics') and hasattr(equipment.flow_metrics, 'total_scrap'):
+                if hasattr(equipment, "flow_metrics") and hasattr(equipment.flow_metrics, "total_scrap"):
                     total_scrap += equipment.flow_metrics.total_scrap
-        
+
         total_output = total_good + total_scrap
         quality = (total_good / total_output * 100) if total_output > 0 else 100
         quality = max(0, min(100, quality))
@@ -371,14 +374,9 @@ class SinkFlow(BaseFlowPrimitive):
             "total_scrap": self.total_scrap,
             "collection_rate": self.total_collected / self.env.now if self.env.now > 0 else 0,
             "products": dict(self.products_collected),
-            "oee": {
-                "overall": oee,
-                "availability": availability,
-                "performance": performance,
-                "quality": quality
-            },
+            "oee": {"overall": oee, "availability": availability, "performance": performance, "quality": quality},
             "windows_tracked": len(self.production_windows),
-            "current_state": self.current_state.value
+            "current_state": self.current_state.value,
         }
 
     def set_product(self, product_id: str) -> None:
@@ -388,8 +386,5 @@ class SinkFlow(BaseFlowPrimitive):
             product_id: Product identifier
         """
         if product_id != self.current_product:
-            self.emit_observable("product_change", {
-                "old_product": self.current_product,
-                "new_product": product_id
-            })
+            self.emit_observable("product_change", {"old_product": self.current_product, "new_product": product_id})
             self.current_product = product_id

@@ -19,11 +19,11 @@ from .base_flow import BaseFlowPrimitive, FlowCapacity, FlowState
 class ProcessingParameters:
     """Equipment processing parameters."""
 
-    nominal_rate: float          # units/minute at 100% performance
-    quality_rate: float          # fraction of good output (0-1)
-    performance_factor: float    # actual vs nominal (0-1)
-    batch_size: float           # minimum processing batch
-    processing_interval: float   # time between batch processing (minutes)
+    nominal_rate: float  # units/minute at 100% performance
+    quality_rate: float  # fraction of good output (0-1)
+    performance_factor: float  # actual vs nominal (0-1)
+    batch_size: float  # minimum processing batch
+    processing_interval: float  # time between batch processing (minutes)
 
     def __post_init__(self) -> None:
         """Validate processing parameters."""
@@ -43,9 +43,9 @@ class ProcessingParameters:
 class FailureParameters:
     """Equipment failure parameters."""
 
-    mtbf: float                 # mean time between failures (minutes)
-    mttr: float                 # mean time to repair (minutes)
-    micro_stop_rate: float      # micro-stops per hour
+    mtbf: float  # mean time between failures (minutes)
+    mttr: float  # mean time to repair (minutes)
+    micro_stop_rate: float  # micro-stops per hour
     micro_stop_duration: float  # average micro-stop duration (seconds)
 
     def __post_init__(self) -> None:
@@ -69,7 +69,7 @@ class EquipmentFlow(BaseFlowPrimitive):
         config: dict[str, Any],
         flow_capacity: FlowCapacity,
         processing: ProcessingParameters,
-        failures: FailureParameters
+        failures: FailureParameters,
     ) -> None:
         """Initialize equipment flow.
 
@@ -86,9 +86,7 @@ class EquipmentFlow(BaseFlowPrimitive):
 
         # Internal buffer for material accumulation
         self.internal_buffer = simpy.Container(
-            env,
-            capacity=flow_capacity.internal_capacity,
-            init=flow_capacity.initial_level
+            env, capacity=flow_capacity.internal_capacity, init=flow_capacity.initial_level
         )
 
         # State tracking
@@ -114,18 +112,19 @@ class EquipmentFlow(BaseFlowPrimitive):
 
                 # Calculate batch volume based on rate and interval
                 target_volume = (
-                    self.processing.nominal_rate *
-                    self.processing.processing_interval *
-                    self.processing.performance_factor
+                    self.processing.nominal_rate
+                    * self.processing.processing_interval
+                    * self.processing.performance_factor
                 )
 
                 # Check material availability
                 if self.input_buffer and self.input_buffer.level >= self.processing.batch_size:
                     # Calculate actual volume to process
+                    # Use at least batch_size if available, up to target_volume
                     actual_volume = min(
-                        target_volume,
+                        max(target_volume, self.processing.batch_size),  # At least batch_size
                         self.input_buffer.level,
-                        self.internal_buffer.capacity - self.internal_buffer.level
+                        self.internal_buffer.capacity - self.internal_buffer.level,
                     )
 
                     if actual_volume >= self.processing.batch_size:
@@ -160,14 +159,17 @@ class EquipmentFlow(BaseFlowPrimitive):
                                 self.flow_metrics.total_scrap += scrap
 
                                 # Emit observable
-                                self.emit_observable("batch_processed", {
-                                    "volume_in": actual_volume,
-                                    "volume_out": good_output,
-                                    "scrap": scrap,
-                                    "rate": self.processing.nominal_rate * self.processing.performance_factor,
-                                    "state": self.current_state.value,
-                                    "product": self.current_product
-                                })
+                                self.emit_observable(
+                                    "batch_processed",
+                                    {
+                                        "volume_in": actual_volume,
+                                        "volume_out": good_output,
+                                        "scrap": scrap,
+                                        "rate": self.processing.nominal_rate * self.processing.performance_factor,
+                                        "state": self.current_state.value,
+                                        "product": self.current_product,
+                                    },
+                                )
                             else:
                                 # Blocked downstream
                                 self.change_state(FlowState.BLOCKED_DOWNSTREAM)
@@ -206,10 +208,7 @@ class EquipmentFlow(BaseFlowPrimitive):
             self.change_state(FlowState.FAILED)  # Ensure state is changed
             failure_start = self.env.now
 
-            self.emit_observable("failure_start", {
-                "failure_type": "major",
-                "expected_duration": self.failures.mttr
-            })
+            self.emit_observable("failure_start", {"failure_type": "major", "expected_duration": self.failures.mttr})
 
             # Repair time
             repair_time = random.expovariate(1 / self.failures.mttr)
@@ -219,10 +218,9 @@ class EquipmentFlow(BaseFlowPrimitive):
             self.is_failed = False
             self.flow_metrics.total_downtime += repair_time
 
-            self.emit_observable("failure_end", {
-                "failure_type": "major",
-                "actual_duration": self.env.now - failure_start
-            })
+            self.emit_observable(
+                "failure_end", {"failure_type": "major", "actual_duration": self.env.now - failure_start}
+            )
 
     def micro_stop_process(self) -> Generator[Any, None, None]:
         """Simulate micro-stops."""
@@ -235,9 +233,7 @@ class EquipmentFlow(BaseFlowPrimitive):
             if self.is_processing and not self.is_failed:
                 stop_duration = self.failures.micro_stop_duration / 60  # Convert to minutes
 
-                self.emit_observable("micro_stop", {
-                    "duration": stop_duration
-                })
+                self.emit_observable("micro_stop", {"duration": stop_duration})
 
                 # Brief pause
                 yield self.env.timeout(stop_duration)
@@ -253,19 +249,17 @@ class EquipmentFlow(BaseFlowPrimitive):
         old_product = self.current_product
         self.change_state(FlowState.CHANGEOVER)
 
-        self.emit_observable("changeover_start", {
-            "old_product": old_product,
-            "new_product": new_product,
-            "expected_duration": changeover_time
-        })
+        self.emit_observable(
+            "changeover_start",
+            {"old_product": old_product, "new_product": new_product, "expected_duration": changeover_time},
+        )
 
         yield self.env.timeout(changeover_time)
 
         self.current_product = new_product
         self.change_state(FlowState.IDLE)
 
-        self.emit_observable("changeover_end", {
-            "old_product": old_product,
-            "new_product": new_product,
-            "actual_duration": changeover_time
-        })
+        self.emit_observable(
+            "changeover_end",
+            {"old_product": old_product, "new_product": new_product, "actual_duration": changeover_time},
+        )

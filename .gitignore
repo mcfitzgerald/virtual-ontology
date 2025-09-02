@@ -124,3 +124,9 @@ REPO_CLEANUP_ASSESSMENT.md
 archive/
 old/
 deprecated/
+
+# Documentation build artifacts
+docs/build/
+docs/_build/
+llms.txt
+llms-full.txt

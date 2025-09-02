@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Generator, Optional
+from typing import Any, Generator
 
 import simpy
 
@@ -18,9 +18,9 @@ import simpy
 class FlowCapacity:
     """Defines flow capacity constraints for equipment."""
 
-    max_input_rate: float      # units/minute
-    max_output_rate: float     # units/minute
-    internal_capacity: float   # units
+    max_input_rate: float  # units/minute
+    max_output_rate: float  # units/minute
+    internal_capacity: float  # units
     initial_level: float = 0.0
 
     def __post_init__(self) -> None:
@@ -35,8 +35,7 @@ class FlowCapacity:
             raise ValueError(f"initial_level cannot be negative, got {self.initial_level}")
         if self.initial_level > self.internal_capacity:
             raise ValueError(
-                f"initial_level ({self.initial_level}) cannot exceed "
-                f"internal_capacity ({self.internal_capacity})"
+                f"initial_level ({self.initial_level}) cannot exceed " f"internal_capacity ({self.internal_capacity})"
             )
 
 
@@ -75,12 +74,7 @@ class FlowMetrics:
 class BaseFlowPrimitive(ABC):
     """Base class for all flow-based primitives."""
 
-    def __init__(
-        self,
-        env: simpy.Environment,
-        config: dict[str, Any],
-        flow_capacity: FlowCapacity
-    ) -> None:
+    def __init__(self, env: simpy.Environment, config: dict[str, Any], flow_capacity: FlowCapacity) -> None:
         """Initialize base flow primitive.
 
         Args:
@@ -93,8 +87,8 @@ class BaseFlowPrimitive(ABC):
         self.flow_capacity = flow_capacity
 
         # Container buffers for continuous flow
-        self.input_buffer: Optional[simpy.Container] = None
-        self.output_buffer: Optional[simpy.Container] = None
+        self.input_buffer: simpy.Container | None = None
+        self.output_buffer: simpy.Container | None = None
 
         # Flow tracking
         self.current_state = FlowState.IDLE
@@ -102,7 +96,7 @@ class BaseFlowPrimitive(ABC):
         self.observables: list[dict[str, Any]] = []
 
         # Process reference
-        self.process: Optional[simpy.Process] = None
+        self.process: simpy.Process | None = None
 
     @abstractmethod
     def process_flow(self) -> Generator[Any, None, None]:
@@ -129,11 +123,9 @@ class BaseFlowPrimitive(ABC):
             old_state = self.current_state
             self.current_state = new_state
 
-            self.emit_observable("state_change", {
-                "old_state": old_state.value,
-                "new_state": new_state.value,
-                "timestamp": self.env.now
-            })
+            self.emit_observable(
+                "state_change", {"old_state": old_state.value, "new_state": new_state.value, "timestamp": self.env.now}
+            )
 
     def emit_observable(self, event_type: str, data: dict[str, Any]) -> None:
         """Emit an observable event.
@@ -146,7 +138,7 @@ class BaseFlowPrimitive(ABC):
             "timestamp": self.env.now,
             "equipment_id": self.config.get("id", "unknown"),
             "event_type": event_type,
-            **data
+            **data,
         }
         self.observables.append(observable)
 
@@ -196,17 +188,28 @@ class BaseFlowPrimitive(ABC):
         """Calculate equipment performance.
 
         Returns:
-            Performance as percentage (0-100)
+            Performance as percentage (0-100), capped at 110%
         """
         if self.flow_metrics.total_input == 0:
             return 0.0
 
-        # Performance based on actual vs theoretical throughput
-        theoretical_output = self.flow_capacity.max_output_rate * (self.env.now / 60)
+        # Use nominal_rate from processing parameters if available
+        if hasattr(self, "processing") and self.processing:
+            nominal_rate = self.processing.nominal_rate * self.processing.performance_factor
+        elif hasattr(self, "nominal_rate"):
+            # Fallback to equipment nominal_rate attribute
+            nominal_rate = self.nominal_rate
+        else:
+            # Fallback to a reasonable default (80% of max output rate)
+            nominal_rate = self.flow_capacity.max_output_rate * 0.8
+
+        theoretical_output = nominal_rate * (self.env.now / 60)
         if theoretical_output == 0:
             return 0.0
 
-        return (self.flow_metrics.total_output / theoretical_output) * 100
+        # Cap at 110% to allow for brief over-performance
+        performance = (self.flow_metrics.total_output / theoretical_output) * 100
+        return float(min(110.0, performance))
 
     def get_quality(self) -> float:
         """Calculate equipment quality.

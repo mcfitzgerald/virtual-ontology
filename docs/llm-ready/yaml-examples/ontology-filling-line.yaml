@@ -1,0 +1,357 @@
+# Filling Line Simulation Ontology
+# Defines structure and rules for continuous flow filling line models
+# NO PARAMETER VALUES - only structure, types, and relationships
+
+# ==============================================================================
+# METADATA
+# ==============================================================================
+metadata:
+  name: "Filling Line Simulation Ontology"
+  version: "1.0.0"
+  description: "Structural ontology for continuous flow filling line simulation"
+  namespace: "filling-line"
+  author: "Virtual Ontology Team"
+  created: "2025-09-02"
+  modified: "2025-09-02"
+  
+  context:
+    domain: "manufacturing-simulation"
+    purpose: "model-structure-declaration"
+    compatibility: ["twin_model_v1"]
+
+# ==============================================================================
+# TBOX - Equipment Types and Structure
+# ==============================================================================
+tbox:
+  types:
+    # Material source - generates flow
+    MaterialSource:
+      description: "Material generation point for continuous flow"
+      maps_to:
+        framework_primitive: "SourceFlow"
+      required_properties:
+        - generation_rate
+        - generation_interval
+        - continuous_mode
+        - default_product
+      optional_properties:
+        - max_output_rate
+        - internal_capacity
+      relationships:
+        can_connect_to: ["FillingStation", "ProcessingEquipment"]
+    
+    # Filling station - first processing stage
+    FillingStation:
+      description: "Equipment that fills containers with material"
+      extends: "ProcessingEquipment"
+      maps_to:
+        framework_primitive: "EquipmentFlow"
+      required_properties:
+        - fill_rate  # Specific to filling
+      relationships:
+        can_receive_from: ["MaterialSource"]
+        can_connect_to: ["PackingStation", "ProcessingEquipment", "ProductCollection"]
+    
+    # Packing station - second processing stage
+    PackingStation:
+      description: "Equipment that packs filled containers"
+      extends: "ProcessingEquipment"
+      maps_to:
+        framework_primitive: "EquipmentFlow"
+      required_properties:
+        - pack_size  # Units per pack
+      relationships:
+        can_receive_from: ["FillingStation", "ProcessingEquipment"]
+        can_connect_to: ["PalletizingStation", "ProcessingEquipment", "ProductCollection"]
+    
+    # Palletizing station - final processing stage
+    PalletizingStation:
+      description: "Equipment that palletizes packed products"
+      extends: "ProcessingEquipment"
+      maps_to:
+        framework_primitive: "EquipmentFlow"
+      required_properties:
+        - pallet_size  # Packs per pallet
+      relationships:
+        can_receive_from: ["PackingStation", "ProcessingEquipment"]
+        can_connect_to: ["ProductCollection", "ProcessingEquipment"]
+    
+    # Product collection - sink
+    ProductCollection:
+      description: "Collection point for finished products with OEE calculation"
+      maps_to:
+        framework_primitive: "SinkFlow"
+      required_properties:
+        - collection_rate
+        - collection_interval
+        - nominal_rate  # For OEE calculation
+      optional_properties:
+        - max_input_rate
+        - internal_capacity
+        - window_duration  # For OEE windows
+      relationships:
+        can_receive_from: ["FillingStation", "PackingStation", "PalletizingStation", "ProcessingEquipment"]
+    
+    # Base processing equipment type
+    ProcessingEquipment:
+      description: "Generic processing equipment with continuous flow"
+      abstract: true
+      maps_to:
+        framework_primitive: "EquipmentFlow"
+      required_properties:
+        - nominal_rate  # Base processing rate
+        - quality_rate  # Good output fraction
+        - performance_factor  # Actual vs nominal
+        - batch_size  # Minimum processing batch
+        - processing_interval
+        - mtbf  # Mean time between failures
+        - mttr  # Mean time to repair
+      optional_properties:
+        - max_input_rate
+        - max_output_rate
+        - internal_capacity
+        - initial_level
+        - micro_stop_rate
+        - micro_stop_duration
+      relationships:
+        can_connect_to: ["ProcessingEquipment", "ProductCollection"]
+        can_receive_from: ["MaterialSource", "ProcessingEquipment"]
+
+# ==============================================================================
+# RBOX - Relationships and Flow Rules
+# ==============================================================================
+rbox:
+  relationships:
+    material_flow:
+      description: "Continuous material flow between equipment"
+      type: "directional"
+      from_types: ["MaterialSource", "ProcessingEquipment", "FillingStation", "PackingStation", "PalletizingStation"]
+      to_types: ["ProcessingEquipment", "FillingStation", "PackingStation", "PalletizingStation", "ProductCollection"]
+      cardinality: "1:1"  # One upstream to one downstream
+      
+      properties:
+        connection_type:
+          description: "How equipment is connected"
+          enum: ["shared_buffer", "direct"]
+          default: "shared_buffer"
+      
+      constraints:
+        - "Upstream and downstream must be on same line"
+        - "Connection must follow valid type sequences"
+      
+      semantics: "Material flows continuously via shared Container buffers"
+    
+    controls:
+      description: "Control system relationship"
+      type: "directional"
+      from_types: ["Controller", "MES", "SCADA"]
+      to_types: ["ProcessingEquipment", "FillingStation", "PackingStation", "PalletizingStation"]
+      cardinality: "1:N"
+      semantics: "Control system adjusts equipment parameters"
+
+  # Property definitions that apply to relationships
+  properties:
+    position:
+      description: "Position in production line sequence"
+      domain: ["MaterialSource", "ProcessingEquipment", "FillingStation", "PackingStation", "PalletizingStation", "ProductCollection"]
+      range: "integer"
+      functional: true  # Only one position per equipment
+    
+    line_id:
+      description: "Production line identifier"
+      domain: ["MaterialSource", "ProcessingEquipment", "FillingStation", "PackingStation", "PalletizingStation", "ProductCollection"]
+      range: "string"
+      functional: true
+
+# ==============================================================================
+# ABOX - Templates and Validation Rules
+# ==============================================================================
+abox:
+  templates:
+    standard_filling_line:
+      description: "Complete filling, packing, and palletizing line"
+      parameters:
+        - {name: "line_id", type: "string", description: "Line identifier (e.g., LINE1)"}
+      
+      components:
+        - type: "MaterialSource"
+          id_pattern: "{line_id}-SOURCE"
+          position: 0
+        
+        - type: "FillingStation"
+          id_pattern: "{line_id}-FIL"
+          position: 10
+        
+        - type: "PackingStation"
+          id_pattern: "{line_id}-PCK"
+          position: 20
+        
+        - type: "PalletizingStation"
+          id_pattern: "{line_id}-PAL"
+          position: 30
+        
+        - type: "ProductCollection"
+          id_pattern: "{line_id}-SINK"
+          position: 100
+      
+      connections:
+        - {from: 0, to: 1, relationship: "material_flow"}
+        - {from: 1, to: 2, relationship: "material_flow"}
+        - {from: 2, to: 3, relationship: "material_flow"}
+        - {from: 3, to: 4, relationship: "material_flow"}
+    
+    simple_processing_line:
+      description: "Simple source-process-sink line"
+      parameters:
+        - {name: "line_id", type: "string"}
+      
+      components:
+        - {type: "MaterialSource", id_pattern: "{line_id}-SOURCE", position: 0}
+        - {type: "ProcessingEquipment", id_pattern: "{line_id}-PROC", position: 10}
+        - {type: "ProductCollection", id_pattern: "{line_id}-SINK", position: 100}
+      
+      connections:
+        - {from: 0, to: 1, relationship: "material_flow"}
+        - {from: 1, to: 2, relationship: "material_flow"}
+  
+  validation_rules:
+    - rule: "Line must have source"
+      description: "Every production line needs exactly one material source"
+      scope: "production_line"
+      constraint: "count(MaterialSource) == 1 per line_id"
+      severity: "error"
+      message: "Production line {line_id} must have exactly one MaterialSource"
+    
+    - rule: "Line must have sink"
+      description: "Every production line needs at least one collection point"
+      scope: "production_line"
+      constraint: "count(ProductCollection) >= 1 per line_id"
+      severity: "error"
+      message: "Production line {line_id} must have at least one ProductCollection"
+    
+    - rule: "Equipment must be connected"
+      description: "All equipment must have connections"
+      scope: "equipment"
+      constraint: "(has_upstream OR is_type(MaterialSource)) AND (has_downstream OR is_type(ProductCollection))"
+      severity: "error"
+      message: "Equipment {equipment_id} must have upstream and/or downstream connections"
+    
+    - rule: "Sequential positions"
+      description: "Equipment positions should be sequential"
+      scope: "production_line"
+      constraint: "positions are ordered with no gaps > 100"
+      severity: "warning"
+      message: "Equipment positions in line {line_id} should be sequential"
+    
+    - rule: "Type sequence validation"
+      description: "Equipment must follow valid type sequence"
+      scope: "connection"
+      constraint: "connection follows valid from_type to_type rules"
+      severity: "error"
+      message: "Invalid connection: {from_type} cannot connect to {to_type}"
+  
+  inference_rules:
+    - name: "Bottleneck detection"
+      description: "Identify equipment constraining flow"
+      if:
+        - "equipment.state == BLOCKED_DOWNSTREAM"
+        - "downstream.buffer_level > 0.8"
+        - "upstream.state == FLOWING"
+      then:
+        - "equipment.is_bottleneck_candidate = true"
+        - "log: Potential bottleneck at {equipment_id}"
+    
+    - name: "Line imbalance detection"
+      description: "Detect rate mismatches"
+      if:
+        - "upstream.nominal_rate > downstream.nominal_rate * 1.2"
+      then:
+        - "connection.is_imbalanced = true"
+        - "warning: Rate imbalance between {upstream_id} and {downstream_id}"
+    
+    - name: "Starvation prediction"
+      description: "Predict starvation conditions"
+      if:
+        - "upstream.nominal_rate < downstream.nominal_rate"
+        - "NOT exists(buffer) OR buffer.capacity < threshold"
+      then:
+        - "downstream.starvation_risk = high"
+
+# ==============================================================================
+# CONTEXT - Implementation Mappings
+# ==============================================================================
+context:
+  # Map ontology types to twin_model framework
+  mappings:
+    framework:
+      MaterialSource: "SourceFlow"
+      FillingStation: "EquipmentFlow"
+      PackingStation: "EquipmentFlow"
+      PalletizingStation: "EquipmentFlow"
+      ProcessingEquipment: "EquipmentFlow"
+      ProductCollection: "SinkFlow"
+    
+    # Map properties to framework parameters
+    parameters:
+      # Source parameters
+      generation_rate: "generation_rate"
+      generation_interval: "generation_interval"
+      continuous_mode: "continuous_mode"
+      default_product: "default_product"
+      
+      # Equipment parameters
+      nominal_rate: "processing.nominal_rate"
+      quality_rate: "processing.quality_rate"
+      performance_factor: "processing.performance_factor"
+      batch_size: "processing.batch_size"
+      processing_interval: "processing.processing_interval"
+      
+      # Failure parameters
+      mtbf: "failures.mtbf"
+      mttr: "failures.mttr"
+      micro_stop_rate: "failures.micro_stop_rate"
+      micro_stop_duration: "failures.micro_stop_duration"
+      
+      # Flow capacity parameters
+      max_input_rate: "flow_capacity.max_input_rate"
+      max_output_rate: "flow_capacity.max_output_rate"
+      internal_capacity: "flow_capacity.internal_capacity"
+      initial_level: "flow_capacity.initial_level"
+      
+      # Sink parameters
+      collection_rate: "collection_rate"
+      collection_interval: "collection_interval"
+      nominal_rate: "nominal_rate"
+  
+  # Semantic definitions
+  semantics:
+    states:
+      IDLE: "Equipment not processing"
+      FLOWING: "Material flowing through equipment"
+      STARVED_UPSTREAM: "No input material available"
+      BLOCKED_DOWNSTREAM: "Output buffer full"
+      FAILED: "Equipment in failure state"
+      MAINTENANCE: "Scheduled maintenance"
+      CHANGEOVER: "Product changeover in progress"
+    
+    oee_components:
+      availability: "(runtime - downtime) / runtime"
+      performance: "actual_rate / nominal_rate"
+      quality: "good_units / total_units"
+      oee: "availability * performance * quality"
+    
+    flow_dynamics:
+      shared_buffer: "Upstream output_buffer becomes downstream input_buffer"
+      blocking: "Occurs when downstream buffer reaches capacity"
+      starvation: "Occurs when upstream buffer is empty"
+  
+  # Constraints that apply globally
+  constraints:
+    structural:
+      - "Each line forms a directed acyclic graph"
+      - "No equipment can connect to itself"
+      - "Positions must be unique within a line"
+    
+    flow:
+      - "Material flow must follow gravity (position increases)"
+      - "Total line throughput limited by minimum equipment rate"

@@ -20,12 +20,7 @@ class TestFlowCapacity:
 
     def test_valid_capacity(self):
         """Test creating valid flow capacity."""
-        capacity = FlowCapacity(
-            max_input_rate=100.0,
-            max_output_rate=95.0,
-            internal_capacity=500.0,
-            initial_level=50.0
-        )
+        capacity = FlowCapacity(max_input_rate=100.0, max_output_rate=95.0, internal_capacity=500.0, initial_level=50.0)
         assert capacity.max_input_rate == 100.0
         assert capacity.max_output_rate == 95.0
         assert capacity.internal_capacity == 500.0
@@ -64,7 +59,7 @@ class TestEquipmentFlow:
             config={"id": "TEST-01"},
             flow_capacity=FlowCapacity(100, 100, 500),
             processing=ProcessingParameters(100, 0.95, 1.0, 10, 0.1),
-            failures=FailureParameters(1000, 10, 0, 0)  # No failures for this test
+            failures=FailureParameters(1000, 10, 0, 0),  # No failures for this test
         )
 
         # Add material buffers with sufficient input
@@ -100,7 +95,7 @@ class TestEquipmentFlow:
             config={"id": "TEST-02"},
             flow_capacity=FlowCapacity(100, 100, 500),
             processing=ProcessingParameters(100, 0.95, 1.0, 10, 0.1),
-            failures=FailureParameters(1000, 10, 0, 0)
+            failures=FailureParameters(1000, 10, 0, 0),
         )
 
         # Empty input buffer
@@ -123,7 +118,7 @@ class TestEquipmentFlow:
             config={"id": "TEST-03"},
             flow_capacity=FlowCapacity(100, 100, 500),
             processing=ProcessingParameters(100, 0.95, 1.0, 10, 0.1),
-            failures=FailureParameters(1000, 10, 0, 0)
+            failures=FailureParameters(1000, 10, 0, 0),
         )
 
         # Setup buffers - output buffer is full
@@ -134,7 +129,9 @@ class TestEquipmentFlow:
         env.run(until=2)  # Give more time to process and get blocked
 
         # Should be blocked since output buffer is full
-        assert equipment.current_state == FlowState.BLOCKED_DOWNSTREAM, f"Expected BLOCKED_DOWNSTREAM but got {equipment.current_state}"
+        assert (
+            equipment.current_state == FlowState.BLOCKED_DOWNSTREAM
+        ), f"Expected BLOCKED_DOWNSTREAM but got {equipment.current_state}"
         # Also verify that blocking was tracked
         assert equipment.flow_metrics.state_durations.get(FlowState.BLOCKED_DOWNSTREAM, 0) > 0
 
@@ -151,7 +148,7 @@ class TestSourceFlow:
             config={"id": "SOURCE-01", "continuous_mode": True},
             flow_capacity=FlowCapacity(1000, 1000, 10000),
             generation_rate=50.0,  # 50 units/minute
-            generation_interval=0.1
+            generation_interval=0.1,
         )
 
         # Add output buffer
@@ -173,18 +170,13 @@ class TestSourceFlow:
             config={"id": "SOURCE-02", "continuous_mode": False},
             flow_capacity=FlowCapacity(1000, 1000, 10000),
             generation_rate=100.0,
-            generation_interval=0.1
+            generation_interval=0.1,
         )
 
         source.output_buffer = simpy.Container(env, 1000, init=0)
 
         # Add production order
-        order = ProductionOrder(
-            order_id="ORDER-001",
-            product_id="PRODUCT-A",
-            target_volume=200.0,
-            due_time=15.0
-        )
+        order = ProductionOrder(order_id="ORDER-001", product_id="PRODUCT-A", target_volume=200.0, due_time=15.0)
         source.add_order(order)
 
         source.start()
@@ -204,7 +196,7 @@ class TestSourceFlow:
             config={"id": "SOURCE-03", "continuous_mode": False},
             flow_capacity=FlowCapacity(1000, 1000, 10000),
             generation_rate=100.0,
-            generation_interval=0.1
+            generation_interval=0.1,
         )
 
         # Add multiple orders with different priorities
@@ -233,7 +225,7 @@ class TestSinkFlow:
             config={"id": "SINK-01", "nominal_rate": 100.0},
             flow_capacity=FlowCapacity(1000, 1000, 10000),
             collection_rate=100.0,
-            collection_interval=0.1
+            collection_interval=0.1,
         )
 
         # Add input buffer with material
@@ -255,7 +247,7 @@ class TestSinkFlow:
             config={"id": "SINK-02", "nominal_rate": 100.0, "window_duration": 1.0},
             flow_capacity=FlowCapacity(1000, 1000, 10000),
             collection_rate=100.0,
-            collection_interval=0.1
+            collection_interval=0.1,
         )
 
         sink.input_buffer = simpy.Container(env, 1000, init=1000)
@@ -289,7 +281,7 @@ class TestIntegratedFlow:
             env=env,
             config={"id": "SOURCE", "continuous_mode": True},
             flow_capacity=FlowCapacity(1000, 100, 1000),
-            generation_rate=100.0
+            generation_rate=100.0,
         )
 
         # Create equipment with realistic parameters
@@ -302,14 +294,14 @@ class TestIntegratedFlow:
                 quality_rate=0.92,  # 92% quality (realistic)
                 performance_factor=1.0,  # 100% to ensure processing happens
                 batch_size=10,
-                processing_interval=0.1
+                processing_interval=0.1,
             ),
             failures=FailureParameters(
                 mtbf=30,  # Failure every 30 minutes
-                mttr=3,   # 3 minutes to repair
+                mttr=3,  # 3 minutes to repair
                 micro_stop_rate=4,  # 4 micro-stops per hour
-                micro_stop_duration=10  # 10 seconds each
-            )
+                micro_stop_duration=10,  # 10 seconds each
+            ),
         )
 
         # Create sink
@@ -317,7 +309,7 @@ class TestIntegratedFlow:
             env=env,
             config={"id": "SINK", "nominal_rate": 95.0},
             flow_capacity=FlowCapacity(100, 100, 10000),
-            collection_rate=100.0
+            collection_rate=100.0,
         )
 
         # Wire connections with shared buffers
@@ -328,7 +320,7 @@ class TestIntegratedFlow:
         buffer2 = simpy.Container(env, 1000, init=0)
         equipment.output_buffer = buffer2
         sink.input_buffer = buffer2
-        
+
         # Register upstream equipment with sink for quality tracking
         sink.upstream_equipment = [equipment]
 
