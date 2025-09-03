@@ -1,0 +1,903 @@
+# Product Manifest
+# Comprehensive product attributes for production optimization and cost analysis
+
+metadata:
+  name: "Product Manifest"
+  version: "1.0.0"
+  description: "Complete product specifications including physical, economic, and production attributes"
+  created: "2025-09-02"
+  last_modified: "2025-09-02"
+
+# Product definitions with full attributes
+products:
+  SKU-1001:
+    # Basic Information
+    name: "8oz Water Bottle"
+    category: "water"
+    family: "bottled_water"
+    status: "active"
+    
+    # Physical Attributes
+    physical:
+      volume_ml: 237
+      volume_oz: 8
+      container_type: "PET_bottle"
+      container_weight_g: 12
+      fill_weight_g: 237
+      package_size: 24  # units per case
+      case_dimensions_cm: [40, 30, 20]
+      pallet_size: 100  # cases per pallet
+      gross_weight_kg: 5.9  # per case
+      
+    # Production Attributes
+    production:
+      nominal_rate_per_min: 95
+      target_rate_5min: 475
+      efficiency_by_line:
+        "1": 0.95
+        "2": 0.92
+        "3": null  # Not compatible
+      quality_rate: 0.98
+      scrap_rate: 0.02
+      rework_possible: false
+      startup_waste_units: 50
+      shutdown_waste_units: 25
+      
+    # Economic Attributes
+    economics:
+      material_cost: 0.08
+      packaging_cost: 0.05
+      labor_cost: 0.02
+      overhead_cost: 0.00
+      total_standard_cost: 0.15
+      sale_price: 0.50
+      wholesale_price: 0.35
+      margin_percentage: 70.0
+      contribution_margin: 0.35
+      holding_cost_per_day: 0.001
+      obsolescence_cost: 0.05
+      
+    # Changeover Attributes
+    changeover:
+      group: "water"
+      family: "clear_liquids"
+      cleaning_required_to:
+        water: false
+        juice: true
+        soda: false
+        energy: false
+        sports: false
+      setup_time_minutes:
+        same_family: 5
+        same_group: 15
+        different_group: 30
+        with_cleaning: 45
+      conversion_cost:
+        same_family: 50
+        same_group: 150
+        different_group: 300
+        with_cleaning: 500
+        
+    # Inventory & Demand
+    inventory:
+      min_stock_units: 10000
+      max_stock_units: 100000
+      reorder_point: 20000
+      reorder_quantity: 50000
+      safety_stock: 5000
+      shelf_life_days: 365
+      fifo_required: true
+      demand_pattern: "steady"
+      average_daily_demand: 8000
+      demand_variability: 0.15
+      seasonal_factors:
+        Q1: 0.9
+        Q2: 1.1
+        Q3: 1.3
+        Q4: 0.8
+        
+    # Quality Attributes
+    quality:
+      critical_parameters:
+        - fill_level
+        - cap_torque
+        - label_alignment
+        - seal_integrity
+      specification_limits:
+        fill_level_ml: [235, 239]
+        cap_torque_nm: [1.5, 2.5]
+        ph: [6.5, 8.5]
+      defect_categories:
+        underfill: 
+          cost: 0.50
+          rework: false
+        overfill: 
+          cost: 0.30
+          rework: false
+        cap_issue: 
+          cost: 1.00
+          rework: true
+        label_issue: 
+          cost: 0.20
+          rework: true
+      inspection_time_seconds: 0.5
+      sampling_rate: 0.01  # 1% inspection
+      
+    # Production Constraints
+    constraints:
+      max_continuous_run_hours: 24
+      min_batch_size: 5000
+      max_batch_size: 100000
+      optimal_batch_size: 50000
+      requires_quality_check_interval: 1000
+      temperature_range_celsius: [2, 25]
+      humidity_range_percent: [30, 70]
+      requires_allergen_control: false
+      
+    # Line Compatibility Matrix
+    line_compatibility:
+      LINE1:
+        capable: true
+        efficiency: 0.95
+        preferred: true
+      LINE2:
+        capable: true
+        efficiency: 0.92
+        preferred: false
+      LINE3:
+        capable: false
+        efficiency: 0.0
+        preferred: false
+  
+  SKU-1002:
+    # Basic Information
+    name: "8oz Juice"
+    category: "juice"
+    family: "fruit_juice"
+    status: "active"
+    
+    # Physical Attributes
+    physical:
+      volume_ml: 237
+      volume_oz: 8
+      container_type: "PET_bottle"
+      container_weight_g: 14
+      fill_weight_g: 245
+      package_size: 24
+      case_dimensions_cm: [40, 30, 20]
+      pallet_size: 100
+      gross_weight_kg: 6.2
+      
+    # Production Attributes
+    production:
+      nominal_rate_per_min: 95
+      target_rate_5min: 475
+      efficiency_by_line:
+        "1": 0.90
+        "2": 0.93
+        "3": null
+      quality_rate: 0.95
+      scrap_rate: 0.05
+      rework_possible: false
+      startup_waste_units: 75
+      shutdown_waste_units: 40
+      
+    # Economic Attributes
+    economics:
+      material_cost: 0.15
+      packaging_cost: 0.07
+      labor_cost: 0.03
+      overhead_cost: 0.00
+      total_standard_cost: 0.25
+      sale_price: 0.85
+      wholesale_price: 0.60
+      margin_percentage: 70.6
+      contribution_margin: 0.60
+      holding_cost_per_day: 0.002
+      obsolescence_cost: 0.10
+      
+    # Changeover Attributes
+    changeover:
+      group: "juice"
+      family: "fruit_juice"
+      cleaning_required_to:
+        water: true
+        juice: false
+        soda: true
+        energy: true
+        sports: true
+      setup_time_minutes:
+        same_family: 10
+        same_group: 20
+        different_group: 45
+        with_cleaning: 60
+      conversion_cost:
+        same_family: 75
+        same_group: 200
+        different_group: 400
+        with_cleaning: 750
+        
+    # Inventory & Demand
+    inventory:
+      min_stock_units: 8000
+      max_stock_units: 80000
+      reorder_point: 15000
+      reorder_quantity: 40000
+      safety_stock: 4000
+      shelf_life_days: 180
+      fifo_required: true
+      demand_pattern: "seasonal"
+      average_daily_demand: 6000
+      demand_variability: 0.25
+      seasonal_factors:
+        Q1: 0.8
+        Q2: 1.2
+        Q3: 1.4
+        Q4: 0.6
+        
+    # Quality Attributes
+    quality:
+      critical_parameters:
+        - fill_level
+        - brix_level
+        - ph
+        - color
+        - taste
+      specification_limits:
+        fill_level_ml: [235, 239]
+        brix: [11.5, 12.5]
+        ph: [3.3, 3.7]
+      defect_categories:
+        underfill:
+          cost: 0.85
+          rework: false
+        off_taste:
+          cost: 2.00
+          rework: false
+        color_variation:
+          cost: 0.50
+          rework: false
+        label_issue:
+          cost: 0.25
+          rework: true
+      inspection_time_seconds: 1.0
+      sampling_rate: 0.02
+      
+    # Production Constraints
+    constraints:
+      max_continuous_run_hours: 16
+      min_batch_size: 4000
+      max_batch_size: 80000
+      optimal_batch_size: 40000
+      requires_quality_check_interval: 500
+      temperature_range_celsius: [2, 8]
+      humidity_range_percent: [30, 60]
+      requires_allergen_control: true
+      
+    # Line Compatibility Matrix
+    line_compatibility:
+      LINE1:
+        capable: true
+        efficiency: 0.90
+        preferred: false
+      LINE2:
+        capable: true
+        efficiency: 0.93
+        preferred: true
+      LINE3:
+        capable: false
+        efficiency: 0.0
+        preferred: false
+  
+  SKU-2001:
+    # Basic Information
+    name: "12oz Soda"
+    category: "soda"
+    family: "carbonated"
+    status: "active"
+    
+    # Physical Attributes
+    physical:
+      volume_ml: 355
+      volume_oz: 12
+      container_type: "aluminum_can"
+      container_weight_g: 15
+      fill_weight_g: 365
+      package_size: 24
+      case_dimensions_cm: [40, 27, 12]
+      pallet_size: 120
+      gross_weight_kg: 9.1
+      
+    # Production Attributes
+    production:
+      nominal_rate_per_min: 95
+      target_rate_5min: 475
+      efficiency_by_line:
+        "1": null
+        "2": 0.94
+        "3": 0.96
+      quality_rate: 0.97
+      scrap_rate: 0.03
+      rework_possible: false
+      startup_waste_units: 100
+      shutdown_waste_units: 50
+      
+    # Economic Attributes
+    economics:
+      material_cost: 0.12
+      packaging_cost: 0.06
+      labor_cost: 0.02
+      overhead_cost: 0.00
+      total_standard_cost: 0.20
+      sale_price: 0.65
+      wholesale_price: 0.45
+      margin_percentage: 69.2
+      contribution_margin: 0.45
+      holding_cost_per_day: 0.001
+      obsolescence_cost: 0.08
+      
+    # Changeover Attributes
+    changeover:
+      group: "soda"
+      family: "carbonated"
+      cleaning_required_to:
+        water: false
+        juice: true
+        soda: false
+        energy: false
+        sports: true
+      setup_time_minutes:
+        same_family: 10
+        same_group: 15
+        different_group: 30
+        with_cleaning: 50
+      conversion_cost:
+        same_family: 100
+        same_group: 200
+        different_group: 350
+        with_cleaning: 600
+        
+    # Inventory & Demand
+    inventory:
+      min_stock_units: 15000
+      max_stock_units: 150000
+      reorder_point: 30000
+      reorder_quantity: 60000
+      safety_stock: 8000
+      shelf_life_days: 270
+      fifo_required: true
+      demand_pattern: "steady"
+      average_daily_demand: 10000
+      demand_variability: 0.20
+      seasonal_factors:
+        Q1: 0.7
+        Q2: 1.1
+        Q3: 1.5
+        Q4: 0.7
+        
+    # Quality Attributes
+    quality:
+      critical_parameters:
+        - fill_level
+        - carbonation_level
+        - brix_level
+        - seal_integrity
+      specification_limits:
+        fill_level_ml: [352, 358]
+        carbonation_vol: [3.8, 4.2]
+        brix: [10.5, 11.5]
+      defect_categories:
+        underfill:
+          cost: 0.65
+          rework: false
+        flat_carbonation:
+          cost: 1.00
+          rework: false
+        can_damage:
+          cost: 0.65
+          rework: false
+        label_issue:
+          cost: 0.20
+          rework: true
+      inspection_time_seconds: 0.3
+      sampling_rate: 0.01
+      
+    # Production Constraints
+    constraints:
+      max_continuous_run_hours: 20
+      min_batch_size: 8000
+      max_batch_size: 120000
+      optimal_batch_size: 60000
+      requires_quality_check_interval: 1500
+      temperature_range_celsius: [2, 25]
+      humidity_range_percent: [30, 70]
+      requires_allergen_control: false
+      
+    # Line Compatibility Matrix
+    line_compatibility:
+      LINE1:
+        capable: false
+        efficiency: 0.0
+        preferred: false
+      LINE2:
+        capable: true
+        efficiency: 0.94
+        preferred: true
+      LINE3:
+        capable: true
+        efficiency: 0.96
+        preferred: false
+  
+  SKU-2002:
+    # Basic Information
+    name: "16oz Energy Drink"
+    category: "energy"
+    family: "functional"
+    status: "active"
+    
+    # Physical Attributes
+    physical:
+      volume_ml: 473
+      volume_oz: 16
+      container_type: "aluminum_can"
+      container_weight_g: 18
+      fill_weight_g: 485
+      package_size: 24
+      case_dimensions_cm: [40, 27, 16]
+      pallet_size: 100
+      gross_weight_kg: 12.0
+      
+    # Production Attributes
+    production:
+      nominal_rate_per_min: 90
+      target_rate_5min: 450
+      efficiency_by_line:
+        "1": 0.88
+        "2": 0.91
+        "3": 0.93
+      quality_rate: 0.96
+      scrap_rate: 0.04
+      rework_possible: false
+      startup_waste_units: 150
+      shutdown_waste_units: 75
+      
+    # Economic Attributes
+    economics:
+      material_cost: 0.35
+      packaging_cost: 0.12
+      labor_cost: 0.05
+      overhead_cost: 0.03
+      total_standard_cost: 0.55
+      sale_price: 1.75
+      wholesale_price: 1.25
+      margin_percentage: 68.6
+      contribution_margin: 1.20
+      holding_cost_per_day: 0.003
+      obsolescence_cost: 0.15
+      
+    # Changeover Attributes
+    changeover:
+      group: "energy"
+      family: "functional"
+      cleaning_required_to:
+        water: true
+        juice: true
+        soda: false
+        energy: false
+        sports: false
+      setup_time_minutes:
+        same_family: 15
+        same_group: 20
+        different_group: 40
+        with_cleaning: 60
+      conversion_cost:
+        same_family: 150
+        same_group: 250
+        different_group: 450
+        with_cleaning: 800
+        
+    # Inventory & Demand
+    inventory:
+      min_stock_units: 10000
+      max_stock_units: 90000
+      reorder_point: 20000
+      reorder_quantity: 45000
+      safety_stock: 6000
+      shelf_life_days: 365
+      fifo_required: true
+      demand_pattern: "growing"
+      average_daily_demand: 7500
+      demand_variability: 0.30
+      seasonal_factors:
+        Q1: 0.9
+        Q2: 1.0
+        Q3: 1.2
+        Q4: 0.9
+        
+    # Quality Attributes
+    quality:
+      critical_parameters:
+        - fill_level
+        - caffeine_content
+        - ph
+        - vitamin_content
+        - seal_integrity
+      specification_limits:
+        fill_level_ml: [470, 476]
+        caffeine_mg: [158, 162]
+        ph: [3.0, 3.5]
+      defect_categories:
+        underfill:
+          cost: 1.75
+          rework: false
+        ingredient_variance:
+          cost: 3.00
+          rework: false
+        can_damage:
+          cost: 1.75
+          rework: false
+        label_issue:
+          cost: 0.35
+          rework: true
+      inspection_time_seconds: 1.5
+      sampling_rate: 0.03
+      
+    # Production Constraints
+    constraints:
+      max_continuous_run_hours: 18
+      min_batch_size: 5000
+      max_batch_size: 90000
+      optimal_batch_size: 45000
+      requires_quality_check_interval: 750
+      temperature_range_celsius: [2, 20]
+      humidity_range_percent: [30, 60]
+      requires_allergen_control: true
+      
+    # Line Compatibility Matrix
+    line_compatibility:
+      LINE1:
+        capable: true
+        efficiency: 0.88
+        preferred: false
+      LINE2:
+        capable: true
+        efficiency: 0.91
+        preferred: true
+      LINE3:
+        capable: true
+        efficiency: 0.93
+        preferred: false
+  
+  SKU-3001:
+    # Basic Information
+    name: "20oz Sports Drink"
+    category: "sports"
+    family: "isotonic"
+    status: "active"
+    
+    # Physical Attributes
+    physical:
+      volume_ml: 591
+      volume_oz: 20
+      container_type: "PET_bottle"
+      container_weight_g: 25
+      fill_weight_g: 605
+      package_size: 24
+      case_dimensions_cm: [45, 30, 25]
+      pallet_size: 80
+      gross_weight_kg: 15.1
+      
+    # Production Attributes
+    production:
+      nominal_rate_per_min: 90
+      target_rate_5min: 450
+      efficiency_by_line:
+        "1": null
+        "2": 0.89
+        "3": 0.92
+      quality_rate: 0.94
+      scrap_rate: 0.06
+      rework_possible: false
+      startup_waste_units: 100
+      shutdown_waste_units: 50
+      
+    # Economic Attributes
+    economics:
+      material_cost: 0.20
+      packaging_cost: 0.10
+      labor_cost: 0.03
+      overhead_cost: 0.02
+      total_standard_cost: 0.35
+      sale_price: 1.15
+      wholesale_price: 0.80
+      margin_percentage: 69.6
+      contribution_margin: 0.80
+      holding_cost_per_day: 0.002
+      obsolescence_cost: 0.12
+      
+    # Changeover Attributes
+    changeover:
+      group: "sports"
+      family: "isotonic"
+      cleaning_required_to:
+        water: false
+        juice: true
+        soda: true
+        energy: false
+        sports: false
+      setup_time_minutes:
+        same_family: 10
+        same_group: 15
+        different_group: 35
+        with_cleaning: 55
+      conversion_cost:
+        same_family: 125
+        same_group: 225
+        different_group: 400
+        with_cleaning: 700
+        
+    # Inventory & Demand
+    inventory:
+      min_stock_units: 7000
+      max_stock_units: 70000
+      reorder_point: 14000
+      reorder_quantity: 35000
+      safety_stock: 4000
+      shelf_life_days: 270
+      fifo_required: true
+      demand_pattern: "seasonal"
+      average_daily_demand: 5500
+      demand_variability: 0.35
+      seasonal_factors:
+        Q1: 0.6
+        Q2: 1.2
+        Q3: 1.6
+        Q4: 0.6
+        
+    # Quality Attributes
+    quality:
+      critical_parameters:
+        - fill_level
+        - electrolyte_balance
+        - ph
+        - color
+        - taste
+      specification_limits:
+        fill_level_ml: [588, 594]
+        sodium_mg: [108, 112]
+        ph: [3.2, 3.6]
+      defect_categories:
+        underfill:
+          cost: 1.15
+          rework: false
+        electrolyte_imbalance:
+          cost: 2.00
+          rework: false
+        color_variation:
+          cost: 0.60
+          rework: false
+        label_issue:
+          cost: 0.30
+          rework: true
+      inspection_time_seconds: 1.0
+      sampling_rate: 0.02
+      
+    # Production Constraints
+    constraints:
+      max_continuous_run_hours: 16
+      min_batch_size: 4000
+      max_batch_size: 70000
+      optimal_batch_size: 35000
+      requires_quality_check_interval: 800
+      temperature_range_celsius: [2, 22]
+      humidity_range_percent: [30, 65]
+      requires_allergen_control: false
+      
+    # Line Compatibility Matrix
+    line_compatibility:
+      LINE1:
+        capable: false
+        efficiency: 0.0
+        preferred: false
+      LINE2:
+        capable: true
+        efficiency: 0.89
+        preferred: false
+      LINE3:
+        capable: true
+        efficiency: 0.92
+        preferred: true
+  
+  SKU-3002:
+    # Basic Information
+    name: "1L Juice"
+    category: "juice"
+    family: "premium_juice"
+    status: "active"
+    
+    # Physical Attributes
+    physical:
+      volume_ml: 1000
+      volume_oz: 33.8
+      container_type: "PET_bottle"
+      container_weight_g: 40
+      fill_weight_g: 1020
+      package_size: 12
+      case_dimensions_cm: [40, 30, 30]
+      pallet_size: 60
+      gross_weight_kg: 12.7
+      
+    # Production Attributes
+    production:
+      nominal_rate_per_min: 85
+      target_rate_5min: 425
+      efficiency_by_line:
+        "1": 0.85
+        "2": 0.88
+        "3": 0.90
+      quality_rate: 0.93
+      scrap_rate: 0.07
+      rework_possible: false
+      startup_waste_units: 120
+      shutdown_waste_units: 60
+      
+    # Economic Attributes
+    economics:
+      material_cost: 0.50
+      packaging_cost: 0.15
+      labor_cost: 0.06
+      overhead_cost: 0.04
+      total_standard_cost: 0.75
+      sale_price: 2.50
+      wholesale_price: 1.75
+      margin_percentage: 70.0
+      contribution_margin: 1.75
+      holding_cost_per_day: 0.004
+      obsolescence_cost: 0.20
+      
+    # Changeover Attributes
+    changeover:
+      group: "juice"
+      family: "premium_juice"
+      cleaning_required_to:
+        water: true
+        juice: false
+        soda: true
+        energy: true
+        sports: true
+      setup_time_minutes:
+        same_family: 15
+        same_group: 25
+        different_group: 50
+        with_cleaning: 75
+      conversion_cost:
+        same_family: 200
+        same_group: 350
+        different_group: 550
+        with_cleaning: 1000
+        
+    # Inventory & Demand
+    inventory:
+      min_stock_units: 5000
+      max_stock_units: 50000
+      reorder_point: 10000
+      reorder_quantity: 30000
+      safety_stock: 3000
+      shelf_life_days: 120
+      fifo_required: true
+      demand_pattern: "premium"
+      average_daily_demand: 4000
+      demand_variability: 0.40
+      seasonal_factors:
+        Q1: 0.8
+        Q2: 1.1
+        Q3: 1.3
+        Q4: 0.8
+        
+    # Quality Attributes
+    quality:
+      critical_parameters:
+        - fill_level
+        - brix_level
+        - pulp_content
+        - vitamin_c
+        - microbial_count
+      specification_limits:
+        fill_level_ml: [995, 1005]
+        brix: [11.0, 13.0]
+        vitamin_c_mg: [58, 62]
+      defect_categories:
+        underfill:
+          cost: 2.50
+          rework: false
+        contamination:
+          cost: 10.00
+          rework: false
+        off_taste:
+          cost: 5.00
+          rework: false
+        label_issue:
+          cost: 0.50
+          rework: true
+      inspection_time_seconds: 2.0
+      sampling_rate: 0.05
+      
+    # Production Constraints
+    constraints:
+      max_continuous_run_hours: 12
+      min_batch_size: 3000
+      max_batch_size: 50000
+      optimal_batch_size: 30000
+      requires_quality_check_interval: 400
+      temperature_range_celsius: [2, 6]
+      humidity_range_percent: [30, 55]
+      requires_allergen_control: true
+      
+    # Line Compatibility Matrix
+    line_compatibility:
+      LINE1:
+        capable: true
+        efficiency: 0.85
+        preferred: false
+      LINE2:
+        capable: true
+        efficiency: 0.88
+        preferred: true
+      LINE3:
+        capable: true
+        efficiency: 0.90
+        preferred: false
+
+# Global changeover matrix overrides
+changeover_matrix:
+  # Define specific changeover requirements between product pairs
+  # Format: from_product -> to_product -> requirements
+  overrides:
+    SKU-1002:  # From Juice
+      SKU-1001:  # To Water
+        cleaning_required: true
+        time_minutes: 60
+        cost: 1000
+        reason: "allergen_control"
+    
+    SKU-3002:  # From Premium Juice
+      SKU-1001:  # To Water
+        cleaning_required: true
+        time_minutes: 75
+        cost: 1200
+        reason: "deep_clean_required"
+
+# Product family relationships
+product_families:
+  clear_liquids:
+    products: ["SKU-1001"]
+    characteristics: ["no_color", "no_pulp", "no_allergens"]
+    
+  fruit_juice:
+    products: ["SKU-1002", "SKU-3002"]
+    characteristics: ["contains_pulp", "natural_sugars", "vitamins"]
+    
+  carbonated:
+    products: ["SKU-2001"]
+    characteristics: ["co2_injection", "pressure_rated"]
+    
+  functional:
+    products: ["SKU-2002", "SKU-3001"]
+    characteristics: ["added_ingredients", "performance_compounds"]
+
+# Cost factors for optimization
+cost_factors:
+  labor_cost_per_hour: 25.00
+  energy_cost_per_kwh: 0.12
+  waste_disposal_cost_per_kg: 0.05
+  quality_inspection_cost_per_sample: 2.00
+  expedite_cost_multiplier: 1.5
+  overtime_cost_multiplier: 1.5
+  
+# Performance metrics targets
+performance_targets:
+  min_line_utilization: 0.70
+  target_oee: 0.85
+  max_scrap_rate: 0.05
+  max_changeover_percentage: 0.15
+  min_campaign_length_hours: 4.0

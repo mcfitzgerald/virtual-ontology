@@ -250,6 +250,50 @@ for equip_id, equip_metrics in metrics.items():
     print(f"  - Quality: {equip_metrics['quality']:.1%}")
 ```
 
+## MES Integration Example
+
+```python
+from twin_model.scheduling import ProductionScheduler, CampaignOptimizer
+from twin_model.scheduling.product_manifest import ProductManifest
+from twin_model.integration import MESIntegration
+from twin_model.transduction import MESCollector
+
+# Load product manifest and orders
+manifest = ProductManifest("config/product_manifest.yaml")
+scheduler = CampaignOptimizer(
+    manifest=manifest,
+    campaign_size=50,
+    optimization_strategy="minimize_changeovers"
+)
+
+# Load and schedule production orders
+scheduler.load_orders("config/production_orders.yaml")
+scheduled_orders = scheduler.optimize()
+
+# Setup MES integration
+mes_collector = MESCollector(env)
+mes_integration = MESIntegration(
+    collector=mes_collector,
+    output_path="mes_output.csv"
+)
+
+# Connect to model
+for equip_id, equipment in model['primitives'].items():
+    equipment.observable.subscribe(mes_collector)
+
+# Run with scheduled orders
+for order in scheduled_orders:
+    line_source = model['primitives'][f"{order.line_id}-SOURCE"]
+    line_source.add_order(order)
+
+env.run(until=1440)  # 24 hours
+
+# Export MES data
+mes_records = mes_integration.get_records()
+mes_integration.export_to_csv()
+print(f"Generated {len(mes_records)} MES records")
+```
+
 ## Key Design Patterns
 
 1. **Container-Based Flow**: All material flow uses SimPy Containers for continuous simulation

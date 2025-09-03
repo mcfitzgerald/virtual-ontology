@@ -308,9 +308,12 @@ Twin Model - Container-based continuous flow simulation framework.
 ## Submodules
 
 ::: {.toctree maxdepth="1"}
+/autoapi/twin_model/integration/index
 /autoapi/twin_model/monitoring/index
 /autoapi/twin_model/ontology_model_builder/index
 /autoapi/twin_model/primitives/index
+/autoapi/twin_model/scheduling/index
+/autoapi/twin_model/transduction/index
 :::
 
 ## Classes
@@ -348,6 +351,9 @@ twin_model.SinkFlow twin_model.SourceFlow
 > >
 > > param new_state
 > > :   New flow state
+> >
+> > param downtime_reason
+> > :   Optional reason for downtime (for FAILED/MAINTENANCE states)
 >
 > > Emit an observable event.
 > >
@@ -478,6 +484,111 @@ twin_model.SinkFlow twin_model.SourceFlow
 > >
 > > returns
 > > :   Dictionary with queue status information
+
+# twin_model.integration
+
+::: autoapi-nested-parse
+Integration module for combining simulation components.
+:::
+
+## Submodules
+
+::: {.toctree maxdepth="1"}
+/autoapi/twin_model/integration/mes_integration/index
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.integration.MESSimulationCoordinator
+:::
+
+## Functions
+
+::: autoapisummary
+twin_model.integration.setup_mes_simulation
+:::
+
+## Package Contents
+
+> Coordinates MES simulation components.
+>
+> This coordinator manages the interaction between: - Production
+> scheduler (manages orders) - MES data collector (captures data) -
+> Equipment primitives (execute production)
+>
+> > Main coordination process.
+
+> Set up complete MES simulation.
+>
+> param env
+> :   SimPy environment
+>
+> param model
+> :   Model dictionary from OntologyModelBuilder
+>
+> param simulation_duration
+> :   Total simulation duration in minutes
+>
+> param random_seed
+> :   Random seed for reproducibility
+>
+> returns
+> :   Dictionary with scheduler, collector, and coordinator
+
+# twin_model.integration.mes_integration
+
+::: autoapi-nested-parse
+Integration module for MES simulation components.
+
+This module provides integration between the production scheduler, MES
+data collector, and simulation primitives.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.integration.mes_integration.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.integration.mes_integration.MESSimulationCoordinator
+:::
+
+## Functions
+
+::: autoapisummary
+twin_model.integration.mes_integration.setup_mes_simulation
+:::
+
+## Module Contents
+
+> Coordinates MES simulation components.
+>
+> This coordinator manages the interaction between: - Production
+> scheduler (manages orders) - MES data collector (captures data) -
+> Equipment primitives (execute production)
+>
+> > Main coordination process.
+
+> Set up complete MES simulation.
+>
+> param env
+> :   SimPy environment
+>
+> param model
+> :   Model dictionary from OntologyModelBuilder
+>
+> param simulation_duration
+> :   Total simulation duration in minutes
+>
+> param random_seed
+> :   Random seed for reproducibility
+>
+> returns
+> :   Dictionary with scheduler, collector, and coordinator
 
 # twin_model.monitoring.flow_monitor
 
@@ -654,6 +765,9 @@ twin_model.primitives.base_flow.BaseFlowPrimitive
 > >
 > > param new_state
 > > :   New flow state
+> >
+> > param downtime_reason
+> > :   Optional reason for downtime (for FAILED/MAINTENANCE states)
 >
 > > Emit an observable event.
 > >
@@ -772,6 +886,9 @@ twin_model.primitives.SourceFlow
 > >
 > > param new_state
 > > :   New flow state
+> >
+> > param downtime_reason
+> > :   Optional reason for downtime (for FAILED/MAINTENANCE states)
 >
 > > Emit an observable event.
 > >
@@ -1003,3 +1120,1181 @@ twin_model.primitives.source_flow.SourceFlow
 > >
 > > returns
 > > :   Dictionary with queue status information
+
+# twin_model.scheduling.base_scheduler
+
+::: autoapi-nested-parse
+Base scheduler abstract class for production scheduling.
+
+This module provides the abstract interface for production schedulers,
+enabling different scheduling algorithms to be plugged in.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.base_scheduler.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.base_scheduler.OrderStatus
+twin_model.scheduling.base_scheduler.SchedulerConfig
+twin_model.scheduling.base_scheduler.SchedulingConstraints
+twin_model.scheduling.base_scheduler.BaseScheduler
+:::
+
+## Module Contents
+
+> Bases: `enum.Enum`{.interpreted-text role="py:obj"}
+>
+> Production order status.
+
+> Configuration for scheduler behavior.
+
+> Constraints for scheduling decisions.
+
+> Bases: `abc.ABC`{.interpreted-text role="py:obj"}
+>
+> Abstract base class for production schedulers.
+>
+> This class defines the interface that all scheduling algorithms must
+> implement, allowing for different scheduling strategies to be used
+> interchangeably.
+>
+> > Validate that a schedule meets all constraints.
+> >
+> > param schedule
+> > :   Schedule to validate
+> >
+> > returns
+> > :   Tuple of (is_valid, list_of_violations)
+>
+> > Calculate metrics for a schedule.
+> >
+> > param schedule
+> > :   Schedule to analyze
+> >
+> > returns
+> > :   Dictionary of metrics
+>
+> > Export schedule in specified format.
+> >
+> > param schedule
+> > :   Schedule to export
+> >
+> > param format
+> > :   Export format (\'dict\', \'json\', \'gantt\')
+> >
+> > returns
+> > :   Schedule in requested format
+
+# twin_model.scheduling.campaign_optimizer
+
+::: autoapi-nested-parse
+Campaign-based scheduling optimizer.
+
+Groups orders by product to minimize changeovers and maximize campaign
+efficiency.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.campaign_optimizer.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.campaign_optimizer.Campaign
+twin_model.scheduling.campaign_optimizer.CampaignOptimizer
+:::
+
+## Module Contents
+
+> Represents a production campaign for a single product.
+>
+> > Add order to campaign.
+
+> Bases:
+> `twin_model.scheduling.base_scheduler.BaseScheduler`{.interpreted-text
+> role="py:obj"}
+>
+> Campaign-based scheduling optimizer.
+>
+> Groups orders by product to create campaigns that minimize changeovers
+> and maximize efficiency.
+>
+> > Generate schedule using campaign optimization.
+> >
+> > param orders
+> > :   List of production orders to schedule
+> >
+> > param lines
+> > :   Available production lines
+> >
+> > param horizon_hours
+> > :   Planning horizon in hours
+> >
+> > param start_time
+> > :   Start time for scheduling (simulation minutes)
+> >
+> > returns
+> > :   Schedule by line
+>
+> > Optimize existing schedule using campaign resequencing.
+> >
+> > param current_schedule
+> > :   Current schedule to optimize
+> >
+> > param cost_calculator
+> > :   Cost calculator for evaluation
+> >
+> > returns
+> > :   Optimized schedule
+>
+> > Reschedule after disruption using campaign regrouping.
+> >
+> > param disruption_time
+> > :   When disruption occurred (simulation time)
+> >
+> > param disruption_type
+> > :   Type of disruption
+> >
+> > param affected_resources
+> > :   Affected lines/resources
+> >
+> > param current_schedule
+> > :   Current schedule
+> >
+> > returns
+> > :   Updated schedule
+>
+> > Get scheduler performance metrics.
+> >
+> > returns
+> > :   Metrics dictionary
+
+# twin_model.scheduling.config_loader
+
+::: autoapi-nested-parse
+Configuration loader for scheduler settings.
+
+This module provides utilities to load scheduler configuration from YAML
+files, making the scheduler fully configurable.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.config_loader.logger
+:::
+
+## Functions
+
+::: autoapisummary
+twin_model.scheduling.config_loader.load_scheduler_config
+twin_model.scheduling.config_loader.load_scheduling_constraints
+twin_model.scheduling.config_loader.load_complete_scheduler_config
+twin_model.scheduling.config_loader.create_scheduler_from_config
+twin_model.scheduling.config_loader.validate_schedule_config
+:::
+
+## Module Contents
+
+> Load scheduler configuration from YAML file.
+>
+> param config_path
+> :   Path to YAML configuration file
+>
+> returns
+> :   SchedulerConfig object
+>
+> raises FileNotFoundError
+> :   If config file doesn\'t exist
+>
+> raises ValueError
+> :   If config file is invalid
+
+> Load scheduling constraints from YAML file.
+>
+> param config_path
+> :   Path to YAML configuration file
+>
+> returns
+> :   SchedulingConstraints object
+>
+> raises FileNotFoundError
+> :   If config file doesn\'t exist
+>
+> raises ValueError
+> :   If config file is invalid
+
+> Load both scheduler config and constraints from a single file.
+>
+> param config_path
+> :   Path to YAML configuration file
+>
+> returns
+> :   Tuple of (SchedulerConfig, SchedulingConstraints)
+>
+> raises FileNotFoundError
+> :   If config file doesn\'t exist
+>
+> raises ValueError
+> :   If config file is invalid
+
+> Create a ProductionScheduler from configuration files.
+>
+> param env
+> :   SimPy environment
+>
+> param config_path
+> :   Path to scheduler configuration YAML
+>
+> param catalog_path
+> :   Path to product catalog YAML
+>
+> param random_seed
+> :   Random seed for reproducibility
+>
+> returns
+> :   Configured ProductionScheduler instance
+
+> Validate a scheduler configuration file.
+>
+> param config_path
+> :   Path to YAML configuration file
+>
+> returns
+> :   List of validation warnings/errors (empty if valid)
+
+# twin_model.scheduling.cost_calculator
+
+::: autoapi-nested-parse
+Production cost calculator for optimization.
+
+This module provides comprehensive cost calculation for production
+scheduling optimization, including production, changeover, inventory,
+and quality costs.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.cost_calculator.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.cost_calculator.CostBreakdown
+twin_model.scheduling.cost_calculator.ProductionCostCalculator
+:::
+
+## Module Contents
+
+> Detailed cost breakdown for analysis.
+>
+> > Calculate total cost from components.
+>
+> > Convert to dictionary.
+
+> Calculates comprehensive production costs for optimization.
+>
+> > Calculate total cost for a production order.
+> >
+> > param order
+> > :   Production order to cost
+> >
+> > param line_id
+> > :   Production line ID
+> >
+> > param include_changeover
+> > :   Whether to include changeover costs
+> >
+> > param previous_product
+> > :   Previous product for changeover calculation
+> >
+> > returns
+> > :   Detailed cost breakdown
+>
+> > Calculate total cost for entire schedule.
+> >
+> > param schedule
+> > :   Production schedule by line
+> >
+> > returns
+> > :   Cost summary with breakdown
+>
+> > Compare costs between two schedules.
+> >
+> > param schedule1
+> > :   First schedule
+> >
+> > param schedule2
+> > :   Second schedule
+> >
+> > param names
+> > :   Names for the schedules
+> >
+> > returns
+> > :   Comparison results
+>
+> > Identify main cost drivers in schedule.
+> >
+> > param schedule
+> > :   Production schedule
+> >
+> > returns
+> > :   List of cost drivers sorted by impact
+
+# twin_model.scheduling
+
+::: autoapi-nested-parse
+Production scheduling module.
+:::
+
+## Submodules
+
+::: {.toctree maxdepth="1"}
+/autoapi/twin_model/scheduling/base_scheduler/index
+/autoapi/twin_model/scheduling/campaign_optimizer/index
+/autoapi/twin_model/scheduling/config_loader/index
+/autoapi/twin_model/scheduling/cost_calculator/index
+/autoapi/twin_model/scheduling/product_manifest/index
+/autoapi/twin_model/scheduling/production_scheduler/index
+/autoapi/twin_model/scheduling/scheduler_integration/index
+/autoapi/twin_model/scheduling/sequential_scheduler/index
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.BaseScheduler
+twin_model.scheduling.SchedulerConfig
+twin_model.scheduling.SchedulingConstraints
+twin_model.scheduling.OrderStatus
+twin_model.scheduling.ProductionScheduler
+twin_model.scheduling.ProductionOrder twin_model.scheduling.ProductMix
+:::
+
+## Package Contents
+
+> Bases: `abc.ABC`{.interpreted-text role="py:obj"}
+>
+> Abstract base class for production schedulers.
+>
+> This class defines the interface that all scheduling algorithms must
+> implement, allowing for different scheduling strategies to be used
+> interchangeably.
+>
+> > Validate that a schedule meets all constraints.
+> >
+> > param schedule
+> > :   Schedule to validate
+> >
+> > returns
+> > :   Tuple of (is_valid, list_of_violations)
+>
+> > Calculate metrics for a schedule.
+> >
+> > param schedule
+> > :   Schedule to analyze
+> >
+> > returns
+> > :   Dictionary of metrics
+>
+> > Export schedule in specified format.
+> >
+> > param schedule
+> > :   Schedule to export
+> >
+> > param format
+> > :   Export format (\'dict\', \'json\', \'gantt\')
+> >
+> > returns
+> > :   Schedule in requested format
+
+> Configuration for scheduler behavior.
+
+> Constraints for scheduling decisions.
+
+> Bases: `enum.Enum`{.interpreted-text role="py:obj"}
+>
+> Production order status.
+
+> Bases:
+> `twin_model.scheduling.base_scheduler.BaseScheduler`{.interpreted-text
+> role="py:obj"}
+>
+> Concrete implementation of scheduler for MES simulation.
+>
+> This scheduler creates and manages production orders to match the
+> patterns observed in the target MES data, implementing a simple
+> sequential scheduling algorithm with configurable product mixes and
+> changeover times.
+>
+> > Generate a production order for a line.
+> >
+> > param line_id
+> > :   Production line ID
+> >
+> > param scheduled_start
+> > :   Start time in simulation minutes
+> >
+> > param duration_hours
+> > :   Order duration in hours
+> >
+> > returns
+> > :   Generated production order
+>
+> > Generate initial production schedule for entire simulation.
+> >
+> > param simulation_duration
+> > :   Total simulation duration in minutes
+>
+> > Get changeover time between products.
+> >
+> > param from_product
+> > :   Current product ID
+> >
+> > param to_product
+> > :   Next product ID
+> >
+> > returns
+> > :   Changeover time in minutes
+>
+> > Get current production order for a line.
+> >
+> > param line_id
+> > :   Production line ID
+> >
+> > returns
+> > :   Current order or None if no active order
+>
+> > Update production progress for an order.
+> >
+> > param order_id
+> > :   Order ID
+> >
+> > param good_units
+> > :   Good units produced
+> >
+> > param scrap_units
+> > :   Scrap units produced
+>
+> > Schedule a changeover process for a line.
+> >
+> > param line_id
+> > :   Production line ID
+> >
+> > Yields
+> > :   SimPy timeout for changeover duration
+>
+> > Get scheduler statistics.
+> >
+> > returns
+> > :   Dictionary of statistics
+>
+> > Generate production schedule for given lines and products.
+> >
+> > This implementation uses a simple sequential scheduling algorithm
+> > with product mix based on historical patterns.
+> >
+> > param lines
+> > :   List of production line IDs
+> >
+> > param products
+> > :   List of product IDs to schedule
+> >
+> > param duration
+> > :   Planning horizon in minutes
+> >
+> > param \*\*kwargs
+> > :   Additional parameters (e.g., \'use_product_mix\')
+> >
+> > returns
+> > :   Dictionary mapping line IDs to ordered lists of production
+> >     orders
+>
+> > Optimize an existing schedule based on given objective.
+> >
+> > This is a simple implementation that reorders products to minimize
+> > changeover time within each line.
+> >
+> > param current_schedule
+> > :   Current schedule to optimize
+> >
+> > param objective
+> > :   Optimization objective
+> >
+> > param \*\*kwargs
+> > :   Additional optimization parameters
+> >
+> > returns
+> > :   Optimized schedule
+>
+> > Reschedule production after a disruption.
+> >
+> > This implementation delays affected orders and reschedules remaining
+> > production.
+> >
+> > param disruption_time
+> > :   Time when disruption occurred
+> >
+> > param disruption_type
+> > :   Type of disruption
+> >
+> > param affected_resources
+> > :   List of affected line/equipment IDs
+> >
+> > param \*\*kwargs
+> > :   Additional disruption details
+> >
+> > returns
+> > :   Updated schedule
+
+> Production order with scheduling information.
+
+> Product mix configuration for a production line.
+
+# twin_model.scheduling.product_manifest
+
+::: autoapi-nested-parse
+Product manifest loader and manager.
+
+This module provides comprehensive product information management for
+production scheduling and cost optimization.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.product_manifest.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.product_manifest.PhysicalAttributes
+twin_model.scheduling.product_manifest.ProductionAttributes
+twin_model.scheduling.product_manifest.EconomicAttributes
+twin_model.scheduling.product_manifest.ChangeoverAttributes
+twin_model.scheduling.product_manifest.InventoryAttributes
+twin_model.scheduling.product_manifest.QualityAttributes
+twin_model.scheduling.product_manifest.ProductConstraints
+twin_model.scheduling.product_manifest.Product
+twin_model.scheduling.product_manifest.ProductManifest
+:::
+
+## Module Contents
+
+> Physical characteristics of a product.
+
+> Production characteristics and rates.
+
+> Economic and cost attributes.
+
+> Changeover requirements and costs.
+
+> Inventory management parameters.
+
+> Quality specifications and defect costs.
+
+> Production constraints and requirements.
+
+> Complete product specification.
+
+> Manages product specifications and relationships.
+>
+> > Load product manifest from YAML file.
+> >
+> > param filepath
+> > :   Path to YAML file
+>
+> > Get product by ID.
+> >
+> > param product_id
+> > :   Product identifier
+> >
+> > returns
+> > :   Product object or None if not found
+>
+> > Get changeover time between products.
+> >
+> > param from_product_id
+> > :   Current product
+> >
+> > param to_product_id
+> > :   Next product
+> >
+> > returns
+> > :   Changeover time in minutes
+>
+> > Get changeover cost between products.
+> >
+> > param from_product_id
+> > :   Current product
+> >
+> > param to_product_id
+> > :   Next product
+> >
+> > returns
+> > :   Changeover cost in currency units
+>
+> > Get efficiency of product on specific line.
+> >
+> > param product_id
+> > :   Product identifier
+> >
+> > param line_id
+> > :   Line identifier (e.g., \"Line1\", \"1\", etc.)
+> >
+> > returns
+> > :   Efficiency factor (0-1) or None if not capable
+>
+> > Check if product can be produced on line.
+> >
+> > param product_id
+> > :   Product identifier
+> >
+> > param line_id
+> > :   Line identifier
+> >
+> > returns
+> > :   True if capable, False otherwise
+>
+> > Get preferred production line for product.
+> >
+> > param product_id
+> > :   Product identifier
+> >
+> > returns
+> > :   Preferred line ID or None
+>
+> > Get all products in a family.
+> >
+> > param family
+> > :   Family name
+> >
+> > returns
+> > :   List of product IDs in the family
+>
+> > Calculate total cost of a production campaign.
+> >
+> > param product_id
+> > :   Product to produce
+> >
+> > param volume
+> > :   Production volume in units
+> >
+> > param duration_hours
+> > :   Campaign duration in hours
+> >
+> > param line_id
+> > :   Production line
+> >
+> > returns
+> > :   Dictionary of cost components
+>
+> > Get summary of loaded products.
+> >
+> > returns
+> > :   Summary dictionary
+
+# twin_model.scheduling.production_scheduler
+
+::: autoapi-nested-parse
+Production order scheduling for MES simulation.
+
+This module provides production order management and scheduling to match
+the patterns observed in the target MES data.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.production_scheduler.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.production_scheduler.ProductionOrder
+twin_model.scheduling.production_scheduler.ProductMix
+twin_model.scheduling.production_scheduler.ProductionScheduler
+:::
+
+## Module Contents
+
+> Production order with scheduling information.
+
+> Product mix configuration for a production line.
+
+> Bases:
+> `twin_model.scheduling.base_scheduler.BaseScheduler`{.interpreted-text
+> role="py:obj"}
+>
+> Concrete implementation of scheduler for MES simulation.
+>
+> This scheduler creates and manages production orders to match the
+> patterns observed in the target MES data, implementing a simple
+> sequential scheduling algorithm with configurable product mixes and
+> changeover times.
+>
+> > Generate a production order for a line.
+> >
+> > param line_id
+> > :   Production line ID
+> >
+> > param scheduled_start
+> > :   Start time in simulation minutes
+> >
+> > param duration_hours
+> > :   Order duration in hours
+> >
+> > returns
+> > :   Generated production order
+>
+> > Generate initial production schedule for entire simulation.
+> >
+> > param simulation_duration
+> > :   Total simulation duration in minutes
+>
+> > Get changeover time between products.
+> >
+> > param from_product
+> > :   Current product ID
+> >
+> > param to_product
+> > :   Next product ID
+> >
+> > returns
+> > :   Changeover time in minutes
+>
+> > Get current production order for a line.
+> >
+> > param line_id
+> > :   Production line ID
+> >
+> > returns
+> > :   Current order or None if no active order
+>
+> > Update production progress for an order.
+> >
+> > param order_id
+> > :   Order ID
+> >
+> > param good_units
+> > :   Good units produced
+> >
+> > param scrap_units
+> > :   Scrap units produced
+>
+> > Schedule a changeover process for a line.
+> >
+> > param line_id
+> > :   Production line ID
+> >
+> > Yields
+> > :   SimPy timeout for changeover duration
+>
+> > Get scheduler statistics.
+> >
+> > returns
+> > :   Dictionary of statistics
+>
+> > Generate production schedule for given lines and products.
+> >
+> > This implementation uses a simple sequential scheduling algorithm
+> > with product mix based on historical patterns.
+> >
+> > param lines
+> > :   List of production line IDs
+> >
+> > param products
+> > :   List of product IDs to schedule
+> >
+> > param duration
+> > :   Planning horizon in minutes
+> >
+> > param \*\*kwargs
+> > :   Additional parameters (e.g., \'use_product_mix\')
+> >
+> > returns
+> > :   Dictionary mapping line IDs to ordered lists of production
+> >     orders
+>
+> > Optimize an existing schedule based on given objective.
+> >
+> > This is a simple implementation that reorders products to minimize
+> > changeover time within each line.
+> >
+> > param current_schedule
+> > :   Current schedule to optimize
+> >
+> > param objective
+> > :   Optimization objective
+> >
+> > param \*\*kwargs
+> > :   Additional optimization parameters
+> >
+> > returns
+> > :   Optimized schedule
+>
+> > Reschedule production after a disruption.
+> >
+> > This implementation delays affected orders and reschedules remaining
+> > production.
+> >
+> > param disruption_time
+> > :   Time when disruption occurred
+> >
+> > param disruption_type
+> > :   Type of disruption
+> >
+> > param affected_resources
+> > :   List of affected line/equipment IDs
+> >
+> > param \*\*kwargs
+> > :   Additional disruption details
+> >
+> > returns
+> > :   Updated schedule
+
+# twin_model.scheduling.scheduler_integration
+
+::: autoapi-nested-parse
+Integration module for schedulers with SimPy simulation.
+
+Connects scheduling algorithms to the simulation environment, managing
+order dispatch and tracking.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.scheduler_integration.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.scheduler_integration.SchedulerSimulationBridge
+:::
+
+## Module Contents
+
+> Bridge between schedulers and SimPy simulation.
+>
+> Manages the interaction between scheduling algorithms and the
+> simulation environment, handling order dispatch and tracking.
+>
+> > Register a source flow for a production line.
+> >
+> > param line_id
+> > :   Line identifier
+> >
+> > param source
+> > :   SourceFlow instance for the line
+>
+> > Generate random production orders.
+> >
+> > param num_orders
+> > :   Number of orders to generate
+> >
+> > param products
+> > :   List of product IDs (uses manifest if not provided)
+> >
+> > param horizon_hours
+> > :   Planning horizon in hours
+> >
+> > returns
+> > :   List of generated orders
+>
+> > Schedule production orders.
+> >
+> > param orders
+> > :   Orders to schedule (uses pending orders if not provided)
+> >
+> > param horizon_hours
+> > :   Planning horizon
+> >
+> > param optimize
+> > :   Whether to optimize the schedule
+> >
+> > returns
+> > :   Schedule by line
+>
+> > Dispatch scheduled orders to production lines.
+> >
+> > param schedule
+> > :   Schedule to dispatch
+>
+> > Run production according to schedule.
+> >
+> > This is a SimPy process that manages scheduled production.
+> >
+> > param duration_hours
+> > :   Duration to run production
+>
+> > Handle production disruption by rescheduling.
+> >
+> > param disruption_type
+> > :   Type of disruption
+> >
+> > param affected_lines
+> > :   Affected production lines
+> >
+> > param duration_minutes
+> > :   Expected disruption duration
+> >
+> > returns
+> > :   Updated schedule
+>
+> > Get comprehensive scheduling metrics.
+> >
+> > returns
+> > :   Metrics dictionary
+>
+> > Export current schedule to CSV file.
+> >
+> > param filename
+> > :   Output filename
+
+# twin_model.scheduling.sequential_scheduler
+
+::: autoapi-nested-parse
+Sequential scheduler implementation.
+
+Simple FIFO scheduling algorithm that processes orders in sequence,
+respecting line compatibility and basic constraints.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.scheduling.sequential_scheduler.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.scheduling.sequential_scheduler.SequentialScheduler
+:::
+
+## Module Contents
+
+> Bases:
+> `twin_model.scheduling.base_scheduler.BaseScheduler`{.interpreted-text
+> role="py:obj"}
+>
+> Sequential FIFO scheduler implementation.
+>
+> Schedules orders in priority/FIFO order, respecting line compatibility
+> and maintenance windows.
+>
+> > Generate schedule using sequential FIFO algorithm.
+> >
+> > param orders
+> > :   List of production orders to schedule
+> >
+> > param lines
+> > :   Available production lines
+> >
+> > param horizon_hours
+> > :   Planning horizon in hours
+> >
+> > param start_time
+> > :   Start time for scheduling (simulation minutes)
+> >
+> > returns
+> > :   Schedule by line
+>
+> > Optimize existing schedule (no-op for sequential scheduler).
+> >
+> > Sequential scheduler doesn\'t optimize, just returns current
+> > schedule.
+> >
+> > param current_schedule
+> > :   Current schedule to optimize
+> >
+> > param cost_calculator
+> > :   Cost calculator for evaluation
+> >
+> > returns
+> > :   Same schedule (no optimization)
+>
+> > Reschedule after disruption.
+> >
+> > param disruption_time
+> > :   When disruption occurred (simulation time)
+> >
+> > param disruption_type
+> > :   Type of disruption
+> >
+> > param affected_resources
+> > :   Affected lines/resources
+> >
+> > param current_schedule
+> > :   Current schedule
+> >
+> > returns
+> > :   Updated schedule
+>
+> > Get scheduler performance metrics.
+> >
+> > returns
+> > :   Metrics dictionary
+
+# twin_model.transduction
+
+::: autoapi-nested-parse
+Transduction module for data collection and transformation.
+:::
+
+## Submodules
+
+::: {.toctree maxdepth="1"}
+/autoapi/twin_model/transduction/mes_collector/index
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.transduction.MESDataCollector
+twin_model.transduction.MESRecord twin_model.transduction.ProductInfo
+:::
+
+## Package Contents
+
+> Collects simulation data and formats it for MES output.
+>
+> This collector monitors equipment primitives and captures their state
+> and production metrics at regular intervals (default 5 minutes).
+>
+> > Register equipment for monitoring.
+> >
+> > param equipment_id
+> > :   Unique equipment identifier
+> >
+> > param equipment
+> > :   Equipment primitive to monitor
+> >
+> > param equipment_type
+> > :   Type (Filler, Packer, Palletizer)
+> >
+> > param line_id
+> > :   Production line ID
+>
+> > Update current production order for equipment.
+> >
+> > param equipment_id
+> > :   Equipment identifier
+> >
+> > param order_id
+> > :   Production order ID
+> >
+> > param product_id
+> > :   Product being produced
+>
+> > Collect data at regular intervals (coroutine).
+>
+> > Convert collected records to pandas DataFrame.
+> >
+> > returns
+> > :   DataFrame with MES records
+>
+> > Save collected data to CSV file.
+> >
+> > param filepath
+> > :   Path to save CSV file
+>
+> > Get summary statistics of collected data.
+> >
+> > returns
+> > :   Dictionary with summary statistics
+
+> Single MES data record for a 5-minute interval.
+
+> Product information for MES records.
+
+# twin_model.transduction.mes_collector
+
+::: autoapi-nested-parse
+MES Data Collector for capturing simulation events in MES format.
+
+This module provides a data collector that captures simulation events
+and formats them according to MES (Manufacturing Execution System)
+standards.
+:::
+
+## Attributes
+
+::: autoapisummary
+twin_model.transduction.mes_collector.logger
+:::
+
+## Classes
+
+::: autoapisummary
+twin_model.transduction.mes_collector.MESRecord
+twin_model.transduction.mes_collector.ProductInfo
+twin_model.transduction.mes_collector.MESDataCollector
+:::
+
+## Module Contents
+
+> Single MES data record for a 5-minute interval.
+
+> Product information for MES records.
+
+> Collects simulation data and formats it for MES output.
+>
+> This collector monitors equipment primitives and captures their state
+> and production metrics at regular intervals (default 5 minutes).
+>
+> > Register equipment for monitoring.
+> >
+> > param equipment_id
+> > :   Unique equipment identifier
+> >
+> > param equipment
+> > :   Equipment primitive to monitor
+> >
+> > param equipment_type
+> > :   Type (Filler, Packer, Palletizer)
+> >
+> > param line_id
+> > :   Production line ID
+>
+> > Update current production order for equipment.
+> >
+> > param equipment_id
+> > :   Equipment identifier
+> >
+> > param order_id
+> > :   Production order ID
+> >
+> > param product_id
+> > :   Product being produced
+>
+> > Collect data at regular intervals (coroutine).
+>
+> > Convert collected records to pandas DataFrame.
+> >
+> > returns
+> > :   DataFrame with MES records
+>
+> > Save collected data to CSV file.
+> >
+> > param filepath
+> > :   Path to save CSV file
+>
+> > Get summary statistics of collected data.
+> >
+> > returns
+> > :   Dictionary with summary statistics

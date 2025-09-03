@@ -1,0 +1,151 @@
+# Production Orders Configuration
+# Defines production scheduling patterns for MES simulation
+
+metadata:
+  name: "Production Orders Configuration"
+  version: "1.0.0"
+  description: "Production order patterns matching target MES data"
+  created: "2025-09-02"
+
+# Product definitions matching target data
+products:
+  SKU-1001:
+    name: "8oz Water Bottle"
+    target_rate_5min: 475
+    standard_cost: 0.15
+    sale_price: 0.50
+    allowed_lines: [1, 2]
+    typical_batch_size: 50000
+    changeover_group: "water"
+  
+  SKU-1002:
+    name: "8oz Juice"
+    target_rate_5min: 475
+    standard_cost: 0.25
+    sale_price: 0.85
+    allowed_lines: [1, 2]
+    typical_batch_size: 40000
+    changeover_group: "juice"
+  
+  SKU-2001:
+    name: "12oz Soda"
+    target_rate_5min: 475
+    standard_cost: 0.20
+    sale_price: 0.65
+    allowed_lines: [2, 3]
+    typical_batch_size: 60000
+    changeover_group: "soda"
+  
+  SKU-2002:
+    name: "16oz Energy Drink"
+    target_rate_5min: 450
+    standard_cost: 0.55
+    sale_price: 1.75
+    allowed_lines: [1, 2, 3]
+    typical_batch_size: 45000
+    changeover_group: "energy"
+  
+  SKU-3001:
+    name: "20oz Sports Drink"
+    target_rate_5min: 450
+    standard_cost: 0.35
+    sale_price: 1.15
+    allowed_lines: [2, 3]
+    typical_batch_size: 35000
+    changeover_group: "sports"
+  
+  SKU-3002:
+    name: "1L Juice"
+    target_rate_5min: 425
+    standard_cost: 0.75
+    sale_price: 2.50
+    allowed_lines: [1, 2, 3]
+    typical_batch_size: 30000
+    changeover_group: "juice"
+
+# Production mix for each line (based on target data analysis)
+line_product_mix:
+  line_1:
+    products:
+      SKU-1001: 0.35  # 35% of time
+      SKU-1002: 0.25  # 25% of time
+      SKU-2002: 0.25  # 25% of time
+      SKU-3002: 0.15  # 15% of time
+  
+  line_2:
+    products:
+      SKU-2001: 0.30  # 30% of time
+      SKU-1001: 0.20  # 20% of time
+      SKU-3001: 0.15  # 15% of time
+      SKU-2002: 0.15  # 15% of time
+      SKU-1002: 0.10  # 10% of time
+      SKU-3002: 0.10  # 10% of time
+  
+  line_3:
+    products:
+      SKU-2001: 0.35  # 35% of time
+      SKU-2002: 0.30  # 30% of time
+      SKU-3001: 0.20  # 20% of time
+      SKU-3002: 0.15  # 15% of time
+
+# Changeover matrix (minutes)
+changeover_times:
+  same_group: 15      # Within same product group
+  different_group: 30 # Between different groups
+  cleaning_required: 45 # When deep cleaning needed
+
+# Order generation parameters
+order_generation:
+  min_duration_hours: 2.0
+  max_duration_hours: 8.0
+  typical_duration_hours: 4.0
+  efficiency_factor: 0.7  # Account for downtime/inefficiency
+  
+  # Priority distribution
+  priority_weights:
+    low: 0.2     # Priority 1-3
+    medium: 0.6  # Priority 4-7
+    high: 0.2    # Priority 8-10
+
+# Scheduling patterns
+scheduling:
+  # Shift patterns affecting production
+  shifts:
+    morning:
+      start_hour: 6
+      end_hour: 14
+      performance_factor: 1.0
+    
+    afternoon:
+      start_hour: 14
+      end_hour: 22
+      performance_factor: 0.95
+    
+    night:
+      start_hour: 22
+      end_hour: 6
+      performance_factor: 0.85
+  
+  # Planned downtime windows
+  planned_downtime:
+    cleaning:
+      frequency_hours: 24
+      duration_minutes: 30
+      reason_code: "PLN-CLN"
+    
+    changeover:
+      avg_frequency_hours: 4
+      duration_minutes: 30
+      reason_code: "PLN-CO"
+    
+    preventive_maintenance:
+      frequency_days: 7
+      duration_minutes: 120
+      reason_code: "PLN-PM"
+
+# Order tracking
+order_tracking:
+  track_completion: true
+  track_scrap: true
+  track_efficiency: true
+  update_interval_minutes: 5.0

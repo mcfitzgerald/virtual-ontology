@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(find:*), Bash(grep:*), Bash(~/.local/bin/poetry run sphinx-build:*), Bash(pandoc:*), Bash(git:*), Bash(ls:*), Bash(tree:*), Read, Write, Edit, TodoWrite, WebFetch, Task
+allowed-tools: Bash(find:*), Bash(grep:*), Bash(~/.local/bin/poetry run sphinx-build:*), Bash(~/.local/bin/poetry run interrogate:*), Bash(pandoc:*), Bash(git:*), Bash(ls:*), Bash(tree:*), Bash(test:*), Bash(cp:*), Bash(rm:*), Bash(cd:*), Bash(echo:*), Read, Write, Edit, TodoWrite, WebFetch, Task
 description: Ensure all required docs exist and are synchronized with codebase
 ---
 
@@ -7,9 +7,9 @@ description: Ensure all required docs exist and are synchronized with codebase
 
 ## Pre-flight Check
 - Last commit: !`git log -1 --oneline`
-- Uncommitted changes: !`git status --porcelain | wc -l` files
-- CHANGELOG updated: !`head -20 CHANGELOG.md | grep -E "^## \[Unreleased\]" -A 5 | head -10`
-- Current date: !`date +%Y-%m-%d`
+- Uncommitted changes: !`git status --porcelain`
+- CHANGELOG updated: Check CHANGELOG.md manually for [Unreleased] section
+- Current date: Check system date
 
 ## Workflow Integration Check
 
@@ -22,20 +22,20 @@ This will provide context for documentation updates.
 ## Required Documentation Checklist
 
 ### Core Documents Status
-1. **README.md**: !`test -f README.md && echo "✅ EXISTS" || echo "❌ MISSING"`
-2. **CHANGELOG.md**: !`test -f CHANGELOG.md && echo "✅ EXISTS" || echo "❌ MISSING"`
-3. **LICENSE**: !`test -f LICENSE && echo "✅ EXISTS" || echo "❌ MISSING"`
-4. **docs/DOCS_TOC.md**: !`test -f docs/DOCS_TOC.md && echo "✅ EXISTS" || echo "❌ MISSING"`
-5. **Architecture doc**: !`find docs -name "*architecture*" -o -name "*ARCHITECTURE*" | head -1 | xargs -I {} test -f {} && echo "✅ EXISTS" || echo "❌ MISSING"`
+1. **README.md**: !`ls README.md`
+2. **CHANGELOG.md**: !`ls CHANGELOG.md`
+3. **LICENSE**: !`ls LICENSE`
+4. **docs/DOCS_TOC.md**: !`ls docs/DOCS_TOC.md`
+5. **Architecture doc**: !`find docs -name "*architecture*" -o -name "*ARCHITECTURE*"`
 
 ### LLM-Ready Documentation
-- Directory exists: !`test -d docs/llm-ready && echo "✅ EXISTS" || echo "❌ MISSING"`
-- Files present: !`ls docs/llm-ready/*.md 2>/dev/null | wc -l` markdown files
+- Directory exists: !`ls -d docs/llm-ready`
+- Files present: !`ls docs/llm-ready/*.md`
 
 ### API Documentation
-- Sphinx source: !`test -d docs/sphinx-source && echo "✅ EXISTS" || echo "❌ MISSING"`
-- AutoAPI configured: !`grep -q "autoapi.extension" docs/sphinx-source/conf.py 2>/dev/null && echo "✅ CONFIGURED" || echo "❌ NOT CONFIGURED"`
-- Build directory: !`test -d docs/build && echo "✅ EXISTS" || echo "❌ MISSING"`
+- Sphinx source: !`ls -d docs/sphinx-source`
+- AutoAPI configured: !`grep "autoapi.extension" docs/sphinx-source/conf.py`
+- Build directory: !`ls -d docs/build`
 
 ## Instructions
 
@@ -48,10 +48,10 @@ This will provide context for documentation updates.
 2. **Analyze code changes since last doc update**:
    ```bash
    # Find Python files modified in last 7 days
-   find . -name "*.py" -mtime -7 -not -path "./archive/*" -not -path "./.venv/*" | head -20
+   find . -name "*.py" -mtime -7 -not -path "./archive/*" -not -path "./.venv/*"
    
    # Check for new modules/classes
-   git diff HEAD~5 --name-only | grep "\.py$" | head -20
+   git diff HEAD~5 --name-only
    ```
 
 ### Phase 2: Verify Documentation Requirements
@@ -82,9 +82,8 @@ This will provide context for documentation updates.
 2. **Verify all listed files exist**:
    ```bash
    # Extract file paths from TOC and verify
-   grep -E "^\s*[├└│].*\.(md|yaml|yml|rst)$" docs/DOCS_TOC.md | while read line; do
-     # Check file existence
-   done
+   grep -E "^\s*[├└│].*\.(md|yaml|yml|rst)$" docs/DOCS_TOC.md
+   # Then manually check file existence
    ```
 
 #### C. Architecture Documentation
@@ -114,8 +113,9 @@ This will provide context for documentation updates.
 
 3. **Generate LLM-ready version**:
    ```bash
-   # Convert RST to Markdown
-   find docs/build -name "*.rst" -exec pandoc -f rst -t markdown {} -o {}.md \;
+   # Convert RST to Markdown (run for each file found)
+   find docs/build -name "*.rst"
+   # Then use: pandoc -f rst -t markdown [filename] -o [filename].md
    
    # Or use sphinx-llms-txt if configured
    ~/.local/bin/poetry run sphinx-build -b llms-txt docs/sphinx-source docs/build/llm-text
@@ -141,23 +141,17 @@ This will provide context for documentation updates.
 3. **Update configuration examples**:
    ```bash
    # Check YAML examples match schema
-   for yaml in docs/llm-ready/yaml-examples/*.yaml; do
-     echo "Validating: $yaml"
-     # Verify structure matches code expectations
-   done
+   ls docs/llm-ready/yaml-examples/*.yaml
+   # Then validate each file's structure manually
    ```
 
 ### Phase 5: Documentation Coverage Analysis
 
 1. **Find undocumented modules**:
    ```bash
-   # Find Python files without corresponding docs
-   for py in $(find twin_model -name "*.py" -not -name "__*"); do
-     module=$(echo $py | sed 's/.py$//' | tr '/' '.')
-     if ! grep -q "$module" docs/llm-ready/*.md 2>/dev/null; then
-       echo "Undocumented: $module"
-     fi
-   done
+   # Find Python files
+   find twin_model -name "*.py" -not -name "__*"
+   # Then check if each module is documented in docs/llm-ready/*.md
    ```
 
 2. **Check docstring coverage**:
@@ -215,7 +209,9 @@ Create a structured proposal:
 
 1. **Create backup**:
    ```bash
-   cp -r docs/ docs.backup.$(date +%Y%m%d)/
+   # Create backup with timestamp
+   cp -r docs/ docs.backup.YYYYMMDD/
+   # Replace YYYYMMDD with current date
    ```
 
 2. **Apply updates**:

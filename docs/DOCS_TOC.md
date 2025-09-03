@@ -10,13 +10,19 @@ docs/
 ├── DOCS_TOC.md                          # This file - navigation guide
 │
 ├── llm-ready/                           # LLM-optimized documentation
-│   ├── 01-architecture-overview.md      # Ontology-driven architecture explanation
-│   ├── 02-quickstart-api.md            # Quick start guide with three-file pathway
-│   ├── 03-complete-api-reference.md    # Full API documentation (auto-generated)
+│   ├── 01-architecture-overview.md      # Ontology-driven architecture with MES integration
+│   ├── 02-quickstart-api.md            # Quick start guide with MES examples
+│   ├── 03-complete-api-reference.md    # Full API documentation (regenerated)
+│   ├── 04-mes-integration-guide.md     # MES scheduling and production guide
+│   ├── 05-configuration-reference.md   # Complete configuration reference
 │   └── yaml-examples/                   # Example configuration files
 │       ├── ontology-filling-line.yaml   # Example ontology definition
 │       ├── manifest-equipment.yaml      # Example equipment manifest
-│       └── config-parameters.yaml       # Example tunable parameters
+│       ├── config-parameters.yaml       # Example tunable parameters
+│       ├── mes_parameters.yaml         # MES integration configuration
+│       ├── product_manifest.yaml       # Product definitions (30+ products)
+│       ├── production_orders.yaml      # Production order examples
+│       └── scheduler_config.yaml       # Scheduler optimization settings
 │
 ├── sphinx-source/                        # Sphinx documentation source (RST format)
 │   ├── conf.py                          # Sphinx configuration
@@ -99,10 +105,12 @@ Every Twin Model simulation requires three YAML files:
 ### Quick Start Path
 
 For LLMs learning the system:
-1. Read `llm-ready/01-architecture-overview.md` for concepts
-2. Review `llm-ready/02-quickstart-api.md` for usage
-3. Examine `llm-ready/yaml-examples/` for configuration patterns
-4. Reference `llm-ready/03-complete-api-reference.md` for details
+1. Read `llm-ready/01-architecture-overview.md` for concepts and MES integration
+2. Review `llm-ready/02-quickstart-api.md` for usage with MES examples
+3. Study `llm-ready/04-mes-integration-guide.md` for production scheduling
+4. Check `llm-ready/05-configuration-reference.md` for all configuration options
+5. Examine `llm-ready/yaml-examples/` for configuration patterns
+6. Reference `llm-ready/03-complete-api-reference.md` for API details
 
 ### Building Models
 

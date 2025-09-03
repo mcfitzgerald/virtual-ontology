@@ -84,6 +84,18 @@ Package Contents
 
 
 
+   .. py:attribute:: downtime_reason
+      :type:  str | None
+      :value: None
+
+
+
+   .. py:attribute:: failure_history
+      :type:  list[tuple[float, str]]
+      :value: []
+
+
+
    .. py:attribute:: process
       :type:  simpy.Process | None
       :value: None
@@ -107,11 +119,12 @@ Package Contents
 
 
 
-   .. py:method:: change_state(new_state: FlowState) -> None
+   .. py:method:: change_state(new_state: FlowState, downtime_reason: str | None = None) -> None
 
       Change current state and update metrics.
 
       :param new_state: New flow state
+      :param downtime_reason: Optional reason for downtime (for FAILED/MAINTENANCE states)
 
 
 
@@ -162,6 +175,41 @@ Package Contents
 
       :returns: OEE as percentage (0-100)
 
+
+
+   .. py:property:: state
+      :type: FlowState
+
+
+      Current flow state.
+
+
+   .. py:property:: total_input
+      :type: float
+
+
+      Total input processed.
+
+
+   .. py:property:: total_output
+      :type: float
+
+
+      Total good output produced.
+
+
+   .. py:property:: total_scrap
+      :type: float
+
+
+      Total scrap produced.
+
+
+   .. py:property:: state_durations
+      :type: dict[FlowState, float]
+
+
+      State duration tracking.
 
 
 .. py:class:: FlowCapacity
@@ -484,6 +532,8 @@ Package Contents
    .. py:attribute:: total_scrap
       :value: 0.0
 
+
+      Total scrap produced.
 
 
    .. py:attribute:: production_windows

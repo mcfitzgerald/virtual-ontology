@@ -7,6 +7,8 @@ The Twin Model is a unique simulation framework that uses an **ontology-driven a
 1. **Structure** (Ontology) - What CAN exist
 2. **Instances** (Manifest) - What DOES exist  
 3. **Parameters** (Config) - HOW it behaves
+4. **Scheduling** (MES Integration) - WHEN production happens
+5. **Products** (Product Manifest) - WHAT is produced
 
 ## Core Concepts
 
@@ -291,6 +293,55 @@ LINE1-FIL:
 
 ### Result
 The OntologyModelBuilder creates an `EquipmentFlow` primitive with the specified parameters, validates connections, and integrates it into the simulation.
+
+## MES Integration Layer
+
+### Production Scheduling
+The Twin Model now includes a comprehensive MES (Manufacturing Execution System) integration layer that manages production scheduling and execution:
+
+```yaml
+# scheduler_config.yaml
+scheduler:
+  type: "CampaignOptimizer"
+  campaign_size: 50
+  optimization_strategy: "minimize_changeovers"
+  
+# production_orders.yaml  
+orders:
+  - order_id: "ORD-001"
+    product_id: "ProductA"
+    quantity: 1000
+    priority: 1
+    line_id: "LINE1"
+```
+
+### Key Components
+
+1. **Production Scheduler** (`twin_model/scheduling/`)
+   - `ProductionScheduler`: Multi-line production scheduling
+   - `CampaignOptimizer`: Groups similar products to minimize changeovers
+   - `SequentialScheduler`: Simple FIFO scheduling
+   - `CostCalculator`: Changeover cost optimization
+
+2. **Product Manifest** (`config/product_manifest.yaml`)
+   - Defines 30+ products with specifications
+   - Product families and allergen groups
+   - Target rates and quality parameters
+   - Changeover compatibility matrix
+
+3. **MES Integration** (`twin_model/integration/`)
+   - Real-time data collection
+   - Event transduction to MES records
+   - Performance metrics aggregation
+   - OEE calculation and tracking
+
+### Scheduling Flow
+
+```
+Production Orders → Scheduler → Equipment → MES Collector
+                        ↓           ↓            ↓
+                   Optimization  Execution   Metrics
+```
 
 ## Best Practices
 
