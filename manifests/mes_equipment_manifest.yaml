@@ -1,0 +1,181 @@
+# MES Equipment Manifest - 3 Production Lines
+# Based on ORIGINAL_2WEEK.csv structure
+# 3 lines x 4 equipment pieces (Source + Filler + Packer + Palletizer + Sink)
+
+metadata:
+  name: "MES Equipment Manifest"
+  version: "1.0.0"
+  description: "Equipment instances for MES simulation matching target data"
+  created: "2025-09-02"
+
+# Equipment instances
+equipment:
+  # ========== LINE 1 ==========
+  LINE1-SOURCE:
+    type: "MaterialSource"
+    line_id: "1"
+    position: 0
+    properties:
+      description: "Material source for Line 1"
+  
+  LINE1-FIL:
+    type: "FillingStation"
+    line_id: "1"
+    position: 10
+    properties:
+      equipment_type: "Filler"
+      description: "Filling station for Line 1"
+  
+  LINE1-PCK:
+    type: "PackingStation"
+    line_id: "1"
+    position: 20
+    properties:
+      equipment_type: "Packer"
+      description: "Packing station for Line 1"
+  
+  LINE1-PAL:
+    type: "PalletizingStation"
+    line_id: "1"
+    position: 30
+    properties:
+      equipment_type: "Palletizer"
+      description: "Palletizing station for Line 1"
+  
+  LINE1-SINK:
+    type: "ProductCollection"
+    line_id: "1"
+    position: 100
+    properties:
+      description: "Product collection for Line 1"
+  
+  # ========== LINE 2 ==========
+  LINE2-SOURCE:
+    type: "MaterialSource"
+    line_id: "2"
+    position: 0
+    properties:
+      description: "Material source for Line 2"
+  
+  LINE2-FIL:
+    type: "FillingStation"
+    line_id: "2"
+    position: 10
+    properties:
+      equipment_type: "Filler"
+      description: "Filling station for Line 2"
+  
+  LINE2-PCK:
+    type: "PackingStation"
+    line_id: "2"
+    position: 20
+    properties:
+      equipment_type: "Packer"
+      description: "Packing station for Line 2"
+  
+  LINE2-PAL:
+    type: "PalletizingStation"
+    line_id: "2"
+    position: 30
+    properties:
+      equipment_type: "Palletizer"
+      description: "Palletizing station for Line 2"
+  
+  LINE2-SINK:
+    type: "ProductCollection"
+    line_id: "2"
+    position: 100
+    properties:
+      description: "Product collection for Line 2"
+  
+  # ========== LINE 3 ==========
+  LINE3-SOURCE:
+    type: "MaterialSource"
+    line_id: "3"
+    position: 0
+    properties:
+      description: "Material source for Line 3"
+  
+  LINE3-FIL:
+    type: "FillingStation"
+    line_id: "3"
+    position: 10
+    properties:
+      equipment_type: "Filler"
+      description: "Filling station for Line 3"
+  
+  LINE3-PCK:
+    type: "PackingStation"
+    line_id: "3"
+    position: 20
+    properties:
+      equipment_type: "Packer"
+      description: "Packing station for Line 3"
+  
+  LINE3-PAL:
+    type: "PalletizingStation"
+    line_id: "3"
+    position: 30
+    properties:
+      equipment_type: "Palletizer"
+      description: "Palletizing station for Line 3"
+  
+  LINE3-SINK:
+    type: "ProductCollection"
+    line_id: "3"
+    position: 100
+    properties:
+      description: "Product collection for Line 3"
+
+# Connections defining material flow
+connections:
+  # Line 1 connections
+  - from: "LINE1-SOURCE"
+    to: "LINE1-FIL"
+    type: "material_flow"
+  
+  - from: "LINE1-FIL"
+    to: "LINE1-PCK"
+    type: "material_flow"
+  
+  - from: "LINE1-PCK"
+    to: "LINE1-PAL"
+    type: "material_flow"
+  
+  - from: "LINE1-PAL"
+    to: "LINE1-SINK"
+    type: "material_flow"
+  
+  # Line 2 connections
+  - from: "LINE2-SOURCE"
+    to: "LINE2-FIL"
+    type: "material_flow"
+  
+  - from: "LINE2-FIL"
+    to: "LINE2-PCK"
+    type: "material_flow"
+  
+  - from: "LINE2-PCK"
+    to: "LINE2-PAL"
+    type: "material_flow"
+  
+  - from: "LINE2-PAL"
+    to: "LINE2-SINK"
+    type: "material_flow"
+  
+  # Line 3 connections
+  - from: "LINE3-SOURCE"
+    to: "LINE3-FIL"
+    type: "material_flow"
+  
+  - from: "LINE3-FIL"
+    to: "LINE3-PCK"
+    type: "material_flow"
+  
+  - from: "LINE3-PCK"
+    to: "LINE3-PAL"
+    type: "material_flow"
+  
+  - from: "LINE3-PAL"
+    to: "LINE3-SINK"
+    type: "material_flow"

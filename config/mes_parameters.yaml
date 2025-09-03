@@ -1,0 +1,217 @@
+# MES Simulation Parameters
+# Tuned to match ORIGINAL_2WEEK.csv characteristics:
+# - OEE: ~46% (Availability 67%, Performance 49.6%, Quality 62.6%)
+# - Downtime: 33%
+# - Scrap rate: 6.79%
+
+metadata:
+  name: "MES Tunable Parameters"
+  version: "1.0.0"
+  description: "Parameters tuned to match target MES data"
+  created: "2025-09-02"
+
+# Default parameters for all equipment
+defaults:
+  equipment:
+    nominal_rate: 90.0  # Units per minute (450 per 5 min)
+    quality_rate: 0.932  # To achieve ~6.8% scrap
+    performance_factor: 0.496  # To achieve 49.6% performance
+    batch_size: 1.0
+    processing_interval: 0.1
+    mtbf: 30.0  # Mean time between failures (minutes)
+    mttr: 15.0  # Mean time to repair (minutes)
+    micro_stop_rate: 12.0  # Micro-stops per hour
+    micro_stop_duration: 0.5  # Average micro-stop duration (minutes)
+
+# Source parameters
+source_parameters:
+  LINE1-SOURCE:
+    generation_rate: 100.0  # Units per minute
+    generation_interval: 0.1
+    continuous_mode: true
+    default_product: "SKU-1001"
+  
+  LINE2-SOURCE:
+    generation_rate: 100.0
+    generation_interval: 0.1
+    continuous_mode: true
+    default_product: "SKU-2001"
+  
+  LINE3-SOURCE:
+    generation_rate: 100.0
+    generation_interval: 0.1
+    continuous_mode: true
+    default_product: "SKU-3001"
+
+# Equipment-specific parameters
+equipment_parameters:
+  # Line 1 - Adjusted for lower OEE
+  LINE1-FIL:
+    nominal_rate: 95.0  # 475 per 5 min
+    quality_rate: 0.943  # 5.7% scrap
+    performance_factor: 0.475  # 47.5% performance (matching target)
+    mtbf: 25.0
+    mttr: 18.0
+    micro_stop_rate: 15.0
+    micro_stop_duration: 0.6
+  
+  LINE1-PCK:
+    nominal_rate: 92.0
+    quality_rate: 0.920  # 8% scrap (Packer worse quality)
+    performance_factor: 0.407  # 40.7% performance
+    mtbf: 20.0
+    mttr: 20.0
+    micro_stop_rate: 18.0
+    micro_stop_duration: 0.8
+  
+  LINE1-PAL:
+    nominal_rate: 90.0
+    quality_rate: 0.940
+    performance_factor: 0.498  # 49.8% performance
+    mtbf: 30.0
+    mttr: 15.0
+    micro_stop_rate: 10.0
+    micro_stop_duration: 0.5
+  
+  # Line 2 - Slightly worse performance
+  LINE2-FIL:
+    nominal_rate: 95.0
+    quality_rate: 0.930
+    performance_factor: 0.450
+    mtbf: 22.0
+    mttr: 20.0
+    micro_stop_rate: 16.0
+    micro_stop_duration: 0.7
+  
+  LINE2-PCK:
+    nominal_rate: 92.0
+    quality_rate: 0.915
+    performance_factor: 0.380
+    mtbf: 18.0
+    mttr: 22.0
+    micro_stop_rate: 20.0
+    micro_stop_duration: 0.9
+  
+  LINE2-PAL:
+    nominal_rate: 90.0
+    quality_rate: 0.935
+    performance_factor: 0.460
+    mtbf: 28.0
+    mttr: 16.0
+    micro_stop_rate: 12.0
+    micro_stop_duration: 0.6
+  
+  # Line 3 - Best performing line
+  LINE3-FIL:
+    nominal_rate: 95.0
+    quality_rate: 0.950
+    performance_factor: 0.520
+    mtbf: 30.0
+    mttr: 12.0
+    micro_stop_rate: 12.0
+    micro_stop_duration: 0.4
+  
+  LINE3-PCK:
+    nominal_rate: 92.0
+    quality_rate: 0.925
+    performance_factor: 0.450
+    mtbf: 25.0
+    mttr: 15.0
+    micro_stop_rate: 15.0
+    micro_stop_duration: 0.6
+  
+  LINE3-PAL:
+    nominal_rate: 90.0
+    quality_rate: 0.945
+    performance_factor: 0.500
+    mtbf: 35.0
+    mttr: 12.0
+    micro_stop_rate: 8.0
+    micro_stop_duration: 0.4
+
+# Sink parameters
+sink_parameters:
+  LINE1-SINK:
+    collection_rate: 100.0
+    collection_interval: 0.1
+    nominal_rate: 90.0  # For OEE calculation
+    window_duration: 60.0  # OEE window in minutes
+  
+  LINE2-SINK:
+    collection_rate: 100.0
+    collection_interval: 0.1
+    nominal_rate: 90.0
+    window_duration: 60.0
+  
+  LINE3-SINK:
+    collection_rate: 100.0
+    collection_interval: 0.1
+    nominal_rate: 90.0
+    window_duration: 60.0
+
+# Flow capacity parameters
+flow_capacity:
+  defaults:
+    max_input_rate: 120.0  # Units per minute
+    max_output_rate: 120.0
+    internal_capacity: 500.0  # Buffer size
+    initial_level: 0.0
+  
+  equipment:
+    # Sources have unlimited output
+    LINE1-SOURCE:
+      internal_capacity: 10000.0
+      initial_level: 5000.0
+    
+    LINE2-SOURCE:
+      internal_capacity: 10000.0
+      initial_level: 5000.0
+    
+    LINE3-SOURCE:
+      internal_capacity: 10000.0
+      initial_level: 5000.0
+    
+    # Equipment buffers
+    LINE1-FIL:
+      internal_capacity: 200.0
+    
+    LINE1-PCK:
+      internal_capacity: 200.0
+    
+    LINE1-PAL:
+      internal_capacity: 300.0
+    
+    LINE2-FIL:
+      internal_capacity: 200.0
+    
+    LINE2-PCK:
+      internal_capacity: 200.0
+    
+    LINE2-PAL:
+      internal_capacity: 300.0
+    
+    LINE3-FIL:
+      internal_capacity: 200.0
+    
+    LINE3-PCK:
+      internal_capacity: 200.0
+    
+    LINE3-PAL:
+      internal_capacity: 300.0
+    
+    # Sinks have unlimited capacity
+    LINE1-SINK:
+      internal_capacity: 100000.0
+    
+    LINE2-SINK:
+      internal_capacity: 100000.0
+    
+    LINE3-SINK:
+      internal_capacity: 100000.0
+
+# Simulation settings
+simulation:
+  duration_minutes: 20160  # 2 weeks (14 days * 24 hours * 60 minutes)
+  warmup_minutes: 60  # 1 hour warmup
+  random_seed: 42
+  data_collection_interval: 5.0  # Collect data every 5 minutes

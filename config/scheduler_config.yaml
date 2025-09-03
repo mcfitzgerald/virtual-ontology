@@ -1,0 +1,129 @@
+# Scheduler Configuration
+# Extracted configuration for production scheduling
+
+metadata:
+  name: "Scheduler Configuration"
+  version: "1.0.0"
+  description: "Configuration for production scheduler behavior"
+  created: "2025-09-02"
+
+# Scheduler behavior configuration
+scheduler_config:
+  # Order duration parameters (hours)
+  min_order_duration_hours: 2.0
+  max_order_duration_hours: 8.0
+  typical_order_duration_hours: 4.0
+  
+  # Efficiency factor (accounts for downtime/inefficiency)
+  efficiency_factor: 0.7
+  
+  # Priority settings
+  min_priority: 1
+  max_priority: 10
+  default_priority: 5
+  
+  # Changeover time settings (minutes)
+  same_family_changeover_minutes: 15.0
+  different_family_changeover_minutes: 30.0
+  cleaning_changeover_minutes: 45.0
+  
+  # Optimization settings
+  allow_preemption: false
+  allow_splitting: false
+  maximize_campaign_length: true
+
+# Scheduling constraints
+scheduling_constraints:
+  # Time constraints
+  horizon_hours: 336  # 2 weeks default
+  
+  # Maintenance windows (start_hour, duration_hours)
+  maintenance_windows:
+    - start_hour: 168   # Week 1, day 7
+      duration_hours: 2
+    - start_hour: 336   # Week 2, day 7
+      duration_hours: 2
+  
+  # Product-line compatibility
+  product_line_compatibility:
+    SKU-1001: ["1", "2"]
+    SKU-1002: ["1", "2"]
+    SKU-2001: ["2", "3"]
+    SKU-2002: ["1", "2", "3"]
+    SKU-3001: ["2", "3"]
+    SKU-3002: ["1", "2", "3"]
+  
+  # Line-product restrictions (inverse of above)
+  line_product_restrictions:
+    "1": ["SKU-1001", "SKU-1002", "SKU-2002", "SKU-3002"]
+    "2": ["SKU-1001", "SKU-1002", "SKU-2001", "SKU-2002", "SKU-3001", "SKU-3002"]
+    "3": ["SKU-2001", "SKU-2002", "SKU-3001", "SKU-3002"]
+  
+  # Sequence constraints
+  forbidden_sequences:
+    # Example: Can't go from dairy to allergen-free without cleaning
+    - ["SKU-1002", "SKU-3001"]  # Juice to Sports Drink
+  
+  preferred_sequences:
+    # Example: Prefer to stay within same product family
+    - ["SKU-1001", "SKU-1002"]  # Water to Juice
+    - ["SKU-2001", "SKU-2002"]  # Soda to Energy Drink
+  
+  # Campaign constraints
+  min_campaign_length_hours: 2.0   # Minimum 2 hours per product
+  max_campaign_length_hours: 24.0  # Maximum 24 hours per product
+  max_concurrent_orders: 3         # Max orders per line
+
+# Optimization objectives and their weights
+optimization_objectives:
+  minimize_changeover:
+    weight: 0.4
+    description: "Minimize total changeover time"
+  
+  maximize_throughput:
+    weight: 0.3
+    description: "Maximize production volume"
+  
+  minimize_lateness:
+    weight: 0.2
+    description: "Minimize order lateness"
+  
+  balance_lines:
+    weight: 0.1
+    description: "Balance load across lines"
+
+# Disruption handling
+disruption_policies:
+  equipment_failure:
+    default_duration_minutes: 60
+    reschedule_strategy: "delay_affected"
+    notify_downstream: true
+  
+  material_shortage:
+    default_duration_minutes: 120
+    reschedule_strategy: "skip_orders"
+    allow_substitution: true
+  
+  quality_issue:
+    default_duration_minutes: 30
+    reschedule_strategy: "pause_line"
+    require_inspection: true
+
+# Algorithm selection
+scheduling_algorithms:
+  default: "sequential"
+  available:
+    - sequential     # Simple sequential scheduling
+    - campaign       # Campaign-based grouping
+    - optimal        # Mathematical optimization
+    - heuristic      # Fast heuristic methods
+    - ml_based       # Machine learning based
+
+# Performance metrics to track
+performance_metrics:
+  - total_changeover_time
+  - average_campaign_length
+  - line_utilization
+  - order_completion_rate
+  - schedule_stability
+  - optimization_time

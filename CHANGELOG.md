@@ -8,6 +8,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Comprehensive MES scheduling and production system**:
+  - Complete production scheduling framework with campaign optimization
+  - Product manifest system with detailed product specifications and constraints
+  - Multi-line production scheduler supporting LINE1, LINE2, and LINE3
+  - Sequential and campaign-based scheduling strategies
+  - Cost calculation system for changeover optimization
+  - Production order management with priority-based scheduling
+  - Configuration loader for YAML-based scheduler setup
+- **MES integration layer**:
+  - Full MES integration module connecting scheduling with simulation
+  - MES collector for real-time data collection and aggregation
+  - Transduction layer for converting simulation events to MES records
+- **Configuration and manifest system**:
+  - MES parameters configuration with detailed equipment and line settings
+  - Product manifest with 30+ products including specifications and constraints
+  - Production orders configuration for testing various scenarios
+  - Scheduler configuration with optimization parameters
+  - Equipment manifest with detailed equipment specifications
+- **Documentation**:
+  - Comprehensive MES simulation planning document
+  - Configuration overview guide for all YAML configs
+- **Test suite**:
+  - Product manifest integration tests
+  - Scheduler integration tests with multiple scenarios
+  - Unit tests for scheduler abstraction layer
 - **Claude Code custom commands suite** (`.claude/commands/`):
   - `housekeeping.md`: Aggressive project cleanup with timestamp analysis, unused code detection, Poetry dependency management
   - `documentation.md`: Documentation enforcement ensuring required docs exist and stay synchronized with codebase
@@ -40,6 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simple flow tests for rapid prototyping
 
 ### Changed
+- **BaseFlow primitive enhancements**:
+  - Added comprehensive scheduling integration support
+  - Enhanced flow monitoring capabilities for MES data collection
+  - Improved state tracking for production metrics
 - **Documentation restructuring**:
   - Reorganized docs/ folder with clear separation between LLM-ready and Sphinx source
   - Renamed documentation files to be descriptive of contents
