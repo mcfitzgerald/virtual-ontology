@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Critical parameter resolution bug in OntologyModelBuilder**:
+  - Fixed pre-merging of defaults that caused type-specific defaults to be overridden
+  - Corrected parameter resolution hierarchy: equipment-specific → type-specific → general → fallback
+  - Sources now properly use configured generation rates (300+ units/min) instead of hardcoded 60
+  - Equipment flow rates now properly support high throughput (600 units/min capacity)
+
+### Added
+- **Enhanced parameter loading system**:
+  - Comprehensive defaults sections for source, sink, and equipment types
+  - Parameter source tracking with `_get_param_source()` helper method
+  - Detailed logging showing which configuration section each parameter comes from
+  - Calibrated parameters configuration with baseline low-OEE scenario
+- **Baseline configuration for optimization demonstrations**:
+  - Three production lines with differentiated performance (27.8%, 33.2%, 36.6% OEE)
+  - Intentionally poor performance factors (0.46-0.55) with room for improvement
+  - High nominal rates (440-500 units/min) compensating for low efficiency
+  - Realistic failure patterns with MTBF/MTTR configurations
+- **Testing and validation suite**:
+  - `validate_phase3.py`: Production target validation with comprehensive metrics
+  - `test_phase1_calibrated.py`: Parameter resolution verification
+  - `test_phase2_defaults.py`: Defaults structure validation
+  - Baseline production orders configuration for testing
+- **Documentation**:
+  - `fix-hardcoded-parameters.md`: Detailed problem analysis and solution approach
+  - `fix-hardcoded-parameters-COMPLETED.md`: Implementation summary with lessons learned
+  - `baseline-configuration-analysis.md`: Analysis of production constraints and bottlenecks
+  - `PROJECT_STATUS_HANDOVER.md`: Comprehensive handover document for session continuity
+  - `simulation-guide.md`: Guide for running and understanding the simulation
+
+### Changed
+- **OntologyModelBuilder parameter handling**:
+  - Removed parameter pre-merging in `_create_equipment()` method
+  - Modified `_create_source()`, `_create_sink()`, and `_create_equipment_flow()` to access config directly
+  - Updated all creation methods to use proper parameter resolution without pre-merged values
+  - Increased default flow capacities from 350 to 600 units/min to support high-rate sources
+- **Equipment manifest**:
+  - Added MaterialSource equipment for all three lines
+  - Added complete connection definitions between all equipment
+  - Fixed equipment types to match ontology definitions (Filler→FillingStation, etc.)
+
+### Removed
+- **Legacy files**:
+  - Deleted `docs/configuration_overview.md` (superseded by new documentation)
+  - Deleted `docs/mes_simulation_plan.md` (superseded by implementation)
+  - Removed `run_mes_simulation.py` (replaced by validation scripts)
+
 ### Added
 - **Comprehensive MES scheduling and production system**:
   - Complete production scheduling framework with campaign optimization

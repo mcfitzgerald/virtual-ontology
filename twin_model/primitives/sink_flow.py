@@ -83,7 +83,7 @@ class SinkFlow(BaseFlowPrimitive):
         self.collection_interval = collection_interval
         self.total_collected = 0.0
         self.total_good = 0.0
-        self.total_scrap = 0.0
+        # total_scrap is handled by base class flow_metrics
 
         # Production windows for OEE calculation
         self.production_windows: list[ProductionWindow] = []

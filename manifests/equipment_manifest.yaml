@@ -14,16 +14,6 @@ energy_config:
   - 20
   peak_rate: 0.15
 equipment:
-  failure_timing_config:
-    micro_stop_mean_time: 20.0
-    minor_failure_mean_time: 240.0
-    major_failure_mean_time: 2880.0
-    micro_stop_duration_mean: 0.0
-    micro_stop_duration_sigma: 0.5
-    minor_failure_duration_shape: 2.0
-    minor_failure_duration_scale: 5.0
-    major_failure_duration_shape: 2.0
-    major_failure_duration_scale: 60.0
   LINE1-FIL:
     base_rate: 50
     base_scrap_rate: 0.05
@@ -46,7 +36,7 @@ equipment:
       SKU-3002: 0.95
     position: 10
     quality_rate: 0.95
-    type: Filler
+    type: FillingStation
   LINE1-PAL:
     base_rate: 50
     base_scrap_rate: 0.05
@@ -67,7 +57,7 @@ equipment:
       SKU-2002: 0.84
       SKU-3002: 0.95
     quality_rate: 0.95
-    type: Palletizer
+    type: PalletizingStation
   LINE1-PCK:
     base_rate: 52
     base_scrap_rate: 0.08
@@ -88,7 +78,7 @@ equipment:
       SKU-3002: 0.93
     position: 20
     quality_rate: 0.95
-    type: Packer
+    type: PackingStation
   LINE1-SINK:
     base_rate: 70
     collection_rate: 55.0
@@ -100,7 +90,7 @@ equipment:
     quality_rate: 0.9
     quality_threshold: 0.0
     target_throughput: 50.0
-    type: Sink
+    type: ProductCollection
   LINE2-FIL:
     base_rate: 50
     base_scrap_rate: 0.07
@@ -121,7 +111,7 @@ equipment:
       SKU-3002: 0.87
     position: 10
     quality_rate: 0.95
-    type: Filler
+    type: FillingStation
   LINE2-PAL:
     base_rate: 48
     base_scrap_rate: 0.06
@@ -142,7 +132,7 @@ equipment:
       SKU-3002: 0.95
     position: 30
     quality_rate: 0.95
-    type: Palletizer
+    type: PalletizingStation
   LINE2-PCK:
     base_rate: 52
     base_scrap_rate: 0.08
@@ -163,7 +153,7 @@ equipment:
       SKU-3002: 0.89
     position: 20
     quality_rate: 0.95
-    type: Packer
+    type: PackingStation
   LINE2-SINK:
     base_rate: 70
     collection_rate: 50.0
@@ -175,7 +165,7 @@ equipment:
     quality_rate: 0.9
     quality_threshold: 0.0
     target_throughput: 45.0
-    type: Sink
+    type: ProductCollection
   LINE3-FIL:
     base_rate: 50
     base_scrap_rate: 0.07
@@ -195,7 +185,7 @@ equipment:
       SKU-3002: 0.89
     position: 10
     quality_rate: 0.95
-    type: Filler
+    type: FillingStation
   LINE3-PAL:
     base_rate: 48
     base_scrap_rate: 0.06
@@ -215,7 +205,7 @@ equipment:
       SKU-3002: 0.92
     position: 30
     quality_rate: 0.95
-    type: Palletizer
+    type: PalletizingStation
   LINE3-PCK:
     base_rate: 52
     base_scrap_rate: 0.08
@@ -235,7 +225,7 @@ equipment:
       SKU-3002: 0.95
     position: 20
     quality_rate: 0.95
-    type: Packer
+    type: PackingStation
   LINE3-SINK:
     base_rate: 70
     collection_rate: 45.0
@@ -247,7 +237,31 @@ equipment:
     quality_rate: 0.9
     quality_threshold: 0.0
     target_throughput: 40.0
-    type: Sink
+    type: ProductCollection
+  LINE1-SOURCE:
+    type: MaterialSource
+    line_id: LINE1
+    position: 0
+    base_rate: 310
+    mtbf: 1000
+    mttr: 10
+    quality_rate: 1.0
+  LINE2-SOURCE:
+    type: MaterialSource
+    line_id: LINE2
+    position: 0
+    base_rate: 295
+    mtbf: 1000
+    mttr: 10
+    quality_rate: 1.0
+  LINE3-SOURCE:
+    type: MaterialSource
+    line_id: LINE3
+    position: 0
+    base_rate: 320
+    mtbf: 1000
+    mttr: 10
+    quality_rate: 1.0
 failure_patterns:
   Filler:
     micro_stops:
@@ -467,3 +481,28 @@ shifts:
     - 0.95
     staffing_level: 0.85
     start_hour: 22
+connections:
+- from: LINE1-SOURCE
+  to: LINE1-FIL
+- from: LINE1-FIL
+  to: LINE1-PCK
+- from: LINE1-PCK
+  to: LINE1-PAL
+- from: LINE1-PAL
+  to: LINE1-SINK
+- from: LINE2-SOURCE
+  to: LINE2-FIL
+- from: LINE2-FIL
+  to: LINE2-PCK
+- from: LINE2-PCK
+  to: LINE2-PAL
+- from: LINE2-PAL
+  to: LINE2-SINK
+- from: LINE3-SOURCE
+  to: LINE3-FIL
+- from: LINE3-FIL
+  to: LINE3-PCK
+- from: LINE3-PCK
+  to: LINE3-PAL
+- from: LINE3-PAL
+  to: LINE3-SINK

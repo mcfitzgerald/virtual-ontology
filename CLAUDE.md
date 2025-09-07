@@ -35,3 +35,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # TODOs
 - create a housekeeping claude command
 - create a doc update claude command
+- Never bypass an approach or plan we agree to when you hit an issue, stop and tell me so we can fix it!

@@ -1,0 +1,258 @@
+# Calibrated Parameters for MES Simulation
+# Target: OEE 46% (Availability 67%, Performance 49.6%, Quality 62.6%)
+# Based on ORIGINAL_2WEEK.csv analysis
+
+metadata:
+  name: "Calibrated MES Parameters"
+  version: "1.0.0"
+  description: "Parameters calibrated to match target MES data KPIs"
+  created: "2025-09-02"
+
+# Default parameters for all equipment types
+defaults:
+  # Source defaults for high production rate
+  source:
+    generation_rate: 300.0      # High rate for target production (units/min)
+    generation_interval: 0.1    # Check every 0.1 minutes (6 seconds)
+    max_input_rate: 600.0       # Must be higher than generation_rate
+    max_output_rate: 600.0      # Must be higher than generation_rate
+    internal_capacity: 2000.0   # Large buffer for sources
+    continuous_mode: true       # Always generating
+    default_product: "SKU-1001" # Default product type
+    
+  # Sink defaults for high collection rate
+  sink:
+    collection_rate: 300.0      # Match source generation rate (units/min)
+    collection_interval: 0.1    # Check every 0.1 minutes (6 seconds)
+    nominal_rate: 300.0         # Nominal processing rate
+    max_input_rate: 350.0       # Buffer for peak rates
+    max_output_rate: 350.0      # Not used for sinks but kept for consistency
+    internal_capacity: 10000.0  # Large buffer for sink collection
+    window_duration: 5.0        # Metrics window duration
+    
+  # Equipment defaults for processing stations
+  equipment:
+    # High nominal rates to compensate for poor performance
+    nominal_rate: 450.0  # High nominal rate needed for baseline
+    performance_factor: 0.50  # Poor performance (target: improve to 0.85)
+    
+    # Quality: Moderate with room for improvement
+    quality_rate: 0.94  # 6% defects (target: improve to 0.98)
+    
+    # Processing parameters
+    batch_size: 10.0
+    processing_interval: 0.1  # Process every 6 seconds
+    
+    # Availability: Poor reliability with long repair times
+    # 67% availability = MTBF 65 / (MTBF 65 + MTTR 32)
+    mtbf: 65.0  # Mean time between failures (minutes)
+    mttr: 32.0  # Mean time to repair (target: improve to 10)
+    
+    # Micro-stops contribute to performance losses
+    micro_stop_rate: 2.0  # Micro-stops per hour
+    micro_stop_duration: 30.0  # Seconds per micro-stop
+    
+    # Flow capacity defaults for equipment (must support high flow rates)
+    max_input_rate: 600.0       # Units per minute input capacity (support all rates)
+    max_output_rate: 600.0      # Units per minute output capacity (support all rates)
+    internal_capacity: 1000.0   # Internal buffer size
+    
+    # Type-specific defaults
+    fill_rate: 90.0            # For FillingStation equipment
+    pack_size: 12              # For PackingStation equipment
+    pallet_size: 144           # For PalletizingStation equipment
+
+# Equipment-specific parameters by line and type
+equipment_parameters:
+  # ========== LINE 1 ==========
+  # Line 1 OEE: 27.8% (Worst performer)
+  # Source needs high generation rate to feed the line
+  LINE1-SOURCE:
+    generation_rate: 500.0  # High rate to ensure no source bottleneck
+    generation_interval: 0.1  # Check every 6 seconds
+    
+  LINE1-FIL:
+    nominal_rate: 480.0     # High nominal to compensate for poor performance
+    quality_rate: 0.93      # 7% defect rate (worst quality)
+    performance_factor: 0.46 # Worst performance factor
+    mtbf: 65.0              # Moderate reliability
+    mttr: 35.0              # Long repair time (65% availability)
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  LINE1-PCK:
+    nominal_rate: 490.0      # Slightly higher to avoid bottleneck
+    quality_rate: 0.93      # Matches line quality target
+    performance_factor: 0.46 # Poor performance
+    mtbf: 60.0
+    mttr: 35.0              # Long repair time
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  LINE1-PAL:
+    nominal_rate: 500.0      # High to avoid bottleneck at end
+    quality_rate: 0.93      # Consistent line quality
+    performance_factor: 0.46 # Poor performance
+    mtbf: 65.0
+    mttr: 35.0              # Long repair time
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  # ========== LINE 2 ==========
+  # Line 2 OEE: 33.2% (Mid performer)
+  LINE2-SOURCE:
+    generation_rate: 470.0  # High rate to ensure no source bottleneck
+    generation_interval: 0.1
+    
+  LINE2-FIL:
+    nominal_rate: 450.0     # Moderate nominal rate
+    quality_rate: 0.94      # 6% defect rate
+    performance_factor: 0.52 # Moderate performance
+    mtbf: 60.0              # Lower reliability
+    mttr: 28.0              # Moderate repair time (68% availability)
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  LINE2-PCK:
+    nominal_rate: 460.0      # Slightly higher to avoid bottleneck
+    quality_rate: 0.94      # Consistent line quality
+    performance_factor: 0.52 # Moderate performance
+    mtbf: 58.0
+    mttr: 28.0              # Moderate repair time
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  LINE2-PAL:
+    nominal_rate: 470.0      # High to avoid bottleneck
+    quality_rate: 0.94      # Consistent line quality
+    performance_factor: 0.52 # Moderate performance
+    mtbf: 62.0
+    mttr: 28.0              # Moderate repair time
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  # ========== LINE 3 ==========
+  # Line 3 OEE: 36.6% (Best performer, but still poor)
+  LINE3-SOURCE:
+    generation_rate: 460.0  # High rate to ensure no source bottleneck
+    generation_interval: 0.1
+    
+  LINE3-FIL:
+    nominal_rate: 440.0     # Slightly lower nominal
+    quality_rate: 0.95      # 5% defect rate (best quality)
+    performance_factor: 0.55 # Best performance (still poor)
+    mtbf: 70.0              # Best reliability
+    mttr: 30.0              # Shorter repair time (70% availability)
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  LINE3-PCK:
+    nominal_rate: 450.0      # Slightly higher to avoid bottleneck
+    quality_rate: 0.95      # Best quality
+    performance_factor: 0.55 # Best performance
+    mtbf: 68.0
+    mttr: 30.0              # Moderate repair time
+    batch_size: 10.0
+    processing_interval: 0.1
+    
+  LINE3-PAL:
+    nominal_rate: 460.0      # High to avoid bottleneck
+    quality_rate: 0.95      # Best quality
+    performance_factor: 0.55 # Best performance
+    mtbf: 72.0
+    mttr: 30.0              # Moderate repair time
+    batch_size: 10.0
+    processing_interval: 0.1
+
+# Flow capacity settings
+flow_capacity:
+  defaults:
+    max_input_rate: 600.0  # Units per minute (must support 500 units/min sources)
+    max_output_rate: 600.0  # Units per minute (must support 500 units/min sources)
+    internal_capacity: 1000.0  # Buffer size
+    initial_level: 100.0  # Start with some material
+    
+  equipment:
+    # Filler stations (first equipment) need larger input capacity
+    LINE1-FIL:
+      internal_capacity: 2000.0
+      initial_level: 500.0
+    LINE2-FIL:
+      internal_capacity: 2000.0
+      initial_level: 500.0
+    LINE3-FIL:
+      internal_capacity: 2000.0
+      initial_level: 500.0
+    
+    # Palletizers (last equipment) need larger output buffers
+    LINE1-PAL:
+      internal_capacity: 1500.0
+    LINE2-PAL:
+      internal_capacity: 1500.0
+    LINE3-PAL:
+      internal_capacity: 1500.0
+    
+    # Sinks need high collection rates to match source generation
+    LINE1-SINK:
+      collection_rate: 300.0  # Units per minute
+      collection_interval: 0.1
+    LINE2-SINK:
+      collection_rate: 300.0
+      collection_interval: 0.1
+    LINE3-SINK:
+      collection_rate: 300.0
+      collection_interval: 0.1
+
+# Downtime reasons mapping for realistic simulation
+downtime_reasons:
+  planned:
+    - reason: "PLN-CO"
+      description: "Planned Changeover"
+      frequency_per_day: 2.0
+      duration_minutes: 30.0
+      
+    - reason: "PLN-CLN"
+      description: "Planned Cleaning"
+      frequency_per_day: 1.5
+      duration_minutes: 45.0
+      
+    - reason: "PLN-PM"
+      description: "Preventive Maintenance"
+      frequency_per_week: 1.0
+      duration_minutes: 120.0
+      
+  unplanned:
+    - reason: "UNP-JAM"
+      description: "Equipment Jam"
+      frequency_per_day: 2.5
+      duration_minutes: 15.0
+      
+    - reason: "UNP-ELEC"
+      description: "Electrical Issue"
+      frequency_per_day: 0.8
+      duration_minutes: 25.0
+      
+    - reason: "UNP-MAT"
+      description: "Material Issue"
+      frequency_per_day: 0.7
+      duration_minutes: 20.0
+      
+    - reason: "UNP-SENS"
+      description: "Sensor Issue"
+      frequency_per_day: 0.5
+      duration_minutes: 18.0
+      
+    - reason: "UNP-QC"
+      description: "Quality Control Stop"
+      frequency_per_day: 0.4
+      duration_minutes: 22.0
+      
+    - reason: "UNP-OPR"
+      description: "Operator Issue"
+      frequency_per_day: 0.2
+      duration_minutes: 12.0
+      
+    - reason: "UNP-MECH"
+      description: "Mechanical Issue"
+      frequency_per_week: 0.3
+      duration_minutes: 60.0

@@ -1,0 +1,274 @@
+# Production Orders for 14-day MES Simulation
+# Based on ORIGINAL_2WEEK.csv production volumes
+
+metadata:
+  name: "Calibrated Production Orders"
+  version: "1.0.0"
+  description: "Production orders to achieve target volumes over 14 days"
+  created: "2025-09-02"
+  simulation_days: 14
+  target_total_production: 8441384  # From profiling
+
+# Production orders distributed across lines and time
+# Total target: ~8.4M units over 14 days
+# Daily target: ~600K units
+# Per line daily: ~200K units
+
+orders:
+  # ===== DAY 1-2: SKU-1001 Campaign =====
+  - order_id: "ORD-1000"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    quantity: 400000
+    priority: 1
+    line_id: "1"
+    start_day: 0
+    duration_days: 2
+    target_rate: 450  # Units per 5 minutes
+    
+  - order_id: "ORD-1001"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    quantity: 400000
+    priority: 1
+    line_id: "2"
+    start_day: 0
+    duration_days: 2
+    target_rate: 450
+    
+  - order_id: "ORD-1002"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    quantity: 400000
+    priority: 1
+    line_id: "3"
+    start_day: 0
+    duration_days: 2
+    target_rate: 450
+    
+  # ===== DAY 3-4: SKU-2001 Campaign =====
+  - order_id: "ORD-1003"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    quantity: 400000
+    priority: 1
+    line_id: "1"
+    start_day: 2
+    duration_days: 2
+    target_rate: 480
+    
+  - order_id: "ORD-1004"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    quantity: 400000
+    priority: 1
+    line_id: "2"
+    start_day: 2
+    duration_days: 2
+    target_rate: 480
+    
+  - order_id: "ORD-1005"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    quantity: 400000
+    priority: 1
+    line_id: "3"
+    start_day: 2
+    duration_days: 2
+    target_rate: 480
+    
+  # ===== DAY 5-6: SKU-1002 Campaign =====
+  - order_id: "ORD-1006"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    quantity: 350000
+    priority: 1
+    line_id: "1"
+    start_day: 4
+    duration_days: 2
+    target_rate: 420
+    
+  - order_id: "ORD-1007"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    quantity: 350000
+    priority: 1
+    line_id: "2"
+    start_day: 4
+    duration_days: 2
+    target_rate: 420
+    
+  - order_id: "ORD-1008"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    quantity: 350000
+    priority: 1
+    line_id: "3"
+    start_day: 4
+    duration_days: 2
+    target_rate: 420
+    
+  # ===== DAY 7-8: SKU-2002 Campaign =====
+  - order_id: "ORD-1009"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    quantity: 320000
+    priority: 1
+    line_id: "1"
+    start_day: 6
+    duration_days: 2
+    target_rate: 460
+    
+  - order_id: "ORD-1010"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    quantity: 320000
+    priority: 1
+    line_id: "2"
+    start_day: 6
+    duration_days: 2
+    target_rate: 460
+    
+  - order_id: "ORD-1011"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    quantity: 320000
+    priority: 1
+    line_id: "3"
+    start_day: 6
+    duration_days: 2
+    target_rate: 460
+    
+  # ===== DAY 9-10: SKU-3001 Campaign =====
+  - order_id: "ORD-1012"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    quantity: 380000
+    priority: 1
+    line_id: "1"
+    start_day: 8
+    duration_days: 2
+    target_rate: 500
+    
+  - order_id: "ORD-1013"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    quantity: 380000
+    priority: 1
+    line_id: "2"
+    start_day: 8
+    duration_days: 2
+    target_rate: 500
+    
+  - order_id: "ORD-1014"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    quantity: 380000
+    priority: 1
+    line_id: "3"
+    start_day: 8
+    duration_days: 2
+    target_rate: 500
+    
+  # ===== DAY 11-12: Mixed Production =====
+  - order_id: "ORD-1015"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    quantity: 350000
+    priority: 1
+    line_id: "1"
+    start_day: 10
+    duration_days: 2
+    target_rate: 450
+    
+  - order_id: "ORD-1016"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    quantity: 350000
+    priority: 1
+    line_id: "2"
+    start_day: 10
+    duration_days: 2
+    target_rate: 480
+    
+  - order_id: "ORD-1017"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    quantity: 300000
+    priority: 1
+    line_id: "3"
+    start_day: 10
+    duration_days: 2
+    target_rate: 420
+    
+  # ===== DAY 13-14: Final Campaign =====
+  - order_id: "ORD-1018"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    quantity: 340000
+    priority: 1
+    line_id: "1"
+    start_day: 12
+    duration_days: 2
+    target_rate: 480
+    
+  - order_id: "ORD-1019"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    quantity: 340000
+    priority: 1
+    line_id: "2"
+    start_day: 12
+    duration_days: 2
+    target_rate: 450
+    
+  - order_id: "ORD-1020"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    quantity: 340000
+    priority: 1
+    line_id: "3"
+    start_day: 12
+    duration_days: 2
+    target_rate: 500
+
+# Product specifications for reference
+products:
+  SKU-1001:
+    name: "8oz Water Bottle"
+    standard_cost: 0.15
+    sale_price: 0.75
+    scrap_rate_target: 0.056  # 5.6% from data
+    
+  SKU-1002:
+    name: "16oz Water Bottle"
+    standard_cost: 0.25
+    sale_price: 1.25
+    scrap_rate_target: 0.172  # 17.2% from data (higher scrap)
+    
+  SKU-2001:
+    name: "12oz Juice Blend"
+    standard_cost: 0.45
+    sale_price: 2.25
+    scrap_rate_target: 0.041  # 4.1% from data
+    
+  SKU-2002:
+    name: "16oz Energy Drink"
+    standard_cost: 0.55
+    sale_price: 1.75
+    scrap_rate_target: 0.065  # 6.5% from data
+    
+  SKU-3001:
+    name: "20oz Sports Drink"
+    standard_cost: 0.35
+    sale_price: 1.50
+    scrap_rate_target: 0.052  # 5.2% from data
+
+# Scheduling parameters
+scheduling:
+  changeover_time_minutes: 30  # Time for product changeover
+  cleaning_time_minutes: 45    # Time for line cleaning
+  shifts_per_day: 3            # 24-hour operation
+  preventive_maintenance:
+    frequency_days: 7          # Weekly PM
+    duration_minutes: 120      # 2-hour PM window

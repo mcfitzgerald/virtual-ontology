@@ -6,12 +6,15 @@ based on production orders or continuous generation patterns.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Generator
 
 import simpy
 
 from .base_flow import BaseFlowPrimitive, FlowCapacity, FlowState
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -226,6 +229,9 @@ class SourceFlow(BaseFlowPrimitive):
             order: Production order to add
         """
         self.order_queue.append(order)
+        logger.info(f"{self.config.get('name', 'Source')}: Added order {order.order_id} "
+                   f"for {order.target_volume} units of {order.product_id}, "
+                   f"queue length: {len(self.order_queue)}")
 
         self.emit_observable(
             "order_queued",

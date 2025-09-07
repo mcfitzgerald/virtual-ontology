@@ -6,6 +6,7 @@ SimPy Containers, modeling realistic production constraints and failures.
 
 from __future__ import annotations
 
+import logging
 import random
 from dataclasses import dataclass
 from typing import Any, Generator
@@ -13,6 +14,8 @@ from typing import Any, Generator
 import simpy
 
 from .base_flow import BaseFlowPrimitive, FlowCapacity, FlowState
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -130,6 +133,7 @@ class EquipmentFlow(BaseFlowPrimitive):
                     if actual_volume >= self.processing.batch_size:
                         # Pull from input
                         yield self.input_buffer.get(actual_volume)
+                        logger.debug(f"{self.config.get('name', 'Equipment')}: Processing {actual_volume:.1f} units")
 
                         # Add to internal buffer
                         yield self.internal_buffer.put(actual_volume)

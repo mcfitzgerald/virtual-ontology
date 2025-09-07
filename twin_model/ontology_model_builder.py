@@ -195,51 +195,78 @@ class OntologyModelBuilder:
         type_def = self.ontology["tbox"]["types"][eq_type]
         framework_primitive = type_def["maps_to"]["framework_primitive"]
 
-        # Get parameters from config
-        eq_params = self.config["equipment_parameters"].get(equipment_id, {})
-        flow_params = self.config["flow_capacity"]["equipment"].get(equipment_id, {})
-        flow_defaults = self.config["flow_capacity"]["defaults"]
-
-        # Merge with defaults
-        for key, value in self.config["defaults"]["equipment"].items():
-            if key not in eq_params:
-                eq_params[key] = value
-
-        for key, value in flow_defaults.items():
-            if key not in flow_params:
-                flow_params[key] = value
-
         # Create the appropriate primitive
+        # Pass the equipment_id and type, let each method handle parameter resolution
         if framework_primitive == "SourceFlow":
-            self._create_source(equipment_id, eq_params, flow_params)
+            self._create_source(equipment_id)
         elif framework_primitive == "SinkFlow":
-            self._create_sink(equipment_id, eq_params, flow_params)
+            self._create_sink(equipment_id)
         elif framework_primitive == "EquipmentFlow":
-            self._create_equipment_flow(equipment_id, eq_params, flow_params, eq_type)
+            self._create_equipment_flow(equipment_id, eq_type)
         else:
             raise ValueError(f"Unknown framework primitive: {framework_primitive}")
 
-    def _create_source(self, source_id: str, params: Dict[str, Any], flow_params: Dict[str, Any]) -> None:
-        """Create source primitive.
+    def _create_source(self, source_id: str) -> None:
+        """Create source primitive with proper parameter resolution.
 
         Args:
             source_id: Source identifier
-            params: Source parameters
-            flow_params: Flow capacity parameters
         """
-        # Create flow capacity
+        # Get parameters directly from config sections
+        eq_params = self.config.get("equipment_parameters", {}).get(source_id, {})
+        eq_flow_params = self.config.get("flow_capacity", {}).get("equipment", {}).get(source_id, {})
+        source_defaults = self.config.get("defaults", {}).get("source", {})
+        flow_defaults = self.config.get("flow_capacity", {}).get("defaults", {})
+        
+        # Parameter resolution order: equipment-specific -> type-specific defaults -> general defaults -> fallback
+        generation_rate = (
+            eq_params.get("generation_rate") or
+            source_defaults.get("generation_rate", 300.0)  # Last resort fallback
+        )
+        generation_interval = (
+            eq_params.get("generation_interval") or
+            source_defaults.get("generation_interval", 0.1)
+        )
+        
+        # Log what we're using
+        logger.info(f"Creating {source_id}:")
+        logger.info(f"  generation_rate: {generation_rate} (from: {self._get_param_source('generation_rate', eq_params, source_defaults)})")
+        logger.info(f"  generation_interval: {generation_interval} (from: {self._get_param_source('generation_interval', eq_params, source_defaults)})")
+        
+        # Create flow capacity with proper resolution: equipment-specific -> source defaults -> flow defaults
+        max_input_rate = (
+            eq_flow_params.get("max_input_rate") or
+            source_defaults.get("max_input_rate") or
+            flow_defaults.get("max_input_rate", 350.0)
+        )
+        max_output_rate = (
+            eq_flow_params.get("max_output_rate") or
+            source_defaults.get("max_output_rate") or
+            flow_defaults.get("max_output_rate", 350.0)
+        )
+        internal_capacity = (
+            eq_flow_params.get("internal_capacity") or
+            source_defaults.get("internal_capacity") or
+            flow_defaults.get("internal_capacity", 2000.0)
+        )
+        initial_level = eq_flow_params.get("initial_level", 0.0)
+        
+        logger.info(f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, source_defaults, flow_defaults)})")
+        logger.info(f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, source_defaults, flow_defaults)})")
+        logger.info(f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, source_defaults, flow_defaults)})")
+        
         capacity = FlowCapacity(
-            max_input_rate=flow_params.get("max_input_rate", 100.0),
-            max_output_rate=flow_params.get("max_output_rate", 60.0),
-            internal_capacity=flow_params.get("internal_capacity", 1000.0),
-            initial_level=flow_params.get("initial_level", 0.0),
+            max_input_rate=max_input_rate,
+            max_output_rate=max_output_rate,
+            internal_capacity=internal_capacity,
+            initial_level=initial_level,
         )
 
         # Create config dict
         config = {
             "name": source_id,
-            "continuous_mode": params.get("continuous_mode", True),
-            "default_product": params.get("default_product", "SKU-1001"),
+            "continuous_mode": eq_params.get("continuous_mode") or source_defaults.get("continuous_mode", True),
+            "default_product": eq_params.get("default_product") or source_defaults.get("default_product", "SKU-1001"),
         }
 
         # Create source
@@ -247,8 +274,8 @@ class OntologyModelBuilder:
             env=self.env,
             config=config,
             flow_capacity=capacity,
-            generation_rate=params.get("generation_rate", 60.0),
-            generation_interval=params.get("generation_interval", 0.1),
+            generation_rate=generation_rate,
+            generation_interval=generation_interval,
         )
 
         # Create output buffer
@@ -261,27 +288,72 @@ class OntologyModelBuilder:
         self.primitives[source_id] = source
         logger.debug(f"Created source: {source_id}")
 
-    def _create_sink(self, sink_id: str, params: Dict[str, Any], flow_params: Dict[str, Any]) -> None:
-        """Create sink primitive.
+    def _create_sink(self, sink_id: str) -> None:
+        """Create sink primitive with proper parameter resolution.
 
         Args:
             sink_id: Sink identifier
-            params: Sink parameters
-            flow_params: Flow capacity parameters
         """
-        # Create flow capacity
+        # Get parameters directly from config sections
+        eq_params = self.config.get("equipment_parameters", {}).get(sink_id, {})
+        eq_flow_params = self.config.get("flow_capacity", {}).get("equipment", {}).get(sink_id, {})
+        sink_defaults = self.config.get("defaults", {}).get("sink", {})
+        flow_defaults = self.config.get("flow_capacity", {}).get("defaults", {})
+        
+        # Collection rate resolution: equipment flow params -> equipment params -> sink defaults
+        collection_rate = (
+            eq_flow_params.get("collection_rate") or
+            eq_params.get("collection_rate") or
+            sink_defaults.get("collection_rate", 300.0)  # Last resort fallback
+        )
+        collection_interval = (
+            eq_flow_params.get("collection_interval") or
+            eq_params.get("collection_interval") or
+            sink_defaults.get("collection_interval", 0.1)
+        )
+        
+        # Log what we're using
+        logger.info(f"Creating {sink_id}:")
+        logger.info(f"  collection_rate: {collection_rate} (from: {self._get_param_source('collection_rate', eq_flow_params, eq_params, sink_defaults)})")
+        logger.info(f"  collection_interval: {collection_interval} (from: {self._get_param_source('collection_interval', eq_flow_params, eq_params, sink_defaults)})")
+        
+        # Create flow capacity with proper resolution: equipment-specific -> sink defaults -> flow defaults
+        max_input_rate = (
+            eq_flow_params.get("max_input_rate") or
+            sink_defaults.get("max_input_rate") or
+            flow_defaults.get("max_input_rate", 350.0)
+        )
+        max_output_rate = (
+            eq_flow_params.get("max_output_rate") or
+            sink_defaults.get("max_output_rate") or
+            flow_defaults.get("max_output_rate", 350.0)
+        )
+        internal_capacity = (
+            eq_flow_params.get("internal_capacity") or
+            sink_defaults.get("internal_capacity") or
+            flow_defaults.get("internal_capacity", 10000.0)
+        )
+        initial_level = eq_flow_params.get("initial_level", 0.0)
+        
+        logger.info(f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, sink_defaults, flow_defaults)})")
+        logger.info(f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, sink_defaults, flow_defaults)})")
+        logger.info(f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, sink_defaults, flow_defaults)})")
+        
         capacity = FlowCapacity(
-            max_input_rate=flow_params.get("max_input_rate", 60.0),
-            max_output_rate=flow_params.get("max_output_rate", 60.0),
-            internal_capacity=flow_params.get("internal_capacity", 10000.0),
-            initial_level=flow_params.get("initial_level", 0.0),
+            max_input_rate=max_input_rate,
+            max_output_rate=max_output_rate,
+            internal_capacity=internal_capacity,
+            initial_level=initial_level,
         )
 
-        # Create config dict
+        # Create config dict with proper resolution
+        nominal_rate = eq_params.get("nominal_rate") or sink_defaults.get("nominal_rate", 300.0)
+        window_duration = eq_params.get("window_duration") or sink_defaults.get("window_duration", 5.0)
+        
         config = {
             "name": sink_id,
-            "nominal_rate": params.get("nominal_rate", 50.0),
-            "window_duration": params.get("window_duration", 5.0),
+            "nominal_rate": nominal_rate,
+            "window_duration": window_duration,
         }
 
         # Create sink
@@ -289,8 +361,8 @@ class OntologyModelBuilder:
             env=self.env,
             config=config,
             flow_capacity=capacity,
-            collection_rate=params.get("collection_rate", 50.0),
-            collection_interval=params.get("collection_interval", 0.1),
+            collection_rate=collection_rate,
+            collection_interval=collection_interval,
         )
 
         # Create input buffer
@@ -304,51 +376,104 @@ class OntologyModelBuilder:
         logger.debug(f"Created sink: {sink_id}")
 
     def _create_equipment_flow(
-        self, equipment_id: str, params: Dict[str, Any], flow_params: Dict[str, Any], equipment_type: str
+        self, equipment_id: str, equipment_type: str
     ) -> None:
-        """Create equipment flow primitive.
+        """Create equipment flow primitive with proper parameter resolution.
 
         Args:
             equipment_id: Equipment identifier
-            params: Equipment parameters
-            flow_params: Flow capacity parameters
-            equipment_type: Type of equipment (Filler, Packer, etc.)
+            equipment_type: Type of equipment (FillingStation, PackingStation, etc.)
         """
-        # Create processing parameters
+        # Get parameters directly from config sections
+        eq_params = self.config.get("equipment_parameters", {}).get(equipment_id, {})
+        eq_flow_params = self.config.get("flow_capacity", {}).get("equipment", {}).get(equipment_id, {})
+        equipment_defaults = self.config.get("defaults", {}).get("equipment", {})
+        flow_defaults = self.config.get("flow_capacity", {}).get("defaults", {})
+        
+        # Log what we're creating
+        logger.info(f"Creating {equipment_id} (type: {equipment_type}):")
+        
+        # Create processing parameters with proper resolution
+        nominal_rate = eq_params.get("nominal_rate") or equipment_defaults.get("nominal_rate", 90.0)
+        quality_rate = eq_params.get("quality_rate") or equipment_defaults.get("quality_rate", 0.95)
+        performance_factor = eq_params.get("performance_factor") or equipment_defaults.get("performance_factor", 0.55)
+        batch_size = eq_params.get("batch_size") or equipment_defaults.get("batch_size", 10.0)
+        processing_interval = eq_params.get("processing_interval") or equipment_defaults.get("processing_interval", 0.1)
+        
+        logger.info(f"  nominal_rate: {nominal_rate} (from: {self._get_param_source('nominal_rate', eq_params, equipment_defaults)})")
+        logger.info(f"  quality_rate: {quality_rate} (from: {self._get_param_source('quality_rate', eq_params, equipment_defaults)})")
+        logger.info(f"  performance_factor: {performance_factor} (from: {self._get_param_source('performance_factor', eq_params, equipment_defaults)})")
+        logger.info(f"  batch_size: {batch_size} (from: {self._get_param_source('batch_size', eq_params, equipment_defaults)})")
+        
         processing = ProcessingParameters(
-            nominal_rate=params.get("nominal_rate", 50.0),
-            quality_rate=params.get("quality_rate", 0.95),
-            performance_factor=params.get("performance_factor", 0.85),
-            batch_size=params.get("batch_size", 10.0),
-            processing_interval=params.get("processing_interval", 0.1),
+            nominal_rate=nominal_rate,
+            quality_rate=quality_rate,
+            performance_factor=performance_factor,
+            batch_size=batch_size,
+            processing_interval=processing_interval,
         )
 
-        # Create failure parameters
+        # Create failure parameters with proper resolution
+        mtbf = eq_params.get("mtbf") or equipment_defaults.get("mtbf", 60.0)
+        mttr = eq_params.get("mttr") or equipment_defaults.get("mttr", 30.0)
+        micro_stop_rate = eq_params.get("micro_stop_rate") or equipment_defaults.get("micro_stop_rate", 0.0)
+        micro_stop_duration = eq_params.get("micro_stop_duration") or equipment_defaults.get("micro_stop_duration", 0.0)
+        
+        logger.info(f"  mtbf: {mtbf} (from: {self._get_param_source('mtbf', eq_params, equipment_defaults)})")
+        logger.info(f"  mttr: {mttr} (from: {self._get_param_source('mttr', eq_params, equipment_defaults)})")
+        
         failures = FailureParameters(
-            mtbf=params.get("mtbf", 60.0),
-            mttr=params.get("mttr", 10.0),
-            micro_stop_rate=params.get("micro_stop_rate", 0.0),
-            micro_stop_duration=params.get("micro_stop_duration", 0.0),
+            mtbf=mtbf,
+            mttr=mttr,
+            micro_stop_rate=micro_stop_rate,
+            micro_stop_duration=micro_stop_duration,
         )
 
-        # Create flow capacity
+        # Create flow capacity with proper resolution: equipment-specific -> equipment defaults -> flow defaults
+        max_input_rate = (
+            eq_flow_params.get("max_input_rate") or
+            equipment_defaults.get("max_input_rate") or
+            flow_defaults.get("max_input_rate", 100.0)
+        )
+        max_output_rate = (
+            eq_flow_params.get("max_output_rate") or
+            equipment_defaults.get("max_output_rate") or
+            flow_defaults.get("max_output_rate", 90.0)
+        )
+        internal_capacity = (
+            eq_flow_params.get("internal_capacity") or
+            equipment_defaults.get("internal_capacity") or
+            flow_defaults.get("internal_capacity", 500.0)
+        )
+        initial_level = eq_flow_params.get("initial_level", 0.0)
+        
+        logger.info(f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, equipment_defaults, flow_defaults)})")
+        logger.info(f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, equipment_defaults, flow_defaults)})")
+        logger.info(f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, equipment_defaults, flow_defaults)})")
+        
         capacity = FlowCapacity(
-            max_input_rate=flow_params.get("max_input_rate", 60.0),
-            max_output_rate=flow_params.get("max_output_rate", 50.0),
-            internal_capacity=flow_params.get("internal_capacity", 500.0),
-            initial_level=flow_params.get("initial_level", 0.0),
+            max_input_rate=max_input_rate,
+            max_output_rate=max_output_rate,
+            internal_capacity=internal_capacity,
+            initial_level=initial_level,
         )
 
         # Create config dict
         config = {"name": equipment_id, "equipment_type": equipment_type}
 
-        # Add type-specific parameters
+        # Add type-specific parameters with proper resolution
         if equipment_type == "FillingStation":
-            config["fill_rate"] = params.get("fill_rate", 50.0)
+            fill_rate = eq_params.get("fill_rate") or equipment_defaults.get("fill_rate", 90.0)
+            config["fill_rate"] = fill_rate
+            logger.info(f"  fill_rate: {fill_rate} (from: {self._get_param_source('fill_rate', eq_params, equipment_defaults)})")
         elif equipment_type == "PackingStation":
-            config["pack_size"] = params.get("pack_size", 12)
+            pack_size = eq_params.get("pack_size") or equipment_defaults.get("pack_size", 12)
+            config["pack_size"] = pack_size
+            logger.info(f"  pack_size: {pack_size} (from: {self._get_param_source('pack_size', eq_params, equipment_defaults)})")
         elif equipment_type == "PalletizingStation":
-            config["pallet_size"] = params.get("pallet_size", 144)
+            pallet_size = eq_params.get("pallet_size") or equipment_defaults.get("pallet_size", 144)
+            config["pallet_size"] = pallet_size
+            logger.info(f"  pallet_size: {pallet_size} (from: {self._get_param_source('pallet_size', eq_params, equipment_defaults)})")
 
         # Create equipment
         equipment = EquipmentFlow(
@@ -444,3 +569,24 @@ class OntologyModelBuilder:
                 }
 
         return metrics
+    
+    def _get_param_source(self, param_name: str, *param_dicts: Dict) -> str:
+        """Helper to identify parameter source for logging.
+        
+        Args:
+            param_name: Name of the parameter to look for
+            *param_dicts: Variable number of parameter dictionaries to check in order
+            
+        Returns:
+            String describing the source of the parameter
+        """
+        source_names = ["equipment_parameters", "flow_capacity", "defaults"]
+        
+        for i, param_dict in enumerate(param_dicts):
+            if param_name in param_dict and param_dict[param_name] is not None:
+                if i < len(source_names):
+                    return source_names[i]
+                else:
+                    return f"dict_{i}"
+        
+        return "hardcoded_fallback"

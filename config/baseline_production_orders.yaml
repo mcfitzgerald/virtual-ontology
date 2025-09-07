@@ -1,0 +1,341 @@
+# Baseline Production Orders - Inefficient Sequencing
+# This represents "as-is" production with frequent changeovers
+# Orders are sequenced to simulate real-world inefficiencies
+
+metadata:
+  name: "Baseline Production Orders"
+  version: "1.0.0"
+  description: "Unoptimized production order sequence for baseline simulation"
+  created: "2025-09-03"
+  simulation_days: 14
+  notes: "Orders deliberately sequenced to cause frequent changeovers"
+
+# Production orders with inefficient sequencing
+# Pattern: Frequent product switches, small batches, mixed families
+orders:
+  # ===== DAY 1 - Frequent Changes =====
+  - order_id: "ORD-001"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    target_volume: 5000
+    priority: 5
+    line_id: "LINE1"
+    
+  - order_id: "ORD-002"
+    product_id: "SKU-2001"  # Different family - requires changeover
+    product_name: "12oz Juice Blend"
+    target_volume: 3000
+    priority: 5
+    line_id: "LINE1"
+    
+  - order_id: "ORD-003"
+    product_id: "SKU-1002"  # Back to water - another changeover
+    product_name: "16oz Water Bottle"
+    target_volume: 4000
+    priority: 5
+    line_id: "LINE1"
+    
+  - order_id: "ORD-004"
+    product_id: "SKU-3001"  # Sports drink - different family
+    product_name: "20oz Sports Drink"
+    target_volume: 2500
+    priority: 5
+    line_id: "LINE1"
+    
+  # Line 2 - Similar inefficient pattern
+  - order_id: "ORD-005"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    target_volume: 4500
+    priority: 5
+    line_id: "LINE2"
+    
+  - order_id: "ORD-006"
+    product_id: "SKU-1001"  # Switch to water
+    product_name: "8oz Water Bottle"
+    target_volume: 3500
+    priority: 5
+    line_id: "LINE2"
+    
+  - order_id: "ORD-007"
+    product_id: "SKU-3001"  # Switch to sports
+    product_name: "20oz Sports Drink"
+    target_volume: 3000
+    priority: 5
+    line_id: "LINE2"
+    
+  # Line 3 - More small batches
+  - order_id: "ORD-008"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    target_volume: 2000
+    priority: 5
+    line_id: "LINE3"
+    
+  - order_id: "ORD-009"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 2500
+    priority: 5
+    line_id: "LINE3"
+    
+  - order_id: "ORD-010"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    target_volume: 1800
+    priority: 5
+    line_id: "LINE3"
+    
+  # ===== DAY 2-3 - Continue Pattern =====
+  - order_id: "ORD-011"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 6000
+    priority: 4
+    line_id: "LINE1"
+    
+  - order_id: "ORD-012"
+    product_id: "SKU-1001"  # Back to water
+    product_name: "8oz Water Bottle"
+    target_volume: 7000
+    priority: 4
+    line_id: "LINE1"
+    
+  - order_id: "ORD-013"
+    product_id: "SKU-3001"  # Sports again
+    product_name: "20oz Sports Drink"
+    target_volume: 4000
+    priority: 4
+    line_id: "LINE1"
+    
+  - order_id: "ORD-014"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    target_volume: 5500
+    priority: 4
+    line_id: "LINE2"
+    
+  - order_id: "ORD-015"
+    product_id: "SKU-2002"  # Energy drink
+    product_name: "16oz Energy Drink"
+    target_volume: 4500
+    priority: 4
+    line_id: "LINE2"
+    
+  - order_id: "ORD-016"
+    product_id: "SKU-1001"  # Back to 8oz water
+    product_name: "8oz Water Bottle"
+    target_volume: 3500
+    priority: 4
+    line_id: "LINE2"
+    
+  # ===== Continue pattern for 14 days =====
+  # Small batches, frequent product switches
+  
+  # Day 4-5
+  - order_id: "ORD-017"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 8000
+    priority: 3
+    line_id: "LINE1"
+    
+  - order_id: "ORD-018"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    target_volume: 3000
+    priority: 3
+    line_id: "LINE1"
+    
+  - order_id: "ORD-019"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    target_volume: 9000
+    priority: 3
+    line_id: "LINE1"
+    
+  - order_id: "ORD-020"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    target_volume: 5000
+    priority: 3
+    line_id: "LINE2"
+    
+  - order_id: "ORD-021"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    target_volume: 6000
+    priority: 3
+    line_id: "LINE2"
+    
+  - order_id: "ORD-022"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 4000
+    priority: 3
+    line_id: "LINE3"
+    
+  # Day 6-7
+  - order_id: "ORD-023"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    target_volume: 10000
+    priority: 3
+    line_id: "LINE1"
+    
+  - order_id: "ORD-024"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    target_volume: 4500
+    priority: 3
+    line_id: "LINE1"
+    
+  - order_id: "ORD-025"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    target_volume: 7000
+    priority: 3
+    line_id: "LINE2"
+    
+  - order_id: "ORD-026"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    target_volume: 8000
+    priority: 3
+    line_id: "LINE2"
+    
+  - order_id: "ORD-027"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 5500
+    priority: 3
+    line_id: "LINE3"
+    
+  # Day 8-10
+  - order_id: "ORD-028"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 12000
+    priority: 2
+    line_id: "LINE1"
+    
+  - order_id: "ORD-029"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    target_volume: 8000
+    priority: 2
+    line_id: "LINE1"
+    
+  - order_id: "ORD-030"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    target_volume: 6000
+    priority: 2
+    line_id: "LINE1"
+    
+  - order_id: "ORD-031"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    target_volume: 9000
+    priority: 2
+    line_id: "LINE2"
+    
+  - order_id: "ORD-032"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    target_volume: 7000
+    priority: 2
+    line_id: "LINE2"
+    
+  - order_id: "ORD-033"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    target_volume: 11000
+    priority: 2
+    line_id: "LINE3"
+    
+  # Day 11-12
+  - order_id: "ORD-034"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    target_volume: 8000
+    priority: 1
+    line_id: "LINE1"
+    
+  - order_id: "ORD-035"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 9000
+    priority: 1
+    line_id: "LINE1"
+    
+  - order_id: "ORD-036"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    target_volume: 10000
+    priority: 1
+    line_id: "LINE2"
+    
+  - order_id: "ORD-037"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    target_volume: 8500
+    priority: 1
+    line_id: "LINE2"
+    
+  - order_id: "ORD-038"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    target_volume: 13000
+    priority: 1
+    line_id: "LINE3"
+    
+  # Day 13-14
+  - order_id: "ORD-039"
+    product_id: "SKU-1001"
+    product_name: "8oz Water Bottle"
+    target_volume: 15000
+    priority: 1
+    line_id: "LINE1"
+    
+  - order_id: "ORD-040"
+    product_id: "SKU-2001"
+    product_name: "12oz Juice Blend"
+    target_volume: 10000
+    priority: 1
+    line_id: "LINE1"
+    
+  - order_id: "ORD-041"
+    product_id: "SKU-3001"
+    product_name: "20oz Sports Drink"
+    target_volume: 12000
+    priority: 1
+    line_id: "LINE2"
+    
+  - order_id: "ORD-042"
+    product_id: "SKU-1002"
+    product_name: "16oz Water Bottle"
+    target_volume: 11000
+    priority: 1
+    line_id: "LINE2"
+    
+  - order_id: "ORD-043"
+    product_id: "SKU-2002"
+    product_name: "16oz Energy Drink"
+    target_volume: 9000
+    priority: 1
+    line_id: "LINE3"
+
+# Changeover characteristics (for reference)
+changeover_matrix:
+  # Time in minutes for product changeovers
+  same_family: 15        # e.g., SKU-1001 to SKU-1002
+  different_family: 35   # e.g., SKU-1001 to SKU-2001
+  allergen_cleaning: 60  # If allergen products involved
+  
+# Expected inefficiencies
+expected_metrics:
+  changeovers_per_day: 4-6  # Per line
+  average_batch_size: 7000   # Units (smaller = more changeovers)
+  production_efficiency: 0.46  # Due to frequent changeovers
+  downtime_percent: 33       # Including changeover time
