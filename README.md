@@ -20,6 +20,10 @@ Twin Model provides a flexible, ontology-driven architecture for simulating prod
 - **Production order support** - Batch and continuous production modes
 - **Bottleneck detection** - Real-time identification of production constraints
 - **Observable events** - Event-driven architecture for monitoring and control
+- **Theory of Constraints (TOC)** - Goldratt's methodology for optimization
+- **V-curve speed design** - Automatic speed differentials for push/pull flow
+- **Batch processing** - Configurable batch sizes and processing intervals
+- **MES integration** - Complete scheduling and production management
 
 ## Installation
 
@@ -28,7 +32,7 @@ Twin Model provides a flexible, ontology-driven architecture for simulating prod
 git clone https://github.com/virtual-ontology/twin-model.git
 cd virtual-ontology
 
-# Install with Poetry
+# Install with Poetry  
 poetry install
 
 # Or install with pip
@@ -49,7 +53,7 @@ builder = OntologyModelBuilder(
     env=env,
     ontology_path="ontology/filling_line_ontology.yaml",
     manifest_path="manifests/equipment_manifest.yaml", 
-    config_path="config/tunable_parameters.yaml"
+    config_path="config/calibrated_parameters.yaml"  # Updated path
 )
 
 # Build and run simulation
@@ -136,6 +140,8 @@ source.add_order(order)
 - [Quick Start API](docs/llm-ready/02-quickstart-api.md) - API guide with three-file pathway
 - [Complete API Reference](docs/llm-ready/03-complete-api-reference.md) - Full API documentation
 - [Example Configurations](docs/llm-ready/yaml-examples/) - Sample YAML files
+- [Production Line Theory](reference/theory_notes.md) - Empirical research and industry standards
+- [Implementation Roadmap](IMPLEMENTATION_PLAN.md) - Detailed optimization plan
 
 ## Development
 
@@ -163,10 +169,12 @@ twin_model/
 ├── twin_model/           # Main package
 │   ├── primitives/       # Flow primitives (Source, Equipment, Sink)
 │   ├── monitoring/       # Real-time monitoring
+│   ├── scheduling/       # MES production scheduling
 │   └── tests/           # Unit and integration tests
 ├── ontology/            # Ontology definitions
 ├── manifests/           # Equipment manifests
 ├── config/              # Configuration files
+├── reference/           # Research and theory documentation
 └── docs/               # Documentation
 ```
 

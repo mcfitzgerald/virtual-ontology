@@ -551,3 +551,102 @@ Templates are provided for common scenarios:
    ```
 
 For detailed API documentation on configuration handling, see the API reference.
+
+## Batch Processing Parameters
+
+Critical parameters that determine actual throughput. The relationship is:
+**Actual throughput = (batch_size / processing_interval) × performance_factor × quality_rate**
+
+### Impact of Batch Size
+```yaml
+equipment:
+  batch_size: 10.0   # Units processed per batch
+  # With processing_interval=0.1: Max 100 units/min
+  # With processing_interval=0.01: Max 1000 units/min
+  
+  batch_size: 100.0  # Larger batch (10x throughput)
+  # With processing_interval=0.1: Max 1000 units/min
+  # With processing_interval=0.01: Max 10000 units/min
+```
+
+### Impact of Processing Interval
+```yaml
+equipment:
+  processing_interval: 0.1   # Process every 6 seconds
+  # With batch_size=10: Max 100 units/min
+  # With batch_size=100: Max 1000 units/min
+  
+  processing_interval: 0.01  # Process every 0.6 seconds (10x faster)
+  # With batch_size=10: Max 1000 units/min
+  # With batch_size=100: Max 10000 units/min
+```
+
+### Recommended Settings for Realistic Throughput
+Based on industry research (see `reference/theory_notes.md`):
+
+```yaml
+# For 100-200 units/min target throughput:
+defaults:
+  equipment:
+    batch_size: 100.0         # Process 100 units at a time
+    processing_interval: 0.1   # Every 6 seconds
+    # Result: 1000 units/min max capacity
+    # With performance_factor=0.5: 500 units/min actual
+    # With quality_rate=0.95: 475 units/min good output
+```
+
+## V-Curve Speed Design
+
+Implements the production line V-curve principle where the constraint (bottleneck) operates at the lowest speed, with upstream and downstream equipment running faster.
+
+### Speed Differential Strategy
+```yaml
+# Based on Theory of Constraints (Goldratt)
+# Constraint = Filler (100%)
+# Upstream = +10-20% (push material to constraint)
+# Downstream = +10-30% (pull material from constraint)
+
+equipment_parameters:
+  # Upstream equipment (push)
+  LINE1-SOURCE:
+    generation_rate: 120.0   # 120% of filler speed
+    
+  # Constraint (bottleneck)
+  LINE1-FIL:
+    nominal_rate: 100.0      # Base speed (100%)
+    
+  # Downstream equipment (pull)
+  LINE1-PCK:
+    nominal_rate: 110.0      # 110% of filler speed
+  LINE1-PAL:
+    nominal_rate: 130.0      # 130% of filler speed
+  LINE1-SINK:
+    collection_rate: 130.0   # Match fastest downstream
+```
+
+### Benefits of V-Curve Design
+- Prevents constraint starvation (always has input material)
+- Prevents constraint blocking (output always consumed)
+- Maximizes constraint utilization (key to overall throughput)
+- Creates natural accumulation points
+
+### Example for Three-Line System
+```yaml
+# LINE 1 - Small scale (100 units/min constraint)
+LINE1-SOURCE: 120  # Push
+LINE1-FIL: 100     # Constraint
+LINE1-PCK: 110     # Pull
+LINE1-PAL: 130     # Pull
+
+# LINE 2 - Standard (150 units/min constraint)
+LINE2-SOURCE: 180  # Push
+LINE2-FIL: 150     # Constraint
+LINE2-PCK: 165     # Pull
+LINE2-PAL: 195     # Pull
+
+# LINE 3 - High speed (200 units/min constraint)
+LINE3-SOURCE: 240  # Push
+LINE3-FIL: 200     # Constraint
+LINE3-PCK: 220     # Pull
+LINE3-PAL: 260     # Pull
+```

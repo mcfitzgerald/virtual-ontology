@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Production line theory documentation**:
+  - Created comprehensive `reference/theory_notes.md` with empirical research
+  - Documented real-world production speeds (100-200 units/min standard)
+  - Added Theory of Constraints (TOC) implementation guide
+  - Included V-curve design principles and speed differentials
+  - Collected industry references and white papers
+- **Implementation roadmap**:
+  - Created `IMPLEMENTATION_PLAN.md` with 5-phase optimization approach
+  - Phase 1: Configuration corrections (batch_size fix)
+  - Phase 2: Code enhancements (V-curve controller, accumulation)
+  - Detailed task breakdown with success metrics
+- **Optimization guide**:
+  - Created `docs/optimization-guide.md` with progressive OEE improvement path
+  - Stages from baseline (45-50% OEE) to world-class (75-80% OEE)
+  - Parameter tuning guidelines with impact matrix
+  - Bottleneck exploitation strategies based on TOC
+
+### Changed
+- **Documentation updates**:
+  - Updated README.md with correct config path (`calibrated_parameters.yaml`)
+  - Added Theory of Constraints and V-curve design to feature list
+  - Added links to new theory and implementation documentation
+  - Updated DOCS_TOC.md to include reference directory structure
+- **Configuration documentation**:
+  - Enhanced `05-configuration-reference.md` with batch processing parameters section
+  - Added V-curve speed design configuration examples
+  - Documented critical batch_size/processing_interval relationship
+  - Added formula: throughput = (batch_size / processing_interval) × performance × quality
+- **YAML example improvements**:
+  - Updated `config-parameters.yaml` with critical comments about batch_size impact
+  - Changed example batch_size from 10 to 100 for realistic throughput
+  - Added V-curve speed differentials in equipment parameters
+- **Sphinx API documentation**:
+  - Regenerated autoapi documentation
+  - Removed duplicate attributes from documentation
+  - Added logger attributes for equipment and source flow modules
+
 ### Fixed
 - **Critical parameter resolution bug in OntologyModelBuilder**:
   - Fixed pre-merging of defaults that caused type-specific defaults to be overridden

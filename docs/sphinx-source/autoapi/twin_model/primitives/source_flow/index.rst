@@ -12,6 +12,14 @@ twin_model.primitives.source_flow
 
 
 
+Attributes
+----------
+
+.. autoapisummary::
+
+   twin_model.primitives.source_flow.logger
+
+
 Classes
 -------
 
@@ -23,6 +31,8 @@ Classes
 
 Module Contents
 ---------------
+
+.. py:data:: logger
 
 .. py:class:: ProductionOrder
 

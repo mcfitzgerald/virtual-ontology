@@ -9,6 +9,10 @@ This directory contains comprehensive documentation for the Twin Model simulatio
 docs/
 ├── DOCS_TOC.md                          # This file - navigation guide
 │
+├── reference/                           # Research and theory documentation
+│   ├── theory_notes.md                  # Production line theory and empirical data
+│   └── White_Paper_*.pdf               # Industry reference materials (Sidel)
+│
 ├── llm-ready/                           # LLM-optimized documentation
 │   ├── 01-architecture-overview.md      # Ontology-driven architecture with MES integration
 │   ├── 02-quickstart-api.md            # Quick start guide with MES examples
@@ -36,6 +40,9 @@ docs/
 │
 ├── planning/                             # Historical planning documents
 │   └── (archived planning docs)
+│
+├── IMPLEMENTATION_PLAN.md               # Optimization roadmap (in root)
+├── PROJECT_STATUS_HANDOVER.md           # Current system state (in root)
 │
 └── build/                                # Generated documentation (git-ignored)
     ├── html/                            # HTML documentation

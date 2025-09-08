@@ -529,13 +529,6 @@ Package Contents
 
 
 
-   .. py:attribute:: total_scrap
-      :value: 0.0
-
-
-      Total scrap produced.
-
-
    .. py:attribute:: production_windows
       :type:  list[ProductionWindow]
       :value: []

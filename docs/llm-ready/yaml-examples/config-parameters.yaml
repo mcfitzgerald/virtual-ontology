@@ -1,6 +1,12 @@
 # Tunable Parameters Configuration
 # These are the parameters we adjust during simulations
 # Separated from structure (ontology) and instances (manifest)
+#
+# IMPORTANT: Batch processing parameters critically impact throughput
+# Actual throughput = (batch_size / processing_interval) × performance_factor × quality_rate
+# Example: (100 / 0.1) × 0.85 × 0.95 = 807 units/min theoretical max
+#
+# For realistic production rates (100-200 units/min), see reference/theory_notes.md
 
 metadata:
   name: "Simulation Tunable Parameters"
@@ -11,15 +17,15 @@ metadata:
 # Default values for parameter types
 defaults:
   source:
-    generation_rate: 60.0  # units/minute
+    generation_rate: 120.0  # units/minute (V-curve: 20% above constraint)
     generation_interval: 0.1  # minutes
     continuous_mode: true
     default_product: "SKU-1001"
   
   equipment:
     performance_factor: 0.85  # 85% of nominal
-    batch_size: 10.0  # units per batch
-    processing_interval: 0.1  # minutes
+    batch_size: 100.0  # units per batch (CRITICAL: was 10.0, limits throughput)
+    processing_interval: 0.1  # minutes (with batch_size=100: 1000 units/min max)
     quality_rate: 0.95  # 95% good output
     
     # Failure parameters
@@ -34,20 +40,21 @@ defaults:
     window_duration: 5.0  # minutes for OEE calculation
 
 # Equipment-specific tunable parameters
+# V-curve design: Source +20%, Filler (constraint), Packer +10%, Palletizer +30%
 equipment_parameters:
-  # LINE1 Equipment
+  # LINE1 Equipment (100 units/min target)
   LINE1-SOURCE:
-    generation_rate: 60.0
+    generation_rate: 120.0  # V-curve: +20% of filler
     generation_interval: 0.1
     continuous_mode: true
     default_product: "SKU-1001"
     
   LINE1-FIL:
-    nominal_rate: 50.0
-    fill_rate: 50.0  # Specific to filler
+    nominal_rate: 100.0  # Constraint (bottleneck)
+    fill_rate: 100.0  # Specific to filler
     quality_rate: 0.95
     performance_factor: 0.9  # SKU-1001 performance
-    batch_size: 10.0
+    batch_size: 100.0  # Critical for throughput
     processing_interval: 0.1
     mtbf: 15.0  # More frequent failures
     mttr: 8.0

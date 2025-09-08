@@ -12,6 +12,14 @@ twin_model.primitives.equipment_flow
 
 
 
+Attributes
+----------
+
+.. autoapisummary::
+
+   twin_model.primitives.equipment_flow.logger
+
+
 Classes
 -------
 
@@ -24,6 +32,8 @@ Classes
 
 Module Contents
 ---------------
+
+.. py:data:: logger
 
 .. py:class:: ProcessingParameters
 
