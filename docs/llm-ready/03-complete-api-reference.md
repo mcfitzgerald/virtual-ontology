@@ -2298,3 +2298,298 @@ twin_model.transduction.mes_collector.MESDataCollector
 > >
 > > returns
 > > :   Dictionary with summary statistics
+
+## twin_model.primitives.buffer_flow
+
+### AccumulationBuffer
+
+Dynamic accumulation buffer for managing material flow between equipment.
+
+#### Overview
+
+The `AccumulationBuffer` class provides inter-equipment flow management with:
+- FIFO (First-In-First-Out) and FILO (First-In-Last-Out) operation modes
+- Configurable capacity and flow rate constraints
+- Overflow and underflow detection
+- Dwell time tracking for material residence
+- Real-time state monitoring and metrics
+
+#### Class Definition
+
+```python
+class AccumulationBuffer(BaseFlowPrimitive):
+    """Dynamic accumulation buffer between equipment."""
+    
+    def __init__(
+        self,
+        env: simpy.Environment,
+        config: dict[str, Any],
+        flow_capacity: FlowCapacity,
+        buffer_params: BufferParameters
+    ) -> None:
+        """Initialize accumulation buffer.
+        
+        Args:
+            env: SimPy environment
+            config: Configuration dictionary with buffer settings
+            flow_capacity: Flow capacity constraints
+            buffer_params: Buffer-specific parameters
+        """
+```
+
+#### Key Parameters
+
+**BufferParameters**:
+- `capacity`: Maximum buffer storage capacity (units)
+- `initial_level`: Starting material level (units)
+- `mode`: Operation mode ("FIFO" or "FILO")
+- `max_flow_rate`: Maximum input/output flow rate (units/min)
+- `warning_low`: Low level warning threshold (%)
+- `warning_high`: High level warning threshold (%)
+- `update_interval`: Flow update interval (minutes)
+
+#### Methods
+
+- `connect(upstream, downstream)`: Connect buffer to equipment
+- `process_flow()`: Main flow processing coroutine
+- `get_metrics()`: Get current buffer metrics
+- `get_utilization()`: Calculate buffer utilization percentage
+
+#### Usage Example
+
+```python
+from twin_model.primitives.buffer_flow import AccumulationBuffer, BufferParameters
+
+# Create buffer parameters
+buffer_params = BufferParameters(
+    capacity=1000.0,
+    initial_level=500.0,
+    mode="FIFO",
+    max_flow_rate=100.0,
+    warning_low=0.2,
+    warning_high=0.8
+)
+
+# Create buffer
+buffer = AccumulationBuffer(
+    env=env,
+    config={"id": "BUF-001", "name": "Main Buffer"},
+    flow_capacity=flow_capacity,
+    buffer_params=buffer_params
+)
+
+# Connect to equipment
+buffer.connect(upstream_equipment, downstream_equipment)
+buffer.start()
+```
+
+## twin_model.control.vcurve_controller
+
+### VCurveController
+
+Implements V-curve speed control based on Theory of Constraints (TOC) principles.
+
+#### Overview
+
+The `VCurveController` manages production line speeds to protect the constraint (bottleneck) equipment by:
+- Running upstream equipment faster to prevent constraint starvation
+- Running downstream equipment faster to prevent constraint blocking
+- Dynamically identifying and adapting to constraint changes
+- Monitoring constraint protection metrics
+
+#### Class Definition
+
+```python
+class VCurveController:
+    """V-curve speed controller for production lines."""
+    
+    def __init__(
+        self,
+        env: simpy.Environment,
+        equipment: dict[str, BaseFlowPrimitive],
+        params: VCurveParameters
+    ) -> None:
+        """Initialize V-curve controller.
+        
+        Args:
+            env: SimPy environment
+            equipment: Dictionary of equipment to control
+            params: V-curve control parameters
+        """
+```
+
+#### Key Parameters
+
+**VCurveParameters**:
+- `mode`: Control mode ("FIXED_CONSTRAINT" or "DYNAMIC_CONSTRAINT")
+- `constraint_equipment`: ID of constraint equipment (fixed mode)
+- `upstream_differential`: Speed increase for upstream equipment (0.15-0.25)
+- `downstream_differential`: Speed increase for downstream equipment (0.10-0.20)
+- `update_interval`: Control update interval (minutes)
+- `max_speed_multiplier`: Maximum speed multiplier (1.3-1.5)
+- `min_speed_multiplier`: Minimum speed multiplier (0.8-0.9)
+
+#### Control Modes
+
+1. **FIXED_CONSTRAINT**: Constraint is predetermined and doesn't change
+2. **DYNAMIC_CONSTRAINT**: Controller identifies constraint based on utilization
+
+#### Methods
+
+- `start()`: Start the control process
+- `identify_constraint()`: Identify current constraint equipment
+- `calculate_speeds()`: Calculate V-curve speed adjustments
+- `apply_speed_adjustments()`: Apply calculated speeds to equipment
+- `get_metrics()`: Get controller performance metrics
+
+#### Usage Example
+
+```python
+from twin_model.control.vcurve_controller import VCurveController, VCurveParameters
+from twin_model.control.vcurve_controller import VCurveMode
+
+# Create V-curve parameters
+vcurve_params = VCurveParameters(
+    mode=VCurveMode.FIXED_CONSTRAINT,
+    constraint_equipment="LINE1-FIL",
+    upstream_differential=0.20,  # 20% faster upstream
+    downstream_differential=0.15,  # 15% faster downstream
+    update_interval=5.0,
+    max_speed_multiplier=1.4,
+    min_speed_multiplier=0.85
+)
+
+# Create controller
+controller = VCurveController(
+    env=env,
+    equipment=equipment_dict,
+    params=vcurve_params
+)
+
+# Start control
+controller.start()
+
+# Get metrics after running
+metrics = controller.get_metrics()
+print(f"Constraint starvation: {metrics['constraint_starvation_rate']*100:.1f}%")
+print(f"Constraint blocking: {metrics['constraint_blocking_rate']*100:.1f}%")
+```
+
+## twin_model.scheduling.schedule_generator
+
+### ScheduleGenerator
+
+Generates production schedules with configurable optimization strategies.
+
+#### Overview
+
+The `ScheduleGenerator` creates production orders for simulation with:
+- Multiple sequencing strategies (optimized, random, campaign)
+- Configurable batch sizing (fixed, dynamic, economic)
+- Changeover time consideration
+- Product family grouping
+- Demand-based prioritization
+
+#### Class Definition
+
+```python
+class ScheduleGenerator:
+    """Production schedule generator."""
+    
+    def __init__(
+        self,
+        config: ScheduleGeneratorConfig,
+        product_manifest_path: Path,
+        random_seed: int = None
+    ) -> None:
+        """Initialize schedule generator.
+        
+        Args:
+            config: Schedule generation configuration
+            product_manifest_path: Path to product manifest YAML
+            random_seed: Random seed for reproducibility
+        """
+```
+
+#### Key Configuration
+
+**ScheduleGeneratorConfig**:
+- `sequence_mode`: Order sequencing strategy ("optimized", "random", "campaign")
+- `batch_sizing`: Batch size strategy ("fixed", "dynamic", "economic")
+- `min_batch_hours`: Minimum batch duration (hours)
+- `max_batch_hours`: Maximum batch duration (hours)
+- `changeover_frequency_target`: Target changeover time percentage (0.10-0.20)
+- `product_families`: Product family definitions for grouping
+
+#### Sequencing Strategies
+
+1. **Optimized**: Minimizes changeover time and groups similar products
+2. **Random**: Random product sequencing (sub-optimal baseline)
+3. **Campaign**: Long runs of same product family
+
+#### Methods
+
+- `generate_schedule()`: Generate production schedule
+- `calculate_changeover_time()`: Calculate changeover between products
+- `optimize_sequence()`: Optimize order sequence
+- `get_metrics()`: Get schedule generation metrics
+
+#### Usage Example
+
+```python
+from twin_model.scheduling.schedule_generator import (
+    ScheduleGenerator, 
+    ScheduleGeneratorConfig,
+    ProductionOrder
+)
+
+# Create configuration
+config = ScheduleGeneratorConfig(
+    sequence_mode="optimized",
+    batch_sizing="dynamic",
+    min_batch_hours=4.0,
+    max_batch_hours=12.0,
+    changeover_frequency_target=0.15
+)
+
+# Create generator
+generator = ScheduleGenerator(
+    config=config,
+    product_manifest_path=Path("config/product_manifest.yaml"),
+    random_seed=42
+)
+
+# Generate 7-day schedule
+orders = generator.generate_schedule(
+    duration_days=7,
+    start_date=datetime(2025, 1, 1)
+)
+
+# Process orders
+for order in orders:
+    print(f"Order {order.order_id}: {order.product_id} "
+          f"on LINE{order.line_id} for {order.target_volume} units")
+```
+
+### SubOptimalScheduleGenerator
+
+Specialized generator for creating deliberately sub-optimal schedules for baseline comparisons.
+
+```python
+class SubOptimalScheduleGenerator(ScheduleGenerator):
+    """Generate sub-optimal schedules for baseline testing."""
+    
+    def generate_schedule(
+        self,
+        duration_days: int,
+        start_date: datetime
+    ) -> list[ProductionOrder]:
+        """Generate sub-optimal schedule with poor sequencing."""
+```
+
+Features:
+- Excessive changeovers through random sequencing
+- Short batch sizes causing frequent equipment stops
+- Poor product family grouping
+- Misaligned line assignments
+

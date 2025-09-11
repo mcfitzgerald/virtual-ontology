@@ -1,0 +1,155 @@
+# V-Curve Controller Configuration Example
+# Implements Theory of Constraints speed control for production lines
+
+metadata:
+  name: "V-Curve Controller Configuration"
+  version: "1.0.0"
+  description: "Example V-curve configuration for constraint protection"
+
+# Basic V-curve configuration
+vcurve_configuration:
+  # Control mode selection
+  mode: "FIXED_CONSTRAINT"        # Use fixed constraint identification
+  # mode: "DYNAMIC_CONSTRAINT"    # Alternative: dynamic constraint finding
+  
+  # Speed differential settings (based on TOC best practices)
+  upstream_differential: 0.20     # Run upstream 20% faster
+  downstream_differential: 0.15   # Run downstream 15% faster
+  
+  # Control loop parameters
+  update_interval: 5.0            # Update speeds every 5 minutes
+  response_delay: 1.0             # Wait 1 minute after changes
+  
+  # Speed limits for safety
+  max_speed_multiplier: 1.4      # Maximum 140% of nominal speed
+  min_speed_multiplier: 0.85     # Minimum 85% of nominal speed
+  
+  # Constraint definition for fixed mode
+  constraint_equipment: "LINE1-FIL"
+
+# Multi-line V-curve configuration
+multi_line_vcurve:
+  # Global settings
+  mode: "FIXED_CONSTRAINT"
+  update_interval: 5.0
+  
+  # Line-specific constraints and settings
+  lines:
+    LINE1:
+      constraint: "LINE1-FIL"
+      upstream_differential: 0.20
+      downstream_differential: 0.15
+      max_speed: 1.35
+      min_speed: 0.90
+      
+    LINE2:
+      constraint: "LINE2-PCK"     # Different constraint on LINE2
+      upstream_differential: 0.18  # Slightly less aggressive
+      downstream_differential: 0.12
+      max_speed: 1.30
+      min_speed: 0.85
+      
+    LINE3:
+      constraint: "LINE3-FIL"
+      upstream_differential: 0.25  # More aggressive for high-speed line
+      downstream_differential: 0.20
+      max_speed: 1.45
+      min_speed: 0.80
+
+# Dynamic constraint mode configuration
+dynamic_constraint_config:
+  mode: "DYNAMIC_CONSTRAINT"
+  
+  # Constraint identification parameters
+  identification:
+    method: "utilization"         # Identify by highest utilization
+    # method: "throughput"        # Alternative: lowest throughput
+    observation_window: 30.0      # Observe for 30 minutes
+    confidence_threshold: 0.85    # Need 85% confidence
+    
+  # Re-evaluation triggers
+  triggers:
+    time_based: 60.0              # Re-evaluate every hour
+    event_based:
+      - "major_failure"           # Re-evaluate on failures
+      - "product_change"          # Re-evaluate on changeovers
+      - "shift_change"            # Re-evaluate on shift changes
+  
+  # Smooth transitions
+  transition:
+    ramp_time: 5.0               # Ramp speeds over 5 minutes
+    step_size: 0.05              # Change by 5% steps
+
+# Advanced V-curve features
+advanced_features:
+  # Constraint protection monitoring
+  protection_monitoring:
+    track_starvation: true
+    track_blocking: true
+    starvation_threshold: 0.05   # Alert if starved > 5% of time
+    blocking_threshold: 0.05     # Alert if blocked > 5% of time
+  
+  # Adaptive speed adjustments
+  adaptive_control:
+    enabled: true
+    learning_rate: 0.1           # Adjust differentials slowly
+    target_utilization: 0.95     # Target 95% constraint utilization
+    
+    # Adjustment rules
+    rules:
+      - if: "starvation_rate > 0.10"
+        then: "increase upstream_differential by 0.02"
+      - if: "blocking_rate > 0.10"
+        then: "increase downstream_differential by 0.02"
+      - if: "constraint_utilization < 0.90"
+        then: "increase both differentials by 0.01"
+
+# Speed profiles for different scenarios
+speed_profiles:
+  # Normal production
+  normal:
+    upstream_differential: 0.20
+    downstream_differential: 0.15
+    max_speed: 1.40
+    min_speed: 0.85
+  
+  # High-demand scenario
+  high_demand:
+    upstream_differential: 0.25   # More aggressive
+    downstream_differential: 0.20
+    max_speed: 1.50              # Allow higher speeds
+    min_speed: 0.90
+  
+  # Maintenance mode
+  maintenance:
+    upstream_differential: 0.10   # Conservative
+    downstream_differential: 0.10
+    max_speed: 1.20              # Limited speeds
+    min_speed: 0.70
+  
+  # Energy-saving mode
+  energy_saving:
+    upstream_differential: 0.15
+    downstream_differential: 0.10
+    max_speed: 1.25
+    min_speed: 0.75
+
+# Integration with other systems
+integration:
+  # MES integration
+  mes_feedback:
+    enabled: true
+    use_oee_data: true           # Adjust based on OEE
+    use_quality_data: true       # Consider quality issues
+  
+  # Predictive maintenance integration
+  maintenance_integration:
+    enabled: true
+    reduce_speed_before_failure: true
+    speed_reduction_factor: 0.90
+  
+  # Energy management
+  energy_management:
+    enabled: true
+    peak_hours: ["14:00-18:00"]
+    peak_speed_limit: 1.20       # Limit during peak hours

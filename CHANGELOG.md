@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Comprehensive LLM-optimized documentation enhancements**:
+  - Expanded architecture overview with detailed flow dynamics and v-curve theory
+  - Complete API reference with all public methods and parameters
+  - Enhanced MES integration guide with practical examples and testing scenarios
+  - Detailed configuration reference with YAML examples for all components
+  - Added YAML example files for buffer, schedule, and vcurve configurations
+  - Structured examples demonstrating real-world usage patterns
+
 ### Fixed
 - **Critical state duration tracking bug in equipment flow**:
   - Equipment was calling `change_state()` repeatedly with the same state (e.g., FLOWING)

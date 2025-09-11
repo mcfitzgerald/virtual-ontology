@@ -650,3 +650,298 @@ LINE3-FIL: 200     # Constraint
 LINE3-PCK: 220     # Pull
 LINE3-PAL: 260     # Pull
 ```
+## Buffer Configuration
+
+### Buffer Parameters
+
+Buffers are configured in the `buffer_configuration` section of the config file.
+
+```yaml
+buffer_configuration:
+  pre_constraint:
+    LINE1-BUF-FIL:
+      capacity: 300          # Units of material
+      initial_level: 150      # Starting level
+      mode: "FIFO"           # FIFO or FILO
+      max_flow_rate: 150     # Units/minute
+      warning_low: 0.2       # 20% warning threshold
+      warning_high: 0.8      # 80% warning threshold
+      update_interval: 0.1   # Minutes between updates
+  
+  post_constraint:
+    LINE1-BUF-PCK:
+      capacity: 150
+      initial_level: 75
+      mode: "FIFO"
+      max_flow_rate: 120
+  
+  between_equipment:
+    LINE1-BUF-PAL:
+      capacity: 90
+      initial_level: 45
+      mode: "FIFO"
+```
+
+### Buffer Sizing Guidelines
+
+#### Pre-Constraint Buffers
+- **Purpose**: Protect constraint from upstream starvation
+- **Size**: 3-5 minutes of constraint production
+- **Calculation**: `capacity = constraint_rate * 3 to 5`
+
+#### Post-Constraint Buffers  
+- **Purpose**: Protect constraint from downstream blocking
+- **Size**: 2-3 minutes of constraint production
+- **Calculation**: `capacity = constraint_rate * 2 to 3`
+
+#### Between Equipment Buffers
+- **Purpose**: Decouple equipment operations
+- **Size**: 1-2 minutes of production
+- **Calculation**: `capacity = equipment_rate * 1 to 2`
+
+### Buffer Warning Levels
+
+```yaml
+warning_low: 0.2   # Trigger when buffer < 20% full
+warning_high: 0.8  # Trigger when buffer > 80% full
+```
+
+These thresholds help identify:
+- **Low warnings**: Risk of starvation
+- **High warnings**: Risk of blocking
+
+## V-Curve Controller Configuration
+
+### V-Curve Parameters
+
+Configure the V-curve controller in the `vcurve_configuration` section:
+
+```yaml
+vcurve_configuration:
+  mode: "FIXED_CONSTRAINT"              # or "DYNAMIC_CONSTRAINT"
+  constraint_equipment: "LINE1-FIL"     # For fixed mode
+  upstream_differential: 0.20           # 20% faster upstream
+  downstream_differential: 0.15         # 15% faster downstream
+  update_interval: 5.0                  # Minutes between updates
+  max_speed_multiplier: 1.4            # Maximum 140% of nominal
+  min_speed_multiplier: 0.85           # Minimum 85% of nominal
+  
+  # For multi-line systems
+  constraints:
+    LINE1: "LINE1-FIL"
+    LINE2: "LINE2-FIL"
+    LINE3: "LINE3-FIL"
+```
+
+### Control Modes
+
+#### Fixed Constraint Mode
+```yaml
+mode: "FIXED_CONSTRAINT"
+constraint_equipment: "LINE1-FIL"
+```
+- Constraint is pre-defined and doesn't change
+- Suitable for stable production lines
+- Lower computational overhead
+
+#### Dynamic Constraint Mode
+```yaml
+mode: "DYNAMIC_CONSTRAINT"
+identification_method: "utilization"  # or "throughput"
+identification_interval: 30.0        # Minutes
+```
+- Automatically identifies bottleneck
+- Adapts to changing conditions
+- Better for variable production
+
+### Speed Differential Guidelines
+
+Based on Theory of Constraints best practices:
+
+```yaml
+# Conservative settings (stable production)
+upstream_differential: 0.15    # 15% faster
+downstream_differential: 0.10  # 10% faster
+
+# Standard settings (balanced)
+upstream_differential: 0.20    # 20% faster
+downstream_differential: 0.15  # 15% faster
+
+# Aggressive settings (maximize throughput)
+upstream_differential: 0.25    # 25% faster
+downstream_differential: 0.20  # 20% faster
+```
+
+### Example Multi-Line Configuration
+
+```yaml
+vcurve_configuration:
+  mode: "FIXED_CONSTRAINT"
+  update_interval: 5.0
+  
+  # Different settings per line
+  line_specific:
+    LINE1:
+      constraint: "LINE1-FIL"
+      upstream_differential: 0.20
+      downstream_differential: 0.15
+    LINE2:
+      constraint: "LINE2-PCK"  # Different constraint
+      upstream_differential: 0.18
+      downstream_differential: 0.12
+    LINE3:
+      constraint: "LINE3-FIL"
+      upstream_differential: 0.22
+      downstream_differential: 0.17
+```
+
+## Schedule Generator Configuration
+
+### Schedule Generation Parameters
+
+Configure production scheduling in the `schedule_generation` section:
+
+```yaml
+schedule_generation:
+  sequence_mode: "optimized"           # optimized, random, campaign
+  batch_sizing: "dynamic"              # fixed, dynamic, economic
+  min_batch_hours: 4.0                # Minimum batch duration
+  max_batch_hours: 12.0               # Maximum batch duration
+  changeover_frequency_target: 0.10   # Target 10% changeover time
+  
+  # Product family definitions
+  product_families:
+    water:
+      products: ["SKU-1001", "SKU-1002", "SKU-1003"]
+      changeover_time: 15  # Minutes within family
+    soda:
+      products: ["SKU-2001", "SKU-2002", "SKU-2003"]
+      changeover_time: 15
+    juice:
+      products: ["SKU-3001", "SKU-3002", "SKU-3003"]
+      changeover_time: 20
+  
+  # Cross-family changeover times
+  family_changeover_matrix:
+    water_to_soda: 30
+    water_to_juice: 45
+    soda_to_water: 35
+    soda_to_juice: 40
+    juice_to_water: 50
+    juice_to_soda: 45
+```
+
+### Sequencing Strategies
+
+#### Optimized Sequencing
+```yaml
+sequence_mode: "optimized"
+optimization_objective: "minimize_changeover"  # or "maximize_throughput"
+```
+- Groups similar products
+- Minimizes changeover time
+- Considers product families
+
+#### Random Sequencing (Sub-optimal)
+```yaml
+sequence_mode: "random"
+random_seed: 42  # For reproducibility
+```
+- Creates baseline for improvement
+- Generates excessive changeovers
+- Used for testing scenarios
+
+#### Campaign Mode
+```yaml
+sequence_mode: "campaign"
+campaign_duration_days: 2  # Run same family for 2 days
+```
+- Long runs of same product family
+- Minimal changeovers
+- Good for stable demand
+
+### Batch Sizing Strategies
+
+#### Fixed Batch Size
+```yaml
+batch_sizing: "fixed"
+fixed_batch_hours: 8.0
+```
+
+#### Dynamic Batch Size
+```yaml
+batch_sizing: "dynamic"
+min_batch_hours: 4.0
+max_batch_hours: 16.0
+demand_factor: 0.7  # Consider 70% of demand in sizing
+```
+
+#### Economic Batch Quantity
+```yaml
+batch_sizing: "economic"
+setup_cost: 1000.0      # Cost per changeover
+holding_cost: 10.0      # Cost per unit per hour
+```
+
+### Changeover Matrix Configuration
+
+Define changeover times between products:
+
+```yaml
+changeover_matrix:
+  SKU-1001:
+    SKU-1002: 10   # Same family, quick change
+    SKU-2001: 30   # Different family, longer
+    SKU-3001: 45   # Different family, cleaning required
+  SKU-2001:
+    SKU-2002: 12
+    SKU-1001: 35   # Back to water, cleaning
+    SKU-3001: 40
+```
+
+## Sub-Optimal Baseline Configuration
+
+For creating improvement opportunities:
+
+```yaml
+# baseline_suboptimal.yaml
+equipment_performance:
+  failure_multipliers:
+    mtbf_multiplier: 0.5      # Failures 2x as often
+    mttr_multiplier: 1.5      # Repairs take 50% longer
+    micro_stop_rate_multiplier: 2.0
+    micro_stop_duration_multiplier: 1.5
+  
+  performance_factors:
+    LINE1-FIL: 0.85   # Running at 85% speed
+    LINE1-PCK: 0.88
+    LINE1-PAL: 0.90
+  
+  quality_rates:
+    LINE1-FIL: 0.92   # 8% scrap rate
+    LINE1-PCK: 0.94
+    LINE1-PAL: 0.96
+
+buffer_configuration:
+  # Undersized buffers cause starvation/blocking
+  pre_constraint:
+    LINE1-BUF-FIL:
+      capacity: 60    # Only 1 minute (should be 3-5)
+  
+vcurve_configuration:
+  # Poor speed differentials
+  upstream_differential: 0.05    # Only 5% (should be 20%)
+  downstream_differential: 0.05  # Only 5% (should be 15%)
+
+schedule_generation:
+  sequence_mode: "random"        # Poor sequencing
+  min_batch_hours: 2.0          # Too short
+  max_batch_hours: 6.0          # Still too short
+```
+
+This configuration typically produces:
+- **OEE**: 45-55% (target for baseline)
+- **Availability**: 65-75%
+- **Performance**: 70-80%
+- **Quality**: 85-92%
+

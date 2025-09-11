@@ -1,0 +1,107 @@
+# Buffer Configuration Example
+# This file demonstrates buffer configuration for a three-line production system
+
+metadata:
+  name: "Buffer Configuration Example"
+  version: "1.0.0"
+  description: "Example buffer configuration with proper sizing based on TOC principles"
+
+# Buffer configuration follows Theory of Constraints principles
+# Pre-constraint buffers: 3-5 minutes of constraint production
+# Post-constraint buffers: 2-3 minutes of constraint production
+# Between equipment: 1-2 minutes of production
+
+buffer_configuration:
+  # LINE 1 Buffers (Constraint: Filler at 100 units/min)
+  LINE1_buffers:
+    pre_constraint:
+      LINE1-BUF-FIL:
+        capacity: 400           # 4 minutes of filler production
+        initial_level: 200       # Start at 50% full
+        mode: "FIFO"            # First-in-first-out
+        max_flow_rate: 150      # Match upstream equipment
+        warning_low: 0.25       # Warn at 25% full
+        warning_high: 0.75      # Warn at 75% full
+        update_interval: 0.1    # Update every 0.1 minutes
+    
+    post_constraint:
+      LINE1-BUF-PCK:
+        capacity: 250           # 2.5 minutes of filler production
+        initial_level: 125      # Start at 50% full
+        mode: "FIFO"
+        max_flow_rate: 120     # Match downstream equipment
+        warning_low: 0.2
+        warning_high: 0.8
+    
+    between_equipment:
+      LINE1-BUF-PAL:
+        capacity: 100           # 1 minute of production
+        initial_level: 50
+        mode: "FIFO"
+        max_flow_rate: 130     # Match palletizer speed
+
+  # LINE 2 Buffers (Constraint: Filler at 150 units/min)
+  LINE2_buffers:
+    pre_constraint:
+      LINE2-BUF-FIL:
+        capacity: 600           # 4 minutes of filler production
+        initial_level: 300
+        mode: "FIFO"
+        max_flow_rate: 200
+        warning_low: 0.25
+        warning_high: 0.75
+    
+    post_constraint:
+      LINE2-BUF-PCK:
+        capacity: 375           # 2.5 minutes of filler production
+        initial_level: 187
+        mode: "FIFO"
+        max_flow_rate: 180
+
+  # LINE 3 Buffers (Constraint: Filler at 200 units/min)
+  LINE3_buffers:
+    pre_constraint:
+      LINE3-BUF-FIL:
+        capacity: 800           # 4 minutes of filler production
+        initial_level: 400
+        mode: "FIFO"
+        max_flow_rate: 250
+        warning_low: 0.25
+        warning_high: 0.75
+
+# Special buffer configurations
+special_buffers:
+  # FILO buffer for special processing
+  rework_buffer:
+    REWORK-BUF:
+      capacity: 500
+      initial_level: 0
+      mode: "FILO"              # Last-in-first-out for rework
+      max_flow_rate: 100
+      warning_low: 0.1
+      warning_high: 0.9
+  
+  # Surge buffer for demand spikes
+  surge_buffer:
+    SURGE-BUF:
+      capacity: 2000            # Large capacity for surge protection
+      initial_level: 1000
+      mode: "FIFO"
+      max_flow_rate: 300
+      warning_low: 0.3
+      warning_high: 0.7
+
+# Buffer monitoring configuration
+buffer_monitoring:
+  alert_on_overflow: true
+  alert_on_underflow: true
+  track_dwell_time: true
+  max_dwell_time_minutes: 60    # Alert if material stays > 60 minutes
+  
+  # Performance metrics to track
+  metrics:
+    - average_fill_level
+    - overflow_count
+    - underflow_count
+    - max_dwell_time
+    - throughput_rate

@@ -419,3 +419,208 @@ This architecture is particularly valuable for:
 - Scenario testing with different configurations
 - Long-term maintenance of simulation models
 - Collaboration between domain experts and developers
+## Flow Control Components
+
+### Buffer Flow Management
+
+The Twin Model includes sophisticated buffer management for material flow control between equipment.
+
+#### AccumulationBuffer Architecture
+
+The `AccumulationBuffer` class provides inter-equipment flow management with several key features:
+
+```
+Upstream Equipment → [AccumulationBuffer] → Downstream Equipment
+                            ↓
+                    - Capacity Management
+                    - Overflow Detection
+                    - Underflow Detection
+                    - Dwell Time Tracking
+```
+
+**Key Design Principles:**
+- **Inheritance**: AccumulationBuffer extends BaseFlowPrimitive for consistency
+- **Container Sharing**: Uses SimPy containers for seamless flow integration
+- **State Tracking**: Monitors buffer levels and flow states
+- **Event-Driven**: Emits observables for monitoring
+
+**Buffer Modes:**
+- **FIFO** (First-In-First-Out): Standard queue behavior
+- **FILO** (First-In-Last-Out): Stack behavior for specific processes
+
+### V-Curve Speed Control
+
+The V-curve controller implements Theory of Constraints (TOC) principles for optimal line speed management.
+
+#### Theory of Constraints Implementation
+
+```
+        Constraint (Bottleneck)
+               ↓
+    ┌──────────┼──────────┐
+    ↓          ↓          ↓
+Upstream   Constraint  Downstream
+(+20%)      (100%)      (+15%)
+```
+
+**Control Strategy:**
+1. **Identify Constraint**: Find the bottleneck equipment
+2. **Protect Constraint**: Prevent starvation and blocking
+3. **Speed Differential**: Run non-constraints faster
+4. **Monitor Performance**: Track protection metrics
+
+**Control Modes:**
+- **Fixed Constraint**: Pre-defined bottleneck that doesn't change
+- **Dynamic Constraint**: Automatically identifies bottleneck based on utilization
+
+#### Speed Calculation Algorithm
+
+```python
+# Pseudo-code for V-curve speed calculation
+if equipment.position < constraint.position:
+    # Upstream: prevent starvation
+    speed = nominal * (1 + upstream_differential)
+elif equipment.position > constraint.position:
+    # Downstream: prevent blocking
+    speed = nominal * (1 + downstream_differential)
+else:
+    # Constraint: run at nominal
+    speed = nominal
+```
+
+### State Duration Tracking
+
+A critical aspect of the architecture is accurate state duration tracking for OEE calculations.
+
+#### State Tracking Fix
+
+The recent architecture improvement addresses a critical bug where equipment state durations weren't properly tracked:
+
+**Problem**: Equipment repeatedly called `change_state()` with the same state, preventing duration accumulation.
+
+**Solution**: Check current state before calling `change_state()`:
+```python
+if self.current_state != FlowState.FLOWING:
+    self.change_state(FlowState.FLOWING)
+```
+
+**Impact**: 
+- Accurate availability calculations
+- Correct OEE metrics
+- Reliable performance monitoring
+
+#### MES Integration Enhancement
+
+The MES collector now properly captures current state duration:
+```python
+# Include time in current state when capturing metrics
+time_in_current_state = env.now - equipment.last_state_change
+state_durations[current_state] += time_in_current_state
+```
+
+## Production Scheduling Architecture
+
+### Schedule Generation Strategy
+
+The schedule generator creates production orders with various optimization strategies:
+
+```
+Product Manifest → Schedule Generator → Production Orders
+                          ↓
+                  Optimization Strategy:
+                  - Minimize Changeovers
+                  - Group Product Families
+                  - Balance Line Utilization
+```
+
+### Sub-Optimal Baseline Generation
+
+For testing and improvement opportunities, the system can generate deliberately sub-optimal schedules:
+
+**Sub-Optimal Characteristics:**
+- Random product sequencing
+- Short batch sizes (2-6 hours)
+- Excessive changeovers (>15% of time)
+- Poor family grouping
+- Misaligned line assignments
+
+This creates a baseline with 45-55% OEE, providing clear improvement opportunities.
+
+## Data Flow Architecture
+
+### Continuous Flow Simulation
+
+The system uses SimPy containers for continuous material flow:
+
+```
+Source → Container → Equipment → Container → Equipment → Container → Sink
+           ↑                         ↑                         ↑
+      Flow Control            Buffer Management         Quality Tracking
+```
+
+**Key Principles:**
+- **No Batch Constraints**: Material flows continuously at configured rates
+- **Container-Based**: Uses SimPy's Container primitive for flow
+- **Rate-Based Processing**: Equipment processes at units/minute rates
+- **Real-Time Metrics**: Continuous tracking of throughput and quality
+
+### Event Observable Pattern
+
+All flow primitives emit observable events for monitoring:
+
+```python
+Observable Events:
+- state_change: Equipment state transitions
+- flow_processed: Material processing events
+- buffer_level: Buffer fill level changes
+- failure_start/end: Equipment failure events
+- changeover_start/end: Product changeover events
+```
+
+## Integration Points
+
+### MES Data Collection
+
+The MES collector integrates with equipment through standard interfaces:
+
+1. **Registration**: Equipment registers with collector
+2. **Interval Collection**: 5-minute data intervals
+3. **Metric Aggregation**: Calculate OEE components
+4. **CSV Export**: Standard MES format output
+
+### Configuration Integration
+
+All components integrate through the three-file system:
+
+```
+Ontology Definition → Manifest Instance → Config Parameters
+         ↓                    ↓                  ↓
+    Type System          Equipment          Operational
+    Validation           Topology           Settings
+         ↓                    ↓                  ↓
+         └────────────────────┴──────────────────┘
+                             ↓
+                    Integrated Simulation
+```
+
+## Performance Considerations
+
+### State Management Optimization
+
+- Avoid redundant state changes
+- Cache frequently accessed metrics
+- Use event-driven updates vs polling
+
+### Buffer Sizing Guidelines
+
+- Pre-constraint: 3-5 minutes of production
+- Post-constraint: 2-3 minutes of production
+- Between equipment: 1-2 minutes of production
+
+### V-Curve Tuning
+
+- Upstream differential: 15-25% (typically 20%)
+- Downstream differential: 10-20% (typically 15%)
+- Update interval: 5-10 minutes
+- Speed limits: 80-150% of nominal
+
