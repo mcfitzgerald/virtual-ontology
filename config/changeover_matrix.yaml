@@ -1,0 +1,105 @@
+# Changeover Matrix Configuration
+# Defines product changeover times for equipment
+#
+# Matrix structure:
+#   from_product -> to_product -> time (minutes)
+#
+# If a specific pair is not defined, default_time will be used
+
+changeover_matrices:
+  # Standard filler changeover matrix
+  filler_matrix:
+    default_time: 30.0
+    min_changeover_time: 5.0
+    track_patterns: true
+    matrix:
+      # Product A transitions
+      product_a:
+        product_b: 15.0  # Quick changeover between similar products
+        product_c: 45.0  # Longer changeover to different product family
+        product_d: 60.0  # Major changeover with cleaning required
+      
+      # Product B transitions
+      product_b:
+        product_a: 15.0  # Symmetric with A->B
+        product_c: 30.0  # Medium changeover
+        product_d: 45.0  # Longer changeover
+      
+      # Product C transitions
+      product_c:
+        product_a: 45.0  # Return to product A
+        product_b: 30.0  # Switch to product B
+        product_d: 20.0  # Quick change within same family
+      
+      # Product D transitions
+      product_d:
+        product_a: 60.0  # Major changeover back
+        product_b: 45.0  # Significant changeover
+        product_c: 20.0  # Quick change within family
+
+  # Packer changeover matrix (typically faster than filler)
+  packer_matrix:
+    default_time: 20.0
+    min_changeover_time: 3.0
+    track_patterns: true
+    matrix:
+      product_a:
+        product_b: 10.0
+        product_c: 25.0
+        product_d: 30.0
+      product_b:
+        product_a: 10.0
+        product_c: 20.0
+        product_d: 25.0
+      product_c:
+        product_a: 25.0
+        product_b: 20.0
+        product_d: 15.0
+      product_d:
+        product_a: 30.0
+        product_b: 25.0
+        product_c: 15.0
+
+  # Palletizer changeover matrix (minimal changeovers)
+  palletizer_matrix:
+    default_time: 10.0
+    min_changeover_time: 2.0
+    track_patterns: true
+    matrix:
+      product_a:
+        product_b: 5.0
+        product_c: 10.0
+        product_d: 10.0
+      product_b:
+        product_a: 5.0
+        product_c: 8.0
+        product_d: 8.0
+      product_c:
+        product_a: 10.0
+        product_b: 8.0
+        product_d: 5.0
+      product_d:
+        product_a: 10.0
+        product_b: 8.0
+        product_c: 5.0
+
+# Equipment type to matrix mapping
+equipment_matrix_mapping:
+  FIL: filler_matrix
+  PCK: packer_matrix
+  PAL: palletizer_matrix
+
+# Production schedule example
+example_schedule:
+  - product: product_a
+    duration: 120  # minutes
+    quantity: 12000  # units
+  - product: product_b
+    duration: 90
+    quantity: 9000
+  - product: product_c
+    duration: 150
+    quantity: 15000
+  - product: product_d
+    duration: 60
+    quantity: 6000

@@ -1,0 +1,255 @@
+# Baseline Sub-Optimal Configuration
+# This configuration is deliberately sub-optimal to create realistic improvement opportunities
+# Target: 45-55% OEE through natural emergence from poor parameter settings
+# 
+# IMPORTANT: Sub-optimal performance emerges from these settings, not from artificial injection
+
+metadata:
+  name: "Baseline Sub-Optimal Configuration"
+  version: "1.0.0"
+  description: "Deliberately sub-optimal but realistic configuration for baseline MES data generation"
+  target_oee: "45-55%"
+  created: "2025-09-10"
+
+# Buffer Configuration - UNDERSIZED (causes starvation/blocking)
+buffer_configuration:
+  # Pre-constraint buffers (should be 3-5 min worth)
+  pre_constraint:
+    LINE1-BUF-FIL:
+      capacity: 60  # 1 minute worth (sub-optimal, should be 300)
+      initial_level: 30
+      mode: "FIFO"
+    LINE2-BUF-FIL:
+      capacity: 60  # 1 minute worth
+      initial_level: 30
+      mode: "FIFO"
+    LINE3-BUF-FIL:
+      capacity: 60  # 1 minute worth
+      initial_level: 30
+      mode: "FIFO"
+  
+  # Post-constraint buffers (should be 2-3 min worth)
+  post_constraint:
+    LINE1-BUF-PCK:
+      capacity: 60  # 1 minute worth (sub-optimal, should be 150)
+      initial_level: 30
+      mode: "FIFO"
+    LINE2-BUF-PCK:
+      capacity: 60  # 1 minute worth
+      initial_level: 30
+      mode: "FIFO"
+    LINE3-BUF-PCK:
+      capacity: 60  # 1 minute worth
+      initial_level: 30
+      mode: "FIFO"
+  
+  # Between equipment buffers (should be 1-2 min worth)
+  between_equipment:
+    LINE1-BUF-PAL:
+      capacity: 30  # 0.5 minute worth (sub-optimal, should be 90)
+      initial_level: 15
+      mode: "FIFO"
+    LINE2-BUF-PAL:
+      capacity: 30  # 0.5 minute worth
+      initial_level: 15
+      mode: "FIFO"
+    LINE3-BUF-PAL:
+      capacity: 30  # 0.5 minute worth
+      initial_level: 15
+      mode: "FIFO"
+
+# V-Curve Configuration - POOR PROTECTION (constraint will starve)
+vcurve_configuration:
+  mode: "FIXED_CONSTRAINT"
+  update_interval: 5.0  # minutes
+  
+  # Sub-optimal differentials (should be 20% upstream, 15% downstream)
+  upstream_differential: 0.05  # Only 5% faster (sub-optimal)
+  downstream_differential: 0.05  # Only 5% faster (sub-optimal)
+  
+  # Speed caps that are too restrictive
+  max_speed_multiplier: 1.1  # Should be 1.3-1.5
+  min_speed_multiplier: 0.95  # Should be 0.8-0.9
+  
+  # Fixed constraints per line
+  constraints:
+    LINE1: "LINE1-FIL"  # Filler as constraint
+    LINE2: "LINE2-FIL"  # Filler as constraint
+    LINE3: "LINE3-FIL"  # Filler as constraint
+
+# Equipment Performance - EXCESSIVE FAILURES
+equipment_performance:
+  # Failure rates multiplied from baseline
+  failure_multipliers:
+    mtbf_multiplier: 0.5  # Failures happen 2x as often
+    mttr_multiplier: 1.5  # Repairs take 50% longer
+    micro_stop_rate_multiplier: 2.0  # Double micro-stops
+    micro_stop_duration_multiplier: 1.5  # 50% longer micro-stops
+  
+  # Performance degradation
+  performance_factors:
+    LINE1-FIL: 0.85  # Running at 85% speed (should be 95%)
+    LINE1-PCK: 0.88  # Running at 88% speed
+    LINE1-PAL: 0.90  # Running at 90% speed
+    LINE2-FIL: 0.83  # Running at 83% speed
+    LINE2-PCK: 0.86  # Running at 86% speed
+    LINE2-PAL: 0.89  # Running at 89% speed
+    LINE3-FIL: 0.87  # Running at 87% speed
+    LINE3-PCK: 0.85  # Running at 85% speed
+    LINE3-PAL: 0.88  # Running at 88% speed
+  
+  # Quality issues
+  quality_rates:
+    LINE1-FIL: 0.92  # 8% scrap (should be 2%)
+    LINE1-PCK: 0.94  # 6% scrap
+    LINE1-PAL: 0.96  # 4% scrap
+    LINE2-FIL: 0.91  # 9% scrap
+    LINE2-PCK: 0.93  # 7% scrap
+    LINE2-PAL: 0.95  # 5% scrap
+    LINE3-FIL: 0.93  # 7% scrap
+    LINE3-PCK: 0.92  # 8% scrap
+    LINE3-PAL: 0.94  # 6% scrap
+
+# Changeover Strategy - SUB-OPTIMAL SEQUENCING
+changeover_strategy:
+  sequence_mode: "random"  # Should be "optimized" or "family_grouping"
+  
+  # Fixed batch sizes instead of dynamic
+  batch_sizing: "fixed"  # Should be "dynamic" based on demand
+  min_batch_hours: 2  # Too short, causes excessive changeovers
+  max_batch_hours: 6  # Too short for efficient production
+  
+  # Changeover time multipliers (makes changeovers longer)
+  changeover_time_multipliers:
+    same_family: 1.2  # 20% longer than optimal
+    different_family: 1.5  # 50% longer than optimal
+    with_cleaning: 1.8  # 80% longer than optimal
+
+# Line Speed Imbalance - MISMATCHED SPEEDS
+line_balancing:
+  # Random speed variations (causes blocking/starvation)
+  speed_variation: 0.15  # 15% random variation (should be <5%)
+  
+  # Mismatched nominal rates between equipment
+  nominal_rate_adjustments:
+    # LINE1 - Packer slower than filler (bottleneck shift)
+    LINE1-FIL: 1.0
+    LINE1-PCK: 0.92  # 8% slower - causes blocking
+    LINE1-PAL: 1.05  # 5% faster - causes starvation
+    
+    # LINE2 - Palletizer slower (downstream bottleneck)
+    LINE2-FIL: 1.0
+    LINE2-PCK: 0.98
+    LINE2-PAL: 0.90  # 10% slower - causes blocking
+    
+    # LINE3 - Filler faster (upstream flooding)
+    LINE3-FIL: 1.08  # 8% faster - causes downstream stress
+    LINE3-PCK: 1.0
+    LINE3-PAL: 0.95  # 5% slower
+
+# Maintenance Windows - POOR SCHEDULING
+maintenance:
+  # Maintenance during peak production
+  scheduled_maintenance:
+    - day_of_week: "Monday"
+      hour: 10  # Peak production time
+      duration_hours: 2
+      lines_affected: ["LINE1"]
+    - day_of_week: "Wednesday"
+      hour: 14  # Peak production time
+      duration_hours: 1.5
+      lines_affected: ["LINE2"]
+    - day_of_week: "Friday"
+      hour: 9  # Start of shift
+      duration_hours: 1
+      lines_affected: ["LINE3"]
+  
+  # Reactive maintenance threshold (too high)
+  reactive_maintenance_threshold: 0.95  # Wait until 95% worn (should be 80%)
+
+# Shift Patterns - INEFFICIENT TRANSITIONS
+shift_patterns:
+  # Shift change inefficiencies
+  shift_change_impact:
+    duration_minutes: 15  # Lost production during shift change
+    efficiency_drop: 0.50  # 50% efficiency during transition
+    
+  shifts:
+    - name: "Day Shift"
+      start_hour: 6
+      end_hour: 14
+      efficiency_multiplier: 0.95  # Slightly lower efficiency
+    - name: "Evening Shift"
+      start_hour: 14
+      end_hour: 22
+      efficiency_multiplier: 0.90  # Lower efficiency
+    - name: "Night Shift"
+      start_hour: 22
+      end_hour: 6
+      efficiency_multiplier: 0.85  # Lowest efficiency
+
+# Downtime Patterns - CORRELATED FAILURES
+downtime_patterns:
+  # Cascade failures (upstream failure causes downstream)
+  cascade_probability: 0.3  # 30% chance of cascade
+  cascade_delay_minutes: 5  # Downstream fails 5 min after upstream
+  
+  # Time-based failure patterns
+  high_failure_periods:
+    - name: "Shift Change"
+      hours: [6, 14, 22]
+      failure_multiplier: 1.5  # 50% more failures
+    - name: "End of Week"
+      days: ["Thursday", "Friday"]
+      failure_multiplier: 1.2  # 20% more failures
+    - name: "Monday Morning"
+      day: "Monday"
+      hours: [6, 7, 8]
+      failure_multiplier: 1.3  # 30% more failures after weekend
+
+# Product-Specific Issues - DIFFICULT PRODUCTS
+product_difficulties:
+  SKU-2001:  # 12oz Soda
+    performance_factor: 0.85  # Harder to process
+    quality_factor: 0.90  # More defects
+    changeover_penalty: 1.2  # Takes longer to changeover
+  
+  SKU-2002:  # 16oz Energy Drink
+    performance_factor: 0.82  # Even harder
+    quality_factor: 0.88  # More quality issues
+    changeover_penalty: 1.3
+  
+  SKU-3002:  # 1L Juice
+    performance_factor: 0.80  # Slowest to process
+    quality_factor: 0.85  # Highest defect rate
+    changeover_penalty: 1.4
+
+# Expected Outcomes (for validation)
+expected_metrics:
+  overall_oee: 
+    min: 0.45
+    max: 0.55
+    target: 0.50
+  
+  availability:
+    min: 0.65
+    max: 0.75
+    target: 0.70
+  
+  performance:
+    min: 0.70
+    max: 0.80
+    target: 0.75
+  
+  quality:
+    min: 0.85
+    max: 0.92
+    target: 0.88
+  
+  # Pattern indicators (should be discoverable)
+  patterns_present:
+    - "constraint_starvation"  # >20% of time
+    - "excessive_changeovers"  # >15% of production time
+    - "speed_losses"  # Running below nominal >30%
+    - "micro_stop_accumulation"  # Frequent short stops
+    - "buffer_overflow_underflow"  # Poor buffer management

@@ -6,6 +6,14 @@ buffers:
     max_dwell_time: 180.0
     min_level: 50
     type: Buffer
+  LINE1-BUF-FIL-PCK:
+    buffer_type: FIFO
+    capacity: 60
+    description: Buffer between filler and packer on LINE1
+    max_dwell_time: 120.0
+    warning_level_low: 0.2
+    warning_level_high: 0.8
+    type: Buffer
 energy_config:
   demand_charge: 10.0
   off_peak_rate: 0.08
@@ -485,6 +493,8 @@ connections:
 - from: LINE1-SOURCE
   to: LINE1-FIL
 - from: LINE1-FIL
+  to: LINE1-BUF-FIL-PCK
+- from: LINE1-BUF-FIL-PCK
   to: LINE1-PCK
 - from: LINE1-PCK
   to: LINE1-PAL

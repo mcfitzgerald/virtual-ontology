@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 import pandas as pd
 import simpy
+import yaml
 from pathlib import Path
 
 from twin_model.primitives.base_flow import BaseFlowPrimitive, FlowState
@@ -63,7 +64,8 @@ class MESDataCollector:
         self,
         env: simpy.Environment,
         interval_minutes: float = 5.0,
-        start_date: Optional[datetime] = None
+        start_date: Optional[datetime] = None,
+        product_manifest_path: Optional[Path] = None
     ):
         """Initialize MES data collector.
         
@@ -71,6 +73,7 @@ class MESDataCollector:
             env: SimPy environment
             interval_minutes: Collection interval in minutes (default 5)
             start_date: Simulation start date (default: current date)
+            product_manifest_path: Path to product manifest YAML (optional)
         """
         self.env = env
         self.interval = interval_minutes
@@ -88,9 +91,48 @@ class MESDataCollector:
         self.current_order: Dict[str, str] = {}  # equipment_id -> order_id
         self.current_product: Dict[str, str] = {}  # equipment_id -> product_id
         
-        # Default product info (can be overridden)
-        self._setup_default_products()
+        # Load product info from manifest or use defaults
+        if product_manifest_path and product_manifest_path.exists():
+            self._load_products_from_manifest(product_manifest_path)
+        else:
+            self._setup_default_products()
         
+    def _load_products_from_manifest(self, manifest_path: Path):
+        """Load product information from product manifest YAML.
+        
+        Args:
+            manifest_path: Path to product manifest YAML file
+        """
+        try:
+            with open(manifest_path, 'r') as f:
+                manifest = yaml.safe_load(f)
+            
+            products = manifest.get('products', {})
+            
+            for product_id, product_data in products.items():
+                # Extract relevant information
+                name = product_data.get('name', product_id)
+                economics = product_data.get('economics', {})
+                production = product_data.get('production', {})
+                
+                # Convert target rate from per minute to per 5 minutes
+                target_rate_per_min = production.get('target_rate_5min', 475)
+                
+                self.product_info[product_id] = ProductInfo(
+                    product_id=product_id,
+                    product_name=name,
+                    standard_cost=economics.get('total_standard_cost', 0.15),
+                    sale_price=economics.get('sale_price', 0.50),
+                    target_rate=target_rate_per_min
+                )
+            
+            logger.info(f"Loaded {len(self.product_info)} products from {manifest_path}")
+            
+        except Exception as e:
+            logger.error(f"Failed to load product manifest: {e}")
+            logger.info("Falling back to default product information")
+            self._setup_default_products()
+    
     def _setup_default_products(self):
         """Set up default product information."""
         self.product_info = {
@@ -191,11 +233,23 @@ class MESDataCollector:
         Returns:
             Dictionary of current metrics
         """
+        # Get state durations including current state
+        state_durations = equipment.state_durations.copy()
+        
+        # Add current state duration up to now
+        current_state = equipment.current_state
+        if current_state not in state_durations:
+            state_durations[current_state] = 0.0
+        
+        # Calculate time in current state since last change
+        time_in_current_state = self.env.now - equipment.flow_metrics.last_state_change
+        state_durations[current_state] += time_in_current_state
+        
         return {
             'total_output': equipment.total_output,
             'total_scrap': equipment.total_scrap,
             'total_input': equipment.total_input,
-            'state_durations': equipment.state_durations.copy(),
+            'state_durations': state_durations,
             'timestamp': self.env.now
         }
     
@@ -289,13 +343,53 @@ class MESDataCollector:
                 machine_status = "Running"
                 downtime_reason = None
                 
-                if equipment.state == FlowState.FAILED:
+                # Check equipment state for downtime categorization
+                if hasattr(equipment, 'current_state'):
+                    state = equipment.current_state
+                else:
+                    state = getattr(equipment, 'state', FlowState.IDLE)
+                
+                if state == FlowState.FAILED:
                     machine_status = "Stopped"
-                    # Get downtime reason from equipment if available
-                    downtime_reason = getattr(equipment, 'downtime_reason', 'UNP-FAIL')
-                elif availability < 50:
+                    # Categorize failure reason
+                    if hasattr(equipment, 'downtime_reason'):
+                        downtime_reason = equipment.downtime_reason
+                    else:
+                        # Default categorization based on equipment type
+                        if equipment_type == "Filler":
+                            downtime_reason = "UNP-FIL"  # Filler failure
+                        elif equipment_type == "Packer":
+                            downtime_reason = "UNP-JAM"  # Packer jam
+                        elif equipment_type == "Palletizer":
+                            downtime_reason = "UNP-PAL"  # Palletizer issue
+                        else:
+                            downtime_reason = "UNP-FAIL"  # Generic failure
+                
+                elif state == FlowState.CHANGEOVER:
                     machine_status = "Stopped"
-                    downtime_reason = "UNP-STOP"
+                    downtime_reason = "PLN-CHG"  # Planned changeover
+                
+                elif state == FlowState.MAINTENANCE:
+                    machine_status = "Stopped"
+                    downtime_reason = "PLN-MNT"  # Planned maintenance
+                
+                elif state == FlowState.STARVED_UPSTREAM:
+                    machine_status = "Stopped"
+                    downtime_reason = "UNP-STARV"  # Starved
+                
+                elif state == FlowState.BLOCKED_DOWNSTREAM:
+                    machine_status = "Stopped"
+                    downtime_reason = "UNP-BLOCK"  # Blocked
+                
+                elif availability < 50 and machine_status == "Running":
+                    # Low availability but not categorized above
+                    machine_status = "Stopped"
+                    if equipment_type == "Packer":
+                        downtime_reason = "UNP-JAM"
+                    elif equipment_type == "Palletizer":
+                        downtime_reason = "UNP-ELEC"  # Electrical issue
+                    else:
+                        downtime_reason = "UNP-STOP"  # Generic unplanned stop
                 
                 # Get product info
                 product_id = self.current_product.get(equipment_id, "SKU-1001")

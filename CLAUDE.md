@@ -13,13 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Use `poetry` for project environment and package management
 
 # Running Python commands
-- Always use `~/.local/bin/poetry run` to execute Python commands in this project
-- Examples:
-  - `~/.local/bin/poetry run pytest` for running tests
-  - `~/.local/bin/poetry run python script.py` for running scripts
-  - `~/.local/bin/poetry run mypy .` for type checking
-  - `~/.local/bin/poetry run ruff check` for linting
-- Never use bare `python` or `python3` commands as they won't have the project dependencies
+- Always use `poetry run` to execute Python commands in this project
 
 # Code authoring by Claude
 - Use context7 mcp tool to fetch documentation and example patterns
@@ -31,8 +25,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **NEVER** use hardcodes, always use config patterns, ask if you are unsure
 - Use `semgrep` and appropriate rules files to scan for misplaced hardcodes
 - Maintain a CHANGELOG.md file and remind me to use the custom claude code `/commit` command
-
-# TODOs
-- create a housekeeping claude command
-- create a doc update claude command
 - Never bypass an approach or plan we agree to when you hit an issue, stop and tell me so we can fix it!

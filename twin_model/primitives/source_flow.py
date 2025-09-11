@@ -102,7 +102,8 @@ class SourceFlow(BaseFlowPrimitive):
                 yield from self._process_continuous()
             else:
                 # No current order and not in continuous mode
-                self.change_state(FlowState.IDLE)
+                if self.current_state != FlowState.IDLE:
+                    self.change_state(FlowState.IDLE)
 
                 # Check for new orders
                 if self.order_queue:
@@ -135,7 +136,8 @@ class SourceFlow(BaseFlowPrimitive):
 
         if volume > 0:
             # Generate material
-            self.change_state(FlowState.FLOWING)
+            if self.current_state != FlowState.FLOWING:
+                self.change_state(FlowState.FLOWING)
             yield self.output_buffer.put(volume)
             self.current_order.completed_volume += volume
             self.flow_metrics.total_output += volume
@@ -177,7 +179,8 @@ class SourceFlow(BaseFlowPrimitive):
                     )
         else:
             # Cannot generate - output buffer full
-            self.change_state(FlowState.BLOCKED_DOWNSTREAM)
+            if self.current_state != FlowState.BLOCKED_DOWNSTREAM:
+                self.change_state(FlowState.BLOCKED_DOWNSTREAM)
 
         yield self.env.timeout(self.generation_interval)
 
@@ -195,7 +198,8 @@ class SourceFlow(BaseFlowPrimitive):
 
         if volume > 0:
             # Generate material
-            self.change_state(FlowState.FLOWING)
+            if self.current_state != FlowState.FLOWING:
+                self.change_state(FlowState.FLOWING)
             yield self.output_buffer.put(volume)
             self.flow_metrics.total_output += volume
 
@@ -205,7 +209,8 @@ class SourceFlow(BaseFlowPrimitive):
             )
         else:
             # Cannot generate - output buffer full
-            self.change_state(FlowState.BLOCKED_DOWNSTREAM)
+            if self.current_state != FlowState.BLOCKED_DOWNSTREAM:
+                self.change_state(FlowState.BLOCKED_DOWNSTREAM)
 
         yield self.env.timeout(self.generation_interval)
 

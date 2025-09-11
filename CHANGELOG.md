@@ -7,7 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Critical state duration tracking bug in equipment flow**:
+  - Equipment was calling `change_state()` repeatedly with the same state (e.g., FLOWING)
+  - Since `change_state()` only updates duration when state actually changes, time in FLOWING state was never tracked
+  - Fixed by checking current state before calling `change_state()` to avoid redundant calls
+  - This was causing availability to appear as 0% when equipment was actually running
+- **MES collector state duration tracking**:
+  - MES collector was not accounting for time spent in current state when calculating availability
+  - Fixed `_capture_metrics()` to include current state duration up to collection time
+- **AccumulationBuffer inheritance issue**:
+  - Made AccumulationBuffer inherit from BaseFlowPrimitive for MES compatibility
+  - Buffers now have standard flow metrics (total_input, total_output, state tracking)
+  - Removed duplicate methods that are now inherited from base class
+
+### Known Issues
+- **Sub-optimal baseline configuration produces very low OEE (5-6% instead of target 45-55%)**:
+  - The aggressive sub-optimal parameters may be too severe
+  - Low generation rates (120-240 units/min) combined with high failure rates create extreme conditions
+  - May need to adjust baseline_suboptimal.yaml parameters to achieve target OEE range
+
 ### Added
+- **AccumulationBuffer primitive** for inter-equipment flow management:
+  - New `buffer_flow.py` module implementing dynamic accumulation buffers
+  - Supports FIFO/FILO operation modes
+  - Configurable capacity, flow rates, and warning thresholds
+  - Tracks overflow/underflow events for MES data generation
+  - Implements dwell time monitoring
+  - Comprehensive unit tests with 100% coverage
+- **Buffer integration with OntologyModelBuilder**:
+  - Enhanced model builder to create and wire buffer primitives
+  - Support for equipment → buffer → equipment connections
+  - Automatic container sharing for flow continuity
+- **Comprehensive logging and debugging**:
+  - Detailed flow transfer logging for troubleshooting
+  - Buffer state monitoring and event tracking
+  - Connection wiring diagnostics
+
+### Changed
+- **MAJOR: Converted from batch processing to continuous flow simulation**:
+  - Phase 1: Modified `equipment_flow.py` to process material continuously instead of in batches
+  - Equipment now processes any available material at configured flow rates
+  - Removed artificial batch_size constraints that were causing bottlenecks
+  - Changed ProcessingParameters to make batch_size deprecated (backward compatible)
+  - Updated flow logic to use `target_volume = rate × interval × performance`
+  - Phase 2: Optimized continuous flow parameters for realistic production
+  - Reduced processing_interval from 0.1 to 0.01 (10x faster simulation updates)
+  - Improved performance factors from 0.46-0.55 to 0.75-0.85 (realistic good performance)
+  - Improved MTBF from 65 to 120+ minutes, MTTR from 32 to 20 minutes
+  - Created migration script to convert batch configs to continuous flow
+  - **Results**: Production improved from 153K → 2.8M units/14 days (18.6x increase)
+  - Achieves 57% of realistic 5M unit target (vs 1.8% initially)
+  - Aligns with original design intent of "continuous flow modeling"
+
+### Fixed
+- **Critical batch processing bug** that limited throughput to 8% of target:
+  - Equipment was incorrectly waiting for minimum batch sizes before processing
+  - Removed forced batch_size minimum in processing logic (line 128)
+  - Fixed deadlock condition when batch_size exceeded generation rate
+  - Equipment now processes continuously as originally intended
+
+### Added
+- **Continuous flow implementation files**:
+  - `BATCH_TO_FLOW_CONVERSION_PLAN.md` - Comprehensive plan for batch to flow conversion
+  - `migrate_to_continuous_flow.py` - Automated migration script for config files
+  - `test_continuous_flow.py` - Validation test for continuous flow
+  - `config/continuous_flow_parameters.yaml` - Optimized parameters for continuous flow
+  - `archive/batch_implementation_backup/` - Backup of batch-based implementation
 - **Production line theory documentation**:
   - Created comprehensive `reference/theory_notes.md` with empirical research
   - Documented real-world production speeds (100-200 units/min standard)

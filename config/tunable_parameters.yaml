@@ -1,284 +1,228 @@
-# Tunable Parameters Configuration
-# These are the parameters we adjust during simulations
-# Separated from structure (ontology) and instances (manifest)
+# Migrated to Continuous Flow - 2025-09-08
+# Batch processing has been replaced with continuous flow simulation.
+# batch_size parameters have been removed (deprecated).
+# processing_interval reduced to 0.01 for faster continuous updates.
+# Performance factors improved to realistic operational levels.
 
 metadata:
-  name: "Simulation Tunable Parameters"
-  version: "1.0.0"
-  description: "Tunable parameters for production line simulation"
-  created: "2025-09-02"
-
-# Default values for parameter types
+  name: Simulation Tunable Parameters
+  version: 2.0.0
+  description: Tunable parameters for production line simulation (Migrated to continuous
+    flow)
+  created: '2025-09-02'
+  migrated: '2025-09-08T21:31:42.789636'
 defaults:
   source:
-    generation_rate: 60.0  # units/minute
-    generation_interval: 0.1  # minutes
+    generation_rate: 60.0
+    generation_interval: 0.01
     continuous_mode: true
-    default_product: "SKU-1001"
-  
+    default_product: SKU-1001
   equipment:
-    performance_factor: 0.85  # 85% of nominal
-    batch_size: 10.0  # units per batch
-    processing_interval: 0.1  # minutes
-    quality_rate: 0.95  # 95% good output
-    
-    # Failure parameters
-    mtbf: 60.0  # minutes between failures
-    mttr: 10.0  # minutes to repair
-    micro_stop_rate: 3.0  # stops per hour
-    micro_stop_duration: 60.0  # seconds
-  
+    performance_factor: 0.85
+    processing_interval: 0.01
+    quality_rate: 0.95
+    mtbf: 120.0
+    mttr: 10.0
+    micro_stop_rate: 3.0
+    micro_stop_duration: 60.0
   sink:
-    collection_rate: 50.0  # units/minute
-    collection_interval: 0.1  # minutes
-    window_duration: 5.0  # minutes for OEE calculation
-
-# Equipment-specific tunable parameters
+    collection_rate: 50.0
+    collection_interval: 0.01
+    window_duration: 5.0
 equipment_parameters:
-  # LINE1 Equipment
   LINE1-SOURCE:
     generation_rate: 60.0
-    generation_interval: 0.1
+    generation_interval: 0.01
     continuous_mode: true
-    default_product: "SKU-1001"
-    
+    default_product: SKU-1001
   LINE1-FIL:
     nominal_rate: 50.0
-    fill_rate: 50.0  # Specific to filler
+    fill_rate: 50.0
     quality_rate: 0.95
-    performance_factor: 0.9  # SKU-1001 performance
-    batch_size: 10.0
-    processing_interval: 0.1
-    mtbf: 15.0  # More frequent failures
+    performance_factor: 0.9
+    processing_interval: 0.01
+    mtbf: 30.0
     mttr: 8.0
     micro_stop_rate: 5.0
     micro_stop_duration: 30.0
-    
   LINE1-PCK:
     nominal_rate: 52.0
-    pack_size: 12  # Units per pack
-    quality_rate: 0.92  # Slightly lower quality
-    performance_factor: 0.88  # SKU-1001 performance
-    batch_size: 12.0
-    processing_interval: 0.1
-    mtbf: 20.0
+    pack_size: 12
+    quality_rate: 0.92
+    performance_factor: 0.88
+    processing_interval: 0.01
+    mtbf: 40.0
     mttr: 7.0
     micro_stop_rate: 3.5
     micro_stop_duration: 45.0
-    
   LINE1-PAL:
     nominal_rate: 50.0
-    pallet_size: 144  # Packs per pallet
+    pallet_size: 144
     quality_rate: 0.95
-    performance_factor: 0.92  # SKU-1001 performance
-    batch_size: 12.0
-    processing_interval: 0.1
-    mtbf: 25.0
+    performance_factor: 0.92
+    processing_interval: 0.01
+    mtbf: 50.0
     mttr: 10.0
     micro_stop_rate: 2.0
     micro_stop_duration: 60.0
-    
   LINE1-SINK:
     collection_rate: 55.0
-    collection_interval: 0.1
-    nominal_rate: 50.0  # For OEE calculation
+    collection_interval: 0.01
+    nominal_rate: 50.0
     window_duration: 5.0
-  
-  # LINE2 Equipment
   LINE2-SOURCE:
     generation_rate: 55.0
-    generation_interval: 0.1
+    generation_interval: 0.01
     continuous_mode: true
-    default_product: "SKU-1002"
-    
+    default_product: SKU-1002
   LINE2-FIL:
     nominal_rate: 50.0
     fill_rate: 50.0
     quality_rate: 0.95
-    performance_factor: 0.88  # Different product performance
-    batch_size: 10.0
-    processing_interval: 0.1
-    mtbf: 15.0
+    performance_factor: 0.88
+    processing_interval: 0.01
+    mtbf: 30.0
     mttr: 8.0
     micro_stop_rate: 5.0
     micro_stop_duration: 30.0
-    
   LINE2-PCK:
     nominal_rate: 52.0
     pack_size: 12
     quality_rate: 0.92
     performance_factor: 0.87
-    batch_size: 12.0
-    processing_interval: 0.1
-    mtbf: 18.0
+    processing_interval: 0.01
+    mtbf: 36.0
     mttr: 7.0
     micro_stop_rate: 4.0
     micro_stop_duration: 40.0
-    
   LINE2-PAL:
     nominal_rate: 48.0
     pallet_size: 144
     quality_rate: 0.95
-    performance_factor: 0.90
-    batch_size: 12.0
-    processing_interval: 0.1
-    mtbf: 22.0
+    performance_factor: 0.9
+    processing_interval: 0.01
+    mtbf: 44.0
     mttr: 9.0
     micro_stop_rate: 2.5
     micro_stop_duration: 55.0
-    
   LINE2-SINK:
     collection_rate: 50.0
-    collection_interval: 0.1
+    collection_interval: 0.01
     nominal_rate: 45.0
     window_duration: 5.0
-  
-  # LINE3 Equipment
   LINE3-SOURCE:
     generation_rate: 52.0
-    generation_interval: 0.1
+    generation_interval: 0.01
     continuous_mode: true
-    default_product: "SKU-2001"
-    
+    default_product: SKU-2001
   LINE3-FIL:
     nominal_rate: 50.0
     fill_rate: 50.0
     quality_rate: 0.95
-    performance_factor: 0.92  # Better performance for this product
-    batch_size: 10.0
-    processing_interval: 0.1
-    mtbf: 17.0
+    performance_factor: 0.92
+    processing_interval: 0.01
+    mtbf: 34.0
     mttr: 8.0
     micro_stop_rate: 4.5
     micro_stop_duration: 35.0
-    
   LINE3-PCK:
     nominal_rate: 52.0
     pack_size: 12
     quality_rate: 0.92
     performance_factor: 0.88
-    batch_size: 12.0
-    processing_interval: 0.1
-    mtbf: 19.0
+    processing_interval: 0.01
+    mtbf: 38.0
     mttr: 7.0
     micro_stop_rate: 3.5
     micro_stop_duration: 42.0
-    
   LINE3-PAL:
     nominal_rate: 48.0
     pallet_size: 144
     quality_rate: 0.95
-    performance_factor: 0.95  # Excellent performance
-    batch_size: 12.0
-    processing_interval: 0.1
-    mtbf: 23.0
+    performance_factor: 0.95
+    processing_interval: 0.01
+    mtbf: 46.0
     mttr: 9.0
     micro_stop_rate: 2.0
     micro_stop_duration: 50.0
-    
   LINE3-SINK:
     collection_rate: 45.0
-    collection_interval: 0.1
+    collection_interval: 0.01
     nominal_rate: 40.0
     window_duration: 5.0
-
-# Flow capacity parameters (structural but can be tuned)
 flow_capacity:
   defaults:
-    max_input_rate: 100.0  # units/minute
+    max_input_rate: 100.0
     max_output_rate: 100.0
-    internal_capacity: 1000.0  # units
+    internal_capacity: 1000.0
     initial_level: 0.0
-  
-  # Equipment-specific capacities
   equipment:
     LINE1-SOURCE:
       max_output_rate: 70.0
       internal_capacity: 1000.0
-    
     LINE1-FIL:
       max_input_rate: 60.0
       max_output_rate: 55.0
       internal_capacity: 500.0
-    
     LINE1-PCK:
       max_input_rate: 55.0
       max_output_rate: 53.0
       internal_capacity: 400.0
-    
     LINE1-PAL:
       max_input_rate: 53.0
       max_output_rate: 51.0
       internal_capacity: 300.0
-    
     LINE1-SINK:
       max_input_rate: 60.0
       internal_capacity: 10000.0
-    
-    # Similar for LINE2 and LINE3...
     LINE2-SOURCE:
       max_output_rate: 65.0
       internal_capacity: 1000.0
-    
     LINE2-FIL:
       max_input_rate: 55.0
       max_output_rate: 52.0
       internal_capacity: 500.0
-    
     LINE3-SOURCE:
       max_output_rate: 60.0
       internal_capacity: 1000.0
-    
     LINE3-FIL:
       max_input_rate: 52.0
       max_output_rate: 50.0
       internal_capacity: 500.0
-
-# Scenario presets (for different simulation scenarios)
 scenarios:
   baseline:
-    description: "Normal operating conditions"
-    # Uses default values above
-  
+    description: Normal operating conditions
   high_performance:
-    description: "Optimized performance scenario"
+    description: Optimized performance scenario
     overrides:
-      performance_factor_multiplier: 1.1  # 10% better
-      quality_rate_multiplier: 1.02  # 2% better quality
-      mtbf_multiplier: 1.5  # 50% longer between failures
-  
+      performance_factor_multiplier: 1.1
+      quality_rate_multiplier: 1.02
+      mtbf_multiplier: 1.5
   degraded:
-    description: "Equipment degradation scenario"
+    description: Equipment degradation scenario
     overrides:
-      performance_factor_multiplier: 0.9  # 10% worse
-      quality_rate_multiplier: 0.98  # 2% worse quality
-      mtbf_multiplier: 0.7  # 30% more frequent failures
-      mttr_multiplier: 1.2  # 20% longer repairs
-  
+      performance_factor_multiplier: 0.9
+      quality_rate_multiplier: 0.98
+      mtbf_multiplier: 0.7
+      mttr_multiplier: 1.2
   product_changeover:
-    description: "Frequent product changeovers"
+    description: Frequent product changeovers
     overrides:
-      changeover_interval: 120.0  # minutes
-      changeover_duration: 15.0  # minutes
-      
-# Optimization bounds (for parameter tuning)
+      changeover_interval: 120.0
+      changeover_duration: 15.0
 optimization_bounds:
   performance_factor:
     min: 0.5
     max: 1.0
-  
   quality_rate:
     min: 0.8
     max: 0.99
-  
   nominal_rate:
-    min_factor: 0.7  # 70% of base rate
-    max_factor: 1.1  # 110% of base rate
-  
+    min_factor: 0.7
+    max_factor: 1.1
   mtbf:
     min: 10.0
     max: 480.0
-  
   mttr:
     min: 5.0
     max: 60.0

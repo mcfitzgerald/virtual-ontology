@@ -1,7 +1,8 @@
 """Flow primitives for container-based continuous flow simulation."""
 
 from .base_flow import BaseFlowPrimitive, FlowCapacity, FlowMetrics, FlowState
-from .equipment_flow import EquipmentFlow, FailureParameters, ProcessingParameters
+from .buffer_flow import AccumulationBuffer, BufferMode, BufferParameters
+from .equipment_flow import ChangeoverMatrix, EquipmentFlow, FailureParameters, ProcessingParameters
 from .sink_flow import OEEMetrics, ProductionWindow, SinkFlow
 from .source_flow import ProductionOrder, SourceFlow
 
@@ -11,10 +12,15 @@ __all__ = [
     "FlowCapacity",
     "FlowState",
     "FlowMetrics",
+    # Buffer
+    "AccumulationBuffer",
+    "BufferMode",
+    "BufferParameters",
     # Equipment
     "EquipmentFlow",
     "ProcessingParameters",
     "FailureParameters",
+    "ChangeoverMatrix",
     # Source
     "SourceFlow",
     "ProductionOrder",

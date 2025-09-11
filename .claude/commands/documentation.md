@@ -31,6 +31,9 @@ This will provide context for documentation updates.
 ### LLM-Ready Documentation
 - Directory exists: !`ls -d docs/llm-ready`
 - Files present: !`ls docs/llm-ready/*.md`
+- **User Guide**: !`ls docs/llm-ready/00-user-guide.md`
+- **Quick Start**: !`ls docs/llm-ready/02-quickstart-api.md`
+- **Config Reference**: !`ls docs/llm-ready/05-configuration-reference.md`
 
 ### API Documentation
 - Sphinx source: !`ls -d docs/sphinx-source`
@@ -38,6 +41,8 @@ This will provide context for documentation updates.
 - Build directory: !`ls -d docs/build`
 
 ## Instructions
+
+**Note**: The sphinx-llms-txt extension listed in conf.py is experimental and may not be installed or functional. The primary approach for generating LLM-ready documentation is through pandoc conversion and cleanup scripts as detailed in Phase 3.
 
 ### Phase 1: Analyze Recent Changes
 1. **Read CHANGELOG.md for recent updates**:
@@ -54,7 +59,35 @@ This will provide context for documentation updates.
    git diff HEAD~5 --name-only
    ```
 
-### Phase 2: Verify Documentation Requirements
+### Phase 2: Verify and Update User Guide
+
+#### A. User Guide Validation (00-user-guide.md)
+1. **Check examples match current files**:
+   ```bash
+   # Verify ontology examples
+   grep -A5 "ontology.yaml" docs/llm-ready/00-user-guide.md
+   # Compare with actual: ontology/filling_line_ontology.yaml
+   
+   # Verify manifest examples
+   grep -A5 "manifest.yaml" docs/llm-ready/00-user-guide.md
+   # Compare with actual: manifests/equipment_manifest.yaml
+   
+   # Verify config examples
+   grep -A5 "parameters.yaml" docs/llm-ready/00-user-guide.md
+   # Compare with actual: config/tunable_parameters.yaml
+   ```
+
+2. **Update code examples**:
+   - Ensure Python examples use current API
+   - Verify import statements are correct
+   - Test that examples actually run
+
+3. **Check for new features**:
+   - Review CHANGELOG for new capabilities
+   - Add sections for new features
+   - Update troubleshooting for new error types
+
+### Phase 3: Verify Other Documentation
 
 #### A. README.md Validation
 1. **Check Quick Start section**:
@@ -86,7 +119,7 @@ This will provide context for documentation updates.
    # Then manually check file existence
    ```
 
-#### C. Architecture Documentation
+### Phase 4: Architecture Documentation
 1. **Verify architecture matches code**:
    - Check class hierarchies
    - Validate module dependencies
@@ -97,7 +130,7 @@ This will provide context for documentation updates.
    - Data flow
    - System boundaries
 
-### Phase 3: Regenerate API Documentation
+### Phase 5: Regenerate API Documentation
 
 1. **Clean previous build**:
    ```bash
@@ -109,24 +142,72 @@ This will provide context for documentation updates.
    ```bash
    cd docs/sphinx-source
    ~/.local/bin/poetry run sphinx-build -b html . ../build/html
+   cd ../..
    ```
 
-3. **Generate LLM-ready version**:
+3. **Generate LLM-ready version from AutoAPI**:
    ```bash
-   # Convert RST to Markdown (run for each file found)
-   find docs/build -name "*.rst"
-   # Then use: pandoc -f rst -t markdown [filename] -o [filename].md
+   # Find all generated RST files from AutoAPI
+   find docs/sphinx-source/autoapi -name "*.rst" -type f
    
-   # Or use sphinx-llms-txt if configured
-   ~/.local/bin/poetry run sphinx-build -b llms-txt docs/sphinx-source docs/build/llm-text
+   # Convert RST to clean Markdown with directive removal
+   for rst_file in $(find docs/sphinx-source/autoapi -name "*.rst" -type f); do
+       # Get relative path and create markdown filename
+       rel_path=${rst_file#docs/sphinx-source/autoapi/}
+       md_file="docs/llm-ready/api/${rel_path%.rst}.md"
+       
+       # Create directory if needed
+       mkdir -p $(dirname "$md_file")
+       
+       # Convert with pandoc, stripping Sphinx directives
+       pandoc -f rst -t gfm \
+              --wrap=none \
+              --no-highlight \
+              "$rst_file" -o "$md_file" 2>/dev/null || echo "Failed: $rst_file"
+   done
    ```
 
-4. **Create consolidated API reference**:
-   - Combine module docs into single file
-   - Add navigation anchors
-   - Format for LLM consumption
+4. **Clean generated Markdown files**:
+   ```bash
+   # Remove common Sphinx/RST artifacts from generated files
+   for md_file in $(find docs/llm-ready -name "*.md" -type f); do
+       # Remove Sphinx cross-references like :class:`ClassName`
+       sed -i '' -E 's/:([a-z]+):`([^`]+)`/`\2`/g' "$md_file"
+       
+       # Remove module paths like ~twin_model.module
+       sed -i '' -E 's/~[a-zA-Z_]+\.[a-zA-Z_.]+//' "$md_file"
+       
+       # Remove autoclass/automodule directives
+       sed -i '' '/^.. auto(class|module|function)::/d' "$md_file"
+       
+       # Remove :param name: and :type name: lines
+       sed -i '' -E '/^[[:space:]]*:(param|type|returns|rtype|raises)[[:space:]]+/d' "$md_file"
+       
+       # Clean up excessive blank lines
+       sed -i '' '/^$/N;/^\n$/d' "$md_file"
+   done
+   ```
 
-### Phase 4: Synchronize Documentation
+5. **Create consolidated API reference**:
+   ```bash
+   # Combine cleaned API docs into single reference
+   cat > docs/llm-ready/03-complete-api-reference.md << 'EOF'
+   # Complete API Reference
+   
+   This document consolidates all API documentation for the Twin Model.
+   
+   EOF
+   
+   # Append all module docs
+   for md_file in $(find docs/llm-ready/api -name "*.md" | sort); do
+       echo "## $(basename $md_file .md)" >> docs/llm-ready/03-complete-api-reference.md
+       echo "" >> docs/llm-ready/03-complete-api-reference.md
+       cat "$md_file" >> docs/llm-ready/03-complete-api-reference.md
+       echo "" >> docs/llm-ready/03-complete-api-reference.md
+   done
+   ```
+
+### Phase 6: Synchronize Documentation
 
 1. **Update code examples in docs**:
    - Extract code blocks from documentation
@@ -145,7 +226,51 @@ This will provide context for documentation updates.
    # Then validate each file's structure manually
    ```
 
-### Phase 5: Documentation Coverage Analysis
+### Phase 7: Validate LLM-Ready Documentation
+
+1. **Check for RST/Sphinx artifacts**:
+   ```bash
+   # Detect common Sphinx directives that shouldn't be in markdown
+   echo "Checking for Sphinx/RST artifacts in LLM-ready docs..."
+   
+   # Check for role directives
+   grep -n -E ':[a-z]+:`[^`]+`' docs/llm-ready/*.md && echo "Found role directives to clean"
+   
+   # Check for autoapi directives
+   grep -n -E '\.\. (auto|module|class|function)::' docs/llm-ready/*.md && echo "Found autoapi directives"
+   
+   # Check for :param: style docstring formatting
+   grep -n -E '^[[:space:]]*:(param|type|returns|rtype|raises)' docs/llm-ready/*.md && echo "Found docstring directives"
+   
+   # Check for tilde prefixes
+   grep -n '~[a-zA-Z_]' docs/llm-ready/*.md && echo "Found tilde prefixes"
+   ```
+
+2. **Validate markdown syntax**:
+   ```bash
+   # Check for broken code blocks
+   for file in docs/llm-ready/*.md; do
+       awk '/^```/ {count++} END {if (count % 2 != 0) print FILENAME ": Unclosed code block"}' "$file"
+   done
+   
+   # Check for valid markdown structure
+   # (Optional: use markdownlint if available)
+   ```
+
+3. **Test code examples**:
+   ```bash
+   # Extract and validate Python code blocks
+   for file in docs/llm-ready/*.md; do
+       echo "Checking code examples in $file"
+       # Extract code blocks and check basic syntax
+       awk '/^```python$/,/^```$/ {if (!/^```/) print}' "$file" > /tmp/code_check.py
+       if [ -s /tmp/code_check.py ]; then
+           python -m py_compile /tmp/code_check.py 2>/dev/null || echo "  Syntax issues in $file"
+       fi
+   done
+   ```
+
+### Phase 8: Documentation Coverage Analysis
 
 1. **Find undocumented modules**:
    ```bash
@@ -160,7 +285,7 @@ This will provide context for documentation updates.
    ~/.local/bin/poetry run interrogate -v twin_model/
    ```
 
-### Phase 6: Generate Documentation Proposal
+### Phase 9: Generate Documentation Proposal
 
 Create a structured proposal:
 
@@ -205,7 +330,7 @@ Create a structured proposal:
 ## Proceed? [Yes/No/Revise]
 ```
 
-### Phase 7: Execute Updates (After Confirmation)
+### Phase 10: Execute Updates (After Confirmation)
 
 1. **Create backup**:
    ```bash
@@ -232,13 +357,151 @@ Create a structured proposal:
 5. **Update CHANGELOG.md**:
    - Add documentation updates entry
 
+## Automated Cleanup Scripts
+
+### Clean Existing LLM-Ready Documentation
+Run this script to clean any existing LLM-ready markdown files from Sphinx/RST artifacts:
+
+```bash
+#!/bin/bash
+# cleanup_llm_docs.sh
+
+echo "=== Cleaning LLM-Ready Documentation ==="
+
+# Process all markdown files in llm-ready directory
+for md_file in docs/llm-ready/*.md; do
+    if [ -f "$md_file" ]; then
+        echo "Cleaning: $(basename $md_file)"
+        
+        # Create backup
+        cp "$md_file" "${md_file}.bak"
+        
+        # Remove Sphinx cross-references like :class:`ClassName`
+        sed -i '' -E 's/:([a-z]+):`([^`]+)`/`\2`/g' "$md_file"
+        
+        # Remove module paths like ~twin_model.module
+        sed -i '' -E 's/~[a-zA-Z_]+\.[a-zA-Z_.]+//g' "$md_file"
+        
+        # Remove autoclass/automodule directives
+        sed -i '' '/^[[:space:]]*\.\. auto(class|module|function|method)::/d' "$md_file"
+        
+        # Remove :param name: and :type name: lines
+        sed -i '' -E '/^[[:space:]]*:(param|type|returns|rtype|raises|note|warning|seealso)[[:space:]]+/d' "$md_file"
+        
+        # Remove >>> doctest lines
+        sed -i '' '/^[[:space:]]*>>>/d' "$md_file"
+        
+        # Remove .. note:: and similar directives
+        sed -i '' '/^[[:space:]]*\.\. (note|warning|danger|important|tip|hint|caution|error|attention)::/d' "$md_file"
+        
+        # Clean up .. code-block:: directives
+        sed -i '' 's/^[[:space:]]*\.\. code-block::.*/```/g' "$md_file"
+        
+        # Remove :ref: references
+        sed -i '' -E 's/:ref:`([^`]+)`/\1/g' "$md_file"
+        
+        # Clean up excessive blank lines (more than 2 consecutive)
+        sed -i '' '/^$/N;/^\n$/N;/^\n\n$/d' "$md_file"
+        
+        # Compare with backup
+        if diff -q "$md_file" "${md_file}.bak" > /dev/null; then
+            echo "  No changes needed"
+            rm "${md_file}.bak"
+        else
+            echo "  ✓ Cleaned artifacts"
+            # Keep backup for review - remove later if satisfied
+        fi
+    fi
+done
+
+echo "=== Cleanup Complete ==="
+echo "Backups created with .bak extension - review and remove when satisfied"
+```
+
+## Quality Checks for LLM-Ready Documentation
+
+### Automated Validation Script
+Create and run this validation script to ensure clean documentation:
+
+```bash
+#!/bin/bash
+# validate_llm_docs.sh
+
+echo "=== LLM Documentation Quality Check ==="
+ERRORS=0
+
+# 1. Check for Sphinx/RST artifacts
+echo "Checking for documentation artifacts..."
+if grep -q -E ':[a-z]+:`[^`]+`' docs/llm-ready/*.md 2>/dev/null; then
+    echo "❌ Found Sphinx role directives"
+    ERRORS=$((ERRORS + 1))
+fi
+
+if grep -q -E '\.\. (auto|module|class|function)::' docs/llm-ready/*.md 2>/dev/null; then
+    echo "❌ Found autoapi directives"
+    ERRORS=$((ERRORS + 1))
+fi
+
+if grep -q -E '^[[:space:]]*:(param|type|returns|rtype)' docs/llm-ready/*.md 2>/dev/null; then
+    echo "❌ Found parameter directives"
+    ERRORS=$((ERRORS + 1))
+fi
+
+# 2. Check code block formatting
+echo "Validating code blocks..."
+for file in docs/llm-ready/*.md; do
+    if [ -f "$file" ]; then
+        count=$(grep -c '^```' "$file")
+        if [ $((count % 2)) -ne 0 ]; then
+            echo "❌ Unclosed code block in $(basename $file)"
+            ERRORS=$((ERRORS + 1))
+        fi
+    fi
+done
+
+# 3. Check for broken internal links
+echo "Checking internal links..."
+grep -o '\[.*\]([^)]*\.md[^)]*)' docs/llm-ready/*.md | while read -r link; do
+    target=$(echo "$link" | sed 's/.*(\([^)]*\)).*/\1/')
+    if [[ "$target" == /* ]] || [[ "$target" == ../* ]]; then
+        if [ ! -f "docs/llm-ready/$target" ]; then
+            echo "❌ Broken link: $target"
+            ERRORS=$((ERRORS + 1))
+        fi
+    fi
+done
+
+if [ $ERRORS -eq 0 ]; then
+    echo "✅ All quality checks passed!"
+else
+    echo "⚠️ Found $ERRORS issues to fix"
+fi
+```
+
+### Manual Review Checklist
+- [ ] No RST/Sphinx markup visible
+- [ ] Code examples are executable
+- [ ] Internal links work correctly
+- [ ] Formatting is consistent
+- [ ] No generated boilerplate text
+
 ## Special Considerations
+
+### For User Guide (00-user-guide.md)
+- Keep examples simple and self-contained
+- Show complete file contents, not fragments
+- Include working code that users can copy
+- Provide clear step-by-step instructions
+- Add troubleshooting for common errors
+- Update when API changes occur
 
 ### For LLM-Ready Documentation
 - Use numbered files (01-, 02-, etc.) for clear learning path
 - Include complete examples, not fragments
 - Add context and prerequisites
 - Explain "why" not just "how"
+- Ensure no Sphinx-specific markup remains
+- Validate all code examples compile/run
 
 ### For API Reference
 - Include type hints in signatures
