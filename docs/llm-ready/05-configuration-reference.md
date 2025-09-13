@@ -2,25 +2,27 @@
 
 ## Overview
 
-The Twin Model uses a comprehensive YAML-based configuration system organized into multiple specialized files. This guide provides a complete reference for all configuration options.
+The Twin Model uses a streamlined YAML-based configuration system. After the recent refactoring, all operational parameters are consolidated into a single configuration file, while manifests are organized in their own directory.
 
 ## Configuration File Structure
 
 ```
 config/
-├── tunable_parameters.yaml    # Equipment operational parameters
-├── mes_parameters.yaml        # MES integration settings
-├── product_manifest.yaml      # Product definitions (30+ products)
-├── production_orders.yaml     # Production order queue
+├── tunable_parameters.yaml    # All operational parameters (consolidated)
 ├── scheduler_config.yaml      # Scheduler optimization settings
-└── twin_model.yaml           # Global simulation settings
+└── changeover_matrix.yaml     # Product changeover times
+
+manifests/
+├── equipment_manifest.yaml         # Equipment instances
+├── product_manifest.yaml           # Product definitions (30+ products)
+└── production_orders_manifest.yaml # Production order queue
 ```
 
 ## Core Configuration Files
 
 ### 1. Tunable Parameters (`tunable_parameters.yaml`)
 
-Equipment-specific operational parameters that can be adjusted for optimization.
+**This is now the primary configuration file** containing all equipment operational parameters, defaults, and simulation settings.
 
 ```yaml
 # Equipment performance parameters
@@ -51,10 +53,11 @@ equipment:
 - `quality_rate`: Fraction of good products (affects scrap)
 - `mtbf/mttr`: Reliability parameters for availability
 - `performance_factors`: Product-specific rate adjustments
+- `debug_mode`: (Global setting) Enable verbose logging for troubleshooting
 
-### 2. MES Parameters (`mes_parameters.yaml`)
+### 2. MES Parameters (Integrated into `tunable_parameters.yaml`)
 
-Manufacturing Execution System integration and data collection settings.
+MES settings are now integrated into the main configuration file. The MES collector automatically uses the equipment parameters for data generation.
 
 ```yaml
 mes_config:

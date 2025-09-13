@@ -37,17 +37,16 @@ This separation provides:
 ```
 your-project/
 ├── ontology/
-│   └── your_ontology.yaml         # Equipment types and rules
+│   └── filling_line_ontology.yaml     # Equipment types and rules
 ├── manifests/
-│   └── equipment_manifest.yaml    # Equipment instances
+│   ├── equipment_manifest.yaml        # Equipment instances
+│   ├── product_manifest.yaml          # Product definitions
+│   └── production_orders_manifest.yaml # Production schedule
 ├── config/
-│   ├── tunable_parameters.yaml    # Operational parameters
-│   ├── product_manifest.yaml      # Product definitions
-│   └── production_orders.yaml     # Production schedule
-├── simulations/
-│   └── run_simulation.py          # Your simulation script
+│   └── tunable_parameters.yaml        # All operational parameters
+├── run_twin_simulation.py             # Standalone simulation runner
 └── output/
-    └── results.csv                 # Simulation results
+    └── test_mes_output.csv            # Simulation results
 ```
 
 ### Key Concepts
@@ -262,6 +261,30 @@ equipment_parameters:
 ```
 
 ### Step 4: Run the Simulation
+
+#### Option A: Use the Standalone Runner (Recommended)
+
+The easiest way to run a simulation is using the provided `run_twin_simulation.py`:
+
+```bash
+# Run with default 14-day simulation
+poetry run python run_twin_simulation.py
+
+# Run for 7 days with debug output
+poetry run python run_twin_simulation.py --days 7 --debug
+
+# Run for 30 days
+poetry run python run_twin_simulation.py --days 30
+```
+
+This standalone runner will:
+- Load all configuration from the standard locations
+- Process production orders from `manifests/production_orders_manifest.yaml`
+- Generate MES output to `test_mes_output.csv`
+- Display real-time OEE metrics during the run
+- Show final statistics when complete
+
+#### Option B: Create Your Own Simulation Script
 
 Create `simulations/run_simulation.py`:
 

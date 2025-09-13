@@ -80,12 +80,17 @@ Generates material into the system:
 - Key parameters: `generation_rate`, `generation_interval`
 
 ```python
+from twin_model.scheduling import ProductionOrder
+
 # Create a production order
 order = ProductionOrder(
     order_id="ORD-001",
-    product_id="SKU-1001", 
+    product_id="SKU-1001",
+    product_name="Product A",
     target_volume=1000.0,
-    due_time=120.0,
+    line_id="LINE1",
+    scheduled_start=0.0,
+    scheduled_duration=120.0,
     priority=5
 )
 
@@ -114,6 +119,31 @@ Collects finished products and calculates metrics:
 - Calculates OEE (Availability × Performance × Quality)
 - Maintains production history
 - Aggregates metrics from upstream equipment
+- **NEW**: `get_metrics()` method returns comprehensive metrics including OEE
+
+#### AccumulationBuffer (NEW)
+Provides inter-equipment flow management:
+- **FIFO/FILO operation modes** - First-in-first-out or last-in-first-out
+- **Dynamic capacity management** - Handles overflow and underflow
+- **Dwell time tracking** - Monitors material residence time
+- **Flow rate constraints** - Configurable input/output rates
+
+```python
+from twin_model.primitives.buffer_flow import AccumulationBuffer, BufferParameters
+
+# Create buffer parameters
+buffer_params = BufferParameters(
+    mode="FIFO",
+    warning_level_low=0.2,  # 20% warning level
+    warning_level_high=0.8,  # 80% warning level
+    max_dwell_time=60.0  # Maximum 60 minute dwell time
+)
+
+# Create and connect buffer
+buffer = AccumulationBuffer(env, config, flow_capacity, buffer_params)
+buffer.connect(upstream_equipment, downstream_equipment)
+buffer.start()
+```
 
 ### Data Classes
 
@@ -200,6 +230,112 @@ equipment_parameters:
     mttr: 10.0
 ```
 
+## Control Layer (NEW)
+
+### VCurveController
+Implements Theory of Constraints speed control:
+
+```python
+from twin_model.control.vcurve_controller import VCurveController, VCurveParameters
+
+# Configure V-curve control
+vcurve_params = VCurveParameters(
+    mode="FIXED_CONSTRAINT",         # or "DYNAMIC_CONSTRAINT"
+    constraint_equipment="LINE1-FIL", # Bottleneck equipment
+    upstream_differential=0.20,       # 20% faster upstream
+    downstream_differential=0.15,     # 15% faster downstream
+    update_interval=5.0,              # Update every 5 minutes
+    max_speed_multiplier=1.4,
+    min_speed_multiplier=0.85
+)
+
+# Create and start controller
+controller = VCurveController(env, model['primitives'], vcurve_params)
+controller.start()
+
+# After simulation, get metrics
+metrics = controller.get_metrics()
+print(f"Constraint starvation rate: {metrics['constraint_starvation_rate']:.1%}")
+print(f"Constraint blocking rate: {metrics['constraint_blocking_rate']:.1%}")
+```
+
+## Scheduling Components (ENHANCED)
+
+### SubOptimalScheduleGenerator
+Automated production schedule generation:
+
+```python
+from twin_model.scheduling.schedule_generator import (
+    SubOptimalScheduleGenerator,
+    ScheduleGeneratorConfig
+)
+
+# Configure schedule generation
+config = ScheduleGeneratorConfig(
+    sequence_mode="optimized",      # "optimized", "random", "campaign"
+    batch_sizing="dynamic",          # "fixed", "dynamic", "economic"
+    min_batch_hours=4.0,
+    max_batch_hours=12.0,
+    changeover_frequency_target=0.15 # Target 15% changeover time
+)
+
+# Generate schedule
+generator = SubOptimalScheduleGenerator(
+    config=config,
+    product_manifest_path=Path("manifests/product_manifest.yaml"),
+    random_seed=42
+)
+
+# Generate 7-day schedule
+orders = generator.generate_schedule(
+    duration_days=7,
+    start_date=datetime(2025, 1, 1)
+)
+
+# Dispatch to sources
+for order in orders:
+    line_source = model['primitives'][f"LINE{order.line_id}-SOURCE"]
+    line_source.add_order(order)
+```
+
+## Enhanced Methods
+
+### EquipmentFlow.get_metrics() (NEW)
+Returns comprehensive equipment metrics:
+
+```python
+metrics = equipment.get_metrics()
+# Returns:
+# {
+#     'total_input': 1000.0,
+#     'total_output': 950.0,
+#     'total_scrap': 50.0,
+#     'oee': 0.72,
+#     'availability': 0.85,
+#     'performance': 0.90,
+#     'quality': 0.95,
+#     'state': 'FLOWING',
+#     'utilization': 0.78
+# }
+```
+
+### SinkFlow.get_metrics() (NEW)
+Returns sink metrics with OEE calculations:
+
+```python
+metrics = sink.get_metrics()
+# Returns:
+# {
+#     'total_collected': 5000.0,
+#     'current_oee': 0.68,
+#     'availability': 0.82,
+#     'performance': 0.88,
+#     'quality': 0.94,
+#     'production_rate': 45.2,
+#     'window_metrics': {...}
+# }
+```
+
 ## Complete Example
 
 ```python
@@ -226,12 +362,17 @@ equipment = model['primitives']['LINE1-FIL']
 sink = model['primitives']['LINE1-SINK']
 
 # Add production orders (if not in continuous mode)
+from twin_model.scheduling import ProductionOrder
+
 if not source.continuous_mode:
     order = ProductionOrder(
         order_id="ORD-2025-001",
         product_id="SKU-1001",
+        product_name="Product A",
         target_volume=1000,
-        due_time=120,
+        line_id="LINE1",
+        scheduled_start=0,
+        scheduled_duration=120,
         priority=8
     )
     source.add_order(order)
@@ -253,17 +394,14 @@ for equip_id, equip_metrics in metrics.items():
 ## MES Integration Example
 
 ```python
-from twin_model.scheduling import ProductionScheduler, CampaignOptimizer
+from twin_model.scheduling import ProductionScheduler
 from twin_model.scheduling.product_manifest import ProductManifest
-from twin_model.integration import MESIntegration
-from twin_model.transduction import MESCollector
+from twin_model.transduction.mes_collector import MESDataCollector
 
 # Load product manifest and orders
-manifest = ProductManifest("config/product_manifest.yaml")
-scheduler = CampaignOptimizer(
-    manifest=manifest,
-    campaign_size=50,
-    optimization_strategy="minimize_changeovers"
+manifest = ProductManifest(Path("manifests/product_manifest.yaml"))
+scheduler = ProductionScheduler(
+    manifest=manifest
 )
 
 # Load and schedule production orders
@@ -271,11 +409,7 @@ scheduler.load_orders("config/production_orders.yaml")
 scheduled_orders = scheduler.optimize()
 
 # Setup MES integration
-mes_collector = MESCollector(env)
-mes_integration = MESIntegration(
-    collector=mes_collector,
-    output_path="mes_output.csv"
-)
+mes_collector = MESDataCollector(env)
 
 # Connect to model
 for equip_id, equipment in model['primitives'].items():
@@ -289,8 +423,8 @@ for order in scheduled_orders:
 env.run(until=1440)  # 24 hours
 
 # Export MES data
-mes_records = mes_integration.get_records()
-mes_integration.export_to_csv()
+mes_records = mes_collector.get_mes_records()
+mes_collector.export_to_csv("mes_output.csv")
 print(f"Generated {len(mes_records)} MES records")
 ```
 

@@ -75,17 +75,16 @@ products:
 ### Basic Usage
 
 ```python
-from twin_model.scheduling import CampaignOptimizer
+from twin_model.scheduling import ProductionScheduler
 from twin_model.scheduling.product_manifest import ProductManifest
+from pathlib import Path
 
 # Load product definitions
-manifest = ProductManifest("config/product_manifest.yaml")
+manifest = ProductManifest(Path("manifests/product_manifest.yaml"))
 
 # Create scheduler
-scheduler = CampaignOptimizer(
-    manifest=manifest,
-    campaign_size=50,  # Units per campaign
-    optimization_strategy="minimize_changeovers"
+scheduler = ProductionScheduler(
+    manifest=manifest
 )
 
 # Load orders from YAML
@@ -160,16 +159,142 @@ The system automatically generates a changeover cost matrix based on:
 3. **Allergen Cleaning**: +30 minutes
 4. **Complexity Change**: +10 minutes per level
 
-## MES Data Collection
+## Enhanced Schedule Generation (NEW)
 
-### Setting Up Collection
+### ScheduleGenerator for Automated Production Planning
+
+The new `ScheduleGenerator` provides sophisticated schedule creation:
 
 ```python
-from twin_model.transduction import MESCollector
+from twin_model.scheduling.schedule_generator import (
+    ScheduleGenerator,
+    ScheduleGeneratorConfig
+)
+from datetime import datetime
+
+# Configure generation strategy
+config = ScheduleGeneratorConfig(
+    sequence_mode="optimized",      # Minimize changeovers
+    batch_sizing="dynamic",          # Adapt batch sizes
+    min_batch_hours=4.0,
+    max_batch_hours=12.0,
+    changeover_frequency_target=0.15 # Target 15% changeover time
+)
+
+# Generate optimized schedule
+generator = SubOptimalScheduleGenerator(
+    config=config,
+    product_manifest_path=Path("manifests/product_manifest.yaml"),
+    random_seed=42
+)
+
+# Generate 14-day schedule
+orders = generator.generate_schedule(
+    duration_days=14,
+    start_date=datetime(2025, 1, 1)
+)
+
+# Analyze schedule efficiency
+metrics = generator.get_metrics()
+print(f"Total changeover time: {metrics['total_changeover_minutes']} minutes")
+print(f"Schedule efficiency: {metrics['production_efficiency']:.1%}")
+```
+
+### Sub-Optimal Baseline Generation
+
+For comparison and optimization testing:
+
+```python
+from twin_model.scheduling.schedule_generator import SubOptimalScheduleGenerator
+
+# Generate deliberately poor schedule for baseline
+baseline_generator = SubOptimalScheduleGenerator(
+    config=config,
+    product_manifest_path=manifest_path
+)
+
+poor_schedule = baseline_generator.generate_schedule(
+    duration_days=7,
+    start_date=datetime(2025, 1, 1)
+)
+# Results in excessive changeovers and short batches
+```
+
+## Buffer Management with MES (NEW)
+
+### Integrating AccumulationBuffers
+
+Buffers are now tracked in MES data collection:
+
+```python
+from twin_model.primitives.buffer_flow import AccumulationBuffer, BufferParameters
+
+# Create monitored buffer
+buffer_params = BufferParameters(
+    capacity=1000.0,
+    mode="FIFO",
+    warning_low=0.2,
+    warning_high=0.8
+)
+
+buffer = AccumulationBuffer(env, config, flow_capacity, buffer_params)
+buffer.connect(upstream_equipment, downstream_equipment)
+
+# Register with MES collector
+mes_collector.register_equipment(
+    equipment_id="BUF-001",
+    equipment=buffer,
+    equipment_type="Buffer",
+    line_id="LINE1"
+)
+```
+
+Buffer events tracked in MES:
+- Overflow events with timestamp and volume
+- Underflow events causing downstream starvation
+- Average dwell time per product
+- Utilization levels over time
+
+## V-Curve Control Integration (NEW)
+
+### Protecting Constraints with Speed Control
+
+The V-curve controller adjusts speeds to protect bottlenecks:
+
+```python
+from twin_model.control.vcurve_controller import VCurveController, VCurveParameters
+
+# Setup constraint protection
+vcurve_params = VCurveParameters(
+    mode="DYNAMIC_CONSTRAINT",     # Auto-identify bottleneck
+    upstream_differential=0.20,    # 20% faster upstream
+    downstream_differential=0.15,  # 15% faster downstream
+    update_interval=5.0            # Check every 5 minutes
+)
+
+controller = VCurveController(env, model['primitives'], vcurve_params)
+controller.start()
+
+# MES tracks speed adjustments
+mes_collector.register_controller(controller)
+```
+
+MES records V-curve metrics:
+- Current constraint equipment
+- Speed multipliers per equipment
+- Constraint starvation/blocking rates
+- Control effectiveness over time
+
+## MES Data Collection
+
+### Setting Up Collection (ENHANCED)
+
+```python
+from twin_model.transduction.mes_collector import MESDataCollector
 from twin_model.integration import MESIntegration
 
 # Create collector
-mes_collector = MESCollector(env)
+mes_collector = MESDataCollector(env)
 
 # Configure collection parameters
 mes_collector.configure(
@@ -278,7 +403,7 @@ from twin_model import OntologyModelBuilder
 from twin_model.scheduling import CampaignOptimizer
 from twin_model.scheduling.product_manifest import ProductManifest
 from twin_model.integration import MESIntegration
-from twin_model.transduction import MESCollector
+from twin_model.transduction.mes_collector import MESDataCollector
 
 # 1. Setup simulation
 env = simpy.Environment()
@@ -299,7 +424,7 @@ scheduler.load_orders("config/production_orders.yaml")
 schedule = scheduler.optimize()
 
 # 4. Setup MES collection
-mes_collector = MESCollector(env)
+mes_collector = MESDataCollector(env)
 mes_integration = MESIntegration(mes_collector, "mes_output.csv")
 
 # 5. Connect components

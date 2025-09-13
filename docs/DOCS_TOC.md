@@ -6,27 +6,31 @@ This directory contains comprehensive documentation for the Twin Model simulatio
 ## Directory Structure
 
 ```
-docs/
-├── DOCS_TOC.md                          # This file - navigation guide
+project-root/
+├── TWIN_MODEL_QUICK_REFERENCE.md       # Quick API reference and common patterns
+├── run_twin_simulation.py               # Standalone simulation runner
 │
-├── reference/                           # Research and theory documentation
-│   ├── theory_notes.md                  # Production line theory and empirical data
-│   └── White_Paper_*.pdf               # Industry reference materials (Sidel)
-│
-├── llm-ready/                           # LLM-optimized documentation
-│   ├── 01-architecture-overview.md      # Ontology-driven architecture with MES integration
-│   ├── 02-quickstart-api.md            # Quick start guide with MES examples
-│   ├── 03-complete-api-reference.md    # Full API documentation (regenerated)
-│   ├── 04-mes-integration-guide.md     # MES scheduling and production guide
-│   ├── 05-configuration-reference.md   # Complete configuration reference
-│   └── yaml-examples/                   # Example configuration files
-│       ├── ontology-filling-line.yaml   # Example ontology definition
-│       ├── manifest-equipment.yaml      # Example equipment manifest
-│       ├── config-parameters.yaml       # Example tunable parameters
-│       ├── mes_parameters.yaml         # MES integration configuration
-│       ├── product_manifest.yaml       # Product definitions (30+ products)
-│       ├── production_orders.yaml      # Production order examples
-│       └── scheduler_config.yaml       # Scheduler optimization settings
+├── docs/
+│   ├── DOCS_TOC.md                     # This file - navigation guide
+│   │
+│   ├── reference/                      # Research and theory documentation
+│   │   ├── theory_notes.md             # Production line theory and empirical data
+│   │   └── White_Paper_*.pdf           # Industry reference materials (Sidel)
+│   │
+│   ├── llm-ready/                      # LLM-optimized documentation
+│   │   ├── 00-user-guide.md            # Complete user guide with examples
+│   │   ├── 01-architecture-overview.md # Ontology-driven architecture with MES integration
+│   │   ├── 02-quickstart-api.md        # Quick start guide with MES examples
+│   │   ├── 03-complete-api-reference.md # Full API documentation (regenerated)
+│   │   ├── 04-mes-integration-guide.md # MES scheduling and production guide
+│   │   ├── 05-configuration-reference.md # Complete configuration reference
+│   │   └── yaml-examples/              # Example configuration files
+│   │       ├── ontology-filling-line.yaml # Example ontology definition
+│   │       ├── manifest-equipment.yaml # Example equipment manifest
+│   │       ├── config-parameters.yaml  # Example tunable parameters
+│   │       ├── product_manifest.yaml   # Product definitions (30+ products)
+│   │       ├── production_orders.yaml  # Production order examples
+│   │       └── scheduler_config.yaml   # Scheduler optimization settings
 │
 ├── sphinx-source/                        # Sphinx documentation source (RST format)
 │   ├── conf.py                          # Sphinx configuration
@@ -54,9 +58,19 @@ docs/
 
 ### For LLMs and Quick Reference
 
-Start with **`llm-ready/`** directory:
+Start with these key files:
 
-1. **`01-architecture-overview.md`** (formerly ontology-guide.md)
+1. **`TWIN_MODEL_QUICK_REFERENCE.md`** (in project root)
+   - Common patterns and API reference
+   - Ready-to-use code snippets
+   - Quick troubleshooting guide
+
+2. **`llm-ready/00-user-guide.md`**
+   - Complete step-by-step tutorial
+   - Building your first model
+   - Using the standalone runner
+
+3. **`llm-ready/01-architecture-overview.md`** (formerly ontology-guide.md)
    - Comprehensive explanation of the ontology-driven architecture
    - Explains the three-file system (ontology, manifest, config)
    - Best practices and troubleshooting
@@ -87,6 +101,22 @@ Start with **`llm-ready/`** directory:
 
 **`templates/`** contains starter templates:
 - **`ontology-template.yaml`** - Annotated template for creating new ontologies
+
+## Key Files and Locations
+
+### Current File Structure
+```
+ontology/
+└── filling_line_ontology.yaml      # Equipment types and rules
+
+manifests/
+├── equipment_manifest.yaml         # Equipment instances
+├── product_manifest.yaml           # Product definitions
+└── production_orders_manifest.yaml # Production schedule
+
+config/
+└── tunable_parameters.yaml         # All operational parameters (consolidated)
+```
 
 ## Key Concepts
 

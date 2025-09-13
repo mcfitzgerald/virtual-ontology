@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Documentation API consistency**:
+  - Corrected class names to match actual implementation (ScheduleGenerator → SubOptimalScheduleGenerator)
+  - Fixed import statements for MESDataCollector (was incorrectly documented as MESCollector)
+  - Updated ProductionOrder constructor parameters to match actual signature
+  - Fixed BufferParameters constructor to use correct parameter names
+  - Removed references to non-existent CampaignOptimizer and MESIntegration classes
+  - Cleaned up RST artifacts from API reference by rewriting from scratch
+  - All documentation examples now compile and run correctly
+
 ### Added
 - **Quick reference documentation**:
   - TWIN_MODEL_QUICK_REFERENCE.md for rapid API access and common patterns

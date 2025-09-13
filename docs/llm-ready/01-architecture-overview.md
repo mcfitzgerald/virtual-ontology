@@ -79,6 +79,7 @@ Each equipment type maps to a framework primitive:
 - `SourceFlow` - Material generation
 - `EquipmentFlow` - Processing equipment
 - `SinkFlow` - Product collection
+- `AccumulationBuffer` - Inter-equipment flow management (NEW)
 
 #### Inheritance
 Types can extend other types, inheriting their properties and relationships:
@@ -293,6 +294,70 @@ LINE1-FIL:
 
 ### Result
 The OntologyModelBuilder creates an `EquipmentFlow` primitive with the specified parameters, validates connections, and integrates it into the simulation.
+
+## System Architecture Layers
+
+The Twin Model uses a layered architecture for clean separation of concerns:
+
+```
+┌─────────────────────────────────────────────┐
+│          Control Layer (NEW)                │
+│  - VCurveController: Speed optimization     │
+│  - Constraint protection via TOC            │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│         Scheduling Layer (ENHANCED)         │
+│  - SubOptimalScheduleGenerator: Scheduling  │
+│  - ProductionScheduler: Order dispatch      │
+│  - Campaign optimization                    │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│           Flow Primitives Layer             │
+│  - SourceFlow: Material generation          │
+│  - EquipmentFlow: Processing                │
+│  - SinkFlow: Collection & OEE               │
+│  - AccumulationBuffer: Buffering (NEW)      │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│            MES Integration Layer            │
+│  - MESDataCollector: Data capture           │
+│  - State tracking & metrics                 │
+│  - Production records                       │
+└─────────────────────────────────────────────┘
+```
+
+### Control Layer (NEW)
+
+The control layer manages production line speeds using Theory of Constraints:
+
+- **VCurveController**: Implements V-curve speed control
+  - Protects constraint (bottleneck) equipment
+  - Prevents starvation and blocking
+  - Dynamic constraint identification
+  - Speed differential management
+
+### Buffer Management (NEW)
+
+Buffers provide flow decoupling between equipment:
+
+- **AccumulationBuffer**: Dynamic material buffering
+  - FIFO/FILO operation modes
+  - Overflow/underflow detection
+  - Dwell time tracking
+  - Configurable capacity and flow rates
+
+### Enhanced Scheduling
+
+The scheduling layer now includes:
+
+- **SubOptimalScheduleGenerator**: Automated schedule creation
+  - Multiple sequencing strategies
+  - Changeover optimization
+  - Batch sizing algorithms
+  - Product family grouping
 
 ## MES Integration Layer
 

@@ -53,7 +53,7 @@ builder = OntologyModelBuilder(
     env=env,
     ontology_path="ontology/filling_line_ontology.yaml",
     manifest_path="manifests/equipment_manifest.yaml", 
-    config_path="config/calibrated_parameters.yaml"  # Updated path
+    config_path="config/tunable_parameters.yaml"  # Single config file
 )
 
 # Build and run simulation
@@ -65,6 +65,27 @@ metrics = builder.get_metrics()
 for equip_id, equip_metrics in metrics.items():
     print(f"{equip_id}: OEE={equip_metrics.get('oee', 0):.1%}")
 ```
+
+## Standalone Simulation
+
+Run a complete simulation with production orders:
+
+```bash
+# Run with default configuration
+poetry run python run_twin_simulation.py
+
+# Run with custom duration (in days)
+poetry run python run_twin_simulation.py --days 7
+
+# Run with debug output
+poetry run python run_twin_simulation.py --debug
+```
+
+This will:
+- Load configuration from `config/tunable_parameters.yaml`
+- Process production orders from `manifests/production_orders_manifest.yaml`
+- Generate MES output to `test_mes_output.csv`
+- Display real-time OEE metrics
 
 ## Configuration Files
 
@@ -135,6 +156,7 @@ source.add_order(order)
 
 ## Documentation
 
+- [Quick Reference](TWIN_MODEL_QUICK_REFERENCE.md) - Common patterns and API reference
 - [Documentation Overview](docs/DOCS_TOC.md) - Complete guide to all documentation
 - [Architecture Guide](docs/llm-ready/01-architecture-overview.md) - Ontology-driven architecture explained
 - [Quick Start API](docs/llm-ready/02-quickstart-api.md) - API guide with three-file pathway
