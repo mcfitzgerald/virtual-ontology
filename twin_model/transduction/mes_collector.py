@@ -319,118 +319,123 @@ class MESDataCollector:
             # Wait for collection interval
             yield self.env.timeout(self.interval)
             
-            # Current timestamp
-            sim_minutes = self.env.now
-            current_time = self.start_date + timedelta(minutes=sim_minutes)
+            # Perform collection
+            self.collect_current_data()
+    
+    def collect_current_data(self):
+        """Collect data for current time point (can be called manually)."""
+        # Current timestamp
+        sim_minutes = self.env.now
+        current_time = self.start_date + timedelta(minutes=sim_minutes)
+        
+        # Collect data from all registered equipment
+        for equipment_id, info in self.equipment_registry.items():
+            equipment = info['primitive']
+            equipment_type = info['type']
+            line_id = info['line_id']
             
-            # Collect data from all registered equipment
-            for equipment_id, info in self.equipment_registry.items():
-                equipment = info['primitive']
-                equipment_type = info['type']
-                line_id = info['line_id']
-                
-                # Capture current metrics
-                end_metrics = self._capture_metrics(equipment)
-                start_metrics = self.interval_start_metrics[equipment_id]
-                
-                # Calculate interval metrics
-                good_units, scrap_units, availability, performance, quality = \
-                    self._calculate_interval_metrics(
-                        equipment_id, equipment, start_metrics, end_metrics
-                    )
-                
-                # Determine machine status and downtime reason
-                machine_status = "Running"
-                downtime_reason = None
-                
-                # Check equipment state for downtime categorization
-                if hasattr(equipment, 'current_state'):
-                    state = equipment.current_state
-                else:
-                    state = getattr(equipment, 'state', FlowState.IDLE)
-                
-                if state == FlowState.FAILED:
-                    machine_status = "Stopped"
-                    # Categorize failure reason
-                    if hasattr(equipment, 'downtime_reason'):
-                        downtime_reason = equipment.downtime_reason
-                    else:
-                        # Default categorization based on equipment type
-                        if equipment_type == "Filler":
-                            downtime_reason = "UNP-FIL"  # Filler failure
-                        elif equipment_type == "Packer":
-                            downtime_reason = "UNP-JAM"  # Packer jam
-                        elif equipment_type == "Palletizer":
-                            downtime_reason = "UNP-PAL"  # Palletizer issue
-                        else:
-                            downtime_reason = "UNP-FAIL"  # Generic failure
-                
-                elif state == FlowState.CHANGEOVER:
-                    machine_status = "Stopped"
-                    downtime_reason = "PLN-CHG"  # Planned changeover
-                
-                elif state == FlowState.MAINTENANCE:
-                    machine_status = "Stopped"
-                    downtime_reason = "PLN-MNT"  # Planned maintenance
-                
-                elif state == FlowState.STARVED_UPSTREAM:
-                    machine_status = "Stopped"
-                    downtime_reason = "UNP-STARV"  # Starved
-                
-                elif state == FlowState.BLOCKED_DOWNSTREAM:
-                    machine_status = "Stopped"
-                    downtime_reason = "UNP-BLOCK"  # Blocked
-                
-                elif availability < 50 and machine_status == "Running":
-                    # Low availability but not categorized above
-                    machine_status = "Stopped"
-                    if equipment_type == "Packer":
-                        downtime_reason = "UNP-JAM"
-                    elif equipment_type == "Palletizer":
-                        downtime_reason = "UNP-ELEC"  # Electrical issue
-                    else:
-                        downtime_reason = "UNP-STOP"  # Generic unplanned stop
-                
-                # Get product info
-                product_id = self.current_product.get(equipment_id, "SKU-1001")
-                product_info = self.product_info.get(product_id)
-                
-                if not product_info:
-                    product_info = self.product_info["SKU-1001"]  # Default
-                
-                # Calculate OEE
-                oee = (availability * performance * quality) / 10000
-                
-                # Create MES record
-                record = MESRecord(
-                    timestamp=current_time,
-                    production_order_id=self.current_order.get(equipment_id, "ORD-1000"),
-                    line_id=line_id,
-                    equipment_id=equipment_id,
-                    equipment_type=equipment_type,
-                    product_id=product_id,
-                    product_name=product_info.product_name,
-                    machine_status=machine_status,
-                    downtime_reason=downtime_reason,
-                    good_units_produced=round(good_units),
-                    scrap_units_produced=round(scrap_units),
-                    target_rate_units_per_5min=product_info.target_rate,
-                    standard_cost_per_unit=product_info.standard_cost,
-                    sale_price_per_unit=product_info.sale_price,
-                    availability_score=round(availability, 1),
-                    performance_score=round(performance, 1),
-                    quality_score=round(quality, 1),
-                    oee_score=round(oee, 1)
+            # Capture current metrics
+            end_metrics = self._capture_metrics(equipment)
+            start_metrics = self.interval_start_metrics[equipment_id]
+            
+            # Calculate interval metrics
+            good_units, scrap_units, availability, performance, quality = \
+                self._calculate_interval_metrics(
+                    equipment_id, equipment, start_metrics, end_metrics
                 )
-                
-                self.records.append(record)
-                
-                # Update start metrics for next interval
-                self.interval_start_metrics[equipment_id] = end_metrics
             
-            # Log progress
-            if len(self.records) % 100 == 0:
-                logger.info(f"Collected {len(self.records)} MES records")
+            # Determine machine status and downtime reason
+            machine_status = "Running"
+            downtime_reason = None
+            
+            # Check equipment state for downtime categorization
+            if hasattr(equipment, 'current_state'):
+                state = equipment.current_state
+            else:
+                state = getattr(equipment, 'state', FlowState.IDLE)
+            
+            if state == FlowState.FAILED:
+                machine_status = "Stopped"
+                # Categorize failure reason
+                if hasattr(equipment, 'downtime_reason'):
+                    downtime_reason = equipment.downtime_reason
+                else:
+                    # Default categorization based on equipment type
+                    if equipment_type == "Filler":
+                        downtime_reason = "UNP-FIL"  # Filler failure
+                    elif equipment_type == "Packer":
+                        downtime_reason = "UNP-JAM"  # Packer jam
+                    elif equipment_type == "Palletizer":
+                        downtime_reason = "UNP-PAL"  # Palletizer issue
+                    else:
+                        downtime_reason = "UNP-FAIL"  # Generic failure
+            
+            elif state == FlowState.CHANGEOVER:
+                machine_status = "Stopped"
+                downtime_reason = "PLN-CHG"  # Planned changeover
+            
+            elif state == FlowState.MAINTENANCE:
+                machine_status = "Stopped"
+                downtime_reason = "PLN-MNT"  # Planned maintenance
+            
+            elif state == FlowState.STARVED_UPSTREAM:
+                machine_status = "Stopped"
+                downtime_reason = "UNP-STARV"  # Starved
+            
+            elif state == FlowState.BLOCKED_DOWNSTREAM:
+                machine_status = "Stopped"
+                downtime_reason = "UNP-BLOCK"  # Blocked
+            
+            elif availability < 50 and machine_status == "Running":
+                # Low availability but not categorized above
+                machine_status = "Stopped"
+                if equipment_type == "Packer":
+                    downtime_reason = "UNP-JAM"
+                elif equipment_type == "Palletizer":
+                    downtime_reason = "UNP-ELEC"  # Electrical issue
+                else:
+                    downtime_reason = "UNP-STOP"  # Generic unplanned stop
+            
+            # Get product info
+            product_id = self.current_product.get(equipment_id, "SKU-1001")
+            product_info = self.product_info.get(product_id)
+            
+            if not product_info:
+                product_info = self.product_info["SKU-1001"]  # Default
+            
+            # Calculate OEE
+            oee = (availability * performance * quality) / 10000
+            
+            # Create MES record
+            record = MESRecord(
+                timestamp=current_time,
+                production_order_id=self.current_order.get(equipment_id, "ORD-1000"),
+                line_id=line_id,
+                equipment_id=equipment_id,
+                equipment_type=equipment_type,
+                product_id=product_id,
+                product_name=product_info.product_name,
+                machine_status=machine_status,
+                downtime_reason=downtime_reason,
+                good_units_produced=round(good_units),
+                scrap_units_produced=round(scrap_units),
+                target_rate_units_per_5min=product_info.target_rate,
+                standard_cost_per_unit=product_info.standard_cost,
+                sale_price_per_unit=product_info.sale_price,
+                availability_score=round(availability, 1),
+                performance_score=round(performance, 1),
+                quality_score=round(quality, 1),
+                oee_score=round(oee, 1)
+            )
+            
+            self.records.append(record)
+            
+            # Update start metrics for next interval
+            self.interval_start_metrics[equipment_id] = end_metrics
+        
+        # Log progress
+        if len(self.records) % 100 == 0:
+            logger.info(f"Collected {len(self.records)} MES records")
     
     def to_dataframe(self) -> pd.DataFrame:
         """Convert collected records to pandas DataFrame.

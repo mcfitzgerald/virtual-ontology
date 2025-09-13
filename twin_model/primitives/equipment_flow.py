@@ -424,3 +424,21 @@ class EquipmentFlow(BaseFlowPrimitive):
             metrics["has_changeover_matrix"] = False
 
         return metrics
+    
+    def get_metrics(self) -> dict[str, Any]:
+        """Get comprehensive metrics including OEE.
+        
+        Returns:
+            Dictionary with all metrics including OEE components
+        """
+        return {
+            'total_input': self.flow_metrics.total_input,
+            'total_output': self.flow_metrics.total_output,
+            'total_scrap': self.flow_metrics.total_scrap,
+            'oee': self.get_oee(),
+            'availability': self.get_availability(),
+            'performance': self.get_performance(),
+            'quality': self.get_quality(),
+            'state': str(self.current_state),
+            'utilization': self.get_utilization()
+        }

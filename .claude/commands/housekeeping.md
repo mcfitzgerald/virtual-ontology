@@ -11,7 +11,7 @@ description: Aggressively clean project by analyzing timestamps, finding unused 
 - Disk usage: !`du -sh . 2>/dev/null | cut -f1`
 - Git status: !`git status --porcelain | wc -l` uncommitted changes
 - Poetry status: !`~/.local/bin/poetry check 2>&1`
-- Last cleanup: !`test -d archive && ls -td archive/*/ 2>/dev/null | head -1 || echo "Never"`
+- Last cleanup: Check archive/ directory manually
 
 ## Instructions
 

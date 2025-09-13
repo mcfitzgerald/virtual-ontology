@@ -208,7 +208,7 @@ class ProductionScheduler(BaseScheduler):
     def _setup_changeover_matrix(self) -> Dict[Tuple[str, str], float]:
         """Set up changeover times between products (minutes)."""
         matrix = {}
-        products = list(self.PRODUCT_CATALOG.keys())
+        products = list(self.product_catalog.keys())
         
         for from_product in products:
             for to_product in products:

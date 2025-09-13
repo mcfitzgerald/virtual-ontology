@@ -93,6 +93,9 @@ class BaseFlowPrimitive(ABC):
         # Flow tracking
         self.current_state = FlowState.IDLE
         self.flow_metrics = FlowMetrics()
+        # Initialize state duration for starting state
+        self.flow_metrics.state_durations[self.current_state] = 0.0
+        self.flow_metrics.last_state_change = 0.0
         self.observables: list[dict[str, Any]] = []
         
         # Downtime tracking for MES
@@ -220,7 +223,7 @@ class BaseFlowPrimitive(ABC):
             # Fallback to a reasonable default (80% of max output rate)
             nominal_rate = self.flow_capacity.max_output_rate * 0.8
 
-        theoretical_output = nominal_rate * (self.env.now / 60)
+        theoretical_output = nominal_rate * self.env.now  # env.now is already in minutes
         if theoretical_output == 0:
             return 0.0
 

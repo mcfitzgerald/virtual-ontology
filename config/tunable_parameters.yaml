@@ -175,6 +175,11 @@ flow_capacity:
     LINE1-SINK:
       max_input_rate: 60.0
       internal_capacity: 10000.0
+      nominal_rate: 50.0  # Expected line rate for OEE calculation
+    LINE2-SINK:
+      nominal_rate: 48.0  # Expected line rate for OEE calculation
+    LINE3-SINK:
+      nominal_rate: 45.0  # Expected line rate for OEE calculation
     LINE2-SOURCE:
       max_output_rate: 65.0
       internal_capacity: 1000.0

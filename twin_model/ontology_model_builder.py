@@ -664,6 +664,23 @@ class OntologyModelBuilder:
 
     def _start_processes(self) -> None:
         """Start all equipment processes."""
+        # First, wire upstream equipment to sinks for OEE calculation
+        from .primitives.sink_flow import SinkFlow
+        
+        for conn in self.connections:
+            to_id = conn["to"]
+            from_id = conn["from"]
+            
+            # If the destination is a sink, add the source to its upstream list
+            if to_id in self.primitives and isinstance(self.primitives[to_id], SinkFlow):
+                sink = self.primitives[to_id]
+                if from_id in self.primitives:
+                    upstream_equipment = self.primitives[from_id]
+                    if upstream_equipment not in sink.upstream_equipment:
+                        sink.upstream_equipment.append(upstream_equipment)
+                        logger.debug(f"Added {from_id} as upstream equipment for sink {to_id}")
+        
+        # Start all equipment processes
         for equipment_id, equipment in self.primitives.items():
             if hasattr(equipment, "start"):
                 equipment.start()

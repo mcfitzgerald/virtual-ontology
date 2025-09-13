@@ -388,3 +388,23 @@ class SinkFlow(BaseFlowPrimitive):
         if product_id != self.current_product:
             self.emit_observable("product_change", {"old_product": self.current_product, "new_product": product_id})
             self.current_product = product_id
+    
+    def get_metrics(self) -> dict[str, Any]:
+        """Get current metrics including OEE.
+        
+        Returns:
+            Dictionary with metrics including OEE components
+        """
+        oee, availability, performance, quality = self.calculate_oee()
+        
+        return {
+            'total_input': self.flow_metrics.total_input,
+            'total_output': self.flow_metrics.total_output,
+            'total_collected': self.total_collected,
+            'total_scrap': self.flow_metrics.total_scrap,
+            'oee': oee,
+            'availability': availability,
+            'performance': performance,
+            'quality': quality,
+            'state': str(self.current_state)
+        }

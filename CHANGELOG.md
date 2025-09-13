@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Quick reference documentation**:
+  - TWIN_MODEL_QUICK_REFERENCE.md for rapid API access and common patterns
+  - Comprehensive code examples with copy-paste snippets
+  - Organized by common use cases and typical workflows
+
+### Changed
+- **Major restructuring - Twin Model as standalone module**:
+  - Moved product_manifest.yaml and production_orders.yaml to manifests/ directory
+  - Renamed production_orders.yaml to production_orders_manifest.yaml for consistency
+  - Created run_twin_simulation.py as standalone simulation runner
+  - Simplified configuration to single tunable_parameters.yaml file
+  - Added debug_mode parameter to tunable_parameters.yaml for controlling verbosity
+
+### Fixed
+- **MES collector critical bugs**:
+  - Fixed state duration tracking using time_in_state method
+  - Corrected availability calculations to properly track uptime
+  - Fixed OEE calculation to handle division by zero cases
+  - Improved state change event handling in equipment flow
+
+### Removed
+- **Legacy and redundant files**:
+  - Deleted all baseline and calibrated parameter variants (consolidated to tunable_parameters.yaml)
+  - Removed MES-specific parameter files (mes_parameters.yaml)
+  - Deleted test buffer and changeover integration tests (no longer needed)
+  - Removed continuous flow parameter files (integrated into main config)
+  - Deleted all test CSV outputs (regenerated as needed)
+  - Removed legacy run_mes_baseline.py (replaced by run_twin_simulation.py)
+  - Cleaned up redundant test files from tests/ directory
+
+### Added
 - **Comprehensive LLM-optimized documentation enhancements**:
   - Expanded architecture overview with detailed flow dynamics and v-curve theory
   - Complete API reference with all public methods and parameters
