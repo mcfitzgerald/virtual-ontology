@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Production order cycling**: Automatic order replenishment to fill simulation duration
+  - Orders now cycle automatically to keep lines productive throughout simulation
+  - Added `--no-cycle-orders` flag to disable cycling behavior
+  - Per-line order scheduling instead of global sequencing
+- **MES order tracking**: Background sync process for accurate order ID tracking in MES output
+  - Polls source equipment every minute to detect order changes
+  - Updates all equipment on line with current order_id and product_id
+  - Fixes hardcoded "ORD-1000" default in MES records
+- **CLI improvements**:
+  - Added `--days` flag for convenient duration specification
+  - Added `--debug` flag for verbose logging
+  - Default file paths for all configuration arguments
+
+### Fixed
+- **Unit test failures**: Fixed parameter order bug in test_container_flow.py
+  - Changed positional arguments to keyword arguments for ProcessingParameters
+  - All 57/57 tests now passing
+- **Production scheduler product filtering**: Fixed product_id parameter passing
+  - `generate_schedule()` now correctly passes selected product_id to `generate_order()`
+  - Fixes test_generate_schedule failure where filter was ignored
+- **Python 3.13 compatibility**: Updated pandas dependency from ^1.3 to ^2.0
+  - Resolves C compilation errors during poetry install
+  - Successfully installs pandas 2.3.2
+- **Per-line order scheduling**: Orders now scheduled independently per line
+  - Fixed bug where orders were sequenced globally causing late start times
+  - Each line's first order now starts at t=0
+- **Variable name collision**: Renamed `duration` parameter to `simulation_duration`
+  - Fixes shadowing bug where loop variable overwrote function parameter
+  - Order cycling now uses correct simulation duration
+
+### Changed
+- **Enhanced CLAUDE.md documentation**:
+  - Added project overview with architecture layers
+  - Added commands section for development, simulation, and documentation
+  - Added core components and design patterns sections
+  - Reorganized structure for better readability
+- **Production orders manifest**: Added 6 initial orders (2 per line)
+  - LINE1: SKU-1001 (2000 units), SKU-1002 (1500 units)
+  - LINE2: SKU-2001 (2500 units), SKU-3001 (1800 units)
+  - LINE3: SKU-2001 (2200 units), SKU-3001 (1600 units)
+
+### Known Issues
+- **Order cycling interleaving bug**: Lines only produce first product in long simulations
+  - Current cycling logic interleaves products instead of completing full cycles
+  - LINE1/LINE2 only produce first product SKU in 24-hour simulations
+  - LINE3 works correctly by timing coincidence
+  - See NEXT_STEPS.md for fix implementation plan
+
 ### Fixed
 - **Documentation API consistency**:
   - Corrected class names to match actual implementation (ScheduleGenerator → SubOptimalScheduleGenerator)

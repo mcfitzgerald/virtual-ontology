@@ -90,16 +90,28 @@ All equipment emits events for monitoring:
 
 ## Important Distinctions
 
-### Production Orders vs Removed Batch Processing
+### Production Orders and Continuous Flow
 
-| Aspect | Production Orders (CURRENT) | Batch Processing (REMOVED) |
-|--------|---------------------------|--------------------------|
-| Purpose | Schedule what to produce | Force batch-size processing |
-| Impact | Defines target volumes over time | Created artificial bottlenecks |
-| Processing | Continuous flow at rates | Waited for minimum batch sizes |
-| Result | Efficient production | Limited to 8% of target |
+Production orders define **WHAT** to produce and **WHEN**, but material always flows **continuously** at equipment rates:
 
-**Key Point**: Production orders are for SCHEDULING (what/when), not HOW material flows (always continuous).
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| **Order Mode** | Sources process specific orders with target volumes | Production scheduling with MES integration |
+| **Continuous Mode** | Sources generate material continuously at nominal rates | Testing, baseline simulations, theoretical capacity |
+
+**Key Point**: Production orders **constrain** continuous flow to specific products/volumes, but material still flows continuously (not in batches).
+
+**Order Format:**
+```yaml
+orders:
+  - order_id: "ORD-LINE1-001"
+    product_id: "SKU-1001"      # Must match product_manifest
+    target_volume: 2000.0       # Units to produce
+    line_id: "LINE1"            # Production line assignment
+    priority: 8                 # 1-10, higher = more urgent (optional)
+```
+
+When orders are loaded, sources automatically switch from continuous mode to order-based mode.
 
 ## Simulation Runner Script
 
@@ -115,17 +127,34 @@ All five YAML files must be provided:
 5. **Production Orders**: What to produce when
 
 ### Usage
+
+**Quick start with defaults:**
+```bash
+# Run 1-day simulation (all file paths use defaults)
+poetry run python run_twin_simulation.py --days 1
+
+# Run 1-hour simulation with debug logging
+poetry run python run_twin_simulation.py --duration 60 --debug
+
+# Run 7-day simulation with MES export
+poetry run python run_twin_simulation.py --days 7 --mes-output results.csv
+```
+
+**Full command with all options:**
 ```bash
 poetry run python run_twin_simulation.py \
   --ontology ontology/filling_line_ontology.yaml \
   --manifest manifests/equipment_manifest.yaml \
   --config config/tunable_parameters.yaml \
-  --product-manifest config/product_manifest.yaml \
-  --production-orders config/production_orders.yaml \
-  --duration 1440 \                    # 24 hours in minutes
+  --product-manifest manifests/product_manifest.yaml \
+  --production-orders manifests/production_orders_manifest.yaml \
+  --duration 1440 \                    # 24 hours in minutes (OR use --days 1)
   --mes-output mes_data.csv \          # Optional MES export
-  --report-interval 60                 # Report every hour
+  --report-interval 60 \               # Report every hour
+  --debug                              # Enable debug logging
 ```
+
+**Note**: All file paths are optional and default to standard locations in ontology/, manifests/, and config/ directories.
 
 ### How It Works
 

@@ -16,7 +16,7 @@ import logging
 import simpy
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Generator, Any
 import yaml
 
 from twin_model import OntologyModelBuilder
@@ -58,44 +58,58 @@ def load_yaml_file(filepath: Path) -> Dict:
         sys.exit(1)
 
 
-def load_production_orders(orders_path: Path) -> Dict[str, List[ProductionOrder]]:
-    """Load production orders from YAML file.
-    
+def load_production_orders(
+    orders_path: Path,
+    simulation_duration: float = 0.0,
+    cycle_orders: bool = True
+) -> Dict[str, List[ProductionOrder]]:
+    """Load production orders from YAML file, optionally cycling them to fill duration.
+
     Args:
         orders_path: Path to production orders YAML
-        
+        simulation_duration: Simulation duration in minutes (0 = no cycling)
+        cycle_orders: Whether to automatically cycle orders to fill duration
+
     Returns:
         Dictionary mapping line IDs to lists of ProductionOrder objects
     """
     data = load_yaml_file(orders_path)
     orders_by_line = {}
-    
+
     # Check if orders are directly defined
     if 'orders' in data:
-        current_time = 0.0  # Start time in minutes
-        
-        for i, order_data in enumerate(data['orders']):
-            # Calculate duration based on target volume if not specified
+        # Track current time PER LINE, not globally
+        current_time_by_line = {}
+
+        for order_data in data['orders']:
+            line_id = order_data['line_id']
+
+            # Initialize line's timeline if first order
+            if line_id not in current_time_by_line:
+                current_time_by_line[line_id] = 0.0
+                orders_by_line[line_id] = []
+
+            # Calculate order duration based on target volume if not specified
             # Assume nominal rate of 50 units/minute as default
             if 'scheduled_duration' in order_data:
-                duration = order_data['scheduled_duration']
+                order_duration = order_data['scheduled_duration']
             else:
                 # Estimate duration from volume (assume 50 units/min rate)
                 nominal_rate = 50.0
-                duration = (order_data['target_volume'] / nominal_rate) * 1.2  # Add 20% buffer
-            
-            # Use specified start time or calculate sequentially
+                order_duration = (order_data['target_volume'] / nominal_rate) * 1.2  # Add 20% buffer
+
+            # Use specified start time or calculate sequentially FOR THIS LINE
             if 'scheduled_start' in order_data:
                 start_time = order_data['scheduled_start']
             else:
-                start_time = current_time
-                # Add changeover time between orders (30 minutes default)
-                if i > 0:
+                start_time = current_time_by_line[line_id]
+                # Add changeover time between orders on same line (30 minutes default)
+                if len(orders_by_line[line_id]) > 0:
                     start_time += 30
-            
-            # Calculate due_time from start_time + duration
-            due_time = start_time + duration
-            
+
+            # Calculate due_time from start_time + order_duration
+            due_time = start_time + order_duration
+
             # Create order using source_flow.ProductionOrder structure
             order = ProductionOrder(
                 order_id=order_data['order_id'],
@@ -104,17 +118,88 @@ def load_production_orders(orders_path: Path) -> Dict[str, List[ProductionOrder]
                 due_time=due_time,  # source_flow expects due_time
                 priority=order_data.get('priority', 5)
             )
-            
-            # Group by line_id for later dispatch
-            line_id = order_data['line_id']
-            if line_id not in orders_by_line:
-                orders_by_line[line_id] = []
+
+            # Add to line's order list
             orders_by_line[line_id].append(order)
-            
-            # Update current time for next order on same line
-            current_time = start_time + duration
-    
+
+            # Update current time for THIS LINE
+            current_time_by_line[line_id] = start_time + order_duration
+
+    if cycle_orders and simulation_duration > 0 and orders_by_line:
+        logger.info(f"Cycling orders to fill {simulation_duration:.0f} minute simulation...")
+
+        for line_id, orders in orders_by_line.items():
+            if not orders:
+                continue
+
+            last_due_time = max(o.due_time for o in orders)
+            logger.debug(f"{line_id}: last_due_time={last_due_time:.1f}, simulation_duration={simulation_duration:.1f}, will_cycle={last_due_time < simulation_duration}")
+
+            if last_due_time < simulation_duration:
+                original_orders = orders.copy()
+                cycle = 1
+
+                while last_due_time < simulation_duration:
+                    for original_order in original_orders:
+                        new_order = ProductionOrder(
+                            order_id=f"{original_order.order_id}-C{cycle}",
+                            product_id=original_order.product_id,
+                            target_volume=original_order.target_volume,
+                            due_time=original_order.due_time + (cycle * max(o.due_time for o in original_orders)),
+                            priority=original_order.priority
+                        )
+                        orders.append(new_order)
+                        last_due_time = new_order.due_time
+
+                        if last_due_time >= simulation_duration:
+                            break
+
+                    cycle += 1
+
+                    if cycle > 100:
+                        logger.warning(f"Order cycling limit reached for {line_id}")
+                        break
+
+                logger.info(f"{line_id}: Cycled to {len(orders)} orders (from {len(original_orders)} original)")
+
     return orders_by_line
+
+
+def update_mes_from_sources(env: simpy.Environment, mes_collector, model: Dict, primitives: Dict) -> Generator:
+    """Background process to sync MES collector with current production orders from sources.
+
+    Args:
+        env: SimPy environment
+        mes_collector: MES data collector instance
+        model: Model dictionary with equipment info
+        primitives: Dictionary of all primitives
+    """
+    lines = model.get('lines', {})
+    source_by_line = {}
+
+    for line_id, equipment_ids in lines.items():
+        for eq_id in equipment_ids:
+            if 'SOURCE' in eq_id and eq_id in primitives:
+                source_by_line[line_id] = primitives[eq_id]
+                break
+
+    last_order_by_line = {}
+
+    while True:
+        yield env.timeout(1.0)
+
+        for line_id, source in source_by_line.items():
+            if source.current_order:
+                order_id = source.current_order.order_id
+                product_id = source.current_order.product_id
+
+                if last_order_by_line.get(line_id) != order_id:
+                    for eq_id in lines[line_id]:
+                        if 'SOURCE' not in eq_id and 'SINK' not in eq_id and 'BUF' not in eq_id:
+                            mes_collector.update_production_order(eq_id, order_id, product_id)
+
+                    logger.debug(f"{line_id}: MES updated to order {order_id}, product {product_id}")
+                    last_order_by_line[line_id] = order_id
 
 
 def connect_scheduler_to_sources(
@@ -123,26 +208,26 @@ def connect_scheduler_to_sources(
     orders_by_line: Dict[str, List[ProductionOrder]]
 ) -> None:
     """Connect scheduler to source equipment for order dispatch.
-    
+
     Args:
         scheduler: Production scheduler instance
         model: Model dictionary from OntologyModelBuilder
         orders_by_line: Dictionary mapping line IDs to lists of ProductionOrder objects
     """
     primitives = model['primitives']
-    
+
     # Process orders for each line
     for line_id, line_orders in orders_by_line.items():
         # Normalize line_id
         normalized_line_id = f"LINE{line_id}" if not line_id.startswith("LINE") else line_id
-        
+
         # Find source for this line
         source_id = None
         for eq_id, equipment in primitives.items():
             if normalized_line_id in eq_id and 'SOURCE' in eq_id:
                 source_id = eq_id
                 break
-        
+
         if source_id:
             source = primitives[source_id]
             # Switch to order mode from continuous mode
@@ -282,59 +367,91 @@ def main():
         description="Run Twin Model simulation with production orders"
     )
     
-    # Required arguments
+    # Configuration file arguments with defaults
     parser.add_argument(
-        '--ontology', 
-        type=Path, 
-        required=True,
-        help='Path to ontology YAML file'
+        '--ontology',
+        type=Path,
+        default=Path('ontology/filling_line_ontology.yaml'),
+        help='Path to ontology YAML file (default: ontology/filling_line_ontology.yaml)'
     )
     parser.add_argument(
-        '--manifest', 
-        type=Path, 
-        required=True,
-        help='Path to equipment manifest YAML file'
+        '--manifest',
+        type=Path,
+        default=Path('manifests/equipment_manifest.yaml'),
+        help='Path to equipment manifest YAML file (default: manifests/equipment_manifest.yaml)'
     )
     parser.add_argument(
-        '--config', 
-        type=Path, 
-        required=True,
-        help='Path to configuration/parameters YAML file'
+        '--config',
+        type=Path,
+        default=Path('config/tunable_parameters.yaml'),
+        help='Path to configuration/parameters YAML file (default: config/tunable_parameters.yaml)'
     )
     parser.add_argument(
-        '--product-manifest', 
-        type=Path, 
-        required=True,
-        help='Path to product manifest YAML file'
+        '--product-manifest',
+        type=Path,
+        default=Path('manifests/product_manifest.yaml'),
+        help='Path to product manifest YAML file (default: manifests/product_manifest.yaml)'
     )
     parser.add_argument(
-        '--production-orders', 
-        type=Path, 
-        required=True,
-        help='Path to production orders YAML file'
+        '--production-orders',
+        type=Path,
+        default=Path('manifests/production_orders_manifest.yaml'),
+        help='Path to production orders YAML file (default: manifests/production_orders_manifest.yaml)'
     )
     
-    # Optional arguments
+    # Duration arguments
     parser.add_argument(
-        '--duration', 
-        type=float, 
-        default=480.0,
-        help='Simulation duration in minutes (default: 480 = 8 hours)'
+        '--duration',
+        type=float,
+        help='Simulation duration in minutes (use --days for convenience)'
     )
     parser.add_argument(
-        '--mes-output', 
+        '--days',
+        type=float,
+        help='Simulation duration in days (converted to minutes)'
+    )
+
+    # Output and reporting
+    parser.add_argument(
+        '--mes-output',
         type=Path,
         help='Path for MES output CSV file'
     )
     parser.add_argument(
-        '--report-interval', 
+        '--report-interval',
         type=float,
         default=60.0,
         help='Progress report interval in minutes (default: 60)'
     )
+
+    # Logging
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug logging'
+    )
+    parser.add_argument(
+        '--no-cycle-orders',
+        action='store_true',
+        help='Disable automatic order cycling to fill simulation duration'
+    )
     
     args = parser.parse_args()
-    
+
+    # Handle duration conversion
+    if args.days and args.duration:
+        logger.error("Cannot specify both --days and --duration")
+        sys.exit(1)
+    elif args.days:
+        args.duration = args.days * 1440  # Convert days to minutes
+    elif not args.duration:
+        args.duration = 480.0  # Default: 8 hours
+
+    # Set logging level
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("Debug logging enabled")
+
     # Validate all required files exist
     for filepath, name in [
         (args.ontology, 'Ontology'),
@@ -384,7 +501,11 @@ def main():
     
     # Load production orders
     logger.info("\nLoading production orders...")
-    orders_by_line = load_production_orders(args.production_orders)
+    orders_by_line = load_production_orders(
+        args.production_orders,
+        simulation_duration=args.duration,
+        cycle_orders=not args.no_cycle_orders
+    )
     total_orders = sum(len(orders) for orders in orders_by_line.values())
     logger.info(f"Loaded {total_orders} production orders across {len(orders_by_line)} lines")
     
@@ -394,11 +515,7 @@ def main():
         env=env,
         catalog_path=args.product_manifest
     )
-    
-    # Connect orders to sources
-    logger.info("\nConnecting orders to equipment...")
-    connect_scheduler_to_sources(scheduler, model, orders_by_line)
-    
+
     # Setup MES collection if requested
     mes_collector = None
     if args.mes_output:
@@ -407,21 +524,21 @@ def main():
             env=env,
             product_manifest_path=args.product_manifest
         )
-        
+
         # Register only core production equipment with MES collector
         # (FIL, PCK, PAL - not sources, sinks, or buffers)
         for eq_id, equipment in primitives.items():
             # Skip buffers, sources, and sinks
             if 'BUF' in eq_id or 'SOURCE' in eq_id or 'SINK' in eq_id:
                 continue
-            
+
             # Only register core production equipment (FIL, PCK, PAL)
             if any(equip_type in eq_id for equip_type in ['-FIL', '-PCK', '-PAL']):
                 # Extract line_id from equipment ID (e.g., LINE1-FIL -> LINE1)
                 line_id = eq_id.split('-')[0] if '-' in eq_id else 'UNKNOWN'
                 # Get equipment type from class name
                 equipment_type = equipment.__class__.__name__
-                
+
                 # Register equipment for monitoring
                 mes_collector.register_equipment(
                     equipment_id=eq_id,
@@ -430,10 +547,19 @@ def main():
                     line_id=line_id
                 )
                 logger.debug(f"Registered {eq_id} with MES collector")
-        
+
         # Start the data collection process
         env.process(mes_collector.collect_data())
         logger.info("Started MES data collection process")
+
+    # Connect orders to sources
+    logger.info("\nConnecting orders to equipment...")
+    connect_scheduler_to_sources(scheduler, model, orders_by_line)
+
+    # Start MES sync process if MES collector exists
+    if mes_collector:
+        env.process(update_mes_from_sources(env, mes_collector, model, primitives))
+        logger.info("Started MES order sync process")
     
     # Run simulation with periodic reporting
     logger.info("\n" + "=" * 80)

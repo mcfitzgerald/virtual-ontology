@@ -149,3 +149,44 @@ order_tracking:
   track_scrap: true
   track_efficiency: true
   update_interval_minutes: 5.0
+
+# Production orders
+orders:
+  # LINE1 orders - Water and Juice products
+  - order_id: "ORD-LINE1-001"
+    product_id: "SKU-1001"
+    target_volume: 2000.0
+    line_id: "LINE1"
+    priority: 8
+
+  - order_id: "ORD-LINE1-002"
+    product_id: "SKU-1002"
+    target_volume: 1500.0
+    line_id: "LINE1"
+    priority: 7
+
+  # LINE2 orders - Soda and Sports drinks
+  - order_id: "ORD-LINE2-001"
+    product_id: "SKU-2001"
+    target_volume: 2500.0
+    line_id: "LINE2"
+    priority: 9
+
+  - order_id: "ORD-LINE2-002"
+    product_id: "SKU-3001"
+    target_volume: 1800.0
+    line_id: "LINE2"
+    priority: 6
+
+  # LINE3 orders - Mixed product line
+  - order_id: "ORD-LINE3-001"
+    product_id: "SKU-2001"
+    target_volume: 2200.0
+    line_id: "LINE3"
+    priority: 8
+
+  - order_id: "ORD-LINE3-002"
+    product_id: "SKU-3001"
+    target_volume: 1600.0
+    line_id: "LINE3"
+    priority: 7

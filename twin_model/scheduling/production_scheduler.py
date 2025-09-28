@@ -225,24 +225,27 @@ class ProductionScheduler(BaseScheduler):
         self,
         line_id: str,
         scheduled_start: float,
-        duration_hours: float = 4.0
+        duration_hours: float = 4.0,
+        product_id: Optional[str] = None
     ) -> ProductionOrder:
         """Generate a production order for a line.
-        
+
         Args:
             line_id: Production line ID
             scheduled_start: Start time in simulation minutes
             duration_hours: Order duration in hours
-            
+            product_id: Optional specific product to use (if None, selects from product mix)
+
         Returns:
             Generated production order
         """
-        # Select product based on line's product mix
-        product_mix = self.product_mixes[line_id]
-        product_id = self.random.choices(
-            product_mix.products,
-            weights=product_mix.weights
-        )[0]
+        # Select product based on line's product mix if not specified
+        if product_id is None:
+            product_mix = self.product_mixes[line_id]
+            product_id = self.random.choices(
+                product_mix.products,
+                weights=product_mix.weights
+            )[0]
         
         product_info = self.product_catalog[product_id]
         
@@ -541,12 +544,13 @@ class ProductionScheduler(BaseScheduler):
                     self.config.min_order_duration_hours,
                     self.config.max_order_duration_hours
                 )
-                
-                # Create order
+
+                # Create order with selected product
                 order = self.generate_order(
                     line_id=line_id,
                     scheduled_start=current_time,
-                    duration_hours=duration_hours
+                    duration_hours=duration_hours,
+                    product_id=product_id
                 )
                 
                 # Add changeover time for next iteration
