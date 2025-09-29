@@ -97,7 +97,7 @@ class BaseFlowPrimitive(ABC):
         self.flow_metrics.state_durations[self.current_state] = 0.0
         self.flow_metrics.last_state_change = 0.0
         self.observables: list[dict[str, Any]] = []
-        
+
         # Downtime tracking for MES
         self.downtime_reason: str | None = None
         self.failure_history: list[tuple[float, str]] = []  # (time, reason)
@@ -130,7 +130,7 @@ class BaseFlowPrimitive(ABC):
             self.flow_metrics.update_state_duration(self.current_state, self.env.now)
             old_state = self.current_state
             self.current_state = new_state
-            
+
             # Track downtime reason
             if new_state in [FlowState.FAILED, FlowState.MAINTENANCE]:
                 self.downtime_reason = downtime_reason or "UNKNOWN"
@@ -139,12 +139,13 @@ class BaseFlowPrimitive(ABC):
                 self.downtime_reason = None
 
             self.emit_observable(
-                "state_change", {
-                    "old_state": old_state.value, 
-                    "new_state": new_state.value, 
+                "state_change",
+                {
+                    "old_state": old_state.value,
+                    "new_state": new_state.value,
                     "timestamp": self.env.now,
-                    "downtime_reason": downtime_reason
-                }
+                    "downtime_reason": downtime_reason,
+                },
             )
 
     def emit_observable(self, event_type: str, data: dict[str, Any]) -> None:
@@ -254,28 +255,28 @@ class BaseFlowPrimitive(ABC):
         quality = self.get_quality()
 
         return (availability * performance * quality) / 10000
-    
+
     # Properties for easier access to metrics
     @property
     def state(self) -> FlowState:
         """Current flow state."""
         return self.current_state
-    
+
     @property
     def total_input(self) -> float:
         """Total input processed."""
         return self.flow_metrics.total_input
-    
+
     @property
     def total_output(self) -> float:
         """Total good output produced."""
         return self.flow_metrics.total_output
-    
+
     @property
     def total_scrap(self) -> float:
         """Total scrap produced."""
         return self.flow_metrics.total_scrap
-    
+
     @property
     def state_durations(self) -> dict[FlowState, float]:
         """State duration tracking."""

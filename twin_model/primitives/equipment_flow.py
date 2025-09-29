@@ -40,7 +40,9 @@ class ProcessingParameters:
         if self.processing_interval <= 0:
             raise ValueError(f"processing_interval must be positive, got {self.processing_interval}")
         if self.batch_size > 0:
-            logger.warning(f"batch_size parameter is deprecated for continuous flow. Value {self.batch_size} will be ignored.")
+            logger.warning(
+                f"batch_size parameter is deprecated for continuous flow. Value {self.batch_size} will be ignored."
+            )
 
 
 @dataclass
@@ -330,9 +332,7 @@ class EquipmentFlow(BaseFlowPrimitive):
         """
         # Determine changeover time
         if self.changeover_matrix:
-            changeover_time = self.changeover_matrix.get_changeover_time(
-                self.current_product, new_product
-            )
+            changeover_time = self.changeover_matrix.get_changeover_time(self.current_product, new_product)
         else:
             # Use default time if no matrix configured
             changeover_time = 30.0
@@ -384,7 +384,9 @@ class EquipmentFlow(BaseFlowPrimitive):
             new_product: Product to change to
         """
         self.next_product = new_product
-        logger.info(f"{self.config.get('name', 'Equipment')}: Product change requested from {self.current_product} to {new_product}")
+        logger.info(
+            f"{self.config.get('name', 'Equipment')}: Product change requested from {self.current_product} to {new_product}"
+        )
 
     def get_changeover_metrics(self) -> dict[str, Any]:
         """Get changeover-specific metrics.
@@ -407,12 +409,7 @@ class EquipmentFlow(BaseFlowPrimitive):
 
         # Add recent changeover history (last 10)
         metrics["recent_changeovers"] = [
-            {
-                "time": time,
-                "from_product": from_prod,
-                "to_product": to_prod,
-                "duration": duration
-            }
+            {"time": time, "from_product": from_prod, "to_product": to_prod, "duration": duration}
             for time, from_prod, to_prod, duration in self.changeover_history[-10:]
         ]
 
@@ -424,21 +421,21 @@ class EquipmentFlow(BaseFlowPrimitive):
             metrics["has_changeover_matrix"] = False
 
         return metrics
-    
+
     def get_metrics(self) -> dict[str, Any]:
         """Get comprehensive metrics including OEE.
-        
+
         Returns:
             Dictionary with all metrics including OEE components
         """
         return {
-            'total_input': self.flow_metrics.total_input,
-            'total_output': self.flow_metrics.total_output,
-            'total_scrap': self.flow_metrics.total_scrap,
-            'oee': self.get_oee(),
-            'availability': self.get_availability(),
-            'performance': self.get_performance(),
-            'quality': self.get_quality(),
-            'state': str(self.current_state),
-            'utilization': self.get_utilization()
+            "total_input": self.flow_metrics.total_input,
+            "total_output": self.flow_metrics.total_output,
+            "total_scrap": self.flow_metrics.total_scrap,
+            "oee": self.get_oee(),
+            "availability": self.get_availability(),
+            "performance": self.get_performance(),
+            "quality": self.get_quality(),
+            "state": str(self.current_state),
+            "utilization": self.get_utilization(),
         }

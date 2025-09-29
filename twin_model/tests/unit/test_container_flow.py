@@ -59,10 +59,7 @@ class TestEquipmentFlow:
             config={"id": "TEST-01"},
             flow_capacity=FlowCapacity(100, 100, 500),
             processing=ProcessingParameters(
-                nominal_rate=100,
-                quality_rate=0.95,
-                performance_factor=1.0,
-                processing_interval=0.1
+                nominal_rate=100, quality_rate=0.95, performance_factor=1.0, processing_interval=0.1
             ),
             failures=FailureParameters(1000, 10, 0, 0),  # No failures for this test
         )
@@ -100,10 +97,7 @@ class TestEquipmentFlow:
             config={"id": "TEST-02"},
             flow_capacity=FlowCapacity(100, 100, 500),
             processing=ProcessingParameters(
-                nominal_rate=100,
-                quality_rate=0.95,
-                performance_factor=1.0,
-                processing_interval=0.1
+                nominal_rate=100, quality_rate=0.95, performance_factor=1.0, processing_interval=0.1
             ),
             failures=FailureParameters(1000, 10, 0, 0),
         )
@@ -128,10 +122,7 @@ class TestEquipmentFlow:
             config={"id": "TEST-03"},
             flow_capacity=FlowCapacity(100, 100, 500),
             processing=ProcessingParameters(
-                nominal_rate=100,
-                quality_rate=0.95,
-                performance_factor=1.0,
-                processing_interval=0.1
+                nominal_rate=100, quality_rate=0.95, performance_factor=1.0, processing_interval=0.1
             ),
             failures=FailureParameters(1000, 10, 0, 0),
         )

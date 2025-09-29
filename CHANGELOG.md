@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Code quality improvements**: Major linting and formatting overhaul
+  - Applied ruff auto-fixes to all 42 Python files (1313 style issues resolved)
+  - Reformatted 33 files for consistent code style
+  - Fixed all import sorting and removed unused imports
+  - Added missing type annotations in 8 locations
+  - Renamed ambiguous single-letter variables to descriptive names
+  - Fixed method signature incompatibilities with base classes
+  - Reduced mypy errors from 128 to 81 (37% reduction)
+  - Reduced ruff violations from 1348 to 15 (99% reduction)
+
+### Fixed
+- **Type checking issues**:
+  - Added missing `FlowState` import in test_equipment_flow_debug.py
+  - Fixed dictionary type annotations in scheduling modules
+  - Corrected method signatures to match abstract base class interface
+  - Fixed unused loop control variables (replaced with `_` prefix)
+- **Code style violations**:
+  - Removed trailing whitespace and blank lines (1000+ lines)
+  - Fixed f-string placeholders and formatting issues
+  - Added missing newlines at end of files
+  - Corrected docstring formatting
+
 ### Added
 - **Production order cycling**: Automatic order replenishment to fill simulation duration
   - Orders now cycle automatically to keep lines productive throughout simulation

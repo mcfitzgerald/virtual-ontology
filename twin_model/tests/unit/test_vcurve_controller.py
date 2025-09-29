@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pytest
 import simpy
@@ -77,7 +77,7 @@ class TestVCurveController:
     def setup_method(self) -> None:
         """Set up test fixtures."""
         self.env = simpy.Environment()
-        
+
         # Create mock equipment
         self.equipment = {}
         for line in [1, 2]:
@@ -99,9 +99,9 @@ class TestVCurveController:
             downstream_differential=0.15,
             update_interval=5.0,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
-        
+
         assert controller.constraint_id == "LINE1-FIL"
         assert controller.params.mode == VCurveMode.FIXED_CONSTRAINT
         assert len(controller.original_rates) == 6  # 2 lines × 3 stations
@@ -110,7 +110,7 @@ class TestVCurveController:
         """Test constraint identification by lowest rate."""
         # Set LINE1-FIL to have lowest rate
         self.equipment["LINE1-FIL"].processing.nominal_rate = 90.0
-        
+
         params = VCurveParameters(
             mode=VCurveMode.DYNAMIC_CONSTRAINT,
             constraint_equipment=None,
@@ -118,10 +118,10 @@ class TestVCurveController:
             downstream_differential=0.15,
             update_interval=5.0,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
         controller.identify_constraint()
-        
+
         assert controller.constraint_id == "LINE1-FIL"
 
     def test_adjust_speeds_vcurve_pattern(self) -> None:
@@ -133,10 +133,10 @@ class TestVCurveController:
             downstream_differential=0.1,
             update_interval=5.0,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
         controller.adjust_speeds()
-        
+
         # Check V-curve pattern for LINE1
         # FIL (upstream): should be faster
         assert controller.speed_adjustments.get("LINE1-FIL", 1.0) > 1.0
@@ -156,12 +156,12 @@ class TestVCurveController:
             max_speed_multiplier=1.3,  # Cap at 1.3x
             min_speed_multiplier=0.9,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
         controller.adjust_speeds()
-        
+
         # Check that all adjustments respect caps
-        for equip_id, multiplier in controller.speed_adjustments.items():
+        for _equip_id, multiplier in controller.speed_adjustments.items():
             assert 0.9 <= multiplier <= 1.3
 
     def test_monitor_constraint_health(self) -> None:
@@ -173,18 +173,18 @@ class TestVCurveController:
             downstream_differential=0.15,
             update_interval=5.0,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
-        
+
         # Simulate constraint starvation
         self.equipment["LINE1-FIL"].current_state = FlowState.STARVED_UPSTREAM
         controller.monitor_constraint_health()
-        
+
         # Advance time
         self.env.run(until=10)
         controller.last_check_time = 0  # Reset for calculation
         controller.monitor_constraint_health()
-        
+
         assert controller.constraint_starvation_time > 0
 
     def test_get_metrics(self) -> None:
@@ -196,12 +196,12 @@ class TestVCurveController:
             downstream_differential=0.15,
             update_interval=5.0,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
         controller.adjust_speeds()
-        
+
         metrics = controller.get_metrics()
-        
+
         assert metrics["mode"] == "fixed_constraint"
         assert metrics["constraint_id"] == "LINE1-FIL"
         assert metrics["upstream_differential"] == 0.2
@@ -218,25 +218,25 @@ class TestVCurveController:
             downstream_differential=0.15,
             update_interval=5.0,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
-        
+
         # Store original rates
         original_rates = {}
         for equip_id, equipment in self.equipment.items():
             original_rates[equip_id] = equipment.processing.nominal_rate
-        
+
         # Adjust speeds
         controller.adjust_speeds()
-        
+
         # Verify speeds changed
         for equip_id in ["LINE1-FIL", "LINE1-PCK", "LINE1-PAL"]:
             if equip_id != "LINE1-FIL":  # Constraint stays at nominal
                 assert self.equipment[equip_id].processing.nominal_rate != original_rates[equip_id]
-        
+
         # Reset speeds
         controller.reset_speeds()
-        
+
         # Verify speeds restored
         for equip_id, equipment in self.equipment.items():
             assert equipment.processing.nominal_rate == original_rates[equip_id]
@@ -250,8 +250,8 @@ class TestVCurveController:
             downstream_differential=0.15,
             update_interval=5.0,
         )
-        
+
         controller = VCurveController(self.env, self.equipment, params)
         controller.start()
-        
+
         assert controller.process is None  # No process started

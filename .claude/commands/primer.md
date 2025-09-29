@@ -154,7 +154,7 @@ Goldratt's Five Focusing Steps:
 ## Code Patterns
 
 ### Critical Rules
-- **Always**: Use `~/.local/bin/poetry run python` (never bare python)
+- **Always**: Use `poetry run python` (never bare python)
 - **Parameters**: Resolution hierarchy: equipment-specific → type-specific → defaults
 - **No hardcodes**: Everything in config files
 - **Testing**: Run `validate_phase3.py` after changes
@@ -163,16 +163,16 @@ Goldratt's Five Focusing Steps:
 ### Common Commands
 ```bash
 # Validate current configuration
-~/.local/bin/poetry run python validation/validate_phase3.py
+poetry run python validation/validate_phase3.py
 
 # Run tests
-~/.local/bin/poetry run pytest
+poetry run pytest
 
 # Type checking
-~/.local/bin/poetry run mypy twin_model
+poetry run mypy twin_model
 
 # Linting
-~/.local/bin/poetry run ruff check
+poetry run ruff check
 ```
 
 ## Recent Decisions
@@ -183,7 +183,7 @@ Goldratt's Five Focusing Steps:
 
 ### Quick Validation
 ```bash
-~/.local/bin/poetry run python validation/validate_phase3.py
+poetry run python validation/validate_phase3.py
 ```
 Expected output: [current vs target]
 

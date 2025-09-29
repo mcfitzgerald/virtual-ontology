@@ -156,12 +156,21 @@ source.add_order(order)
 
 ## Documentation
 
-- [Quick Reference](TWIN_MODEL_QUICK_REFERENCE.md) - Common patterns and API reference
-- [Documentation Overview](docs/DOCS_TOC.md) - Complete guide to all documentation
-- [Architecture Guide](docs/llm-ready/01-architecture-overview.md) - Ontology-driven architecture explained
-- [Quick Start API](docs/llm-ready/02-quickstart-api.md) - API guide with three-file pathway
+### Getting Started (Recommended Order)
+1. [User Guide](docs/llm-ready/00-user-guide.md) - Complete system understanding and tutorial
+2. [Architecture Overview](docs/llm-ready/01-architecture-overview.md) - Ontology-driven design explained
+3. [Quick Reference](TWIN_MODEL_QUICK_REFERENCE.md) - Common patterns and API reference
+4. [Quick Start API](docs/llm-ready/02-quickstart-api.md) - API guide with three-file pathway
+
+### Deep Dive
 - [Complete API Reference](docs/llm-ready/03-complete-api-reference.md) - Full API documentation
+- [MES Integration Guide](docs/llm-ready/04-mes-integration-guide.md) - Production scheduling and data collection
+- [Configuration Reference](docs/llm-ready/05-configuration-reference.md) - All configuration options
 - [Example Configurations](docs/llm-ready/yaml-examples/) - Sample YAML files
+
+### Additional Resources
+- [Documentation Overview](docs/DOCS_TOC.md) - Complete guide to all documentation
+- [Next Steps](NEXT_STEPS.md) - Current status and known issues
 - [Production Line Theory](reference/theory_notes.md) - Empirical research and industry standards
 - [Implementation Roadmap](IMPLEMENTATION_PLAN.md) - Detailed optimization plan
 

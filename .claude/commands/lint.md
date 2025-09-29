@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(~/.local/bin/poetry run mypy:*), Bash(~/.local/bin/poetry run ruff:*), Bash(wc:*), Bash(grep:*), Read, Edit, TodoWrite
+allowed-tools: Bash(poetry run mypy:*), Bash(poetry run ruff:*), Bash(wc:*), Bash(grep:*), Read, Edit, TodoWrite
 description: Run mypy and ruff with auto-fix capabilities for code quality
 ---
 
@@ -8,7 +8,7 @@ description: Run mypy and ruff with auto-fix capabilities for code quality
 ## Current Status
 - Python files: !`find . -name "*.py" -not -path "./.venv/*" -not -path "./archive/*" | wc -l`
 - Last lint check: !`git log --grep="lint\|style\|type" --oneline -1 | head -1 || echo "Unknown"`
-- Poetry environment: !`~/.local/bin/poetry check 2>&1`
+- Poetry environment: !`poetry check 2>&1`
 
 ## Instructions
 
@@ -16,15 +16,15 @@ description: Run mypy and ruff with auto-fix capabilities for code quality
 
 1. **Run initial mypy check**:
    ```bash
-   ~/.local/bin/poetry run mypy . --show-error-codes --pretty --show-error-context
+   poetry run mypy . --show-error-codes --pretty --show-error-context
    ```
 
 2. **Get detailed statistics**:
    ```bash
-   ~/.local/bin/poetry run mypy . --html-report mypy-report --linecount-report mypy-linecount 2>/dev/null
+   poetry run mypy . --html-report mypy-report --linecount-report mypy-linecount 2>/dev/null
    
    # Show type coverage
-   ~/.local/bin/poetry run mypy . --any-exprs-report mypy-coverage 2>/dev/null
+   poetry run mypy . --any-exprs-report mypy-coverage 2>/dev/null
    if [ -f mypy-coverage/any-exprs.txt ]; then
      echo "Type coverage by module:"
      cat mypy-coverage/any-exprs.txt | head -20
@@ -41,7 +41,7 @@ description: Run mypy and ruff with auto-fix capabilities for code quality
 4. **Categorize mypy errors**:
    ```bash
    # Group errors by type
-   ~/.local/bin/poetry run mypy . 2>&1 | grep "error:" | sed 's/.*error: //' | cut -d'[' -f1 | sort | uniq -c | sort -rn
+   poetry run mypy . 2>&1 | grep "error:" | sed 's/.*error: //' | cut -d'[' -f1 | sort | uniq -c | sort -rn
    ```
 
 ### Phase 2: Style & Linting with ruff
@@ -49,31 +49,31 @@ description: Run mypy and ruff with auto-fix capabilities for code quality
 1. **Run ruff check with auto-fix** (safe fixes only):
    ```bash
    # First, see what will be fixed
-   ~/.local/bin/poetry run ruff check . --fix --show-fixes
+   poetry run ruff check . --fix --show-fixes
    
    # Actually apply the fixes
-   ~/.local/bin/poetry run ruff check . --fix
+   poetry run ruff check . --fix
    ```
 
 2. **Run ruff format** (code formatting):
    ```bash
    # Check what will be formatted
-   ~/.local/bin/poetry run ruff format . --check --diff
+   poetry run ruff format . --check --diff
    
    # Apply formatting
-   ~/.local/bin/poetry run ruff format .
+   poetry run ruff format .
    ```
 
 3. **Check for unsafe fixes** (require manual review):
    ```bash
    # Show unsafe fixes that ruff could apply
-   ~/.local/bin/poetry run ruff check . --unsafe-fixes --show-fixes
+   poetry run ruff check . --unsafe-fixes --show-fixes
    ```
 
 4. **Get detailed statistics**:
    ```bash
    # Count issues by rule
-   ~/.local/bin/poetry run ruff check . --statistics
+   poetry run ruff check . --statistics
    ```
 
 ### Phase 3: Advanced Checks
@@ -81,31 +81,31 @@ description: Run mypy and ruff with auto-fix capabilities for code quality
 1. **Check for common anti-patterns**:
    ```bash
    # Unused imports (if not caught by ruff)
-   ~/.local/bin/poetry run ruff check . --select F401
+   poetry run ruff check . --select F401
    
    # Undefined names
-   ~/.local/bin/poetry run ruff check . --select F821
+   poetry run ruff check . --select F821
    
    # Unused variables
-   ~/.local/bin/poetry run ruff check . --select F841
+   poetry run ruff check . --select F841
    ```
 
 2. **Security checks**:
    ```bash
    # Hardcoded passwords, SQL injection risks, etc.
-   ~/.local/bin/poetry run ruff check . --select S
+   poetry run ruff check . --select S
    ```
 
 3. **Complexity checks**:
    ```bash
    # Cyclomatic complexity
-   ~/.local/bin/poetry run ruff check . --select C901
+   poetry run ruff check . --select C901
    ```
 
 4. **Documentation checks**:
    ```bash
    # Missing docstrings
-   ~/.local/bin/poetry run ruff check . --select D
+   poetry run ruff check . --select D
    ```
 
 ### Phase 4: Generate Fix Proposal
@@ -216,14 +216,14 @@ Create a structured report:
 
 1. **Re-run all checks**:
    ```bash
-   ~/.local/bin/poetry run mypy .
-   ~/.local/bin/poetry run ruff check .
+   poetry run mypy .
+   poetry run ruff check .
    ```
 
 2. **Verify no regressions**:
    ```bash
    # Run tests to ensure fixes didn't break anything
-   ~/.local/bin/poetry run pytest
+   poetry run pytest
    ```
 
 3. **Update CHANGELOG.md**:

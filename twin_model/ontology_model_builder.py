@@ -232,40 +232,46 @@ class OntologyModelBuilder:
 
         # Parameter resolution order: equipment-specific -> type-specific defaults -> general defaults -> fallback
         generation_rate = (
-            eq_params.get("generation_rate") or
-            source_defaults.get("generation_rate", 300.0)  # Last resort fallback
+            eq_params.get("generation_rate") or source_defaults.get("generation_rate", 300.0)  # Last resort fallback
         )
-        generation_interval = (
-            eq_params.get("generation_interval") or
-            source_defaults.get("generation_interval", 0.1)
-        )
+        generation_interval = eq_params.get("generation_interval") or source_defaults.get("generation_interval", 0.1)
 
         # Log what we're using
         logger.info(f"Creating {source_id}:")
-        logger.info(f"  generation_rate: {generation_rate} (from: {self._get_param_source('generation_rate', eq_params, source_defaults)})")
-        logger.info(f"  generation_interval: {generation_interval} (from: {self._get_param_source('generation_interval', eq_params, source_defaults)})")
+        logger.info(
+            f"  generation_rate: {generation_rate} (from: {self._get_param_source('generation_rate', eq_params, source_defaults)})"
+        )
+        logger.info(
+            f"  generation_interval: {generation_interval} (from: {self._get_param_source('generation_interval', eq_params, source_defaults)})"
+        )
 
         # Create flow capacity with proper resolution: equipment-specific -> source defaults -> flow defaults
         max_input_rate = (
-            eq_flow_params.get("max_input_rate") or
-            source_defaults.get("max_input_rate") or
-            flow_defaults.get("max_input_rate", 350.0)
+            eq_flow_params.get("max_input_rate")
+            or source_defaults.get("max_input_rate")
+            or flow_defaults.get("max_input_rate", 350.0)
         )
         max_output_rate = (
-            eq_flow_params.get("max_output_rate") or
-            source_defaults.get("max_output_rate") or
-            flow_defaults.get("max_output_rate", 350.0)
+            eq_flow_params.get("max_output_rate")
+            or source_defaults.get("max_output_rate")
+            or flow_defaults.get("max_output_rate", 350.0)
         )
         internal_capacity = (
-            eq_flow_params.get("internal_capacity") or
-            source_defaults.get("internal_capacity") or
-            flow_defaults.get("internal_capacity", 2000.0)
+            eq_flow_params.get("internal_capacity")
+            or source_defaults.get("internal_capacity")
+            or flow_defaults.get("internal_capacity", 2000.0)
         )
         initial_level = eq_flow_params.get("initial_level", 0.0)
 
-        logger.info(f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, source_defaults, flow_defaults)})")
-        logger.info(f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, source_defaults, flow_defaults)})")
-        logger.info(f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, source_defaults, flow_defaults)})")
+        logger.info(
+            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, source_defaults, flow_defaults)})"
+        )
+        logger.info(
+            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, source_defaults, flow_defaults)})"
+        )
+        logger.info(
+            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, source_defaults, flow_defaults)})"
+        )
 
         capacity = FlowCapacity(
             max_input_rate=max_input_rate,
@@ -314,42 +320,52 @@ class OntologyModelBuilder:
 
         # Collection rate resolution: equipment flow params -> equipment params -> sink defaults
         collection_rate = (
-            eq_flow_params.get("collection_rate") or
-            eq_params.get("collection_rate") or
-            sink_defaults.get("collection_rate", 300.0)  # Last resort fallback
+            eq_flow_params.get("collection_rate")
+            or eq_params.get("collection_rate")
+            or sink_defaults.get("collection_rate", 300.0)  # Last resort fallback
         )
         collection_interval = (
-            eq_flow_params.get("collection_interval") or
-            eq_params.get("collection_interval") or
-            sink_defaults.get("collection_interval", 0.1)
+            eq_flow_params.get("collection_interval")
+            or eq_params.get("collection_interval")
+            or sink_defaults.get("collection_interval", 0.1)
         )
 
         # Log what we're using
         logger.info(f"Creating {sink_id}:")
-        logger.info(f"  collection_rate: {collection_rate} (from: {self._get_param_source('collection_rate', eq_flow_params, eq_params, sink_defaults)})")
-        logger.info(f"  collection_interval: {collection_interval} (from: {self._get_param_source('collection_interval', eq_flow_params, eq_params, sink_defaults)})")
+        logger.info(
+            f"  collection_rate: {collection_rate} (from: {self._get_param_source('collection_rate', eq_flow_params, eq_params, sink_defaults)})"
+        )
+        logger.info(
+            f"  collection_interval: {collection_interval} (from: {self._get_param_source('collection_interval', eq_flow_params, eq_params, sink_defaults)})"
+        )
 
         # Create flow capacity with proper resolution: equipment-specific -> sink defaults -> flow defaults
         max_input_rate = (
-            eq_flow_params.get("max_input_rate") or
-            sink_defaults.get("max_input_rate") or
-            flow_defaults.get("max_input_rate", 350.0)
+            eq_flow_params.get("max_input_rate")
+            or sink_defaults.get("max_input_rate")
+            or flow_defaults.get("max_input_rate", 350.0)
         )
         max_output_rate = (
-            eq_flow_params.get("max_output_rate") or
-            sink_defaults.get("max_output_rate") or
-            flow_defaults.get("max_output_rate", 350.0)
+            eq_flow_params.get("max_output_rate")
+            or sink_defaults.get("max_output_rate")
+            or flow_defaults.get("max_output_rate", 350.0)
         )
         internal_capacity = (
-            eq_flow_params.get("internal_capacity") or
-            sink_defaults.get("internal_capacity") or
-            flow_defaults.get("internal_capacity", 10000.0)
+            eq_flow_params.get("internal_capacity")
+            or sink_defaults.get("internal_capacity")
+            or flow_defaults.get("internal_capacity", 10000.0)
         )
         initial_level = eq_flow_params.get("initial_level", 0.0)
 
-        logger.info(f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, sink_defaults, flow_defaults)})")
-        logger.info(f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, sink_defaults, flow_defaults)})")
-        logger.info(f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, sink_defaults, flow_defaults)})")
+        logger.info(
+            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, sink_defaults, flow_defaults)})"
+        )
+        logger.info(
+            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, sink_defaults, flow_defaults)})"
+        )
+        logger.info(
+            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, sink_defaults, flow_defaults)})"
+        )
 
         capacity = FlowCapacity(
             max_input_rate=max_input_rate,
@@ -387,9 +403,7 @@ class OntologyModelBuilder:
         self.primitives[sink_id] = sink
         logger.debug(f"Created sink: {sink_id}")
 
-    def _create_equipment_flow(
-        self, equipment_id: str, equipment_type: str
-    ) -> None:
+    def _create_equipment_flow(self, equipment_id: str, equipment_type: str) -> None:
         """Create equipment flow primitive with proper parameter resolution.
 
         Args:
@@ -412,10 +426,18 @@ class OntologyModelBuilder:
         batch_size = eq_params.get("batch_size") or equipment_defaults.get("batch_size", 10.0)
         processing_interval = eq_params.get("processing_interval") or equipment_defaults.get("processing_interval", 0.1)
 
-        logger.info(f"  nominal_rate: {nominal_rate} (from: {self._get_param_source('nominal_rate', eq_params, equipment_defaults)})")
-        logger.info(f"  quality_rate: {quality_rate} (from: {self._get_param_source('quality_rate', eq_params, equipment_defaults)})")
-        logger.info(f"  performance_factor: {performance_factor} (from: {self._get_param_source('performance_factor', eq_params, equipment_defaults)})")
-        logger.info(f"  batch_size: {batch_size} (from: {self._get_param_source('batch_size', eq_params, equipment_defaults)})")
+        logger.info(
+            f"  nominal_rate: {nominal_rate} (from: {self._get_param_source('nominal_rate', eq_params, equipment_defaults)})"
+        )
+        logger.info(
+            f"  quality_rate: {quality_rate} (from: {self._get_param_source('quality_rate', eq_params, equipment_defaults)})"
+        )
+        logger.info(
+            f"  performance_factor: {performance_factor} (from: {self._get_param_source('performance_factor', eq_params, equipment_defaults)})"
+        )
+        logger.info(
+            f"  batch_size: {batch_size} (from: {self._get_param_source('batch_size', eq_params, equipment_defaults)})"
+        )
 
         processing = ProcessingParameters(
             nominal_rate=nominal_rate,
@@ -443,25 +465,31 @@ class OntologyModelBuilder:
 
         # Create flow capacity with proper resolution: equipment-specific -> equipment defaults -> flow defaults
         max_input_rate = (
-            eq_flow_params.get("max_input_rate") or
-            equipment_defaults.get("max_input_rate") or
-            flow_defaults.get("max_input_rate", 100.0)
+            eq_flow_params.get("max_input_rate")
+            or equipment_defaults.get("max_input_rate")
+            or flow_defaults.get("max_input_rate", 100.0)
         )
         max_output_rate = (
-            eq_flow_params.get("max_output_rate") or
-            equipment_defaults.get("max_output_rate") or
-            flow_defaults.get("max_output_rate", 90.0)
+            eq_flow_params.get("max_output_rate")
+            or equipment_defaults.get("max_output_rate")
+            or flow_defaults.get("max_output_rate", 90.0)
         )
         internal_capacity = (
-            eq_flow_params.get("internal_capacity") or
-            equipment_defaults.get("internal_capacity") or
-            flow_defaults.get("internal_capacity", 500.0)
+            eq_flow_params.get("internal_capacity")
+            or equipment_defaults.get("internal_capacity")
+            or flow_defaults.get("internal_capacity", 500.0)
         )
         initial_level = eq_flow_params.get("initial_level", 0.0)
 
-        logger.info(f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, equipment_defaults, flow_defaults)})")
-        logger.info(f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, equipment_defaults, flow_defaults)})")
-        logger.info(f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, equipment_defaults, flow_defaults)})")
+        logger.info(
+            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, equipment_defaults, flow_defaults)})"
+        )
+        logger.info(
+            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, equipment_defaults, flow_defaults)})"
+        )
+        logger.info(
+            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, equipment_defaults, flow_defaults)})"
+        )
 
         capacity = FlowCapacity(
             max_input_rate=max_input_rate,
@@ -477,15 +505,21 @@ class OntologyModelBuilder:
         if equipment_type == "FillingStation":
             fill_rate = eq_params.get("fill_rate") or equipment_defaults.get("fill_rate", 90.0)
             config["fill_rate"] = fill_rate
-            logger.info(f"  fill_rate: {fill_rate} (from: {self._get_param_source('fill_rate', eq_params, equipment_defaults)})")
+            logger.info(
+                f"  fill_rate: {fill_rate} (from: {self._get_param_source('fill_rate', eq_params, equipment_defaults)})"
+            )
         elif equipment_type == "PackingStation":
             pack_size = eq_params.get("pack_size") or equipment_defaults.get("pack_size", 12)
             config["pack_size"] = pack_size
-            logger.info(f"  pack_size: {pack_size} (from: {self._get_param_source('pack_size', eq_params, equipment_defaults)})")
+            logger.info(
+                f"  pack_size: {pack_size} (from: {self._get_param_source('pack_size', eq_params, equipment_defaults)})"
+            )
         elif equipment_type == "PalletizingStation":
             pallet_size = eq_params.get("pallet_size") or equipment_defaults.get("pallet_size", 144)
             config["pallet_size"] = pallet_size
-            logger.info(f"  pallet_size: {pallet_size} (from: {self._get_param_source('pallet_size', eq_params, equipment_defaults)})")
+            logger.info(
+                f"  pallet_size: {pallet_size} (from: {self._get_param_source('pallet_size', eq_params, equipment_defaults)})"
+            )
 
         # Create equipment
         equipment = EquipmentFlow(
@@ -519,24 +553,22 @@ class OntologyModelBuilder:
 
         # Get flow capacity parameters
         capacity_value = (
-            buffer_data.get("capacity") or
-            buffer_config.get("capacity") or
-            buffer_defaults.get("capacity", 100.0)
+            buffer_data.get("capacity") or buffer_config.get("capacity") or buffer_defaults.get("capacity", 100.0)
         )
         max_input_rate = (
-            buffer_data.get("max_input_rate") or
-            buffer_config.get("max_input_rate") or
-            buffer_defaults.get("max_input_rate", 100.0)
+            buffer_data.get("max_input_rate")
+            or buffer_config.get("max_input_rate")
+            or buffer_defaults.get("max_input_rate", 100.0)
         )
         max_output_rate = (
-            buffer_data.get("max_output_rate") or
-            buffer_config.get("max_output_rate") or
-            buffer_defaults.get("max_output_rate", 100.0)
+            buffer_data.get("max_output_rate")
+            or buffer_config.get("max_output_rate")
+            or buffer_defaults.get("max_output_rate", 100.0)
         )
         initial_level = (
-            buffer_data.get("initial_level") or
-            buffer_config.get("initial_level") or
-            buffer_defaults.get("initial_level", 0.0)
+            buffer_data.get("initial_level")
+            or buffer_config.get("initial_level")
+            or buffer_defaults.get("initial_level", 0.0)
         )
 
         flow_capacity = FlowCapacity(
@@ -547,32 +579,25 @@ class OntologyModelBuilder:
         )
 
         # Get buffer parameters
-        mode_str = (
-            buffer_data.get("buffer_type") or
-            buffer_config.get("mode") or
-            buffer_defaults.get("mode", "FIFO")
-        )
+        mode_str = buffer_data.get("buffer_type") or buffer_config.get("mode") or buffer_defaults.get("mode", "FIFO")
         mode = BufferMode.FIFO if mode_str.upper() == "FIFO" else BufferMode.FILO
 
         warning_low = (
-            buffer_data.get("warning_level_low") or
-            buffer_config.get("warning_level_low") or
-            buffer_defaults.get("warning_level_low", 0.2)
+            buffer_data.get("warning_level_low")
+            or buffer_config.get("warning_level_low")
+            or buffer_defaults.get("warning_level_low", 0.2)
         )
         warning_high = (
-            buffer_data.get("warning_level_high") or
-            buffer_config.get("warning_level_high") or
-            buffer_defaults.get("warning_level_high", 0.8)
+            buffer_data.get("warning_level_high")
+            or buffer_config.get("warning_level_high")
+            or buffer_defaults.get("warning_level_high", 0.8)
         )
         max_dwell_time = (
-            buffer_data.get("max_dwell_time") or
-            buffer_config.get("max_dwell_time") or
-            buffer_defaults.get("max_dwell_time", 180.0)
+            buffer_data.get("max_dwell_time")
+            or buffer_config.get("max_dwell_time")
+            or buffer_defaults.get("max_dwell_time", 180.0)
         )
-        update_interval = (
-            buffer_config.get("update_interval") or
-            buffer_defaults.get("update_interval", 0.01)
-        )
+        update_interval = buffer_config.get("update_interval") or buffer_defaults.get("update_interval", 0.01)
 
         buffer_params = BufferParameters(
             mode=mode,
@@ -601,9 +626,7 @@ class OntologyModelBuilder:
         buffer.buffer_id = buffer_id  # type: ignore[attr-defined]
 
         self.primitives[buffer_id] = buffer
-        logger.info(
-            f"Created buffer: {buffer_id} (capacity: {capacity_value}, mode: {mode.value})"
-        )
+        logger.info(f"Created buffer: {buffer_id} (capacity: {capacity_value}, mode: {mode.value})")
 
     def _wire_connections(self) -> None:
         """Wire equipment connections based on manifest."""
@@ -666,11 +689,11 @@ class OntologyModelBuilder:
         """Start all equipment processes."""
         # First, wire upstream equipment to sinks for OEE calculation
         from .primitives.sink_flow import SinkFlow
-        
+
         for conn in self.connections:
             to_id = conn["to"]
             from_id = conn["from"]
-            
+
             # If the destination is a sink, add the source to its upstream list
             if to_id in self.primitives and isinstance(self.primitives[to_id], SinkFlow):
                 sink = self.primitives[to_id]
@@ -679,7 +702,7 @@ class OntologyModelBuilder:
                     if upstream_equipment not in sink.upstream_equipment:
                         sink.upstream_equipment.append(upstream_equipment)
                         logger.debug(f"Added {from_id} as upstream equipment for sink {to_id}")
-        
+
         # Start all equipment processes
         for equipment_id, equipment in self.primitives.items():
             if hasattr(equipment, "start"):

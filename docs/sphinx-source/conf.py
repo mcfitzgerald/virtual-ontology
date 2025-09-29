@@ -1,6 +1,5 @@
 """Sphinx configuration for twin_model documentation."""
 
-import os
 import sys
 from pathlib import Path
 
@@ -53,7 +52,7 @@ master_doc = "index"
 language = "en"
 
 # Exclude patterns
-exclude_patterns = []
+exclude_patterns: list[str] = []
 
 # HTML theme
 html_theme = "sphinx_rtd_theme"

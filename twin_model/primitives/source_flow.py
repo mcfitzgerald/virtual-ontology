@@ -93,6 +93,9 @@ class SourceFlow(BaseFlowPrimitive):
 
     def process_flow(self) -> Generator[Any, None, None]:
         """Generate material based on orders or continuously."""
+        initial_mode = "continuous" if self.continuous_mode else "order-based"
+        logger.debug(f"{self.config.get('name', 'Source')}: Starting process_flow in {initial_mode} mode")
+
         while True:
             if not self.continuous_mode and self.current_order:
                 # Order-based generation
@@ -127,6 +130,13 @@ class SourceFlow(BaseFlowPrimitive):
             yield self.env.timeout(self.generation_interval)
             return
 
+        # Log order processing every 10 time units
+        if int(self.env.now) % 10 == 0:
+            logger.debug(
+                f"{self.config.get('name', 'Source')} @ {self.env.now:.1f}: Processing order {self.current_order.order_id} - "
+                f"{self.current_order.completed_volume:.1f}/{self.current_order.target_volume:.1f} units"
+            )
+
         # Calculate volume to generate
         remaining = self.current_order.remaining_volume
         max_generation = self.generation_rate * self.generation_interval
@@ -154,6 +164,10 @@ class SourceFlow(BaseFlowPrimitive):
 
             # Check if order is complete
             if self.current_order.completed_volume >= self.current_order.target_volume:
+                logger.info(
+                    f"{self.config.get('name', 'Source')}: Order {self.current_order.order_id} completed - "
+                    f"{self.current_order.completed_volume}/{self.current_order.target_volume} units"
+                )
                 self.emit_observable(
                     "order_completed",
                     {
@@ -215,7 +229,7 @@ class SourceFlow(BaseFlowPrimitive):
         yield self.env.timeout(self.generation_interval)
 
     def _get_next_order(self) -> ProductionOrder | None:
-        """Get next order from queue based on priority.
+        """Get next order from queue based on due time.
 
         Returns:
             Next production order or None if queue is empty
@@ -223,8 +237,9 @@ class SourceFlow(BaseFlowPrimitive):
         if not self.order_queue:
             return None
 
-        # Sort by priority (higher priority first) then by due time
-        self.order_queue.sort(key=lambda o: (-o.priority, o.due_time))
+        # Sort by due time only to maintain proper sequence
+        # This ensures orders complete in the intended order, not by priority
+        self.order_queue.sort(key=lambda o: o.due_time)
         return self.order_queue.pop(0)
 
     def add_order(self, order: ProductionOrder) -> None:
@@ -234,9 +249,18 @@ class SourceFlow(BaseFlowPrimitive):
             order: Production order to add
         """
         self.order_queue.append(order)
-        logger.info(f"{self.config.get('name', 'Source')}: Added order {order.order_id} "
-                   f"for {order.target_volume} units of {order.product_id}, "
-                   f"queue length: {len(self.order_queue)}")
+        logger.info(
+            f"{self.config.get('name', 'Source')}: Added order {order.order_id} "
+            f"for {order.target_volume} units of {order.product_id}, "
+            f"queue length: {len(self.order_queue)}"
+        )
+
+        # Automatically switch to order-based mode when orders are added
+        if self.continuous_mode:
+            self.continuous_mode = False
+            logger.info(f"{self.config.get('name', 'Source')}: Switching from continuous to order-based mode")
+        else:
+            logger.debug(f"{self.config.get('name', 'Source')}: Already in order-based mode")
 
         self.emit_observable(
             "order_queued",
@@ -249,8 +273,8 @@ class SourceFlow(BaseFlowPrimitive):
             },
         )
 
-        # If no current order and not in continuous mode, start processing
-        if not self.current_order and not self.continuous_mode:
+        # If no current order, start processing
+        if not self.current_order:
             self.current_order = self._get_next_order()
             if self.current_order:
                 self.emit_observable(

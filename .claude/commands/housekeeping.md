@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(find:*), Bash(ls:*), Bash(grep:*), Bash(rg:*), Bash(tree:*), Bash(git:*), Bash(~/.local/bin/poetry:*), Bash(stat:*), Bash(wc:*), Bash(du:*), Read, Write, Edit, TodoWrite
+allowed-tools: Bash(find:*), Bash(ls:*), Bash(grep:*), Bash(rg:*), Bash(tree:*), Bash(git:*), Bash(poetry:*), Bash(stat:*), Bash(wc:*), Bash(du:*), Read, Write, Edit, TodoWrite
 description: Aggressively clean project by analyzing timestamps, finding unused code, and managing Poetry environment
 ---
 
@@ -10,7 +10,7 @@ description: Aggressively clean project by analyzing timestamps, finding unused 
 - Project size: !`find . -type f -name "*.py" | wc -l` Python files
 - Disk usage: !`du -sh . 2>/dev/null | cut -f1`
 - Git status: !`git status --porcelain | wc -l` uncommitted changes
-- Poetry status: !`~/.local/bin/poetry check 2>&1`
+- Poetry status: !`poetry check 2>&1`
 - Last cleanup: Check archive/ directory manually
 
 ## Instructions
@@ -88,10 +88,10 @@ description: Aggressively clean project by analyzing timestamps, finding unused 
 1. **Check dependency usage**:
    ```bash
    # List all installed packages
-   ~/.local/bin/poetry show --no-ansi
+   poetry show --no-ansi
    
    # Find potentially unused dependencies
-   ~/.local/bin/poetry show --tree --no-ansi | grep "^\w" | cut -d' ' -f1 > /tmp/deps.txt
+   poetry show --tree --no-ansi | grep "^\w" | cut -d' ' -f1 > /tmp/deps.txt
    for dep in $(cat /tmp/deps.txt); do
      # Convert package name to import name (handle common cases)
      import_name=$(echo $dep | tr '-' '_' | tr '[:upper:]' '[:lower:]')
@@ -103,12 +103,12 @@ description: Aggressively clean project by analyzing timestamps, finding unused 
 
 2. **Check for outdated packages**:
    ```bash
-   ~/.local/bin/poetry show --outdated --no-ansi
+   poetry show --outdated --no-ansi
    ```
 
 3. **Check poetry.lock consistency**:
    ```bash
-   ~/.local/bin/poetry lock --check
+   poetry lock --check
    ```
 
 ### Phase 4: File System Cleanup
@@ -180,8 +180,8 @@ Create a comprehensive proposal with:
 
 4. **Update Poetry**:
    ```bash
-   ~/.local/bin/poetry lock --no-update
-   ~/.local/bin/poetry install --sync
+   poetry lock --no-update
+   poetry install --sync
    ```
 
 5. **Update .gitignore** if new patterns found

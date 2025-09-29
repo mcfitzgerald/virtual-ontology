@@ -69,13 +69,11 @@ class AccumulationBuffer(BaseFlowPrimitive):
         """
         # Initialize base class
         super().__init__(env, config, flow_capacity)
-        
+
         self.buffer_params = buffer_params
 
         # Create the buffer container
-        self.buffer = simpy.Container(
-            env, capacity=flow_capacity.internal_capacity, init=flow_capacity.initial_level
-        )
+        self.buffer = simpy.Container(env, capacity=flow_capacity.internal_capacity, init=flow_capacity.initial_level)
 
         # Track material dwell time (simplified - tracks average)
         self.material_entry_time = env.now
@@ -155,7 +153,6 @@ class AccumulationBuffer(BaseFlowPrimitive):
             self.process = self.env.process(self.process_flow())
             logger.debug(f"Started buffer process: {self.config.get('id')}")
 
-
     def get_utilization(self) -> float:
         """Calculate buffer utilization.
 
@@ -167,7 +164,6 @@ class AccumulationBuffer(BaseFlowPrimitive):
 
         # For buffers, utilization is based on average fill level
         return (self.buffer.level / self.buffer.capacity * 100) if self.buffer.capacity > 0 else 0.0
-
 
     def process_flow(self) -> Generator[simpy.Event, None, None]:
         """Process continuous flow through the buffer."""
@@ -206,9 +202,7 @@ class AccumulationBuffer(BaseFlowPrimitive):
                     )
 
                     if max_transfer > 0:
-                        logger.debug(
-                            f"Buffer {buffer_id}: Transferring {max_transfer:.2f} units from input to buffer"
-                        )
+                        logger.debug(f"Buffer {buffer_id}: Transferring {max_transfer:.2f} units from input to buffer")
                         # Pull from input
                         yield self.input_container.get(max_transfer)
                         # Push to buffer
@@ -216,9 +210,7 @@ class AccumulationBuffer(BaseFlowPrimitive):
                         self.total_flow_in += max_transfer
                         # Track in base class metrics
                         self.flow_metrics.total_input += max_transfer
-                        logger.debug(
-                            f"Buffer {buffer_id}: Transfer complete. New level: {self.buffer.level:.2f}"
-                        )
+                        logger.debug(f"Buffer {buffer_id}: Transfer complete. New level: {self.buffer.level:.2f}")
 
                         # Update dwell time tracking
                         if current_level > 0:
@@ -256,9 +248,7 @@ class AccumulationBuffer(BaseFlowPrimitive):
 
                     if downstream_container is not None:
                         downstream_space = downstream_container.capacity - downstream_container.level
-                        logger.debug(
-                            f"Buffer {buffer_id}: Downstream space available: {downstream_space:.2f}"
-                        )
+                        logger.debug(f"Buffer {buffer_id}: Downstream space available: {downstream_space:.2f}")
                     else:
                         downstream_space = 0
                         logger.warning(f"Buffer {buffer_id}: No downstream container found")

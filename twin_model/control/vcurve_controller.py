@@ -244,8 +244,7 @@ class VCurveController:
                 multiplier = 1.0 + (self.params.downstream_differential * distance)
 
             # Apply caps
-            multiplier = max(self.params.min_speed_multiplier,
-                           min(self.params.max_speed_multiplier, multiplier))
+            multiplier = max(self.params.min_speed_multiplier, min(self.params.max_speed_multiplier, multiplier))
 
             # Apply speed adjustment
             original_rate = self.original_rates.get(equip_id, equipment.processing.nominal_rate)
@@ -303,10 +302,7 @@ class VCurveController:
         line_equipment.sort(key=get_order)
 
         # Filter out sources and sinks for speed adjustment
-        line_equipment = [
-            eid for eid in line_equipment
-            if "SOURCE" not in eid and "SINK" not in eid
-        ]
+        line_equipment = [eid for eid in line_equipment if "SOURCE" not in eid and "SINK" not in eid]
 
         return line_equipment
 

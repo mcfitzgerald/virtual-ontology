@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(find:*), Bash(grep:*), Bash(~/.local/bin/poetry run sphinx-build:*), Bash(~/.local/bin/poetry run interrogate:*), Bash(pandoc:*), Bash(git:*), Bash(ls:*), Bash(tree:*), Bash(test:*), Bash(cp:*), Bash(rm:*), Bash(cd:*), Bash(echo:*), Read, Write, Edit, TodoWrite, WebFetch, Task
+allowed-tools: Bash(find:*), Bash(grep:*), Bash(poetry run sphinx-build:*), Bash(poetry run interrogate:*), Bash(pandoc:*), Bash(git:*), Bash(ls:*), Bash(tree:*), Bash(test:*), Bash(cp:*), Bash(rm:*), Bash(cd:*), Bash(echo:*), Read, Write, Edit, TodoWrite, WebFetch, Task
 description: Ensure all required docs exist and are synchronized with codebase
 ---
 
@@ -141,7 +141,7 @@ This will provide context for documentation updates.
 2. **Run Sphinx with AutoAPI**:
    ```bash
    cd docs/sphinx-source
-   ~/.local/bin/poetry run sphinx-build -b html . ../build/html
+   poetry run sphinx-build -b html . ../build/html
    cd ../..
    ```
 
@@ -282,7 +282,7 @@ This will provide context for documentation updates.
 2. **Check docstring coverage**:
    ```bash
    # Use interrogate or similar tool
-   ~/.local/bin/poetry run interrogate -v twin_model/
+   poetry run interrogate -v twin_model/
    ```
 
 ### Phase 9: Generate Documentation Proposal
