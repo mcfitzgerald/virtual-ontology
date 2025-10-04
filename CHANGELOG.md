@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduced ruff violations from 1348 to 15 (99% reduction)
 
 ### Fixed
+- **CRITICAL: Zero-value configuration bug**: Fixed parameter resolution logic that incorrectly treated explicit `0` values as falsy
+  - Replaced all 21+ `or`-chain patterns with explicit `None` checks using new `_get_param()` helper method
+  - Added comprehensive flow_capacity defaults section to `config/tunable_parameters.yaml`
+  - Small/zero parameter values (e.g., `nominal_rate: 0.01`) now properly override defaults instead of falling through
+  - Affects source, sink, equipment, and buffer parameter resolution across the entire model builder
+  - Added 6 new unit tests in `test_zero_value_config.py` to validate fix and prevent regression
+  - All 63 unit tests pass with zero regressions
 - **Type checking issues**:
   - Added missing `FlowState` import in test_equipment_flow_debug.py
   - Fixed dictionary type annotations in scheduling modules

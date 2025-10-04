@@ -99,7 +99,11 @@ Production orders define **WHAT** to produce and **WHEN**, but material always f
 | **Order Mode** | Sources process specific orders with target volumes | Production scheduling with MES integration |
 | **Continuous Mode** | Sources generate material continuously at nominal rates | Testing, baseline simulations, theoretical capacity |
 
-**Key Point**: Production orders **constrain** continuous flow to specific products/volumes, but material still flows continuously (not in batches).
+**Key Points**:
+- Production orders **constrain** continuous flow to specific products/volumes, but material still flows continuously (not in batches)
+- **Order Cycling**: Orders automatically repeat to fill simulation duration (default behavior)
+- **Per-Line Scheduling**: Each line schedules orders independently starting at t=0 (not globally sequenced)
+- Use `--no-cycle-orders` flag to disable automatic order cycling
 
 **Order Format:**
 ```yaml
@@ -111,7 +115,7 @@ orders:
     priority: 8                 # 1-10, higher = more urgent (optional)
 ```
 
-When orders are loaded, sources automatically switch from continuous mode to order-based mode.
+When orders are loaded, sources automatically switch from continuous mode to order-based mode. By default, orders will cycle (repeat) to fill the entire simulation duration, ensuring lines stay productive. Each line schedules its orders independently, with the first order starting at t=0 for that line.
 
 ## Simulation Runner Script
 
@@ -130,14 +134,17 @@ All five YAML files must be provided:
 
 **Quick start with defaults:**
 ```bash
-# Run 1-day simulation (all file paths use defaults)
+# Run 1-day simulation (all file paths use defaults, orders cycle automatically)
 poetry run python run_twin_simulation.py --days 1
 
 # Run 1-hour simulation with debug logging
 poetry run python run_twin_simulation.py --duration 60 --debug
 
-# Run 7-day simulation with MES export
+# Run 7-day simulation with MES export (orders cycle to fill 7 days)
 poetry run python run_twin_simulation.py --days 7 --mes-output results.csv
+
+# Run simulation without order cycling (stop when orders complete)
+poetry run python run_twin_simulation.py --days 1 --no-cycle-orders
 ```
 
 **Full command with all options:**
@@ -151,6 +158,7 @@ poetry run python run_twin_simulation.py \
   --duration 1440 \                    # 24 hours in minutes (OR use --days 1)
   --mes-output mes_data.csv \          # Optional MES export
   --report-interval 60 \               # Report every hour
+  --no-cycle-orders \                  # Disable order cycling (optional)
   --debug                              # Enable debug logging
 ```
 
@@ -161,10 +169,11 @@ poetry run python run_twin_simulation.py \
 1. **Load & Validate**: Checks all 5 YAML files exist
 2. **Build Model**: Creates equipment using OntologyModelBuilder
 3. **Load Orders**: Parses production orders from YAML
-4. **Connect Sources**: Links orders to source equipment by line_id
-5. **Setup MES**: Optional data collection for metrics
-6. **Run Simulation**: Executes for specified duration with periodic reports
-7. **Export Results**: Final metrics and optional MES CSV
+4. **Cycle Orders**: Automatically repeats orders to fill duration (unless disabled)
+5. **Connect Sources**: Links orders to source equipment by line_id (per-line scheduling)
+6. **Setup MES**: Optional data collection with background order tracking sync
+7. **Run Simulation**: Executes for specified duration with periodic reports
+8. **Export Results**: Final metrics and optional MES CSV with correct order IDs
 
 ### Output
 
@@ -185,10 +194,14 @@ LINE1:
 - MES CSV with 5-minute interval data (108 rows for 9 equipment over 60 minutes)
 
 ### Key Features
+- **Order Cycling**: Orders automatically repeat to fill simulation duration (default)
+- **Per-Line Scheduling**: Each line schedules independently (not globally sequenced)
+- **MES Order Tracking**: Background sync ensures correct order IDs in MES output
 - **No optimization**: Orders run exactly as specified (no campaign grouping)
-- **Sequential execution**: Orders processed in the order they appear
+- **Sequential execution**: Orders processed in the order they appear per line
 - **Multi-line support**: Automatically routes orders to correct line
 - **Real-time metrics**: Continuous OEE and production tracking
+- **CLI Flexibility**: `--days` for convenient duration, `--debug` for verbose output
 
 ## Common Patterns
 

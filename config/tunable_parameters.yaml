@@ -29,6 +29,27 @@ defaults:
     collection_rate: 50.0
     collection_interval: 0.01
     window_duration: 5.0
+    nominal_rate: 300.0
+  flow_capacity:
+    source:
+      max_input_rate: 350.0
+      max_output_rate: 350.0
+      internal_capacity: 2000.0
+      initial_level: 0.0
+    sink:
+      max_input_rate: 350.0
+      max_output_rate: 350.0
+      internal_capacity: 10000.0
+      initial_level: 0.0
+    equipment:
+      max_input_rate: 100.0
+      max_output_rate: 90.0
+      internal_capacity: 500.0
+      initial_level: 0.0
+  buffer:
+    capacity: 100.0
+    mode: FIFO
+    update_interval: 0.01
 equipment_parameters:
   LINE1-SOURCE:
     generation_rate: 60.0

@@ -228,13 +228,11 @@ class OntologyModelBuilder:
         eq_params = self.config.get("equipment_parameters", {}).get(source_id, {})
         eq_flow_params = self.config.get("flow_capacity", {}).get("equipment", {}).get(source_id, {})
         source_defaults = self.config.get("defaults", {}).get("source", {})
-        flow_defaults = self.config.get("flow_capacity", {}).get("defaults", {})
+        flow_capacity_defaults = self.config.get("defaults", {}).get("flow_capacity", {}).get("source", {})
 
         # Parameter resolution order: equipment-specific -> type-specific defaults -> general defaults -> fallback
-        generation_rate = (
-            eq_params.get("generation_rate") or source_defaults.get("generation_rate", 300.0)  # Last resort fallback
-        )
-        generation_interval = eq_params.get("generation_interval") or source_defaults.get("generation_interval", 0.1)
+        generation_rate = self._get_param("generation_rate", eq_params, source_defaults, default=300.0)
+        generation_interval = self._get_param("generation_interval", eq_params, source_defaults, default=0.1)
 
         # Log what we're using
         logger.info(f"Creating {source_id}:")
@@ -246,31 +244,25 @@ class OntologyModelBuilder:
         )
 
         # Create flow capacity with proper resolution: equipment-specific -> source defaults -> flow defaults
-        max_input_rate = (
-            eq_flow_params.get("max_input_rate")
-            or source_defaults.get("max_input_rate")
-            or flow_defaults.get("max_input_rate", 350.0)
+        max_input_rate = self._get_param(
+            "max_input_rate", eq_flow_params, source_defaults, flow_capacity_defaults, default=350.0
         )
-        max_output_rate = (
-            eq_flow_params.get("max_output_rate")
-            or source_defaults.get("max_output_rate")
-            or flow_defaults.get("max_output_rate", 350.0)
+        max_output_rate = self._get_param(
+            "max_output_rate", eq_flow_params, source_defaults, flow_capacity_defaults, default=350.0
         )
-        internal_capacity = (
-            eq_flow_params.get("internal_capacity")
-            or source_defaults.get("internal_capacity")
-            or flow_defaults.get("internal_capacity", 2000.0)
+        internal_capacity = self._get_param(
+            "internal_capacity", eq_flow_params, source_defaults, flow_capacity_defaults, default=2000.0
         )
-        initial_level = eq_flow_params.get("initial_level", 0.0)
+        initial_level = self._get_param("initial_level", eq_flow_params, default=0.0)
 
         logger.info(
-            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, source_defaults, flow_defaults)})"
+            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, source_defaults, flow_capacity_defaults)})"
         )
         logger.info(
-            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, source_defaults, flow_defaults)})"
+            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, source_defaults, flow_capacity_defaults)})"
         )
         logger.info(
-            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, source_defaults, flow_defaults)})"
+            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, source_defaults, flow_capacity_defaults)})"
         )
 
         capacity = FlowCapacity(
@@ -283,8 +275,8 @@ class OntologyModelBuilder:
         # Create config dict
         config = {
             "name": source_id,
-            "continuous_mode": eq_params.get("continuous_mode") or source_defaults.get("continuous_mode", True),
-            "default_product": eq_params.get("default_product") or source_defaults.get("default_product", "SKU-1001"),
+            "continuous_mode": self._get_param("continuous_mode", eq_params, source_defaults, default=True),
+            "default_product": self._get_param("default_product", eq_params, source_defaults, default="SKU-1001"),
         }
 
         # Create source
@@ -316,18 +308,12 @@ class OntologyModelBuilder:
         eq_params = self.config.get("equipment_parameters", {}).get(sink_id, {})
         eq_flow_params = self.config.get("flow_capacity", {}).get("equipment", {}).get(sink_id, {})
         sink_defaults = self.config.get("defaults", {}).get("sink", {})
-        flow_defaults = self.config.get("flow_capacity", {}).get("defaults", {})
+        flow_capacity_defaults = self.config.get("defaults", {}).get("flow_capacity", {}).get("sink", {})
 
         # Collection rate resolution: equipment flow params -> equipment params -> sink defaults
-        collection_rate = (
-            eq_flow_params.get("collection_rate")
-            or eq_params.get("collection_rate")
-            or sink_defaults.get("collection_rate", 300.0)  # Last resort fallback
-        )
-        collection_interval = (
-            eq_flow_params.get("collection_interval")
-            or eq_params.get("collection_interval")
-            or sink_defaults.get("collection_interval", 0.1)
+        collection_rate = self._get_param("collection_rate", eq_flow_params, eq_params, sink_defaults, default=300.0)
+        collection_interval = self._get_param(
+            "collection_interval", eq_flow_params, eq_params, sink_defaults, default=0.1
         )
 
         # Log what we're using
@@ -340,31 +326,25 @@ class OntologyModelBuilder:
         )
 
         # Create flow capacity with proper resolution: equipment-specific -> sink defaults -> flow defaults
-        max_input_rate = (
-            eq_flow_params.get("max_input_rate")
-            or sink_defaults.get("max_input_rate")
-            or flow_defaults.get("max_input_rate", 350.0)
+        max_input_rate = self._get_param(
+            "max_input_rate", eq_flow_params, sink_defaults, flow_capacity_defaults, default=350.0
         )
-        max_output_rate = (
-            eq_flow_params.get("max_output_rate")
-            or sink_defaults.get("max_output_rate")
-            or flow_defaults.get("max_output_rate", 350.0)
+        max_output_rate = self._get_param(
+            "max_output_rate", eq_flow_params, sink_defaults, flow_capacity_defaults, default=350.0
         )
-        internal_capacity = (
-            eq_flow_params.get("internal_capacity")
-            or sink_defaults.get("internal_capacity")
-            or flow_defaults.get("internal_capacity", 10000.0)
+        internal_capacity = self._get_param(
+            "internal_capacity", eq_flow_params, sink_defaults, flow_capacity_defaults, default=10000.0
         )
-        initial_level = eq_flow_params.get("initial_level", 0.0)
+        initial_level = self._get_param("initial_level", eq_flow_params, default=0.0)
 
         logger.info(
-            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, sink_defaults, flow_defaults)})"
+            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, sink_defaults, flow_capacity_defaults)})"
         )
         logger.info(
-            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, sink_defaults, flow_defaults)})"
+            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, sink_defaults, flow_capacity_defaults)})"
         )
         logger.info(
-            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, sink_defaults, flow_defaults)})"
+            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, sink_defaults, flow_capacity_defaults)})"
         )
 
         capacity = FlowCapacity(
@@ -375,8 +355,8 @@ class OntologyModelBuilder:
         )
 
         # Create config dict with proper resolution
-        nominal_rate = eq_params.get("nominal_rate") or sink_defaults.get("nominal_rate", 300.0)
-        window_duration = eq_params.get("window_duration") or sink_defaults.get("window_duration", 5.0)
+        nominal_rate = self._get_param("nominal_rate", eq_params, sink_defaults, default=300.0)
+        window_duration = self._get_param("window_duration", eq_params, sink_defaults, default=5.0)
 
         config = {
             "name": sink_id,
@@ -414,17 +394,17 @@ class OntologyModelBuilder:
         eq_params = self.config.get("equipment_parameters", {}).get(equipment_id, {})
         eq_flow_params = self.config.get("flow_capacity", {}).get("equipment", {}).get(equipment_id, {})
         equipment_defaults = self.config.get("defaults", {}).get("equipment", {})
-        flow_defaults = self.config.get("flow_capacity", {}).get("defaults", {})
+        flow_capacity_defaults = self.config.get("defaults", {}).get("flow_capacity", {}).get("equipment", {})
 
         # Log what we're creating
         logger.info(f"Creating {equipment_id} (type: {equipment_type}):")
 
         # Create processing parameters with proper resolution
-        nominal_rate = eq_params.get("nominal_rate") or equipment_defaults.get("nominal_rate", 90.0)
-        quality_rate = eq_params.get("quality_rate") or equipment_defaults.get("quality_rate", 0.95)
-        performance_factor = eq_params.get("performance_factor") or equipment_defaults.get("performance_factor", 0.55)
-        batch_size = eq_params.get("batch_size") or equipment_defaults.get("batch_size", 10.0)
-        processing_interval = eq_params.get("processing_interval") or equipment_defaults.get("processing_interval", 0.1)
+        nominal_rate = self._get_param("nominal_rate", eq_params, equipment_defaults, default=90.0)
+        quality_rate = self._get_param("quality_rate", eq_params, equipment_defaults, default=0.95)
+        performance_factor = self._get_param("performance_factor", eq_params, equipment_defaults, default=0.55)
+        batch_size = self._get_param("batch_size", eq_params, equipment_defaults, default=10.0)
+        processing_interval = self._get_param("processing_interval", eq_params, equipment_defaults, default=0.1)
 
         logger.info(
             f"  nominal_rate: {nominal_rate} (from: {self._get_param_source('nominal_rate', eq_params, equipment_defaults)})"
@@ -448,10 +428,10 @@ class OntologyModelBuilder:
         )
 
         # Create failure parameters with proper resolution
-        mtbf = eq_params.get("mtbf") or equipment_defaults.get("mtbf", 60.0)
-        mttr = eq_params.get("mttr") or equipment_defaults.get("mttr", 30.0)
-        micro_stop_rate = eq_params.get("micro_stop_rate") or equipment_defaults.get("micro_stop_rate", 0.0)
-        micro_stop_duration = eq_params.get("micro_stop_duration") or equipment_defaults.get("micro_stop_duration", 0.0)
+        mtbf = self._get_param("mtbf", eq_params, equipment_defaults, default=60.0)
+        mttr = self._get_param("mttr", eq_params, equipment_defaults, default=30.0)
+        micro_stop_rate = self._get_param("micro_stop_rate", eq_params, equipment_defaults, default=0.0)
+        micro_stop_duration = self._get_param("micro_stop_duration", eq_params, equipment_defaults, default=0.0)
 
         logger.info(f"  mtbf: {mtbf} (from: {self._get_param_source('mtbf', eq_params, equipment_defaults)})")
         logger.info(f"  mttr: {mttr} (from: {self._get_param_source('mttr', eq_params, equipment_defaults)})")
@@ -464,31 +444,25 @@ class OntologyModelBuilder:
         )
 
         # Create flow capacity with proper resolution: equipment-specific -> equipment defaults -> flow defaults
-        max_input_rate = (
-            eq_flow_params.get("max_input_rate")
-            or equipment_defaults.get("max_input_rate")
-            or flow_defaults.get("max_input_rate", 100.0)
+        max_input_rate = self._get_param(
+            "max_input_rate", eq_flow_params, equipment_defaults, flow_capacity_defaults, default=100.0
         )
-        max_output_rate = (
-            eq_flow_params.get("max_output_rate")
-            or equipment_defaults.get("max_output_rate")
-            or flow_defaults.get("max_output_rate", 90.0)
+        max_output_rate = self._get_param(
+            "max_output_rate", eq_flow_params, equipment_defaults, flow_capacity_defaults, default=90.0
         )
-        internal_capacity = (
-            eq_flow_params.get("internal_capacity")
-            or equipment_defaults.get("internal_capacity")
-            or flow_defaults.get("internal_capacity", 500.0)
+        internal_capacity = self._get_param(
+            "internal_capacity", eq_flow_params, equipment_defaults, flow_capacity_defaults, default=500.0
         )
-        initial_level = eq_flow_params.get("initial_level", 0.0)
+        initial_level = self._get_param("initial_level", eq_flow_params, default=0.0)
 
         logger.info(
-            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, equipment_defaults, flow_defaults)})"
+            f"  max_input_rate: {max_input_rate} (from: {self._get_param_source('max_input_rate', eq_flow_params, equipment_defaults, flow_capacity_defaults)})"
         )
         logger.info(
-            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, equipment_defaults, flow_defaults)})"
+            f"  max_output_rate: {max_output_rate} (from: {self._get_param_source('max_output_rate', eq_flow_params, equipment_defaults, flow_capacity_defaults)})"
         )
         logger.info(
-            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, equipment_defaults, flow_defaults)})"
+            f"  internal_capacity: {internal_capacity} (from: {self._get_param_source('internal_capacity', eq_flow_params, equipment_defaults, flow_capacity_defaults)})"
         )
 
         capacity = FlowCapacity(
@@ -503,19 +477,19 @@ class OntologyModelBuilder:
 
         # Add type-specific parameters with proper resolution
         if equipment_type == "FillingStation":
-            fill_rate = eq_params.get("fill_rate") or equipment_defaults.get("fill_rate", 90.0)
+            fill_rate = self._get_param("fill_rate", eq_params, equipment_defaults, default=90.0)
             config["fill_rate"] = fill_rate
             logger.info(
                 f"  fill_rate: {fill_rate} (from: {self._get_param_source('fill_rate', eq_params, equipment_defaults)})"
             )
         elif equipment_type == "PackingStation":
-            pack_size = eq_params.get("pack_size") or equipment_defaults.get("pack_size", 12)
+            pack_size = self._get_param("pack_size", eq_params, equipment_defaults, default=12)
             config["pack_size"] = pack_size
             logger.info(
                 f"  pack_size: {pack_size} (from: {self._get_param_source('pack_size', eq_params, equipment_defaults)})"
             )
         elif equipment_type == "PalletizingStation":
-            pallet_size = eq_params.get("pallet_size") or equipment_defaults.get("pallet_size", 144)
+            pallet_size = self._get_param("pallet_size", eq_params, equipment_defaults, default=144)
             config["pallet_size"] = pallet_size
             logger.info(
                 f"  pallet_size: {pallet_size} (from: {self._get_param_source('pallet_size', eq_params, equipment_defaults)})"
@@ -552,24 +526,12 @@ class OntologyModelBuilder:
         buffer_defaults = self.config.get("defaults", {}).get("buffer", {})
 
         # Get flow capacity parameters
-        capacity_value = (
-            buffer_data.get("capacity") or buffer_config.get("capacity") or buffer_defaults.get("capacity", 100.0)
+        capacity_value = self._get_param("capacity", buffer_data, buffer_config, buffer_defaults, default=100.0)
+        max_input_rate = self._get_param("max_input_rate", buffer_data, buffer_config, buffer_defaults, default=100.0)
+        max_output_rate = self._get_param(
+            "max_output_rate", buffer_data, buffer_config, buffer_defaults, default=100.0
         )
-        max_input_rate = (
-            buffer_data.get("max_input_rate")
-            or buffer_config.get("max_input_rate")
-            or buffer_defaults.get("max_input_rate", 100.0)
-        )
-        max_output_rate = (
-            buffer_data.get("max_output_rate")
-            or buffer_config.get("max_output_rate")
-            or buffer_defaults.get("max_output_rate", 100.0)
-        )
-        initial_level = (
-            buffer_data.get("initial_level")
-            or buffer_config.get("initial_level")
-            or buffer_defaults.get("initial_level", 0.0)
-        )
+        initial_level = self._get_param("initial_level", buffer_data, buffer_config, buffer_defaults, default=0.0)
 
         flow_capacity = FlowCapacity(
             max_input_rate=max_input_rate,
@@ -579,25 +541,19 @@ class OntologyModelBuilder:
         )
 
         # Get buffer parameters
-        mode_str = buffer_data.get("buffer_type") or buffer_config.get("mode") or buffer_defaults.get("mode", "FIFO")
+        mode_str = self._get_param("buffer_type", buffer_data, default=None) or self._get_param(
+            "mode", buffer_config, buffer_defaults, default="FIFO"
+        )
         mode = BufferMode.FIFO if mode_str.upper() == "FIFO" else BufferMode.FILO
 
-        warning_low = (
-            buffer_data.get("warning_level_low")
-            or buffer_config.get("warning_level_low")
-            or buffer_defaults.get("warning_level_low", 0.2)
+        warning_low = self._get_param(
+            "warning_level_low", buffer_data, buffer_config, buffer_defaults, default=0.2
         )
-        warning_high = (
-            buffer_data.get("warning_level_high")
-            or buffer_config.get("warning_level_high")
-            or buffer_defaults.get("warning_level_high", 0.8)
+        warning_high = self._get_param(
+            "warning_level_high", buffer_data, buffer_config, buffer_defaults, default=0.8
         )
-        max_dwell_time = (
-            buffer_data.get("max_dwell_time")
-            or buffer_config.get("max_dwell_time")
-            or buffer_defaults.get("max_dwell_time", 180.0)
-        )
-        update_interval = buffer_config.get("update_interval") or buffer_defaults.get("update_interval", 0.01)
+        max_dwell_time = self._get_param("max_dwell_time", buffer_data, buffer_config, buffer_defaults, default=180.0)
+        update_interval = self._get_param("update_interval", buffer_config, buffer_defaults, default=0.01)
 
         buffer_params = BufferParameters(
             mode=mode,
@@ -752,6 +708,34 @@ class OntologyModelBuilder:
 
         return metrics
 
+    def _get_param(self, param_name: str, *dicts: Dict, default=None) -> Any:
+        """Safely resolve parameter from multiple dicts, treating 0 as valid.
+
+        This method fixes the zero-value bug where explicit config values of 0
+        would be treated as falsy and fall through to defaults.
+
+        Args:
+            param_name: Parameter to resolve
+            *dicts: Priority-ordered dictionaries to check (first match wins)
+            default: Final fallback value if not found anywhere
+
+        Returns:
+            First non-None value found, or default
+
+        Example:
+            >>> rate = self._get_param("rate", eq_params, defaults, default=100.0)
+            # If eq_params["rate"] = 0, returns 0 (not 100.0)
+            # If eq_params["rate"] = None, checks defaults
+            # If defaults["rate"] = 50, returns 50
+            # If both None/missing, returns 100.0
+        """
+        for d in dicts:
+            if d is not None and param_name in d:
+                value = d.get(param_name)
+                if value is not None:
+                    return value
+        return default
+
     def _get_param_source(self, param_name: str, *param_dicts: Dict) -> str:
         """Helper to identify parameter source for logging.
 
@@ -765,7 +749,7 @@ class OntologyModelBuilder:
         source_names = ["equipment_parameters", "flow_capacity", "defaults"]
 
         for i, param_dict in enumerate(param_dicts):
-            if param_name in param_dict and param_dict[param_name] is not None:
+            if param_dict is not None and param_name in param_dict and param_dict[param_name] is not None:
                 if i < len(source_names):
                     return source_names[i]
                 else:

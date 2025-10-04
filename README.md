@@ -71,11 +71,14 @@ for equip_id, equip_metrics in metrics.items():
 Run a complete simulation with production orders:
 
 ```bash
-# Run with default configuration
+# Run with default configuration (orders cycle to fill duration)
 poetry run python run_twin_simulation.py
 
-# Run with custom duration (in days)
+# Run with custom duration (orders automatically cycle for 7 days)
 poetry run python run_twin_simulation.py --days 7
+
+# Run without order cycling (stop when initial orders complete)
+poetry run python run_twin_simulation.py --days 1 --no-cycle-orders
 
 # Run with debug output
 poetry run python run_twin_simulation.py --debug
@@ -84,7 +87,9 @@ poetry run python run_twin_simulation.py --debug
 This will:
 - Load configuration from `config/tunable_parameters.yaml`
 - Process production orders from `manifests/production_orders_manifest.yaml`
-- Generate MES output to `test_mes_output.csv`
+- **Automatically cycle orders** to fill simulation duration (default behavior)
+- Schedule orders **per-line independently** (each line starts at t=0)
+- Generate MES output with **correct order tracking** via background sync
 - Display real-time OEE metrics
 
 ## Configuration Files
@@ -153,6 +158,12 @@ order = ProductionOrder(
 source = model['primitives']['LINE1-SOURCE']
 source.add_order(order)
 ```
+
+**Note**: When using the simulation runner script:
+- Orders **automatically cycle** to fill the simulation duration by default
+- Each line schedules orders **independently** (not globally sequenced)
+- Use `--no-cycle-orders` flag to disable automatic cycling
+- MES tracking ensures correct order IDs via background synchronization
 
 ## Documentation
 
