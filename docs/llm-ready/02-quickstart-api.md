@@ -60,9 +60,20 @@ OntologyModelBuilder(
 1. **Load Files** - Reads and parses the three YAML files
 2. **Validate** - Checks manifest against ontology constraints
 3. **Create Primitives** - Instantiates flow primitives based on equipment types
-4. **Apply Parameters** - Sets operational parameters from config
+4. **Apply Parameters** - Sets operational parameters from config using explicit None checking
 5. **Wire Connections** - Connects equipment using shared SimPy containers
 6. **Start Processes** - Initializes all SimPy processes
+
+**Parameter Resolution:**
+
+The builder resolves parameters using a four-tier hierarchy with explicit `None` checking to properly handle zero and small values:
+
+1. Equipment-specific parameters (`equipment_parameters.LINE1-FIL.nominal_rate`)
+2. Type defaults (`defaults.equipment.nominal_rate`)
+3. Flow capacity defaults (`defaults.flow_capacity.equipment.max_input_rate`)
+4. Hardcoded fallbacks (last resort)
+
+**Critical:** As of v2.0, zero and small configuration values (e.g., `nominal_rate: 0.01`) are properly honored instead of falling through to defaults. The `_get_param()` helper method uses explicit `if value is not None` checks rather than relying on Python's truthiness evaluation.
 
 ### Flow Primitives
 

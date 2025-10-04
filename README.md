@@ -2,6 +2,30 @@
 
 An ontology-driven simulation framework for manufacturing systems using SimPy containers.
 
+---
+
+## 🤖 For Claude Code Sessions
+
+**New to this project?** Start by loading these context documents in order:
+
+1. **@TWIN_MODEL_QUICK_REFERENCE.md** - Core concepts, architecture, and common patterns (START HERE)
+2. **@README.md** (this file) - Project overview and installation
+3. **@docs/llm-ready/05-configuration-reference.md** - Complete configuration reference (when configuring)
+4. **@config/tunable_parameters.yaml** - Actual configuration file to modify
+
+**For specific tasks:**
+- Running simulations → See "Standalone Simulation" section below
+- Configuration help → `@docs/llm-ready/05-configuration-reference.md`
+- API programming → `@docs/llm-ready/02-quickstart-api.md`
+- Troubleshooting → `@docs/llm-ready/00-user-guide.md` Part 5
+- MES integration → `@docs/llm-ready/04-mes-integration-guide.md`
+
+**Recent critical fixes:**
+- ✅ Zero-value configuration bug fixed (v2.0) - small config values now properly honored
+- See `@CHANGELOG.md` for details
+
+---
+
 ## Overview
 
 Twin Model provides a flexible, ontology-driven architecture for simulating production lines and manufacturing systems. It separates concerns into three distinct layers:

@@ -580,6 +580,25 @@ mes_collector.configure(
 )
 ```
 
+#### 6. Zero or Small Config Values Not Honored (FIXED in v2.0)
+
+**Previous Issue**: Configuration values like `nominal_rate: 0.01` or `mtbf: 0` would fall through to defaults
+
+**Status**: ✅ Fixed as of v2.0
+
+**Explanation**: The framework now uses explicit `None` checking for parameter resolution. Zero and small values are treated as valid configuration values.
+
+```yaml
+# These values are now properly honored:
+equipment_parameters:
+  TEST-EQUIPMENT:
+    nominal_rate: 0.01      # ✅ Will be 0.01
+    quality_rate: 0.0       # ✅ Will be 0.0
+    mtbf: 0.1              # ✅ Will be 0.1
+```
+
+**Note**: Only missing parameters (no key in YAML) fall through to defaults. Explicit zero values are respected.
+
 ### Performance Optimization Tips
 
 1. **Reduce update intervals** for faster simulation:

@@ -55,6 +55,92 @@ equipment:
 - `performance_factors`: Product-specific rate adjustments
 - `debug_mode`: (Global setting) Enable verbose logging for troubleshooting
 
+### Flow Capacity Defaults (NEW in v2.0)
+
+All flow-related defaults are centralized in the `defaults` section of `tunable_parameters.yaml`:
+
+```yaml
+defaults:
+  source:
+    generation_rate: 60.0
+    generation_interval: 0.01
+    continuous_mode: true
+    default_product: SKU-1001
+
+  equipment:
+    performance_factor: 0.85
+    processing_interval: 0.01
+    quality_rate: 0.95
+    mtbf: 120.0
+    mttr: 10.0
+    micro_stop_rate: 3.0
+    micro_stop_duration: 60.0
+
+  sink:
+    collection_rate: 50.0
+    collection_interval: 0.01
+    window_duration: 5.0
+    nominal_rate: 300.0
+
+  flow_capacity:
+    source:
+      max_input_rate: 350.0
+      max_output_rate: 350.0
+      internal_capacity: 2000.0
+      initial_level: 0.0
+    sink:
+      max_input_rate: 350.0
+      max_output_rate: 350.0
+      internal_capacity: 10000.0
+      initial_level: 0.0
+    equipment:
+      max_input_rate: 100.0
+      max_output_rate: 90.0
+      internal_capacity: 500.0
+      initial_level: 0.0
+
+  buffer:
+    capacity: 100.0
+    mode: FIFO
+    update_interval: 0.01
+```
+
+**Parameter Resolution Hierarchy:**
+
+The system resolves parameters using a four-tier hierarchy:
+1. **Equipment-specific** (`equipment_parameters.LINE1-FIL.nominal_rate`)
+2. **Type defaults** (`defaults.equipment.nominal_rate`)
+3. **Flow capacity defaults** (`defaults.flow_capacity.equipment.max_input_rate`)
+4. **Hardcoded fallback** (last resort, defined in code)
+
+**Zero-Value Handling (CRITICAL FIX):**
+
+⚠️ **As of v2.0**, the framework properly handles explicit zero or small configuration values.
+
+Previously, Python's truthiness evaluation caused values like `nominal_rate: 0.01` or `mtbf: 0` to fall through to defaults. This has been fixed using explicit `None` checking:
+
+```yaml
+# These small/zero values are NOW properly honored:
+equipment_parameters:
+  TEST-EQUIPMENT:
+    nominal_rate: 0.01        # ✅ Will be 0.01, not default (100.0)
+    quality_rate: 0.01        # ✅ Will be 0.01, not default (0.95)
+    performance_factor: 0     # ✅ Will be 0, not default (0.85)
+    mtbf: 0.1                # ✅ Will be 0.1, not default (120.0)
+```
+
+**What Changed:**
+- All parameter resolution now uses `_get_param()` helper with explicit `if value is not None` checks
+- Zero, small floats, empty strings, and `False` are treated as valid configuration values
+- Only `None` (missing keys) triggers fallback to next tier in hierarchy
+- Affects 21+ parameter resolution locations across source, sink, equipment, and buffer creation
+
+**Use Cases:**
+- Testing edge cases with very small rates
+- Disabling features by setting parameters to 0
+- Configuring minimal-capacity buffers
+- Setting up special test scenarios
+
 ### 2. MES Parameters (Integrated into `tunable_parameters.yaml`)
 
 MES settings are now integrated into the main configuration file. The MES collector automatically uses the equipment parameters for data generation.
