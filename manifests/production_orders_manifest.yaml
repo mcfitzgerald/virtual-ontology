@@ -151,42 +151,46 @@ order_tracking:
   update_interval_minutes: 5.0
 
 # Production orders
+# Sized for ~12 hour production runs to enable proper order cycling over 14 days
+# At ~46% OEE: LINE1=46 u/min, LINE2=69 u/min, LINE3=92 u/min actual throughput
+# 12 hours = 720 minutes: LINE1=33K, LINE2=50K, LINE3=66K units per cycle
 orders:
-  # LINE1 orders - Water and Juice products
+  # LINE1 orders - Baseline 50 u/min @ ~46% OEE = 23 u/min actual
+  # 8-12 hour orders: 23 u/min × 600 min = ~14K units
   - order_id: "ORD-LINE1-001"
     product_id: "SKU-1001"
-    target_volume: 2000.0
+    target_volume: 15000.0
     line_id: "LINE1"
     priority: 8
 
   - order_id: "ORD-LINE1-002"
     product_id: "SKU-1002"
-    target_volume: 1500.0
+    target_volume: 12000.0
     line_id: "LINE1"
     priority: 7
 
-  # LINE2 orders - Soda and Sports drinks
+  # LINE2 orders - Baseline 45 u/min @ ~46% OEE = 21 u/min actual
   - order_id: "ORD-LINE2-001"
     product_id: "SKU-2001"
-    target_volume: 2500.0
+    target_volume: 13000.0
     line_id: "LINE2"
     priority: 9
 
   - order_id: "ORD-LINE2-002"
     product_id: "SKU-3001"
-    target_volume: 1800.0
+    target_volume: 11000.0
     line_id: "LINE2"
     priority: 6
 
-  # LINE3 orders - Mixed product line
+  # LINE3 orders - Baseline 40 u/min @ ~46% OEE = 18 u/min actual
   - order_id: "ORD-LINE3-001"
     product_id: "SKU-2001"
-    target_volume: 2200.0
+    target_volume: 11000.0
     line_id: "LINE3"
     priority: 8
 
   - order_id: "ORD-LINE3-002"
     product_id: "SKU-3001"
-    target_volume: 1600.0
+    target_volume: 10000.0
     line_id: "LINE3"
     priority: 7

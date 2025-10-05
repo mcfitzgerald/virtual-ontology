@@ -114,6 +114,9 @@ This will:
 - **Automatically cycle orders** to fill simulation duration (default behavior)
 - Schedule orders **per-line independently** (each line starts at t=0)
 - Generate MES output with **correct order tracking** via background sync
+- Auto-insert accumulation buffers between equipment to stabilize flow
+- Derive order durations from product manifest rates (no 50 u/min assumption)
+- More accurate OEE windows (delta-based) in line summaries
 - Display real-time OEE metrics
 
 ## Configuration Files
@@ -187,6 +190,9 @@ source.add_order(order)
 - Orders **automatically cycle** to fill the simulation duration by default
 - Each line schedules orders **independently** (not globally sequenced)
 - Use `--no-cycle-orders` flag to disable automatic cycling
+- Order duration is derived from product manifest target rates when available
+- Accumulation buffers are auto-inserted between equipment to reduce BLOCKED/STARVED cascades
+- Per-line failure tuning can be done in `config/tunable_parameters.yaml`
 - MES tracking ensures correct order IDs via background synchronization
 
 ## Documentation

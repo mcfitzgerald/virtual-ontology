@@ -202,6 +202,8 @@ LINE1:
 - **Multi-line support**: Automatically routes orders to correct line
 - **Real-time metrics**: Continuous OEE and production tracking
 - **CLI Flexibility**: `--days` for convenient duration, `--debug` for verbose output
+ - **Order duration derivation**: Uses product manifest target rates when available (fallback to 50 u/min)
+ - **Auto buffers**: Accumulation buffers auto-inserted between equipment to stabilize flow
 
 ## Common Patterns
 
@@ -289,6 +291,7 @@ mes_collector.save_to_csv("mes_data.csv")
 8. **MES Collection**: 5-minute intervals balance detail vs performance
    - Core equipment only (FIL, PCK, PAL) - not buffers/sources/sinks
    - Expected rows: (# equipment) × (duration÷5 + 1) - e.g., 9×12=108 for 60 minutes
+10. **Buffers**: For direct equipment connections, the builder auto-inserts buffers sized to adjacent equipment rates. Override defaults in `defaults.buffer` or define explicit buffers in the manifest.
 
 ## Troubleshooting
 

@@ -87,12 +87,34 @@ def load_production_orders(
                 orders_by_line[line_id] = []
 
             # Calculate order duration based on target volume if not specified
-            # Assume nominal rate of 50 units/minute as default
+            # Derive nominal rate from product manifest when possible; fallback to 50 u/min
             if "scheduled_duration" in order_data:
                 order_duration = order_data["scheduled_duration"]
             else:
-                # Estimate duration from volume (assume 50 units/min rate)
+                # Try to read product manifest target rate (units per 5 minutes)
+                product_id = order_data.get("product_id")
                 nominal_rate = 50.0
+                try:
+                    # Load product manifest once per call (outside loop would be better, but keep function pure)
+                    # Note: This function doesn't have product manifest path; use default location
+                    product_manifest_path = Path("manifests/product_manifest.yaml")
+                    if product_manifest_path.exists() and product_id:
+                        with open(product_manifest_path) as pf:
+                            pm_data = yaml.safe_load(pf) or {}
+                        prod = (pm_data.get("products", {}) or {}).get(product_id, {})
+                        target_rate_5min = prod.get("production", {}).get("target_rate_5min")
+                        nominal_rate_per_min = None
+                        if target_rate_5min:
+                            nominal_rate_per_min = float(target_rate_5min) / 5.0
+                        else:
+                            nominal_rate_per_min = prod.get("production", {}).get("nominal_rate_per_min")
+
+                        if nominal_rate_per_min and float(nominal_rate_per_min) > 0:
+                            nominal_rate = float(nominal_rate_per_min)
+                except Exception:
+                    # Fall back silently to default
+                    pass
+
                 order_duration = (order_data["target_volume"] / nominal_rate) * 1.2  # Add 20% buffer
 
             # Use specified start time or calculate sequentially FOR THIS LINE

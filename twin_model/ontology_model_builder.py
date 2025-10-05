@@ -631,13 +631,84 @@ class OntologyModelBuilder:
                 logger.info(f"Wired buffer: {from_id} -> {to_id}")
                 self.connections.append({"from": from_id, "to": to_id})
             elif hasattr(upstream, "output_buffer") and hasattr(downstream, "input_buffer"):
-                # Share buffers - upstream's output becomes downstream's input
-                # Don't create a new buffer - share the existing one!
-                # The downstream's input buffer becomes the upstream's output buffer
-                downstream.input_buffer = upstream.output_buffer
+                # Auto-insert accumulation buffer between equipment-to-equipment connections
+                from .primitives.equipment_flow import EquipmentFlow  # local import to avoid cycles
 
-                logger.info(f"Wired: {from_id} -> {to_id} (shared buffer)")
-                self.connections.append({"from": from_id, "to": to_id})
+                upstream_is_eq = isinstance(upstream, EquipmentFlow)
+                downstream_is_eq = isinstance(downstream, EquipmentFlow)
+
+                if upstream_is_eq and downstream_is_eq:
+                    # Create an auto buffer to decouple stages
+                    auto_buffer_id = f"{from_id}-BUF-{to_id}"
+                    # Ensure uniqueness
+                    suffix = 1
+                    unique_buffer_id = auto_buffer_id
+                    while unique_buffer_id in self.primitives:
+                        unique_buffer_id = f"{auto_buffer_id}-{suffix}"
+                        suffix += 1
+
+                    # Derive flow capacity based on adjacent equipment capabilities
+                    # Input limited by upstream max_output_rate; output limited by downstream max_input_rate
+                    max_input_rate = getattr(upstream.flow_capacity, "max_output_rate", 100.0)
+                    max_output_rate = getattr(downstream.flow_capacity, "max_input_rate", 100.0)
+
+                    # Internal capacity: prefer config defaults if present; otherwise 500 units
+                    buffer_defaults = self.config.get("defaults", {}).get("buffer", {})
+                    internal_capacity = buffer_defaults.get("capacity", 500.0)
+                    initial_level = buffer_defaults.get("initial_level", 0.0)
+
+                    flow_capacity = FlowCapacity(
+                        max_input_rate=max_input_rate,
+                        max_output_rate=max_output_rate,
+                        internal_capacity=internal_capacity,
+                        initial_level=initial_level,
+                    )
+
+                    # Buffer parameters with sane defaults
+                    mode_str = str(buffer_defaults.get("mode", "FIFO")).upper()
+                    mode = BufferMode.FIFO if mode_str == "FIFO" else BufferMode.FILO
+                    warning_low = float(buffer_defaults.get("warning_level_low", 0.2))
+                    warning_high = float(buffer_defaults.get("warning_level_high", 0.8))
+                    max_dwell_time = float(buffer_defaults.get("max_dwell_time", 180.0))
+                    update_interval = float(buffer_defaults.get("update_interval", 0.1))
+
+                    buffer_params = BufferParameters(
+                        mode=mode,
+                        warning_level_low=warning_low,
+                        warning_level_high=warning_high,
+                        max_dwell_time=max_dwell_time,
+                        update_interval=update_interval,
+                    )
+
+                    # Create buffer primitive
+                    buffer_config = {"id": unique_buffer_id, "name": unique_buffer_id}
+                    auto_buffer = AccumulationBuffer(
+                        env=self.env,
+                        config=buffer_config,
+                        flow_capacity=flow_capacity,
+                        buffer_params=buffer_params,
+                    )
+
+                    # Wire upstream -> buffer
+                    auto_buffer.connect(upstream, None)
+                    if hasattr(upstream, "output_buffer"):
+                        auto_buffer.input_container = upstream.output_buffer
+
+                    # Wire buffer -> downstream
+                    auto_buffer.downstream = downstream
+
+                    # Register buffer and connections
+                    self.primitives[unique_buffer_id] = auto_buffer
+                    logger.info(f"Inserted auto buffer between {from_id} -> {to_id}: {unique_buffer_id}")
+
+                    self.connections.append({"from": from_id, "to": unique_buffer_id})
+                    self.connections.append({"from": unique_buffer_id, "to": to_id})
+                else:
+                    # Share buffers - upstream's output becomes downstream's input
+                    downstream.input_buffer = upstream.output_buffer
+
+                    logger.info(f"Wired: {from_id} -> {to_id} (shared buffer)")
+                    self.connections.append({"from": from_id, "to": to_id})
             else:
                 logger.warning(f"Cannot wire {from_id} -> {to_id}: missing buffers")
 

@@ -8,6 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **Configuration architecture**: Restored batch-based parameter structure with enhanced documentation
+  - Reverted `tunable_parameters.yaml` from continuous flow migration back to original batch-based design
+  - Added comprehensive inline comments explaining parameter semantics and units
+  - Improved YAML structure with clearer parameter grouping and defaults
+  - Maintained performance improvements while restoring familiar configuration patterns
+
+### Added
+- Auto-inserted accumulation buffers between equipment primitives
+  - Builder now inserts `AccumulationBuffer` between `EquipmentFlow→EquipmentFlow` connections
+  - Buffer rates derived from adjacent equipment capacities; capacity defaults configurable
+  - Greatly reduces BLOCKED/STARVED cascades; improves line stability out-of-the-box
+- Sink OEE window accuracy improvements
+  - Windowed volumes now use delta accounting (not running averages)
+  - Per-window downtime derived from cumulative state durations
+  - Produces consistent line OEE in progress/final summaries
+- Production order volume optimization
+  - Order sizes scaled for ~12 hour production runs to enable proper cycling over 14-day simulations
+  - Volumes adjusted based on actual throughput at ~46% OEE per line
+
+### Changed
+- Order duration estimation uses product manifest rates (not hardcoded 50 u/min)
+  - Falls back to 50 u/min if product not found or missing rate
+  - Aligns schedule timing with actual product capabilities
+- Documentation: updated README and Quickstart to reflect order cycling and buffers
+
+### Fixed
+- Excessive LINE3 failures
+  - Tuned LINE3 MTBF/MTTR and micro-stop parameters for realistic availability
+  - Result: Stable FLOWING on LINE3 with improved OEE in short-run validations
+
+### Changed
 - **Code quality improvements**: Major linting and formatting overhaul
   - Applied ruff auto-fixes to all 42 Python files (1313 style issues resolved)
   - Reformatted 33 files for consistent code style

@@ -195,38 +195,61 @@ class SinkFlow(BaseFlowPrimitive):
             self.current_window_start = self.env.now
 
     def _get_window_volume(self) -> float:
-        """Get volume collected in current window."""
-        # This is simplified - in production would track per window
-        return self.total_collected / max(1, len(self.production_windows) + 1)
+        """Get delta volume collected in the current window.
+
+        Uses cumulative totals and subtracts volumes already assigned to
+        previous windows to compute the per-window delta accurately.
+        """
+        if not self.production_windows:
+            return self.total_collected
+
+        prior_total = sum(w.volume for w in self.production_windows)
+        return max(0.0, self.total_collected - prior_total)
 
     def _get_window_good_volume(self) -> float:
-        """Get good volume in current window."""
-        return self.total_good / max(1, len(self.production_windows) + 1)
+        """Get delta good volume in current window."""
+        if not self.production_windows:
+            return self.total_good
+
+        prior_good = sum(w.good_volume for w in self.production_windows)
+        return max(0.0, self.total_good - prior_good)
 
     def _get_window_scrap_volume(self) -> float:
-        """Get scrap volume in current window from upstream equipment."""
-        # Aggregate scrap from all upstream equipment
-        total_scrap = 0.0
+        """Get delta scrap volume in current window from upstream equipment.
+
+        Computes the difference between current cumulative upstream scrap
+        and the sum of previously attributed scrap volumes.
+        """
+        # Aggregate cumulative scrap from all upstream equipment
+        cumulative_scrap = 0.0
         for equipment in self.upstream_equipment:
             if hasattr(equipment, "flow_metrics") and hasattr(equipment.flow_metrics, "total_scrap"):
-                total_scrap += equipment.flow_metrics.total_scrap
+                cumulative_scrap += equipment.flow_metrics.total_scrap
 
-        # Calculate scrap for this window (approximate)
-        if len(self.production_windows) > 0:
-            # Use recent scrap rate
-            return total_scrap / max(1, len(self.production_windows) + 1)
-        else:
-            # First window - use all scrap so far
-            return total_scrap
+        if not self.production_windows:
+            return cumulative_scrap
+
+        prior_scrap = sum(w.scrap_volume for w in self.production_windows)
+        return max(0.0, cumulative_scrap - prior_scrap)
 
     def _get_window_downtime(self) -> float:
-        """Get downtime in current window."""
-        # Calculate from state durations
+        """Get delta downtime in current window.
+
+        Uses cumulative state durations from the base flow metrics and
+        subtracts the sum of downtime already attributed to previous
+        windows to produce a per-window downtime value.
+        """
         idle_time = self.flow_metrics.state_durations.get(FlowState.IDLE, 0.0)
         starved_time = self.flow_metrics.state_durations.get(FlowState.STARVED_UPSTREAM, 0.0)
         blocked_time = self.flow_metrics.state_durations.get(FlowState.BLOCKED_DOWNSTREAM, 0.0)
 
-        return (idle_time + starved_time + blocked_time) / max(1, len(self.production_windows) + 1)
+        cumulative_downtime = idle_time + starved_time + blocked_time
+
+        if not self.production_windows:
+            return cumulative_downtime
+
+        prior_downtime = sum(w.downtime for w in self.production_windows)
+        return max(0.0, cumulative_downtime - prior_downtime)
 
     def _calculate_window_oee(self, window: ProductionWindow) -> OEEMetrics:
         """Calculate OEE for a production window."""
